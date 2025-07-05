@@ -20,11 +20,19 @@ export class ModelLoader {
     
     this.cache = new Map();
     
+    // Track if we've already set up KTX2 to avoid multiple instances
+    this.ktx2SetupComplete = false;
+    
     // Try to set up KTX2 loader, but don't fail if it doesn't work
     this.setupKTX2Loader();
   }
 
   setupKTX2Loader() {
+    // Prevent multiple KTX2 loader instances
+    if (this.ktx2SetupComplete || this.ktx2Loader) {
+      return;
+    }
+    
     try {
       this.ktx2Loader = new KTX2Loader();
       
@@ -35,6 +43,7 @@ export class ModelLoader {
       if (this.renderer) {
         this.ktx2Loader.detectSupport(this.renderer);
         this.loader.setKTX2Loader(this.ktx2Loader);
+        this.ktx2SetupComplete = true;
       }
     } catch (error) {
       console.warn('KTX2 loader setup failed, falling back to standard textures:', error);
@@ -45,8 +54,8 @@ export class ModelLoader {
   setRenderer(renderer) {
     this.renderer = renderer;
     
-    // If we have a KTX2 loader but haven't set it up with renderer yet
-    if (this.ktx2Loader && renderer) {
+    // If we have a KTX2 loader but haven't completed setup with renderer yet
+    if (this.ktx2Loader && renderer && !this.ktx2SetupComplete) {
       try {
         this.ktx2Loader.detectSupport(renderer);
         this.loader.setKTX2Loader(this.ktx2Loader);
@@ -153,10 +162,19 @@ export class ModelLoader {
   }
 
   dispose() {
-    this.cache.clear();
-    this.dracoLoader.dispose();
+    // Dispose of loaders properly to prevent multiple instance warnings
     if (this.ktx2Loader) {
       this.ktx2Loader.dispose();
+      this.ktx2Loader = null;
     }
+    
+    if (this.dracoLoader) {
+      this.dracoLoader.dispose();
+    }
+    
+    // Clear cache
+    this.cache.clear();
+    
+    this.ktx2SetupComplete = false;
   }
 }

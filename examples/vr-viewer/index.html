@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BelowJS VR Demo</title>
+  
+  <!-- VR-specific meta tags -->
+  <meta name="description" content="Immersive underwater exploration in VR">
+  <meta name="theme-color" content="#041729">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Import BelowJS styles -->
+  <link rel="stylesheet" href="../../src/styles/base.css">
+  <link rel="stylesheet" href="../../src/styles/components.css">
+  <link rel="stylesheet" href="../../src/styles/theme.css">
+  <link rel="stylesheet" href="../../src/styles/vr.css">
+</head>
+<body>
+  <div id="container"></div>
+  
+  <script type="module">
+    import { ModelViewer } from '../../src/viewers/ModelViewer.js';
+
+    // VR-enabled model configurations with proper positioning
+    const models = {
+      'key_biscayne': { 
+        url: '../basic-viewer/models/key_biscayne.glb', 
+        name: 'Key Biscayne Wreck', 
+        credit: 'BelowJS VR Demo',
+        initialPositions: {
+          desktop: {
+            camera: { x: 33.494, y: 36.42, z: -83.442 },
+            target: { x: -3.602, y: -6.611, z: -23.97 }
+          },
+          vr: {
+            dolly: { x: 0, y: 2, z: 15 },
+            rotation: { x: 0, y: 0, z: 0 }
+          }
+        }
+      },
+      'kxi': { 
+        url: '../basic-viewer/models/kxi.glb', 
+        name: 'HNLMS K XI (1946)', 
+        credit: 'BelowJS VR Demo',
+        initialPositions: {
+          desktop: {
+            camera: { x: -6.391, y: 12.461, z: -42.105 },
+            target: { x: 1.529, y: 0.088, z: -14.334 }
+          },
+          vr: {
+            dolly: { x: 0, y: 2, z: 15 },
+            rotation: { x: 0, y: 0, z: 0 }
+          }
+        }
+      },
+      'sesa': { 
+        url: '../basic-viewer/models/sesa.glb', 
+        name: 'Sesa Wreck', 
+        credit: 'BelowJS VR Demo',
+        initialPositions: {
+          desktop: {
+            camera: { x: 18.93, y: 11.572, z: 52.508 },
+            target: { x: -1.613, y: -8.088, z: 4.822 }
+          },
+          vr: {
+            dolly: { x: 0, y: 2, z: 15 },
+            rotation: { x: 0, y: 0, z: 0 }
+          }
+        }
+      },
+      'unknown': { 
+        url: '../basic-viewer/models/unknown.glb', 
+        name: 'Unknown Wreck', 
+        credit: 'BelowJS VR Demo',
+        initialPositions: {
+          desktop: {
+            camera: { x: 34.226, y: 10.354, z: 2.12 },
+            target: { x: 10.959, y: -1.07, z: 2.247 }
+          },
+          vr: {
+            dolly: { x: 0, y: 2, z: 15 },
+            rotation: { x: 0, y: 0, z: 0 }
+          }
+        }
+      }
+    };
+
+    // VR-optimized scene configuration
+    const viewerConfig = {
+      scene: {
+        background: { type: 'color', value: '#041729' }, // Deep ocean blue
+        fog: { 
+          enabled: false, // Start in survey mode (no fog)
+          color: '#041729', 
+          near: 10, 
+          far: 100 
+        }
+      },
+      camera: {
+        fov: 65,
+        near: 0.05,
+        far: 2000, // Will be optimized to 20m for Quest 2 in VR
+        position: { x: 0, y: 5, z: 10 },
+        desktop: {
+          enableDamping: true,
+          dampingFactor: 0.08,
+          maxDistance: 200,
+          minDistance: 0.5
+        }
+      },
+      renderer: {
+        antialias: true,
+        alpha: false,
+        powerPreference: 'high-performance'
+      },
+      vr: {
+        enabled: true // Enable VR support
+      }
+    };
+
+    // Initialize ModelViewer with VR support
+    const container = document.getElementById('container');
+    const viewer = new ModelViewer(container, {
+      models,
+      viewerConfig,
+      showInfo: true, // Show info panel on desktop
+      autoLoadFirst: true
+    });
+
+    // VR event handlers
+    viewer.on('vr-session-start', () => {
+      console.log('🥽 VR session started!');
+      document.body.classList.add('vr-mode');
+    });
+
+    viewer.on('vr-session-end', () => {
+      console.log('🖥️ VR session ended');
+      document.body.classList.remove('vr-mode');
+    });
+
+    viewer.on('vr-mode-toggle', () => {
+      console.log('🔄 VR mode toggled via controller');
+    });
+
+    viewer.on('vr-movement-start', () => {
+      console.log('🚀 VR movement started');
+    });
+
+    viewer.on('vr-movement-stop', () => {
+      console.log('🛑 VR movement stopped');
+    });
+
+    viewer.on('vr-movement-update', ({ speed, boostLevel }) => {
+      // Could be used for audio/visual feedback
+      if (boostLevel > 0.5) {
+        console.log('⚡ VR boost active');
+      }
+    });
+
+    viewer.on('model-loaded', ({ url }) => {
+      console.log('✅ Model loaded:', url);
+    });
+
+    viewer.on('error', (error) => {
+      console.error('❌ Viewer error:', error);
+    });
+
+    // Export viewer to global scope for debugging
+    window.viewer = viewer;
+    
+    console.log('🚀 BelowJS VR Demo initialized');
+    console.log('💡 Instructions:');
+    console.log('  Desktop: Drag to orbit, scroll to zoom, double-click to focus');
+    console.log('  VR: Use controller thumbsticks to move/fly/turn');
+    console.log('  VR: Press X/A buttons to toggle dive mode');
+    console.log('  VR: Hold grip buttons for speed boost');
+  </script>
+</body>
+</html>
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(100,181,246,0.3));
+        }
+        
+        .vr-status {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #64B5F6;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            z-index: 90;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+        }
+        
+        .vr-controls-help {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid #64B5F6;
+            max-width: 600px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .vr-help-title {
+            font-size: 24px;
+            color: #64B5F6;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .vr-help-section {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .vr-help-section h4 {
+            color: #64B5F6;
+            margin-bottom: 8px;
+        }
+        
+        .close-help {
+            background: #64B5F6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .close-help:hover {
+            background: #42A5F5;
+        }
+        
+        .help-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(100, 181, 246, 0.2);
+            color: #64B5F6;
+            border: 1px solid rgba(100, 181, 246, 0.4);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 15;
+        }
+        
+        .help-button:hover {
+            background: rgba(100, 181, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div id="infoTitle">VR Wreck Explorer</div>
+        <div id="infoControls">
+            <strong>Desktop:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
+            <strong>VR:</strong> Left stick: move/strafe • Right stick: turn/fly • Grip: speed boost<br>
+            <strong>VR Buttons:</strong> X/A buttons toggle modes • Double-click models to focus<br>
+            <strong>Mobile:</strong> Touch and drag to explore
+        </div>
+    </div>
+
+    <div id="modelSelector">
+        <select id="modelDropdown">
+        </select>
+    </div>
+
+    <button class="help-button" onclick="showVRHelp()">VR Help</button>
+
+    <div id="loading">Loading...</div>
+
+    <div class="status" id="status" style="display:none">Ready</div>
+    
+    <div class="vr-status" id="vrStatus">VR Mode Active</div>
+
+    <!-- VR Controls Help Modal -->
+    <div class="vr-controls-help" id="vrHelp">
+        <div class="vr-help-title">🥽 VR Controls Guide</div>
+        
+        <div class="vr-help-section">
+            <h4>👈 Left Controller (Movement)</h4>
+            • Thumbstick: Move forward/back, strafe left/right<br>
+            • Grip button: Hold for 3x speed boost<br>
+            • X button: Toggle between Survey/Dive modes
+        </div>
+        
+        <div class="vr-help-section">
+            <h4>👉 Right Controller (Navigation)</h4>
+            • Thumbstick left/right: Turn smoothly<br>
+            • Thumbstick up/down: Fly up/down<br>
+            • Grip button: Hold for 3x vertical speed<br>
+            • A button: Toggle between Survey/Dive modes
+        </div>
+        
+        <div class="vr-help-section">
+            <h4>🎯 Interaction</h4>
+            • Double-click on models to auto-focus camera<br>
+            • Use model selector dropdown to switch wrecks<br>
+            • Each wreck has optimized VR starting position
+        </div>
+        
+        <div class="vr-help-section">
+            <h4>🚀 Performance Tips</h4>
+            • Quest 2: Automatic performance optimization enabled<br>
+            • Quest 3: Full render distance for best quality<br>
+            • Use grip buttons for faster exploration
+        </div>
+        
+        <button class="close-help" onclick="hideVRHelp()">Got it!</button>
+    </div>
+
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        // Model configuration with original VR positions preserved
+        const models = {
+          'key_biscayne': { 
+            url: '../basic-viewer/models/key_biscayne.glb', 
+            name: 'Key Biscayne', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 33.494, y: 36.42, z: -83.442 },
+                target: { x: -3.602, y: -6.611, z: -23.97 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'kxi': { 
+            url: '../basic-viewer/models/kxi.glb', 
+            name: 'HNLMS K XI (1946)', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: -6.391, y: 12.461, z: -42.105 },
+                target: { x: 1.529, y: 0.088, z: -14.334 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'sesa': { 
+            url: '../basic-viewer/models/sesa.glb', 
+            name: 'Sesa', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 18.93, y: 11.572, z: 52.508 },
+                target: { x: -1.613, y: -8.088, z: 4.822 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'unknown': { 
+            url: '../basic-viewer/models/unknown.glb', 
+            name: 'Unknown Wreck', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 34.226, y: 10.354, z: 2.12 },
+                target: { x: 10.959, y: -1.07, z: 2.247 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          }
+        };
+
+        // Initialize the VR-enabled model viewer
+        const viewer = new ModelViewer(document.body, {
+          models: models,
+          autoLoadFirst: true,
+          showLoadingIndicator: true,
+          showStatus: true,
+          showInfo: true,
+          
+          // Enhanced VR configuration
+          viewerConfig: {
+            vr: {
+              enabled: true,
+              movement: {
+                moveSpeed: 2.0,    // Original movement speed
+                turnSpeed: 1.5,    // Original turn speed  
+                flySpeed: 1.0      // Original fly speed
+              }
+            }
+          }
+        });
+
+        // VR event handlers
+        viewer.on('vr-session-start', () => {
+          console.log('🥽 VR session started');
+          document.body.classList.add('vr-mode');
+          document.getElementById('vrStatus').style.display = 'block';
+          
+          // Hide desktop-only UI in VR
+          document.getElementById('info').style.display = 'none';
+          document.querySelector('.help-button').style.display = 'none';
+        });
+
+        viewer.on('vr-session-end', () => {
+          console.log('🖥️ VR session ended - back to desktop');
+          document.body.classList.remove('vr-mode');
+          document.getElementById('vrStatus').style.display = 'none';
+          
+          // Show desktop UI again
+          document.getElementById('info').style.display = 'block';
+          document.querySelector('.help-button').style.display = 'block';
+        });
+
+        viewer.on('vr-mode-toggle', () => {
+          console.log('🔄 VR mode toggled via controller button');
+        });
+
+        viewer.on('vr-movement-start', () => {
+          console.log('🚀 VR movement started');
+        });
+
+        viewer.on('vr-movement-stop', () => {
+          console.log('⏹️ VR movement stopped');
+        });
+
+        viewer.on('vr-movement-update', ({ speed, boostLevel }) => {
+          // Could update UI based on movement speed/boost
+          if (boostLevel > 0.5) {
+            console.log('⚡ Speed boost active!');
+          }
+        });
+
+        // Standard event handlers
+        viewer.on('model-switched', ({ modelKey, model, config }) => {
+          console.log(`🚢 Switched to model: ${config.name}`);
+          
+          // Update page title
+          document.title = `VR Explorer - ${config.name}`;
+        });
+
+        viewer.on('initialized', () => {
+          console.log('✅ VR ModelViewer ready!');
+        });
+
+        viewer.on('model-loaded', ({ model, url }) => {
+          console.log('📦 Model loaded:', url);
+        });
+
+        // Handle page cleanup
+        window.addEventListener('beforeunload', () => {
+          viewer.dispose();
+        });
+
+        // VR Help Modal functions
+        window.showVRHelp = function() {
+          document.getElementById('vrHelp').style.display = 'block';
+        };
+
+        window.hideVRHelp = function() {
+          document.getElementById('vrHelp').style.display = 'none';
+        };
+
+        // Auto-show VR help on first visit
+        setTimeout(() => {
+          if (!localStorage.getItem('vr-help-shown')) {
+            showVRHelp();
+            localStorage.setItem('vr-help-shown', 'true');
+          }
+        }, 2000);
+    </script>
+</body>
+</html>

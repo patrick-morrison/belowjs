@@ -1,0 +1,346 @@
+/**
+ * VR-specific styles with modern glassmorphism and tasteful shimmer
+ * Premium design for VR button with polished visual effects
+ */
+
+/* Fallback base styles - ensures button is always visible */
+#VRButton, 
+button[id*="VR"], 
+div[id*="VR"] button,
+.vr-button-glass,
+[style*="position: absolute"][style*="bottom"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Modern Glassmorphism VR Button with Shimmer */
+#VRButton, 
+button[id*="VR"], 
+div[id*="VR"] button,
+.vr-button-glass,
+[style*="position: absolute"][style*="bottom"] {
+  /* Positioning */
+  position: fixed !important;
+  bottom: 80px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 100 !important;
+  
+  /* Sizing */
+  padding: 16px 32px !important;
+  min-width: 160px !important;
+  height: 56px !important;
+  
+  /* Modern Glassmorphism Design */
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 16px !important;
+  
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 300 !important;
+  color: #ffffff !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
+  
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  
+  /* Premium Effects */
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(78, 195, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  cursor: pointer !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none !important;
+  text-decoration: none !important;
+  
+  /* Shimmer Effect Setup */
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Shimmer overlay - occasional inviting sweep every 4 seconds */
+#VRButton::before,
+button[id*="VR"]::before,
+div[id*="VR"] button::before,
+.vr-button-glass::before,
+.vr-button-available::before,
+[style*="position: absolute"][style*="bottom"]::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.15),
+    transparent
+  ) !important;
+  animation: vrShimmerInviting 4s ease-in-out infinite !important;
+  border-radius: 16px !important;
+  pointer-events: none !important;
+}
+
+/* Inviting shimmer animation - every 4 seconds with pause */
+@keyframes vrShimmerInviting {
+  0%, 80% {
+    left: -100% !important;
+    opacity: 0 !important;
+  }
+  85% {
+    left: -50% !important;
+    opacity: 0.5 !important;
+  }
+  90% {
+    left: 0 !important;
+    opacity: 1 !important;
+  }
+  95% {
+    left: 50% !important;
+    opacity: 0.5 !important;
+  }
+  100% {
+    left: 100% !important;
+    opacity: 0 !important;
+  }
+}
+
+/* Original shimmer for hover state */
+@keyframes vrShimmer {
+  0% {
+    left: -100% !important;
+    opacity: 0 !important;
+  }
+  50% {
+    left: 0 !important;
+    opacity: 1 !important;
+  }
+  100% {
+    left: 100% !important;
+    opacity: 0 !important;
+  }
+}
+
+/* Subtle shimmer variant for less dramatic effect */
+@keyframes vrShimmerSubtle {
+  0%, 100% {
+    background-position: -200% center !important;
+  }
+  50% {
+    background-position: 200% center !important;
+  }
+}
+
+/* VR Icon styling (if using icon) */
+.vr-icon {
+  font-size: 16px !important;
+  opacity: 0.9 !important;
+}
+
+/* Hover State - Enhanced glassmorphism */
+#VRButton:hover,
+button[id*="VR"]:hover,
+div[id*="VR"] button:hover,
+.vr-button-glass:hover,
+[style*="position: absolute"][style*="bottom"]:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: translateX(-50%) translateY(-2px) !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(78, 195, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+#VRButton:hover::before,
+button[id*="VR"]:hover::before,
+div[id*="VR"] button:hover::before,
+.vr-button-glass:hover::before,
+.vr-button-available:hover::before,
+[style*="position: absolute"][style*="bottom"]:hover::before {
+  animation: vrShimmer 1.5s ease-in-out infinite !important; /* Faster shimmer on hover */
+}
+
+/* Active State - Premium press feedback */
+#VRButton:active,
+button[id*="VR"]:active,
+div[id*="VR"] button:active,
+.vr-button-glass:active,
+[style*="position: absolute"][style*="bottom"]:active {
+  transform: translateX(-50%) translateY(-1px) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(78, 195, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.1s ease !important; /* Quick response */
+}
+
+/* VR button not available - completely hidden */
+#VRButton:not([style*="display: flex"]),
+button[id*="VR"]:not([style*="display: flex"]),
+div[id*="VR"] button:not([style*="display: flex"]),
+.vr-button-glass:not([style*="display: flex"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* VR button disabled/not allowed - greyed out */
+.vr-button-disabled,
+#VRButton.vr-button-disabled,
+button.vr-button-disabled {
+  background: rgba(156, 163, 175, 0.1) !important;
+  border: 1px solid rgba(156, 163, 175, 0.3) !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  pointer-events: none !important;
+}
+
+/* No shimmer for disabled state */
+.vr-button-disabled::before,
+#VRButton.vr-button-disabled::before,
+button.vr-button-disabled::before {
+  display: none !important;
+}
+
+/* Update responsive design for mobile */
+@media (max-width: 768px) {
+  #VRButton,
+  button[id*="VR"],
+  div[id*="VR"] button,
+  .vr-button-glass,
+  [style*="position: absolute"][style*="bottom"] {
+    bottom: 60px !important;
+    padding: 12px 24px !important;
+    min-width: 140px !important;
+    height: 48px !important;
+    font-size: 12px !important;
+  }
+  
+  .vr-icon {
+    font-size: 14px !important;
+  }
+  
+  #info {
+    display: none;
+  }
+}
+
+/* VR-specific UI positioning when in VR mode */
+.vr-mode #info {
+  /* Hide desktop info panel in VR */
+  display: none !important;
+}
+
+.vr-mode #modelSelector {
+  /* Adjust model selector for VR mode if needed */
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* VR controller visualization (optional) */
+.vr-controller {
+  pointer-events: none;
+}
+
+/* VR-specific loading indicators */
+.vr-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  z-index: 1000;
+}
+
+/* VR measurement tools styling (for future use) */
+.vr-measurement-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid #87cefa;
+  z-index: 100;
+  font-family: monospace;
+}
+
+/* VR crosshair or reticle */
+.vr-reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* VR teleportation indicator */
+.vr-teleport-indicator {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #00ff00;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* VR hand tracking visualization */
+.vr-hand-model {
+  pointer-events: none;
+}
+
+/* VR spotlight indicator */
+.vr-spotlight-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 90;
+}
+
+/* Safari-specific fixes - backdrop filter support only */
+@supports (-webkit-appearance: none) {
+  #VRButton,
+  button[id*="VR"],
+  div[id*="VR"] button,
+  .vr-button-glass,
+  [style*="position: absolute"][style*="bottom"] {
+    /* Safari backdrop-filter fallback */
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  }
+}

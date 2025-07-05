@@ -4,6 +4,7 @@ import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { Scene } from './Scene.js';
 import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
+import { VRManager } from './VRManager.js';
 
 export class BelowViewer extends EventSystem {
   constructor(container, config = {}) {
@@ -17,6 +18,11 @@ export class BelowViewer extends EventSystem {
     this.sceneManager = null;
     this.cameraManager = null;
     this.modelLoader = null;
+    this.vrManager = null;
+    
+    // VR State
+    this.isVREnabled = this.config.vr?.enabled !== false; // Default to enabled
+    this.dolly = null; // VR camera rig
     
     // State
     this.isInitialized = false;
@@ -35,6 +41,11 @@ export class BelowViewer extends EventSystem {
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
+      
+      // Setup VR if enabled
+      if (this.isVREnabled) {
+        this.initVR();
+      }
       
       // Setup camera controls with the canvas
       this.cameraManager.initControls(this.renderer.domElement);
@@ -72,6 +83,74 @@ export class BelowViewer extends EventSystem {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     
     this.container.appendChild(this.renderer.domElement);
+  }
+
+  initVR() {
+    // Create dolly (VR camera rig) following original pattern
+    this.dolly = new THREE.Group();
+    this.dolly.add(this.cameraManager.camera);
+    this.sceneManager.scene.add(this.dolly);
+    
+    // Initialize VR manager with original patterns
+    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene);
+    
+    // Setup VR callbacks
+    this.vrManager.onModeToggle = () => {
+      this.emit('vr-mode-toggle');
+    };
+    
+    this.vrManager.onMovementStart = () => {
+      this.emit('vr-movement-start');
+    };
+    
+    this.vrManager.onMovementStop = () => {
+      this.emit('vr-movement-stop');
+    };
+    
+    this.vrManager.onMovementUpdate = (speed, boostLevel) => {
+      this.emit('vr-movement-update', { speed, boostLevel });
+    };
+    
+    this.vrManager.onSessionStart = () => {
+      // Apply VR positions to current model
+      if (this.loadedModels.length > 0) {
+        const currentModel = this.loadedModels[this.loadedModels.length - 1];
+        if (currentModel.options && currentModel.options.initialPositions) {
+          this.vrManager.applyVRPositions(currentModel.options.initialPositions);
+        }
+      }
+      
+      // Disable orbit controls in VR
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = false;
+      }
+      
+      this.emit('vr-session-start');
+    };
+    
+    this.vrManager.onSessionEnd = () => {
+      // Re-enable orbit controls
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = true;
+        this.cameraManager.controls.update();
+      }
+      
+      // Reset dolly to origin
+      this.dolly.position.set(0, 0, 0);
+      this.dolly.rotation.set(0, 0, 0);
+      
+      // Apply desktop positions to current model
+      if (this.loadedModels.length > 0) {
+        const currentModel = this.loadedModels[this.loadedModels.length - 1];
+        if (currentModel.options && currentModel.options.initialPositions && currentModel.options.initialPositions.desktop) {
+          this.applyDesktopPositions(currentModel.options.initialPositions.desktop);
+        }
+      }
+      
+      this.emit('vr-session-end');
+    };
+    
+    console.log('✅ VR support initialized');
   }
 
   setupEventListeners() {
@@ -214,19 +293,31 @@ export class BelowViewer extends EventSystem {
   }
 
   startRenderLoop() {
-    const animate = () => {
-      requestAnimationFrame(animate);
+    let lastTime = 0;
+    
+    const animate = (time) => {
+      // Calculate delta time
+      const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
       
+      // Update VR if enabled
+      if (this.vrManager) {
+        this.vrManager.update(deltaTime);
+      }
+      
+      // Update camera controls (disabled automatically in VR)
       if (this.cameraManager) {
         this.cameraManager.update();
       }
       
+      // Render the scene
       if (this.renderer && this.sceneManager && this.cameraManager) {
         this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
       }
     };
     
-    animate();
+    // Use setAnimationLoop for VR compatibility
+    this.renderer.setAnimationLoop(animate);
   }
 
   // Public API methods
@@ -295,34 +386,142 @@ export class BelowViewer extends EventSystem {
   }
 
   dispose() {
-    // Cancel any ongoing loading operations
+    // Cancel any pending model loads
     if (this.currentAbortController) {
       this.currentAbortController.abort();
-      this.currentAbortController = null;
     }
     
-    // Clean up models
-    this.clearModels();
-    
-    // Clean up resources
-    if (this.modelLoader) {
-      this.modelLoader.dispose();
+    // Dispose VR manager
+    if (this.vrManager) {
+      this.vrManager.dispose();
+      this.vrManager = null;
     }
     
+    // Stop render loop
+    if (this.renderer) {
+      this.renderer.setAnimationLoop(null);
+    }
+    
+    // Clean up loaded models
+    this.loadedModels.forEach(({ model }) => {
+      if (model.parent) {
+        model.parent.remove(model);
+      }
+      // Dispose geometries and materials
+      model.traverse((child) => {
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(material => material.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    });
+    this.loadedModels = [];
+    
+    // Dispose camera manager
     if (this.cameraManager) {
       this.cameraManager.dispose();
+      this.cameraManager = null;
     }
     
+    // Dispose renderer
     if (this.renderer) {
       this.renderer.dispose();
-      if (this.renderer.domElement.parentNode) {
+      if (this.renderer.domElement && this.renderer.domElement.parentNode) {
         this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
       }
+      this.renderer = null;
     }
     
     // Remove event listeners
     window.removeEventListener('resize', this.onWindowResize.bind(this));
     
-    this.emit('disposed');
+    // Clear all event listeners
+    this.removeAllListeners();
+    
+    this.isInitialized = false;
+    
+    console.log('✅ BelowViewer disposed');
+  }
+  
+  applyDesktopPositions(positions) {
+    if (!positions || !this.cameraManager) return;
+    
+    // Apply desktop camera and target positions with proper timing
+    const applyPositions = () => {
+      if (positions.camera) {
+        this.cameraManager.camera.position.set(
+          positions.camera.x,
+          positions.camera.y,
+          positions.camera.z
+        );
+      }
+      
+      if (positions.target && this.cameraManager.controls) {
+        this.cameraManager.controls.target.set(
+          positions.target.x,
+          positions.target.y,
+          positions.target.z
+        );
+        
+        // Force multiple updates to ensure proper positioning
+        this.cameraManager.controls.update();
+        
+        // Additional update after animation frame
+        requestAnimationFrame(() => {
+          this.cameraManager.controls.update();
+        });
+      }
+      
+      console.log('📍 Applied Desktop initial position:', positions);
+    };
+    
+    // Apply immediately and also after a short delay to handle timing issues
+    applyPositions();
+    setTimeout(applyPositions, 50);
+  }
+
+  // VR-specific methods
+  isVRPresenting() {
+    return this.vrManager ? this.vrManager.isVRPresenting : false;
+  }
+
+  getVRManager() {
+    return this.vrManager;
+  }
+
+  // VR Comfort Settings API
+  setVRComfortSettings(settings) {
+    if (this.vrManager) {
+      this.vrManager.setComfortSettings(settings);
+    }
+  }
+  
+  getVRComfortSettings() {
+    return this.vrManager ? this.vrManager.getComfortSettings() : null;
+  }
+  
+  setVRComfortPreset(preset) {
+    if (this.vrManager) {
+      this.vrManager.setComfortPreset(preset);
+    }
+  }
+
+  // Apply initial positions based on current mode (VR or desktop)
+  applyInitialPositions(positions) {
+    if (!positions) return;
+    
+    const isVRMode = this.isVRPresenting();
+    
+    if (isVRMode && positions.vr && this.vrManager) {
+      this.vrManager.applyVRPositions(positions);
+    } else if (!isVRMode && positions.desktop) {
+      this.applyDesktopPositions(positions.desktop);
+    }
   }
 }

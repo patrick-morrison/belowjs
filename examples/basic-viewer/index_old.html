@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Basic Model Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
+    
+    <!-- BelowJS Styling (optional - provides beautiful default theme) -->
+    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="/src/styles/vr.css">
+    
+    <style>
+        /* Modern VR Comfort Panel Design */
+        #vrComfortPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(15, 25, 40, 0.95), rgba(25, 35, 50, 0.95));
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            z-index: 1000;
+            width: 420px;
+            max-width: 90vw;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        #vrComfortPanel h3 {
+            margin: 0 0 24px 0;
+            color: #4a9eff;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        /* Quick Presets Section */
+        .comfort-section {
+            margin-bottom: 24px;
+        }
+        
+        .comfort-section-title {
+            color: #a0b3cc;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .comfort-presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .comfort-preset {
+            padding: 12px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .comfort-preset:hover {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: rgba(74, 158, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .comfort-preset.active {
+            background: rgba(74, 158, 255, 0.3);
+            border-color: #4a9eff;
+        }
+        
+        /* Settings Toggles */
+        .comfort-toggles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        /* Single item sections use full width */
+        .comfort-section:last-child .comfort-toggles {
+            grid-template-columns: 1fr;
+            max-width: 50%;
+        }
+        
+        .comfort-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .comfort-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .comfort-toggle.active {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: rgba(74, 158, 255, 0.4);
+        }
+        
+        .comfort-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .comfort-toggle-desc {
+            font-size: 11px;
+            color: #a0b3cc;
+            margin-top: 4px;
+        }
+        
+        /* Close Button */
+        #closeComfortPanel {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(145deg, #4a9eff, #357abd);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        #closeComfortPanel:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+        }
+        
+        /* VR Comfort Button - Subtle */
+        #vrComfortButton {
+            margin-left: 10px;
+            padding: 6px 10px;
+            background: rgba(74, 158, 255, 0.1);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 4px;
+            color: #4a9eff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+        
+        #vrComfortButton:hover {
+            background: rgba(74, 158, 255, 0.2);
+            opacity: 1;
+        }
+        
+        #vrComfortButton.comfort-mode {
+            background: rgba(74, 158, 255, 0.3);
+            color: white;
+            opacity: 1;
+        }
+        
+        /* VR-specific styling for better accessibility */
+        .vr-mode #modelSelector {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #4a9eff;
+            backdrop-filter: blur(10px);
+        }
+        
+        
+        .vr-mode #modelDropdown {
+            font-size: 16px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #4a9eff;
+            border-radius: 4px;
+            color: #333;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .vr-mode #modelDropdown:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        .vr-mode #vrComfortButton {
+            opacity: 1;
+            background: rgba(74, 158, 255, 0.2);
+        }
+        
+        /* Required toggle groups (locomotion, turning) */
+        .comfort-toggle[data-setting="locomotion"].active,
+        .comfort-toggle[data-setting="turning"].active {
+          border-color: #4a9eff;
+          background: rgba(74, 158, 255, 0.3);
+        }
+        
+        .comfort-toggle[data-setting="locomotion"]:not(.active):hover,
+        .comfort-toggle[data-setting="turning"]:not(.active):hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(74, 158, 255, 0.2);
+        }
+        
+        /* Prevent deselection visual feedback */
+        .comfort-toggle[data-setting="locomotion"].active:hover,
+        .comfort-toggle[data-setting="turning"].active:hover {
+          cursor: default;
+          background: rgba(74, 158, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div id="infoTitle">BelowJS VR</div>
+        <div id="infoControls">
+            <strong>Desktop:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
+            <strong>VR:</strong> Thumbsticks to move/fly/turn • Push joystick forward (like throwing) + release to teleport<br>
+            <strong>Mobile:</strong> Touch and drag to explore
+        </div>
+    </div>
+
+    <div id="modelSelector">
+        <select id="modelDropdown">
+        </select>
+        <button id="vrComfortButton">Comfort</button>
+    </div>
+
+    <div id="loading">Loading...</div>
+
+    <div class="status" id="status" style="display:none">Ready</div>
+
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        // Model configuration
+        const models = {
+          'key_biscayne': { 
+            url: 'models/key_biscayne.glb', 
+            name: 'Key Biscayne', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 33.494, y: 36.42, z: -83.442 },
+                target: { x: -3.602, y: -6.611, z: -23.97 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'kxi': { 
+            url: 'models/kxi.glb', 
+            name: 'HNLMS K XI (1946)', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: -6.391, y: 12.461, z: -42.105 },
+                target: { x: 1.529, y: 0.088, z: -14.334 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'sesa': { 
+            url: 'models/sesa.glb', 
+            name: 'Sesa', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 18.93, y: 11.572, z: 52.508 },
+                target: { x: -1.613, y: -8.088, z: 4.822 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'unknown': { 
+            url: 'models/unknown.glb', 
+            name: 'Unknown Wreck', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 34.226, y: 10.354, z: 2.12 },
+                target: { x: 10.959, y: -1.07, z: 2.247 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          }
+        };
+
+        // Initialize the model viewer with VR support
+        const viewer = new ModelViewer(document.body, {
+          models: models,
+          autoLoadFirst: true,
+          showLoadingIndicator: true,
+          showStatus: true,
+          showInfo: true,              // Show the info panel in basic viewer
+          
+          // VR configuration (preserving original patterns)
+          viewerConfig: {
+            vr: {
+              enabled: true
+            }
+          }
+        });
+
+        // Optional: Set up custom event listeners
+        viewer.on('model-switched', ({ modelKey, model, config }) => {
+          console.log(`Switched to model: ${config.name}`);
+        });
+
+        viewer.on('initialized', () => {
+          console.log('ModelViewer ready with VR support!');
+        });
+
+        viewer.on('model-loaded', ({ model, url }) => {
+          console.log('Model loaded:', url);
+        });
+
+        // VR-specific event listeners
+        viewer.on('vr-session-start', () => {
+          console.log('VR session started');
+          document.body.classList.add('vr-mode');
+        });
+
+        viewer.on('vr-session-end', () => {
+          console.log('VR session ended');
+          document.body.classList.remove('vr-mode');
+        });
+
+        viewer.on('vr-mode-toggle', () => {
+          console.log('VR mode toggled via controller');
+        });
+
+        viewer.on('vr-movement-start', () => {
+          console.log('VR movement started');
+        });
+
+        viewer.on('vr-movement-stop', () => {
+          console.log('VR movement stopped');
+        });
+
+        // Handle page cleanup
+        window.addEventListener('beforeunload', () => {
+          viewer.dispose();
+        });
+
+        // VR Comfort Settings Panel Functionality
+        const vrComfortButton = document.getElementById('vrComfortButton');
+        const vrComfortPanel = document.getElementById('vrComfortPanel');
+        const closeComfortPanel = document.getElementById('closeComfortPanel');
+        
+        // Only set up comfort panel if elements exist
+        if (vrComfortButton && vrComfortPanel && closeComfortPanel) {
+          // Show comfort panel
+          vrComfortButton.addEventListener('click', () => {
+            vrComfortPanel.style.display = 'block';
+          });
+          
+          // Hide comfort panel
+          closeComfortPanel.addEventListener('click', () => {
+            vrComfortPanel.style.display = 'none';
+          });
+        }
+        
+        // Handle comfort preset buttons (only if they exist)
+        const comfortPresets = document.querySelectorAll('.comfort-preset');
+        if (comfortPresets.length > 0) {
+          comfortPresets.forEach(button => {
+            button.addEventListener('click', () => {
+              // Remove active class from all presets
+              comfortPresets.forEach(p => p.classList.remove('active'));
+              // Add active class to clicked preset
+              button.classList.add('active');
+              
+              const preset = button.dataset.preset;
+              viewer.setVRComfortPreset(preset);
+              console.log(`Applied ${preset} comfort preset`);
+              
+              // Update UI to reflect the preset
+              updateComfortUI(preset);
+            });
+          });
+        }
+        
+        // Handle individual toggle settings
+        const comfortToggles = document.querySelectorAll('.comfort-toggle');
+        if (comfortToggles.length > 0) {
+          comfortToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+              const setting = toggle.dataset.setting;
+              const value = toggle.dataset.value;
+              
+              if (setting === 'vignetting') {
+                // Handle vignetting toggle (boolean)
+                const isActive = toggle.classList.contains('active');
+                toggle.classList.toggle('active');
+                viewer.setVRComfortSettings({ vignetting: !isActive });
+                console.log(`Vignetting: ${!isActive}`);
+              } else {
+                // Handle locomotion/turning modes (mutually exclusive within group)
+                const groupToggles = document.querySelectorAll(`[data-setting="${setting}"]`);
+                
+                // If this toggle is already active, don't allow deselection (must have one active)
+                if (toggle.classList.contains('active')) {
+                  return;
+                }
+                
+                // Remove active from all in this group and set the clicked one
+                groupToggles.forEach(t => t.classList.remove('active'));
+                toggle.classList.add('active');
+                
+                const settingKey = setting === 'locomotion' ? 'locomotionMode' : 'turningMode';
+                viewer.setVRComfortSettings({ [settingKey]: value });
+                console.log(`${setting}: ${value}`);
+              }
+              
+              // Clear any preset selection when individual settings change
+              comfortPresets.forEach(p => p.classList.remove('active'));
+            });
+          });
+        }
+        
+        // Update UI based on preset
+        function updateComfortUI(preset) {
+          const presets = {
+            'comfort': {
+              locomotionMode: 'teleport',
+              turningMode: 'snap',
+              vignetting: true
+            },
+            'moderate': {
+              locomotionMode: 'dash',
+              turningMode: 'snap', 
+              vignetting: true
+            },
+            'experienced': {
+              locomotionMode: 'smooth',
+              turningMode: 'smooth',
+              vignetting: false
+            }
+          };
+          
+          const settings = presets[preset];
+          if (settings) {
+            // Clear all active states
+            document.querySelectorAll('.comfort-toggle').forEach(toggle => {
+              toggle.classList.remove('active');
+            });
+            
+            // Set active states based on preset
+            const locomotionToggle = document.querySelector(`[data-setting="locomotion"][data-value="${settings.locomotionMode}"]`);
+            if (locomotionToggle) locomotionToggle.classList.add('active');
+            
+            const turningToggle = document.querySelector(`[data-setting="turning"][data-value="${settings.turningMode}"]`);
+            if (turningToggle) turningToggle.classList.add('active');
+            
+            const vignettingToggle = document.querySelector(`[data-setting="vignetting"]`);
+            if (vignettingToggle && settings.vignetting) {
+              vignettingToggle.classList.add('active');
+            }
+          }
+        }
+        
+        // Initialize with comfort preset by default
+        viewer.on('initialized', () => {
+          viewer.setVRComfortPreset('comfort');
+          updateComfortUI('comfort');
+        });
+    </script>
+</body>
+</html>

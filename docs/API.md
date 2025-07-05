@@ -1,6 +1,6 @@
 # BelowJS API Documentation
 
-**A comprehensive guide to the BelowJS 3D model viewer library**
+**A comprehensive guide to the BelowJS 3D model viewer library with VR support**
 
 ---
 
@@ -8,48 +8,79 @@
 
 1. [Quick Start](#quick-start)
 2. [ModelViewer Class](#modelviewer-class)
-3. [Configuration Options](#configuration-options)
-4. [Events](#events)
-5. [Methods](#methods)
-6. [Theming](#theming)
-7. [Examples](#examples)
-8. [Advanced Usage](#advanced-usage)
+3. [VR Support](#vr-support)
+4. [Configuration Options](#configuration-options)
+5. [Events](#events)
+6. [Methods](#methods)
+7. [Theming](#theming)
+8. [Examples](#examples)
+9. [Advanced Usage](#advanced-usage)
 
 ---
 
 ## Quick Start
 
-### Basic Setup
+### Basic Setup with VR
 
 ```javascript
 import { ModelViewer } from './src/viewers/ModelViewer.js';
 
-// Define your models
+// Define your models with VR positioning
 const models = {
   'my-model': {
     url: 'path/to/model.glb',
     name: 'My 3D Model',
-    credit: 'Model Creator'
+    credit: 'Model Creator',
+    initialPositions: {
+      desktop: {
+        camera: { x: 0, y: 5, z: 10 },
+        target: { x: 0, y: 0, z: 0 }
+      },
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },
+        rotation: { x: 0, y: 0, z: 0 }
+      }
+    }
   }
 };
 
-// Create viewer
+// Create VR-enabled viewer
 const viewer = new ModelViewer(document.body, {
   models: models,
   autoLoadFirst: true,
-  showInfo: true
+  viewerConfig: {
+    vr: { enabled: true } // Enable VR support
+  }
+});
+
+// VR event handling
+viewer.on('vr-session-start', () => {
+  console.log('VR session started');
+});
+
+viewer.on('vr-session-end', () => {
+  console.log('VR session ended');
 });
 ```
 
-### Minimal Setup
+### Basic Setup without VR
 
 ```javascript
-// Minimal viewer with no UI
+import { ModelViewer } from './src/viewers/ModelViewer.js';
+
+const models = {
+  'my-model': {
+    url: 'path/to/model.glb',
+    name: 'My 3D Model'
+  }
+};
+
 const viewer = new ModelViewer(document.body, {
   models: models,
-  showLoadingIndicator: false,
-  showStatus: false,
-  showInfo: false
+  autoLoadFirst: true,
+  viewerConfig: {
+    vr: { enabled: false } // Disable VR support
+  }
 });
 ```
 
@@ -88,6 +119,218 @@ const viewer = new ModelViewer('#my-container', {
   },
   autoLoadFirst: true,
   showInfo: true
+});
+```
+
+---
+
+## VR Support
+
+BelowJS includes comprehensive WebXR support with Quest-optimized controls and immersive VR navigation.
+
+### VR Features
+
+- **WebXR Compatible**: Works with Quest 2, Quest 3, and other WebXR headsets
+- **Smooth Movement**: Thumbstick-based movement with speed ramping
+- **Controller Integration**: Full controller support with haptic feedback
+- **Automatic Optimization**: Device-specific performance optimizations
+- **Mode Toggle**: Switch between Survey and Dive modes in VR
+- **Original Patterns**: Preserves the exact VR feel from the original implementation
+
+### VR Configuration
+
+```javascript
+const viewer = new ModelViewer(document.body, {
+  models: models,
+  viewerConfig: {
+    vr: {
+      enabled: true,             // Enable VR support
+      
+      // Movement settings (original patterns preserved)
+      movement: {
+        moveSpeed: 2.0,          // m/s base movement speed
+        turnSpeed: 1.5,          // rad/s turn speed
+        flySpeed: 1.0            // m/s vertical movement
+      },
+      
+      // Smooth ramping for organic feel
+      ramping: {
+        speedRampRate: 3.0,      // Speed transition rate
+        boostRampRate: 6.0       // Boost transition rate
+      },
+      
+      // Controller configuration
+      controllers: {
+        leftHand: {
+          movement: true,                // Horizontal movement
+          modeToggleButtons: [4, 5]      // X, Y buttons
+        },
+        rightHand: {
+          turning: true,                 // Horizontal turning
+          verticalMovement: true,        // Vertical movement
+          modeToggleButtons: [4, 5]      // A, B buttons
+        },
+        gripBoostMultiplier: 3.0         // 3x speed when gripping
+      },
+      
+      // Quest optimizations
+      optimization: {
+        quest2RenderDistance: 20,        // Limit for Quest 2
+        autoDetectDevice: true           // Auto-detect and optimize
+      }
+    }
+  }
+});
+```
+
+### VR Model Positioning
+
+Define separate camera positions for desktop and VR modes:
+
+```javascript
+const models = {
+  'wreck-model': {
+    url: 'models/wreck.glb',
+    name: 'Shipwreck',
+    initialPositions: {
+      // Desktop orbit camera positioning
+      desktop: {
+        camera: { x: 33.494, y: 36.42, z: -83.442 },
+        target: { x: -3.602, y: -6.611, z: -23.97 }
+      },
+      // VR dolly (camera rig) positioning  
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },        // Player starting position
+        rotation: { x: 0, y: 0, z: 0 }       // Player starting orientation
+      }
+    }
+  }
+};
+```
+
+### VR Controls
+
+#### Left Controller (Movement)
+- **Thumbstick**: Forward/backward and left/right movement
+- **Grip Button**: Hold for 3x speed boost
+- **X Button** (Quest): Toggle dive/survey mode
+- **Y Button** (Quest): Toggle dive/survey mode
+
+#### Right Controller (Navigation)
+- **Thumbstick X**: Smooth horizontal turning
+- **Thumbstick Y**: Vertical movement (fly up/down)
+- **Grip Button**: Hold for 3x vertical speed boost
+- **A Button** (Quest): Toggle dive/survey mode
+- **B Button** (Quest): Toggle dive/survey mode
+
+### VR Events
+
+```javascript
+// VR session management
+viewer.on('vr-session-start', () => {
+  console.log('User entered VR');
+  // Hide desktop UI, prepare VR interface
+});
+
+viewer.on('vr-session-end', () => {
+  console.log('User exited VR');
+  // Restore desktop UI
+});
+
+// VR mode changes
+viewer.on('vr-mode-toggle', () => {
+  console.log('User toggled dive/survey mode via controller');
+  // Handle mode-specific changes
+});
+
+// VR movement tracking
+viewer.on('vr-movement-start', () => {
+  console.log('User started moving in VR');
+  // Start movement audio, effects
+});
+
+viewer.on('vr-movement-stop', () => {
+  console.log('User stopped moving in VR');
+  // Stop movement audio, effects
+});
+
+viewer.on('vr-movement-update', ({ speed, boostLevel }) => {
+  console.log(`Movement speed: ${speed}, boost: ${boostLevel}`);
+  // Update audio volume, visual effects based on speed
+});
+```
+
+### VR Button Styling
+
+BelowJS includes a premium glassmorphism VR button with shimmer effect:
+
+```css
+/* Modern VR button with glassmorphism and shimmer */
+.vr-button-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 16px 32px;
+  
+  /* Tasteful shimmer animation */
+  position: relative;
+  overflow: hidden;
+}
+
+.vr-button-glass::before {
+  content: '';
+  position: absolute;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  animation: vrShimmer 3s ease-in-out infinite;
+}
+```
+
+### Device Optimization
+
+BelowJS automatically detects VR devices and applies optimizations:
+
+```javascript
+// Quest 2 Detection and Optimization
+if (isQuest2) {
+  camera.far = 20;  // Limit render distance for performance
+  console.log('Quest 2 optimizations applied');
+}
+
+// Quest 3 Detection
+if (isQuest3) {
+  // Full render distance maintained
+  console.log('Quest 3 detected - full quality mode');
+}
+```
+
+### VR Manager API
+
+Access the VR manager directly for advanced control:
+
+```javascript
+const vrManager = viewer.getVRManager();
+
+// Check VR state
+if (vrManager.isVRPresenting) {
+  console.log('Currently in VR mode');
+}
+
+// Access controllers
+if (vrManager.controller1 && vrManager.controller2) {
+  console.log('Both controllers connected');
+}
+
+// Manual VR positioning
+vrManager.applyVRPositions({
+  vr: {
+    dolly: { x: 10, y: 5, z: 20 },
+    rotation: { x: 0, y: Math.PI / 2, z: 0 }
+  }
 });
 ```
 
@@ -953,3 +1196,37 @@ viewer.on('model-error', ({ error }) => {
 ---
 
 *This documentation covers the current stable API. Features marked as "Future" are planned for upcoming releases.*
+
+## VR Comfort Settings
+
+BelowJS includes modern VR comfort features to prevent motion sickness:
+
+### Comfort Presets
+```javascript
+// Quick comfort configurations
+viewer.setVRComfortPreset('comfort');    // Best for motion-sensitive users
+viewer.setVRComfortPreset('moderate');   // Balanced experience  
+viewer.setVRComfortPreset('experienced'); // Full freedom of movement
+```
+
+### Custom Comfort Settings
+```javascript
+viewer.setVRComfortSettings({
+  locomotionMode: 'teleport',  // 'smooth', 'teleport', 'dash'
+  turningMode: 'snap',         // 'smooth', 'snap'  
+  snapTurnAngle: 30,           // degrees per snap turn
+  vignetting: true,            // reduces peripheral vision during movement
+  vignetteIntensity: 0.7,      // 0-1 vignette strength
+  reducedMotion: true,         // slower, gentler movements
+  comfortSpeed: 0.5            // speed multiplier for reduced motion
+});
+```
+
+### Locomotion Modes
+- **Smooth**: Traditional joystick movement (can cause motion sickness)
+- **Teleport**: Point and teleport (most comfortable)
+- **Dash**: Smooth movement to target position (moderate comfort)
+
+### Turning Modes  
+- **Smooth**: Continuous rotation with joystick
+- **Snap**: Discrete rotation in fixed increments

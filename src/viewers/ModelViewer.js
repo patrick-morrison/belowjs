@@ -114,6 +114,55 @@ export class ModelViewer extends EventSystem {
     });
     this.belowViewer.on('model-load-cancelled', (data) => this.emit('model-load-cancelled', data));
     this.belowViewer.on('error', (data) => this.emit('error', data));
+    
+    // Forward VR events
+    this.belowViewer.on('vr-session-start', (data) => {
+      this.emit('vr-session-start', data);
+      this.onVRSessionStart();
+    });
+    this.belowViewer.on('vr-session-end', (data) => {
+      this.emit('vr-session-end', data);
+      this.onVRSessionEnd();
+    });
+    this.belowViewer.on('vr-mode-toggle', (data) => {
+      this.emit('vr-mode-toggle', data);
+      this.onVRModeToggle();
+    });
+    this.belowViewer.on('vr-movement-start', (data) => this.emit('vr-movement-start', data));
+    this.belowViewer.on('vr-movement-stop', (data) => this.emit('vr-movement-stop', data));
+    this.belowViewer.on('vr-movement-update', (data) => this.emit('vr-movement-update', data));
+  }
+
+  // VR event handlers
+  onVRSessionStart() {
+    // Hide desktop UI elements in VR
+    if (this.ui.info) {
+      this.ui.info.style.display = 'none';
+    }
+    if (this.ui.selector) {
+      this.ui.selector.style.pointerEvents = 'none';
+      this.ui.selector.style.opacity = '0.5';
+    }
+    
+    console.log('🥽 VR session started - UI adapted for VR');
+  }
+
+  onVRSessionEnd() {
+    // Restore desktop UI elements
+    if (this.ui.info && this.options.showInfo) {
+      this.ui.info.style.display = 'block';
+    }
+    if (this.ui.selector) {
+      this.ui.selector.style.pointerEvents = 'auto';
+      this.ui.selector.style.opacity = '1';
+    }
+    
+    console.log('🖥️ VR session ended - UI restored for desktop');
+  }
+
+  onVRModeToggle() {
+    // This could be used for mode-specific UI changes in the future
+    console.log('🔄 VR mode toggled');
   }
    setupFocusInteraction() {
     const domElement = this.belowViewer.renderer.domElement;
@@ -382,13 +431,14 @@ export class ModelViewer extends EventSystem {
       // Small delay to ensure cleanup completes
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      // Load the model
+      // Load the model with initialPositions for VR support
       const model = await this.belowViewer.loadModel(modelConfig.url, {
-        autoFrame: false  // We'll handle positioning manually
+        autoFrame: false,  // We'll handle positioning manually
+        initialPositions: modelConfig.initialPositions  // Pass VR/desktop positions
       });
       
       if (model) {
-        // Apply initial camera positions
+        // Apply initial positions based on current mode (VR or desktop)
         this.applyInitialPositions(modelConfig, model);
         
         // Hide loading and update status
@@ -410,32 +460,54 @@ export class ModelViewer extends EventSystem {
   applyInitialPositions(modelConfig, model) {
     const positions = modelConfig.initialPositions;
     
-    if (!positions || !positions.desktop) {
+    if (!positions) {
       this.belowViewer.frameModel(model);
       return;
     }
     
-    const camera = this.belowViewer.getCamera();
-    const controls = this.belowViewer.cameraManager.controls;
+    // Check if we're in VR mode
+    const isVRMode = this.belowViewer.isVRPresenting();
     
-    if (camera && controls && positions.desktop) {
-      const targetCameraPos = new THREE.Vector3(
-        positions.desktop.camera.x,
-        positions.desktop.camera.y,
-        positions.desktop.camera.z
-      );
-      
-      const targetControlsTarget = new THREE.Vector3(
-        positions.desktop.target.x,
-        positions.desktop.target.y,
-        positions.desktop.target.z
-      );
-      
-      camera.position.copy(targetCameraPos);
-      controls.target.copy(targetControlsTarget);
-      controls.update();
+    if (isVRMode && positions.vr) {
+      // Apply VR positions using the BelowViewer VR manager
+      this.belowViewer.applyInitialPositions(positions);
+    } else if (!isVRMode && positions.desktop) {
+      // Apply desktop positions with proper timing
+      setTimeout(() => {
+        const camera = this.belowViewer.getCamera();
+        const controls = this.belowViewer.cameraManager.controls;
+        
+        if (camera && controls && positions.desktop) {
+          const targetCameraPos = new THREE.Vector3(
+            positions.desktop.camera.x,
+            positions.desktop.camera.y,
+            positions.desktop.camera.z
+          );
+          
+          const targetControlsTarget = new THREE.Vector3(
+            positions.desktop.target.x,
+            positions.desktop.target.y,
+            positions.desktop.target.z
+          );
+          
+          camera.position.copy(targetCameraPos);
+          controls.target.copy(targetControlsTarget);
+          
+          // Force multiple updates to ensure camera positioning
+          controls.update();
+          
+          // Additional update after a frame
+          requestAnimationFrame(() => {
+            controls.update();
+            console.log('📍 Applied Desktop initial position:', positions.desktop);
+          });
+        }
+      }, 100); // Small delay to ensure model is fully loaded and positioned
     } else {
-      this.belowViewer.frameModel(model);
+      // No specific positions defined, auto-frame the model with delay
+      setTimeout(() => {
+        this.belowViewer.frameModel(model);
+      }, 100);
     }
   }
   
@@ -527,6 +599,26 @@ export class ModelViewer extends EventSystem {
         this.emit('camera-reset', { modelKey: this.currentModelKey, position: initialPos });
       }
     }
+  }
+  
+  // VR Comfort Settings API
+  setVRComfortSettings(settings) {
+    if (this.belowViewer && this.belowViewer.setVRComfortSettings) {
+      return this.belowViewer.setVRComfortSettings(settings);
+    }
+  }
+  
+  setVRComfortPreset(preset) {
+    if (this.belowViewer && this.belowViewer.setVRComfortPreset) {
+      return this.belowViewer.setVRComfortPreset(preset);
+    }
+  }
+  
+  getVRComfortSettings() {
+    if (this.belowViewer && this.belowViewer.getVRComfortSettings) {
+      return this.belowViewer.getVRComfortSettings();
+    }
+    return null;
   }
   
   dispose() {
