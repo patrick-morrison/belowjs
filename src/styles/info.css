@@ -1,0 +1,60 @@
+/* BelowJS - Info Panel
+ * Styling for information displays and branding
+ */
+
+/* Info Panel */
+#info {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  padding: 20px 24px;
+  max-width: 340px;
+  backdrop-filter: var(--below-panel-backdrop);
+  background: var(--below-panel-bg);
+  border: 1px solid var(--below-panel-border);
+  border-radius: 16px;
+  box-shadow: var(--below-panel-shadow);
+  transition: all 0.3s ease;
+}
+
+#info:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#infoTitle {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  background: linear-gradient(135deg, #ffffff, #f5f5f5);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+#infoControls {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #b0b0b0;
+}
+
+#infoControls strong {
+  color: var(--below-text-color);
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #info {
+    top: 10px;
+    left: 10px;
+    padding: 16px;
+    max-width: 280px;
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "belowjs",
+  "version": "0.1.0",
+  "description": "A modular Three.js library for creating immersive underwater/dive model viewers with VR support",
+  "main": "dist/belowjs.js",
+  "module": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite serve --open examples/basic-viewer/",
+    "dev:basic": "vite serve --open examples/basic-viewer/",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest"
+  },
+  "keywords": [
+    "threejs",
+    "webxr",
+    "vr",
+    "3d",
+    "underwater",
+    "model-viewer",
+    "webgl"
+  ],
+  "author": "Patrick Morrison",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.177.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.177.0"
+  }
+}

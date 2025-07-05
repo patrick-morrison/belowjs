@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Clean Viewer</title>
+    
+    <!-- BelowJS Styling (optional) -->
+    <link rel="stylesheet" href="/src/styles/theme.css">
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        // Just one model, no UI clutter
+        const models = {
+          'key_biscayne': { 
+            url: '/examples/basic-viewer/models/key_biscayne.glb', 
+            name: 'Key Biscayne',
+            initialPositions: {
+              desktop: {
+                camera: { x: 33.494, y: 36.42, z: -83.442 },
+                target: { x: -3.602, y: -6.611, z: -23.97 }
+              }
+            }
+          }
+        };
+
+        // Clean initialization - no info panel, no status, just the model
+        const viewer = new ModelViewer(document.body, {
+          models: models,
+          autoLoadFirst: true,
+          showLoadingIndicator: false,  // No loading indicator
+          showStatus: false,            // No status text
+          showInfo: false              // No info panel
+        });
+
+        viewer.on('initialized', () => {
+          console.log('Clean viewer ready - just the 3D model!');
+        });
+    </script>
+</body>
+</html>

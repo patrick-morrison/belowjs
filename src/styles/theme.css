@@ -1,0 +1,7 @@
+/* BelowJS - Complete Theme
+ * Import all BelowJS styles for a complete, ready-to-use theme
+ */
+
+@import './base.css';
+@import './components.css';
+@import './info.css';
