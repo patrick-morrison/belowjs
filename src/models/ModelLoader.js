@@ -135,7 +135,11 @@ export class ModelLoader {
         
         // Basic material processing
         if (child.material) {
-          this.processMaterial(child.material);
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map(mat => this.processMaterial(mat));
+          } else {
+            child.material = this.processMaterial(child.material);
+          }
         }
       }
     });
@@ -153,12 +157,40 @@ export class ModelLoader {
       material.emissive.setHex(0x000000);
       material.emissiveIntensity = 0;
     }
-    
-    // Ensure materials work well with our lighting
-    if (material.type === 'MeshStandardMaterial') {
-      // Keep standard materials as-is, they work well with PBR lighting
-      material.needsUpdate = true;
+
+    // Convert materials that don't respond to lighting properly
+    if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
+      const converted = new THREE.MeshLambertMaterial({
+        map: material.map || null,
+        color: material.color || new THREE.Color(0xffffff),
+        transparent: material.transparent,
+        opacity: material.opacity !== undefined ? material.opacity : 1.0,
+        alphaMap: material.alphaMap || null,
+        side: material.side !== undefined ? material.side : THREE.FrontSide,
+        wireframe: material.wireframe || false,
+        vertexColors: material.vertexColors || false,
+        fog: material.fog !== undefined ? material.fog : true,
+        aoMap: material.aoMap || null,
+        aoMapIntensity: material.aoMapIntensity || 1.0,
+        envMap: material.envMap || null,
+        reflectivity: material.reflectivity || 1.0,
+        refractionRatio: material.refractionRatio || 0.98,
+        combine: material.combine || THREE.MultiplyOperation
+      });
+
+      converted.needsUpdate = true;
+      return converted;
     }
+
+    // Standard or physical materials are fine as-is
+    if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
+      material.needsUpdate = true;
+      return material;
+    }
+
+    // Fallback: ensure any other material types update
+    material.needsUpdate = true;
+    return material;
   }
 
   dispose() {

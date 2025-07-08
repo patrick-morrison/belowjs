@@ -23,7 +23,8 @@ export class ModelViewer extends EventSystem {
     this.currentModelKey = null;
     this.belowViewer = null;
     this.ui = {};
-    
+    this.isDiveMode = false;
+
     this.init();
   }
   
@@ -76,11 +77,13 @@ export class ModelViewer extends EventSystem {
     // Set up double-click to focus interaction (wait for initialization)
     this.belowViewer.on('initialized', () => {
       this.setupFocusInteraction();
+      this.belowViewer.sceneManager.applySurveyLighting();
     });
     
     // Also try setting it up immediately in case the event already fired
     if (this.belowViewer.isInitialized) {
       this.setupFocusInteraction();
+      this.belowViewer.sceneManager.applySurveyLighting();
     }
     
     // Create UI if models are provided
@@ -161,8 +164,7 @@ export class ModelViewer extends EventSystem {
   }
 
   onVRModeToggle() {
-    // This could be used for mode-specific UI changes in the future
-    console.log('🔄 VR mode toggled');
+    this.toggleDiveMode();
   }
    setupFocusInteraction() {
     const domElement = this.belowViewer.renderer.domElement;
@@ -280,15 +282,8 @@ export class ModelViewer extends EventSystem {
       this.container.classList.add('below-viewer-container');
     }
     
-    // Only create model selector dropdown if there are multiple models
-    const modelCount = Object.keys(this.options.models).length;
-    if (modelCount > 1) {
-      if (!document.getElementById('modelDropdown')) {
-        this.createModelSelector();
-      } else {
-        this.ui.dropdown = document.getElementById('modelDropdown');
-      }
-    }
+    // Always create the selector container so the mode toggle is available
+    this.createModelSelector();
     
     // Create info panel only if enabled and doesn't exist
     if (this.options.showInfo && !document.getElementById('info')) {
@@ -328,15 +323,47 @@ export class ModelViewer extends EventSystem {
       selectorContainer.className = 'below-panel';
       document.body.appendChild(selectorContainer);
     }
-    
-    // Create dropdown if it doesn't exist
-    if (!document.getElementById('modelDropdown')) {
-      const dropdown = document.createElement('select');
-      dropdown.id = 'modelDropdown';
-      selectorContainer.appendChild(dropdown);
+
+    const modelCount = Object.keys(this.options.models).length;
+
+    // Create dropdown only when multiple models are available
+    if (modelCount > 1) {
+      if (!document.getElementById('modelDropdown')) {
+        const dropdown = document.createElement('select');
+        dropdown.id = 'modelDropdown';
+        selectorContainer.appendChild(dropdown);
+      }
+
+      this.ui.dropdown = document.getElementById('modelDropdown');
+    } else {
+      this.ui.dropdown = null;
     }
-    
-    this.ui.dropdown = document.getElementById('modelDropdown');
+
+    // Create mode toggle if it doesn't exist
+    if (!document.getElementById('modeToggleSwitch')) {
+      const toggleContainer = document.createElement('div');
+      toggleContainer.className = 'mode-toggle-container';
+      toggleContainer.innerHTML = `
+        <div class="semantic-toggle">
+          <input type="checkbox" id="modeToggleSwitch">
+          <div class="toggle-slider-bg"></div>
+          <div class="toggle-option left">
+            <div class="toggle-icon">📋</div>
+            <div class="toggle-text">Survey</div>
+          </div>
+          <div class="toggle-option right">
+            <div class="toggle-icon">🌊</div>
+            <div class="toggle-text">Dive</div>
+          </div>
+        </div>`;
+      selectorContainer.appendChild(toggleContainer);
+    }
+
+    this.ui.modeToggle = document.getElementById('modeToggleSwitch');
+    if (this.ui.modeToggle) {
+      this.ui.modeToggle.checked = false;
+      this.ui.modeToggle.addEventListener('change', () => this.toggleDiveMode());
+    }
   }
   
   createLoadingIndicator() {
@@ -619,6 +646,22 @@ export class ModelViewer extends EventSystem {
       return this.belowViewer.getVRComfortSettings();
     }
     return null;
+  }
+
+  toggleDiveMode() {
+    this.isDiveMode = !this.isDiveMode;
+
+    if (this.isDiveMode) {
+      this.belowViewer.sceneManager.applyDiveLighting();
+    } else {
+      this.belowViewer.sceneManager.applySurveyLighting();
+    }
+
+    if (this.ui.modeToggle) {
+      this.ui.modeToggle.checked = this.isDiveMode;
+    }
+
+    this.emit('mode-change', { mode: this.isDiveMode ? 'dive' : 'survey' });
   }
   
   dispose() {

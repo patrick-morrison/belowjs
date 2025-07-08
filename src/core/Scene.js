@@ -7,6 +7,7 @@ export class Scene {
   constructor(config = {}) {
     this.config = config;
     this.scene = new THREE.Scene();
+    this.lights = {};
     this.init();
   }
 
@@ -30,18 +31,52 @@ export class Scene {
 
   setupLighting() {
     // Ambient light for basic visibility
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    this.scene.add(ambientLight);
+    this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    this.scene.add(this.lights.ambient);
 
     // Directional light for definition
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 5);
-    directionalLight.castShadow = true;
-    this.scene.add(directionalLight);
+    this.lights.directional = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.lights.directional.position.set(10, 10, 5);
+    this.lights.directional.castShadow = true;
+    this.scene.add(this.lights.directional);
 
     // Hemisphere light for natural lighting
-    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-    this.scene.add(hemisphereLight);
+    this.lights.hemisphere = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    this.scene.add(this.lights.hemisphere);
+  }
+
+  applySurveyLighting() {
+    if (!this.lights.ambient) return;
+
+    this.scene.fog = null;
+    this.lights.ambient.color.setHex(0xffffff);
+    this.lights.ambient.intensity = 0.4;
+
+    if (this.lights.directional) {
+      this.lights.directional.color.setHex(0xffffff);
+      this.lights.directional.intensity = 0.8;
+    }
+
+    if (this.lights.hemisphere) {
+      this.lights.hemisphere.color.setHex(0xffffff);
+      this.lights.hemisphere.intensity = 0.6;
+    }
+  }
+
+  applyDiveLighting() {
+    if (!this.lights.ambient) return;
+
+    this.scene.fog = new THREE.FogExp2(0x041729, 0.06);
+    this.lights.ambient.color.setHex(0x1a3b5c);
+    this.lights.ambient.intensity = 0.005;
+
+    if (this.lights.directional) {
+      this.lights.directional.intensity = 0;
+    }
+
+    if (this.lights.hemisphere) {
+      this.lights.hemisphere.intensity = 0;
+    }
   }
 
   add(object) {
