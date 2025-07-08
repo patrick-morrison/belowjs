@@ -168,24 +168,22 @@ export class VRLocomotion {
         const gripButton = gamepad.buttons[1];
         const speedMultiplier = (gripButton && gripButton.pressed) ? 3 : 1;
         const comfortSpeedMultiplier = this.comfortSettings.reducedMotion ? this.comfortSettings.comfortSpeed : 1.0;
-        
         if (gripButton && gripButton.pressed) {
           isBoosted = true;
         }
-        
         // Handle different locomotion modes
         if (this.comfortSettings.locomotionMode === 'teleport' && this.teleportSystem) {
           // Lightweight teleportation
           this.teleportSystem.processTeleportation(controller, x, y);
+          // Do NOT trigger movement sounds in teleport mode
+          continue;
         } else {
           // Traditional smooth movement (with comfort adjustments)
           const forward = new THREE.Vector3();
           this.camera.getWorldDirection(forward);
           forward.y = 0; // Lock to dolly's yaw
           forward.normalize();
-          
           const right = new THREE.Vector3().crossVectors(forward, this.camera.up).normalize();
-          
           // Apply movement with comfort speed multiplier
           if (Math.abs(y) > 0.1) {
             const rampedSpeed = this.MOVE_SPEED * speedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;

@@ -179,6 +179,7 @@
             });
 
             // Create the comfort glyph immediately after viewer is constructed
+
             comfortGlyph = new VRComfortGlyph(viewer.belowViewer.vrManager, {
               position: 'bottom-right',
               offsetX: 20,
@@ -186,7 +187,7 @@
             });
 
             // Track last comfort mode (persist across VR sessions)
-            let lastComfortMode = null;
+            let lastComfortMode = comfortGlyph.isComfortMode;
 
             // Listen for comfort mode changes
             comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {

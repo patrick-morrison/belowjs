@@ -22,7 +22,7 @@ export class VRTeleport {
     this.teleportReleaseThreshold = 0.3; // Below this threshold counts as "released"
     this.teleportPressed = false;      // Track if joystick is currently "pressed"
     this.teleportMaxMagnitude = 0;     // Track the maximum magnitude reached during this gesture
-    this.teleportFloorHeight = -1.6;  // Virtual floor height offset from current user position
+    this.teleportFloorHeight = null;  // Will be set to user's current Y on first teleport aim
     this.teleportFloorMin = -10.0;    // Minimum floor height (10m below current)
     this.teleportFloorMax = 10.0;     // Maximum floor height (10m above current)
     
@@ -191,46 +191,36 @@ export class VRTeleport {
   processTeleportation(controller, x, y) {
     // Calculate joystick magnitude (any direction can trigger teleportation)
     const magnitude = Math.sqrt(x * x + y * y);
-
-    // Use Y direction as-is for floor adjustment: up (negative y) moves floor up, down (positive y) moves floor down
+    const isRightHand = controller && controller.inputSource && controller.inputSource.handedness === 'right';
     const flippedY = y;
 
-    // Check if joystick is being "pressed" (above threshold)
+    // On first aim, set the teleport floor to user's current Y
     if (magnitude > this.teleportThreshold && !this.teleportPressed) {
-      // Start aiming - show arc immediately
       this.teleportPressed = true;
       this.teleportMaxMagnitude = magnitude;
       this.teleportController = controller;
+      // Always set floor to user's current Y on every new aim (fixes init bug)
+      this.teleportFloorHeight = this.camera.parent.position.y;
       this.showTeleportArc();
-
       if (this.onTeleportStart) {
         this.onTeleportStart();
       }
     } else if (this.teleportPressed) {
-      // Track max magnitude during gesture for distance calculation
       this.teleportMaxMagnitude = Math.max(this.teleportMaxMagnitude, magnitude);
-
-      // Floor height adjustment (allow up/down to ±10m)
-      if (Math.abs(flippedY) > 0.1) {
-        // 4 units per second, scaled by joystick direction
-        const floorAdjustSpeed = 4.0 / 60.0; // Assume ~60fps
+      // Only right controller can adjust floor
+      if (isRightHand && Math.abs(flippedY) > 0.1) {
+        const floorAdjustSpeed = 4.0 / 60.0;
         this.teleportFloorHeight += flippedY * floorAdjustSpeed;
         this.teleportFloorHeight = Math.max(this.teleportFloorMin, Math.min(this.teleportFloorMax, this.teleportFloorHeight));
         this.updateTeleportFloor();
       }
-
-      // Update the arc visualization in real-time
       this.updateTeleportArc();
-
-      // Check if joystick was released (below release threshold)
       if (magnitude < this.teleportReleaseThreshold) {
-        // Calculate landing position ONCE and execute teleport
         this.calculateAndExecuteTeleport();
         this.hideTeleportArc();
         this.teleportPressed = false;
         this.teleportMaxMagnitude = 0;
         this.teleportController = null;
-
         if (this.onTeleportEnd) {
           this.onTeleportEnd();
         }
@@ -333,9 +323,8 @@ export class VRTeleport {
     const timeToApex = initialVelY / Math.abs(gravity); // Time to reach peak
     const maxTime = Math.max(timeToApex * 2.2, 1.5); // Ensure arc completes, minimum 1.5 seconds
     
-    // Calculate virtual floor height (relative to current user position)
-    const currentUserY = this.camera.parent.position.y;
-    const virtualFloorY = currentUserY + this.teleportFloorHeight;
+    // Use the teleport floor height as the absolute Y for intersection
+    const virtualFloorY = this.teleportFloorHeight;
     
     // Build the natural physics arc and find intersection with virtual floor
     let intersectionPoint = null;
@@ -343,48 +332,44 @@ export class VRTeleport {
     let previousY = controllerPos.y;
     let peakTime = 0;
     
+    let arcBendLimit = 8.0; // Max vertical difference allowed for arc (prevents weird bends)
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * maxTime; // Time in seconds
-      
       // Physics equations: position = initial_position + initial_velocity * t + 0.5 * acceleration * t²
       const point = new THREE.Vector3(
         controllerPos.x + initialVelX * t,
-        controllerPos.y + initialVelY * t + 0.5 * gravity * t * t, // Real physics with gravity
+        controllerPos.y + initialVelY * t + 0.5 * gravity * t * t,
         controllerPos.z + initialVelZ * t
       );
-      
+      // Clamp arc to avoid excessive vertical bend
+      if (Math.abs(point.y - controllerPos.y) > arcBendLimit) {
+        point.y = controllerPos.y + Math.sign(point.y - controllerPos.y) * arcBendLimit;
+      }
       // Check if we've reached the peak (start of downward trajectory)
       if (!peakReached && point.y < previousY) {
         peakReached = true;
         peakTime = t;
       }
-      
       arcPoints.push(point);
-      
       // Only check for intersection AFTER the peak AND after sufficient downward travel
       const timeAfterPeak = peakReached ? (t - peakTime) : 0;
-      const isOnDownwardTrajectory = peakReached && timeAfterPeak > 0.1; // Must be at least 0.1s after peak
-      
+      const isOnDownwardTrajectory = peakReached && timeAfterPeak > 0.1;
       if (!intersectionPoint && isOnDownwardTrajectory && point.y <= virtualFloorY) {
         // Linear interpolation to find more precise intersection point
         if (i > 0) {
           const prevPoint = arcPoints[i - 1];
           const ratio = (virtualFloorY - prevPoint.y) / (point.y - prevPoint.y);
           intersectionPoint = new THREE.Vector3().lerpVectors(prevPoint, point, ratio);
-          intersectionPoint.y = virtualFloorY; // Snap to exact floor height
+          intersectionPoint.y = virtualFloorY;
         } else {
           intersectionPoint = point.clone();
           intersectionPoint.y = virtualFloorY;
         }
-        
-        // Truncate arc at intersection point
         arcPoints[i] = intersectionPoint;
-        arcPoints.length = i + 1; // Remove points beyond intersection
+        arcPoints.length = i + 1;
         break;
       }
-      
       previousY = point.y;
-      
       // Safety check: if arc goes too far horizontally, force it to end
       const horizontalDist = Math.sqrt(
         Math.pow(point.x - controllerPos.x, 2) + 
@@ -459,11 +444,9 @@ export class VRTeleport {
   updateTeleportFloor() {
     if (!this.teleportFloor) return;
     
-    // Position floor at the adjusted height relative to current user position
-    const currentUserY = this.camera.parent.position.y;
-    const virtualFloorY = currentUserY + this.teleportFloorHeight;
-    
-    this.teleportFloor.position.y = virtualFloorY;
+    // Place the virtual floor at the current teleport floor height
+    if (this.teleportFloorHeight === null) return;
+    this.teleportFloor.position.y = this.teleportFloorHeight;
     
     // Make floor slightly visible when adjusting (subtle grid/plane)
     this.teleportFloor.visible = true;
@@ -511,17 +494,13 @@ export class VRTeleport {
       
       // Only allow teleport if within reasonable range and on downward trajectory
       if (horizontalDistance >= 3 && horizontalDistance <= 30) {
-        // Keep the user's current Y level for teleportation (not the intersection Y)
-        const currentUserY = this.camera.parent.position.y;
-        const teleportPosition = new THREE.Vector3(intersectionPoint.x, currentUserY, intersectionPoint.z);
-        
+        // Place the user at the chosen floor height (standing on the teleport floor)
+        const teleportPosition = new THREE.Vector3(intersectionPoint.x, this.teleportFloorHeight, intersectionPoint.z);
         this.validTeleportPosition = teleportPosition;
         this.executeTeleport();
-        
-        // Reset floor height to default after teleport
-        this.teleportFloorHeight = -1.6;
-        
-        console.log(`🚀 Teleported to floor intersection: ${teleportPosition.x.toFixed(2)}, ${teleportPosition.y.toFixed(2)}, ${teleportPosition.z.toFixed(2)}`);
+        // Reset floor height so it will be set to user's Y on next aim
+        this.teleportFloorHeight = null;
+        console.log(`🚀 Teleported to floor intersection: ${teleportPosition.x.toFixed(2)}, ${(teleportPosition.y).toFixed(2)}, ${teleportPosition.z.toFixed(2)}`);
       } else {
         console.log(`🚫 Invalid teleport distance: ${horizontalDistance.toFixed(2)}m (must be 3-30m)`);
       }
