@@ -9,42 +9,49 @@ export class ModelLoader {
     this.renderer = renderer;
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
-    this.ktx2Loader = null; // Initialize as null, will be set up conditionally
-    
+    // Use shared static KTX2Loader
+    this.ktx2Loader = null;
+
     // Set up Draco decoder path
     this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     this.loader.setDRACOLoader(this.dracoLoader);
-    
+
     // Set up Meshopt decoder
     this.loader.setMeshoptDecoder(MeshoptDecoder);
-    
+
     this.cache = new Map();
-    
+
     // Track if we've already set up KTX2 to avoid multiple instances
     this.ktx2SetupComplete = false;
-    
+
     // Try to set up KTX2 loader, but don't fail if it doesn't work
     this.setupKTX2Loader();
   }
 
+
+
   setupKTX2Loader() {
-    // Prevent multiple KTX2 loader instances
-    if (this.ktx2SetupComplete || this.ktx2Loader) {
+    // Use a static/shared KTX2Loader for all ModelLoader instances
+    if (ModelLoader.sharedKTX2SetupComplete && ModelLoader.sharedKTX2Loader) {
+      this.ktx2Loader = ModelLoader.sharedKTX2Loader;
+      this.ktx2SetupComplete = true;
+      this.loader.setKTX2Loader(this.ktx2Loader);
       return;
     }
-    
+
     try {
-      this.ktx2Loader = new KTX2Loader();
-      
-      // Use the same CDN path as the working original implementation
-      this.ktx2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
-      
-      // Only set up KTX2 if we have a renderer
-      if (this.renderer) {
-        this.ktx2Loader.detectSupport(this.renderer);
-        this.loader.setKTX2Loader(this.ktx2Loader);
-        this.ktx2SetupComplete = true;
+      if (!ModelLoader.sharedKTX2Loader) {
+        ModelLoader.sharedKTX2Loader = new KTX2Loader();
+        ModelLoader.sharedKTX2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
       }
+      this.ktx2Loader = ModelLoader.sharedKTX2Loader;
+      // Only set up KTX2 if we have a renderer
+      if (this.renderer && !ModelLoader.sharedKTX2SetupComplete) {
+        this.ktx2Loader.detectSupport(this.renderer);
+        ModelLoader.sharedKTX2SetupComplete = true;
+      }
+      this.loader.setKTX2Loader(this.ktx2Loader);
+      this.ktx2SetupComplete = true;
     } catch (error) {
       console.warn('KTX2 loader setup failed, falling back to standard textures:', error);
       this.ktx2Loader = null;
@@ -162,19 +169,19 @@ export class ModelLoader {
   }
 
   dispose() {
-    // Dispose of loaders properly to prevent multiple instance warnings
-    if (this.ktx2Loader) {
-      this.ktx2Loader.dispose();
-      this.ktx2Loader = null;
-    }
-    
+    // Only dispose KTX2Loader if this is the last instance (not recommended, so skip)
+    // Instead, just clean up Draco and cache
     if (this.dracoLoader) {
       this.dracoLoader.dispose();
     }
-    
     // Clear cache
     this.cache.clear();
-    
     this.ktx2SetupComplete = false;
+
   }
 }
+
+
+// Attach static fields for shared KTX2Loader (only once, after class definition)
+ModelLoader.sharedKTX2Loader = null;
+ModelLoader.sharedKTX2SetupComplete = false;

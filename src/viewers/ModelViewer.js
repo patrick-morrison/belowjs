@@ -459,55 +459,42 @@ export class ModelViewer extends EventSystem {
   
   applyInitialPositions(modelConfig, model) {
     const positions = modelConfig.initialPositions;
-    
-    if (!positions) {
-      this.belowViewer.frameModel(model);
-      return;
-    }
-    
-    // Check if we're in VR mode
+    if (!positions) return;
+
     const isVRMode = this.belowViewer.isVRPresenting();
-    
+
     if (isVRMode && positions.vr) {
-      // Apply VR positions using the BelowViewer VR manager
-      this.belowViewer.applyInitialPositions(positions);
+      // Set dolly position/rotation directly (backup style)
+      const dolly = this.belowViewer.getCamera().parent;
+      if (dolly) {
+        dolly.position.set(
+          positions.vr.dolly.x,
+          positions.vr.dolly.y,
+          positions.vr.dolly.z
+        );
+        dolly.rotation.set(
+          positions.vr.rotation.x,
+          positions.vr.rotation.y,
+          positions.vr.rotation.z
+        );
+      }
     } else if (!isVRMode && positions.desktop) {
-      // Apply desktop positions with proper timing
-      setTimeout(() => {
-        const camera = this.belowViewer.getCamera();
-        const controls = this.belowViewer.cameraManager.controls;
-        
-        if (camera && controls && positions.desktop) {
-          const targetCameraPos = new THREE.Vector3(
-            positions.desktop.camera.x,
-            positions.desktop.camera.y,
-            positions.desktop.camera.z
-          );
-          
-          const targetControlsTarget = new THREE.Vector3(
-            positions.desktop.target.x,
-            positions.desktop.target.y,
-            positions.desktop.target.z
-          );
-          
-          camera.position.copy(targetCameraPos);
-          controls.target.copy(targetControlsTarget);
-          
-          // Force multiple updates to ensure camera positioning
-          controls.update();
-          
-          // Additional update after a frame
-          requestAnimationFrame(() => {
-            controls.update();
-            console.log('📍 Applied Desktop initial position:', positions.desktop);
-          });
-        }
-      }, 100); // Small delay to ensure model is fully loaded and positioned
-    } else {
-      // No specific positions defined, auto-frame the model with delay
-      setTimeout(() => {
-        this.belowViewer.frameModel(model);
-      }, 100);
+      // Set camera position and controls target directly (backup style)
+      const camera = this.belowViewer.getCamera();
+      const controls = this.belowViewer.cameraManager.controls;
+      if (camera && controls) {
+        camera.position.set(
+          positions.desktop.camera.x,
+          positions.desktop.camera.y,
+          positions.desktop.camera.z
+        );
+        controls.target.set(
+          positions.desktop.target.x,
+          positions.desktop.target.y,
+          positions.desktop.target.z
+        );
+        controls.update();
+      }
     }
   }
   

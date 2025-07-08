@@ -28,8 +28,5 @@
   },
   "devDependencies": {
     "vite": "^5.0.0"
-  },
-  "peerDependencies": {
-    "three": ">=0.177.0"
   }
 }

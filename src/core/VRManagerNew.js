@@ -6,12 +6,12 @@
  */
 
 import * as THREE from 'three';
-import { VRCore } from '../vr/core/VRCore.js';
-import { VRControllers } from '../vr/core/VRControllers.js';
-import { VRTeleport } from '../vr/locomotion/VRTeleport.js';
-import { VRLocomotion } from '../vr/locomotion/VRLocomotion.js';
-import { VRComfort } from '../vr/locomotion/VRComfort.js';
-import { VRAudio } from '../vr/audio/VRAudio.js';
+import { VRCore } from './vr/core/VRCore.js';
+import { VRControllers } from './vr/core/VRControllers.js';
+import { VRTeleport } from './vr/locomotion/VRTeleport.js';
+import { VRLocomotion } from './vr/locomotion/VRLocomotion.js';
+import { VRComfort } from './vr/locomotion/VRComfort.js';
+import { VRAudio } from './vr/audio/VRAudio.js';
 
 export class VRManager {
   constructor(renderer, camera, scene) {
@@ -60,7 +60,7 @@ export class VRManager {
     this.setupModuleConnections();
     
     // Initialize sound system (optional) - async
-    this.vrAudio.init('./sound/').catch(error => {
+    this.vrAudio.init().catch(error => {
       console.warn('🔇 Sound system initialization failed:', error);
     });
   }
@@ -76,13 +76,17 @@ export class VRManager {
       this.isVRPresenting = false;
     };
     
-    // Connect Controller callbacks (no movement sound on trigger, joystick only)
+    // Connect Controller callbacks
     this.vrControllers.onSelectStart = (handedness, controller, event) => {
-      // No-op: let joystick movement control movement state and sound
+      if (handedness === 'right') {
+        this.startMovement('forward');
+      } else if (handedness === 'left') {
+        this.startMovement('boost');
+      }
     };
-
+    
     this.vrControllers.onSelectEnd = (handedness, controller, event) => {
-      // No-op
+      this.stopMovement();
     };
     
     this.vrControllers.onSqueezeStart = (handedness, controller, event) => {
@@ -133,11 +137,8 @@ export class VRManager {
     // Connect Teleport system to Locomotion
     this.vrLocomotion.setTeleportSystem(this.vrTeleport);
     
-    // Sync initial comfort settings ONLY on first load, not on every session start
-    if (typeof this._comfortSettingsInitialized === 'undefined') {
-      this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings());
-      this._comfortSettingsInitialized = true;
-    }
+    // Sync initial comfort settings
+    this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings());
   }
   
   // Movement control methods (maintain original API)
@@ -153,22 +154,17 @@ export class VRManager {
   update(deltaTime) {
     // Update controller button states
     this.vrControllers.checkControllerButtons();
-
-    // Compose controllers object with hand gesture update if available
-    const controllers = {
-      ...this.vrControllers.getControllers(),
-      handsActive: this.vrControllers.handsActive,
-      handStates: this.vrControllers.handStates,
-      updateHandGestures: this.vrControllers.updateHandGestures ? this.vrControllers.updateHandGestures.bind(this.vrControllers) : undefined
-    };
+    
+    // Update movement system
+    const controllers = this.vrControllers.getControllers();
     this.vrLocomotion.updateMovement(deltaTime, controllers);
-
+    
     // Sync legacy properties for compatibility
     this.syncLegacyProperties();
-
+    
     // Apply comfort settings periodically
     this.ensureComfortSettingsApplied();
-
+    
     // Correct any drift
     this.vrLocomotion.correctDrift();
   }

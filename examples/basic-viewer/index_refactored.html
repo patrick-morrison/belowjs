@@ -8,7 +8,6 @@
     
     <!-- BelowJS Styling (updated to use packaged VR UI) -->
     <link rel="stylesheet" href="/src/styles/theme.css">
-    <link rel="stylesheet" href="/src/styles/vr.css">
     <link rel="stylesheet" href="/src/vr/ui/vrui.css">
     
     <style>
@@ -54,7 +53,7 @@
         // Model configuration
         const models = {
           'key_biscayne': { 
-            url: './models/key_biscayne.glb', 
+            url: 'models/key_biscayne.glb', 
             name: 'Key Biscayne', 
             credit: 'WreckSploration',
             initialPositions: {
@@ -69,46 +68,46 @@
             }
           },
           'kxi': { 
-            url: './models/kxi.glb', 
+            url: 'models/kxi.glb', 
             name: 'HNLMS K XI (1946)', 
             credit: 'WreckSploration',
             initialPositions: {
               desktop: {
-                camera: { x: -6.391, y: 12.461, z: -42.105 },
-                target: { x: 1.529, y: 0.088, z: -14.334 }
+                camera: { x: -0.023, y: 33.46, z: 59.89 },
+                target: { x: -0.023, y: 10.0, z: 0.0 }
               },
               vr: {
-                dolly: { x: 0, y: 2, z: 15 },
+                dolly: { x: 0, y: 10, z: 20 },
                 rotation: { x: 0, y: 0, z: 0 }
               }
             }
           },
           'sesa': { 
-            url: './models/sesa.glb', 
-            name: 'Sesa', 
+            url: 'models/sesa.glb', 
+            name: 'SS Sesi', 
             credit: 'WreckSploration',
             initialPositions: {
               desktop: {
-                camera: { x: 18.93, y: 11.572, z: 52.508 },
-                target: { x: -1.613, y: -8.088, z: 4.822 }
+                camera: { x: 100, y: 30, z: 100 },
+                target: { x: 0, y: 0, z: 0 }
               },
               vr: {
-                dolly: { x: 0, y: 2, z: 15 },
+                dolly: { x: 0, y: 15, z: 30 },
                 rotation: { x: 0, y: 0, z: 0 }
               }
             }
           },
           'unknown': { 
-            url: './models/unknown.glb', 
+            url: 'models/unknown.glb', 
             name: 'Unknown Wreck', 
             credit: 'WreckSploration',
             initialPositions: {
               desktop: {
-                camera: { x: 34.226, y: 10.354, z: 2.12 },
-                target: { x: 10.959, y: -1.07, z: 2.247 }
+                camera: { x: 15, y: 20, z: 25 },
+                target: { x: 0, y: 0, z: 0 }
               },
               vr: {
-                dolly: { x: 0, y: 2, z: 15 },
+                dolly: { x: 0, y: 5, z: 10 },
                 rotation: { x: 0, y: 0, z: 0 }
               }
             }
@@ -135,7 +134,7 @@
           try {
             const loading = document.getElementById('loading');
             const status = document.getElementById('status');
-
+            
             // Create a container div for the viewer
             const viewerContainer = document.createElement('div');
             viewerContainer.style.position = 'fixed';
@@ -145,20 +144,19 @@
             viewerContainer.style.height = '100%';
             viewerContainer.style.zIndex = '0';
             document.body.appendChild(viewerContainer);
-
+            
             viewer = new ModelViewer(viewerContainer, {
               enableVR: true,
               enableControls: true,
               enableInfo: true,
               showStats: false,
               autoRotate: false,
-              models: models, // Pass the models configuration
               viewerConfig: {
                 scene: {
                   backgroundColor: '#001122'
                 }
               },
-              initialModel: currentModel, // Pass the key, not the URL
+              initialModel: models[currentModel].url,
               initialPositions: models[currentModel].initialPositions,
               onLoadStart: () => {
                 loading.style.display = 'block';
@@ -178,42 +176,23 @@
               }
             });
 
-            // Create the comfort glyph immediately after viewer is constructed
-            comfortGlyph = new VRComfortGlyph(viewer.belowViewer.vrManager, {
-              position: 'bottom-right',
-              offsetX: 20,
-              offsetY: 70
+            // Wait for viewer to be fully initialized before creating comfort glyph
+            viewer.belowViewer.on('initialized', () => {
+              // Create VR comfort glyph using packaged component
+              comfortGlyph = new VRComfortGlyph(viewer.belowViewer.vrManager, {
+                position: 'bottom-right',
+                offsetX: 20,
+                offsetY: 70
+              });
+
+              // Listen for comfort mode changes
+              comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
+                console.log('🎮 Comfort mode changed:', event.detail);
+              });
+
+              console.log('✅ BelowJS VR Viewer initialized with modular architecture');
+              console.log('📊 VR System Status:', viewer.belowViewer.vrManager.getVRStatus());
             });
-
-            // Track last comfort mode (persist across VR sessions)
-            let lastComfortMode = null;
-
-            // Listen for comfort mode changes
-            comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
-              lastComfortMode = event.detail.isComfortMode;
-              console.log('🎮 Comfort mode changed:', event.detail);
-            });
-
-            // Listen for VR session start and re-apply last comfort mode
-            if (viewer && viewer.belowViewer && viewer.belowViewer.vrManager && viewer.belowViewer.vrManager.vrCore) {
-              viewer.belowViewer.vrManager.vrCore.onSessionStart = () => {
-                if (lastComfortMode !== null) {
-                  setTimeout(() => {
-                    if (lastComfortMode) {
-                      viewer.belowViewer.vrManager.setComfortPreset('max-comfort');
-                    } else {
-                      viewer.belowViewer.vrManager.setComfortPreset('performance');
-                    }
-                    comfortGlyph.setComfortMode(lastComfortMode);
-                  }, 50); // Delay to ensure this runs after all VR system logic
-                }
-              };
-            }
-
-
-            console.log('✅ VRComfortGlyph created successfully:', comfortGlyph);
-            console.log('✅ BelowJS VR Viewer initialized with modular architecture');
-            console.log('📊 VR System Status:', viewer.belowViewer.vrManager.getVRStatus());
 
           } catch (error) {
             console.error('❌ Failed to initialize viewer:', error);
@@ -231,7 +210,7 @@
             loading.style.display = 'block';
             loading.textContent = `Loading ${models[newModel].name}...`;
 
-            await viewer.loadModel(newModel);
+            await viewer.loadModel(models[newModel].url, models[newModel].initialPositions);
             currentModel = newModel;
 
             loading.style.display = 'none';
