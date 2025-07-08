@@ -332,8 +332,16 @@ export class VRManager {
   setupControllerEvents() {
     this.controllers.forEach((ctrl, index) => {
       ctrl.addEventListener('connected', evt => {
-        const { handedness, targetRayMode } = evt.data;
-        if (targetRayMode !== 'tracked-pointer') return; // skip hands
+        const { handedness, targetRayMode, profiles, gamepad } = evt.data;
+        // Ignore gaze-based input sources
+        if (targetRayMode !== 'tracked-pointer') return;
+
+        // Skip WebXR hand tracking inputs or anything without a gamepad
+        const isHandTracking = profiles && profiles.some(p => p.toLowerCase().includes('hand-tracking'));
+        if (isHandTracking || !gamepad) {
+          console.log('🖐️ Hand tracking source detected - ignoring for now');
+          return;
+        }
         
         // Assign the global refs (original pattern)
         if (handedness === 'left') {
