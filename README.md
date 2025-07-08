@@ -10,6 +10,7 @@ A modern, modular Three.js library for creating immersive 3D model viewers with 
 - **📱 Mobile Ready**: Touch-optimized controls for mobile devices
 - **🔧 Developer Friendly**: TypeScript-ready with comprehensive documentation
 - **⚡ Performance Optimized**: Efficient model loading and rendering
+- **📏 Precision Measurement**: Modular desktop and VR measurement tools
 
 ## 🚀 Quick Start
 

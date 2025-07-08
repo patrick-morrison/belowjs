@@ -7,3 +7,5 @@ export { Camera } from './core/Camera.js';
 export { ModelLoader } from './models/ModelLoader.js';
 export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
+export { DesktopMeasurement } from './measurement/DesktopMeasurement.js';
+export { VRMeasurement } from './measurement/VRMeasurement.js';

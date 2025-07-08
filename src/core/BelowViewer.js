@@ -310,6 +310,9 @@ export class BelowViewer extends EventSystem {
         this.cameraManager.update();
       }
       
+      // Emit render event for custom per-frame hooks
+      this.emit('render', { deltaTime, time });
+
       // Render the scene
       if (this.renderer && this.sceneManager && this.cameraManager) {
         this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);

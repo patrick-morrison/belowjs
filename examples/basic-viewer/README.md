@@ -48,9 +48,9 @@ The example comes configured to load the following models from your workspace:
 
 ## Next Steps
 
-After testing this basic example, we'll add:
+After testing this basic example, explore these additional features:
 - Lighting system (Survey/Dive modes)
 - Particle system
 - Audio system
-- Measurement system
+- **Measurement system (now included)**
 - VR support

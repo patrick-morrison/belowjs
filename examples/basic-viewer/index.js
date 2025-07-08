@@ -1,4 +1,4 @@
-import { ModelViewer } from '../../src/index.js';
+import { ModelViewer, DesktopMeasurement, VRMeasurement } from '../../src/index.js';
 
 // Model configuration
 const models = {
@@ -85,3 +85,63 @@ viewer.on('initialized', () => {
 window.addEventListener('beforeunload', () => {
   viewer.dispose();
 });
+
+// --- Measurement System Integration ---
+
+const scene = viewer.belowViewer.getScene();
+const camera = viewer.belowViewer.getCamera();
+const renderer = viewer.belowViewer.getRenderer();
+
+// Desktop measurement setup
+const desktopMeasure = new DesktopMeasurement(scene, camera, renderer);
+desktopMeasure.enable();
+renderer.domElement.addEventListener('click', (e) => desktopMeasure.handleClick(e));
+desktopMeasure.on('measured', (dist) => {
+  console.log(`Desktop measurement: ${dist.toFixed(2)}m`);
+});
+
+// VR measurement setup
+const vrMeasure = new VRMeasurement(scene, renderer);
+vrMeasure.on('measured', (dist) => {
+  console.log(`VR measurement: ${dist.toFixed(2)}m`);
+});
+
+// Update VR ghost spheres each frame
+viewer.belowViewer.on('render', () => {
+  const vrm = viewer.belowViewer.getVRManager();
+  if (vrm) {
+    vrMeasure.updateGhosts(vrm.controller1, vrm.controller2);
+  }
+});
+
+// Place points on trigger release when in VR
+viewer.on('vr-session-start', () => {
+  const vrm = viewer.belowViewer.getVRManager();
+  if (!vrm) return;
+  desktopMeasure.disable();
+
+  if (vrm.controller1) {
+    vrm.controller1.addEventListener('selectend', placeLeft);
+  }
+  if (vrm.controller2) {
+    vrm.controller2.addEventListener('selectend', placeRight);
+  }
+});
+
+viewer.on('vr-session-end', () => {
+  const vrm = viewer.belowViewer.getVRManager();
+  if (vrm) {
+    if (vrm.controller1) vrm.controller1.removeEventListener('selectend', placeLeft);
+    if (vrm.controller2) vrm.controller2.removeEventListener('selectend', placeRight);
+  }
+  vrMeasure.clear();
+  desktopMeasure.enable();
+});
+
+function placeLeft() {
+  vrMeasure.placeFromController('left');
+}
+
+function placeRight() {
+  vrMeasure.placeFromController('right');
+}

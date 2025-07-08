@@ -12,9 +12,10 @@
 4. [Configuration Options](#configuration-options)
 5. [Events](#events)
 6. [Methods](#methods)
-7. [Theming](#theming)
-8. [Examples](#examples)
-9. [Advanced Usage](#advanced-usage)
+7. [Measurement Modules](#measurement-modules)
+8. [Theming](#theming)
+9. [Examples](#examples)
+10. [Advanced Usage](#advanced-usage)
 
 ---
 
@@ -523,6 +524,15 @@ viewer.on('camera-reset', ({ modelKey, position }) => {
 });
 ```
 
+#### `render`
+Fired on every animation frame before rendering. Use this for custom per-frame logic.
+
+```javascript
+viewer.on('render', ({ deltaTime }) => {
+  // do something every frame
+});
+```
+
 ---
 
 ## Methods
@@ -672,6 +682,43 @@ viewer.on('focus', ({ point, intersect }) => {
 - **Animation**: 1000ms ease-out cubic motion matching original behavior
 - **Cancellation**: User input automatically interrupts ongoing animations
 - **Conflict Prevention**: Drag detection prevents accidental focus triggers
+
+---
+
+## Measurement Modules
+
+BelowJS ships with modular measurement tools for desktop and VR.
+
+### `DesktopMeasurement`
+
+Enables click-based distance measurement in non-VR mode.
+
+```javascript
+import { DesktopMeasurement } from './src/index.js';
+const m = new DesktopMeasurement(scene, camera, renderer);
+m.enable();
+renderer.domElement.addEventListener('click', (e) => m.handleClick(e));
+m.on('measured', (d) => console.log(`Distance: ${d.toFixed(2)}m`));
+```
+
+### `VRMeasurement`
+
+Handles controller-based measuring in VR sessions.
+
+```javascript
+import { VRMeasurement } from './src/index.js';
+const vrM = new VRMeasurement(scene, renderer);
+viewer.on('vr-session-start', () => {
+  const vrm = viewer.belowViewer.getVRManager();
+  vrm.controller1.addEventListener('selectend', () => vrM.placeFromController('left'));
+  vrm.controller2.addEventListener('selectend', () => vrM.placeFromController('right'));
+});
+viewer.belowViewer.on('render', () => {
+  const vrm = viewer.belowViewer.getVRManager();
+  vrM.updateGhosts(vrm.controller1, vrm.controller2);
+});
+vrM.on('measured', (d) => console.log(`VR distance: ${d.toFixed(2)}m`));
+```
 
 ---
 
