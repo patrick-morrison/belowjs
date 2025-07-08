@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/src/styles/theme.css">
     <link rel="stylesheet" href="/src/styles/vr.css">
     <link rel="stylesheet" href="/src/vr/ui/vrui.css">
+    <link rel="stylesheet" href="/src/styles/measurement.css">
     
     <style>
         body, html {
@@ -49,7 +50,6 @@
 
     <script type="module">
         import { ModelViewer } from '/src/index.js';
-        import { VRComfortGlyph } from '/src/vr/ui/VRComfortGlyph.js';
 
         // Model configuration
         const models = {
@@ -115,179 +115,35 @@
           }
         };
 
-        // Model selection
-        const modelDropdown = document.getElementById('modelDropdown');
-        let currentModel = 'key_biscayne';
-        let viewer = null;
-        let comfortGlyph = null;
+        // Minimal ModelViewer usage with measurement and VR comfort enabled
+        const currentModel = 'key_biscayne';
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.top = '0';
+        viewerContainer.style.left = '0';
+        viewerContainer.style.width = '100%';
+        viewerContainer.style.height = '100%';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
 
-        // Populate model dropdown
-        Object.entries(models).forEach(([key, model]) => {
-          const option = document.createElement('option');
-          option.value = key;
-          option.textContent = model.name;
-          if (key === currentModel) option.selected = true;
-          modelDropdown.appendChild(option);
-        });
-
-        // Initialize viewer
-        async function initViewer() {
-          try {
-            const loading = document.getElementById('loading');
-            const status = document.getElementById('status');
-
-            // Create a container div for the viewer
-            const viewerContainer = document.createElement('div');
-            viewerContainer.style.position = 'fixed';
-            viewerContainer.style.top = '0';
-            viewerContainer.style.left = '0';
-            viewerContainer.style.width = '100%';
-            viewerContainer.style.height = '100%';
-            viewerContainer.style.zIndex = '0';
-            document.body.appendChild(viewerContainer);
-
-            viewer = new ModelViewer(viewerContainer, {
-              enableVR: true,
-              enableControls: true,
-              enableInfo: true,
-              showStats: false,
-              autoRotate: false,
-              models: models, // Pass the models configuration
-              viewerConfig: {
-                scene: {
-                  backgroundColor: '#001122'
-                }
-              },
-              initialModel: currentModel, // Pass the key, not the URL
-              initialPositions: models[currentModel].initialPositions,
-              onLoadStart: () => {
-                loading.style.display = 'block';
-                status.style.display = 'none';
-              },
-              onLoadComplete: () => {
-                loading.style.display = 'none';
-                status.style.display = 'block';
-                status.textContent = `${models[currentModel].name} loaded`;
-                setTimeout(() => status.style.display = 'none', 3000);
-              },
-              onError: (error) => {
-                loading.style.display = 'none';
-                status.style.display = 'block';
-                status.textContent = `Error: ${error}`;
-                console.error('Viewer error:', error);
-              }
-            });
-
-            // Create the comfort glyph immediately after viewer is constructed
-
-            comfortGlyph = new VRComfortGlyph(viewer.belowViewer.vrManager, {
-              position: 'bottom-right',
-              offsetX: 20,
-              offsetY: 70
-            });
-
-            // Track last comfort mode (persist across VR sessions)
-            let lastComfortMode = comfortGlyph.isComfortMode;
-
-            // Listen for comfort mode changes
-            comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
-              lastComfortMode = event.detail.isComfortMode;
-              console.log('🎮 Comfort mode changed:', event.detail);
-            });
-
-            // Listen for VR session start and re-apply last comfort mode
-            if (viewer && viewer.belowViewer && viewer.belowViewer.vrManager && viewer.belowViewer.vrManager.vrCore) {
-              viewer.belowViewer.vrManager.vrCore.onSessionStart = () => {
-                if (lastComfortMode !== null) {
-                  setTimeout(() => {
-                    if (lastComfortMode) {
-                      viewer.belowViewer.vrManager.setComfortPreset('max-comfort');
-                    } else {
-                      viewer.belowViewer.vrManager.setComfortPreset('performance');
-                    }
-                    comfortGlyph.setComfortMode(lastComfortMode);
-                  }, 50); // Delay to ensure this runs after all VR system logic
-                }
-              };
+        const viewer = new ModelViewer(viewerContainer, {
+          enableVR: true,
+          enableControls: true,
+          enableInfo: true,
+          showStats: false,
+          autoRotate: false,
+          models: models,
+          enableMeasurement: true,
+          enableVRComfortGlyph: true,
+          viewerConfig: {
+            scene: {
+              backgroundColor: '#001122'
             }
-
-
-            console.log('✅ VRComfortGlyph created successfully:', comfortGlyph);
-            console.log('✅ BelowJS VR Viewer initialized with modular architecture');
-            console.log('📊 VR System Status:', viewer.belowViewer.vrManager.getVRStatus());
-
-          } catch (error) {
-            console.error('❌ Failed to initialize viewer:', error);
-            document.getElementById('loading').textContent = `Error: ${error}`;
-          }
-        }
-
-        // Model switching
-        modelDropdown.addEventListener('change', async (event) => {
-          const newModel = event.target.value;
-          if (newModel === currentModel) return;
-
-          try {
-            const loading = document.getElementById('loading');
-            loading.style.display = 'block';
-            loading.textContent = `Loading ${models[newModel].name}...`;
-
-            await viewer.loadModel(newModel);
-            currentModel = newModel;
-
-            loading.style.display = 'none';
-            console.log(`✅ Switched to ${models[newModel].name}`);
-
-          } catch (error) {
-            console.error('❌ Failed to switch model:', error);
-            document.getElementById('loading').textContent = `Error loading ${models[newModel].name}`;
-          }
+          },
+          initialModel: currentModel,
+          initialPositions: models[currentModel].initialPositions
         });
-
-        // VR mode detection for styling
-        function detectVRMode() {
-          const isVR = viewer && viewer.belowViewer && viewer.belowViewer.vrManager && viewer.belowViewer.vrManager.isVRPresenting;
-          document.body.classList.toggle('vr-mode', isVR);
-          
-          // Update info title to show refactored status
-          const infoTitle = document.getElementById('infoTitle');
-          if (infoTitle) {
-            infoTitle.textContent = isVR ? 'BelowJS VR (Refactored) - VR Active' : 'BelowJS VR (Refactored)';
-          }
-        }
-
-        // Monitor VR state changes
-        setInterval(detectVRMode, 1000);
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (event) => {
-          if (event.code === 'KeyC' && (event.ctrlKey || event.metaKey)) {
-            event.preventDefault();
-            if (comfortGlyph) {
-              comfortGlyph.toggle();
-            }
-          }
-        });
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', initViewer);
-
-        // Initialize immediately if DOM is already loaded
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initViewer);
-        } else {
-          initViewer();
-        }
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-          if (comfortGlyph) {
-            comfortGlyph.dispose();
-          }
-          if (viewer) {
-            viewer.dispose();
-          }
-        });
+        // Optionally, you can listen to events on viewer for further customization
     </script>
 </body>
 </html>

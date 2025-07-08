@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { BelowViewer } from '../core/BelowViewer.js';
 import { EventSystem } from '../utils/EventSystem.js';
+import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
+import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 
 /**
  * ModelViewer - A high-level viewer for managing multiple models with dropdown selection
@@ -9,7 +11,6 @@ import { EventSystem } from '../utils/EventSystem.js';
 export class ModelViewer extends EventSystem {
   constructor(container, options = {}) {
     super();
-    
     this.container = container;
     this.options = {
       models: {},
@@ -17,13 +18,16 @@ export class ModelViewer extends EventSystem {
       showLoadingIndicator: true,
       showStatus: true,
       showInfo: false,  // Info panel is optional now
+      enableMeasurement: false, // New: auto-attach measurement system
+      enableVRComfortGlyph: false, // New: auto-attach VR comfort glyph
       ...options
     };
-    
     this.currentModelKey = null;
     this.belowViewer = null;
     this.ui = {};
-    
+    this.measurementSystem = null;
+    this.comfortGlyph = null;
+    this.lastComfortMode = null;
     this.init();
   }
   
@@ -69,31 +73,98 @@ export class ModelViewer extends EventSystem {
     };
     
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
-    
+
     // Set up BelowViewer event forwarding
     this.setupEventForwarding();
-    
+
     // Set up double-click to focus interaction (wait for initialization)
     this.belowViewer.on('initialized', () => {
       this.setupFocusInteraction();
+      this._maybeAttachMeasurementSystem();
+      this._maybeAttachVRComfortGlyph();
     });
-    
+
     // Also try setting it up immediately in case the event already fired
     if (this.belowViewer.isInitialized) {
       this.setupFocusInteraction();
+      this._maybeAttachMeasurementSystem();
+      this._maybeAttachVRComfortGlyph();
     }
-    
+
     // Create UI if models are provided
     if (Object.keys(this.options.models).length > 0) {
       this.createUI();
       this.populateDropdown();
-      
+
       // Auto-load first model if enabled
       if (this.options.autoLoadFirst) {
         const firstModelKey = Object.keys(this.options.models)[0];
         setTimeout(() => this.loadModel(firstModelKey), 100);
       }
     }
+  }
+
+  _maybeAttachMeasurementSystem() {
+    if (!this.options.enableMeasurement || this.measurementSystem) return;
+    this.measurementSystem = new MeasurementSystem({
+      scene: this.belowViewer.sceneManager.scene,
+      camera: this.belowViewer.cameraManager.camera,
+      renderer: this.belowViewer.renderer,
+      controls: this.belowViewer.cameraManager.controls
+    });
+    // Attach update to render loop
+    const update = () => this.measurementSystem && this.measurementSystem.update();
+    if (this.belowViewer.onAfterRender) {
+      this.belowViewer.onAfterRender(update);
+    } else if (this.onAfterRender) {
+      this.onAfterRender(update);
+    } else {
+      // fallback: requestAnimationFrame
+      const loop = () => { update(); requestAnimationFrame(loop); };
+      loop();
+    }
+    // Set initial target if model loaded
+    if (this.belowViewer.loadedModels && this.belowViewer.loadedModels.length > 0) {
+      const modelRoot = this.belowViewer.loadedModels[0].model;
+      this.measurementSystem.setRaycastTargets(modelRoot);
+    }
+  }
+
+  _maybeAttachVRComfortGlyph() {
+    if (!this.options.enableVRComfortGlyph || this.comfortGlyph) return;
+    if (!this.belowViewer.vrManager) return;
+    this.comfortGlyph = new VRComfortGlyph(this.belowViewer.vrManager, {
+      position: 'bottom-right',
+      offsetX: 20,
+      offsetY: 70
+    });
+    this.lastComfortMode = this.comfortGlyph.isComfortMode;
+    this.comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
+      this.lastComfortMode = event.detail.isComfortMode;
+    });
+    if (this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
+      this.belowViewer.vrManager.vrCore.onSessionStart = () => {
+        if (this.lastComfortMode !== null) {
+          setTimeout(() => {
+            if (this.lastComfortMode) {
+              this.belowViewer.vrManager.setComfortPreset('max-comfort');
+            } else {
+              this.belowViewer.vrManager.setComfortPreset('performance');
+            }
+            this.comfortGlyph.setComfortMode(this.lastComfortMode);
+          }, 50);
+        }
+      };
+    }
+    // Keyboard shortcut for comfort glyph
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'KeyC' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        if (this.comfortGlyph) this.comfortGlyph.toggle();
+      }
+    });
+    // Cleanup
+    window.addEventListener('beforeunload', () => this.comfortGlyph && this.comfortGlyph.dispose());
   }
   
   setupEventForwarding() {
@@ -410,44 +481,37 @@ export class ModelViewer extends EventSystem {
       console.error('Model not found:', modelKey);
       return;
     }
-    
     this.currentModelKey = modelKey;
-    
     // Update dropdown selection if dropdown exists
     if (this.ui.dropdown) {
       this.ui.dropdown.value = modelKey;
     }
-    
     // Show loading indicator
     this.showLoading(`Loading ${modelConfig.name || modelKey}...`);
-    
     // Update page title
     document.title = `BelowJS – ${modelConfig.name || modelKey}`;
-    
     try {
       // Clear existing models
       this.belowViewer.clearModels();
-      
       // Small delay to ensure cleanup completes
       await new Promise(resolve => setTimeout(resolve, 50));
-      
       // Load the model with initialPositions for VR support
       const model = await this.belowViewer.loadModel(modelConfig.url, {
         autoFrame: false,  // We'll handle positioning manually
         initialPositions: modelConfig.initialPositions  // Pass VR/desktop positions
       });
-      
       if (model) {
         // Apply initial positions based on current mode (VR or desktop)
         this.applyInitialPositions(modelConfig, model);
-        
         // Hide loading and update status
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);
-        
+        // Set measurement raycast targets if enabled
+        if (this.measurementSystem) {
+          this.measurementSystem.setRaycastTargets(model);
+        }
         this.emit('model-switched', { modelKey, model, config: modelConfig });
       }
-      
     } catch (error) {
       if (error.message !== 'Loading cancelled') {
         console.error('Failed to load model:', error);
@@ -618,7 +682,14 @@ export class ModelViewer extends EventSystem {
       domElement.removeEventListener('click', this.focusEventHandlers.onMouseClick);
       this.focusEventHandlers = null;
     }
-    
+    if (this.measurementSystem) {
+      this.measurementSystem.dispose();
+      this.measurementSystem = null;
+    }
+    if (this.comfortGlyph) {
+      this.comfortGlyph.dispose();
+      this.comfortGlyph = null;
+    }
     if (this.belowViewer) {
       this.belowViewer.dispose();
     }
