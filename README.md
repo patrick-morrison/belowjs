@@ -11,6 +11,21 @@ A modern, modular Three.js library for creating immersive 3D model viewers with 
 - **🔧 Developer Friendly**: TypeScript-ready with comprehensive documentation
 - **⚡ Performance Optimized**: Efficient model loading and rendering
 
+## 📦 Installation
+
+BelowJS is distributed as an npm package with Three.js listed as a peer
+dependency:
+
+```bash
+npm install belowjs three
+```
+
+After installation you can import the library into your project:
+
+```javascript
+import { ModelViewer } from 'belowjs';
+```
+
 ## 🚀 Quick Start
 
 ```html
@@ -18,11 +33,11 @@ A modern, modular Three.js library for creating immersive 3D model viewers with 
 <html>
 <head>
     <title>My 3D Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="path/to/belowjs/src/styles/theme.css">
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from 'belowjs';
 
         const viewer = new ModelViewer(document.body, {
             models: {
@@ -32,6 +47,59 @@ A modern, modular Three.js library for creating immersive 3D model viewers with 
                 }
             },
             autoLoadFirst: true
+        });
+    </script>
+</body>
+</html>
+```
+
+## 🌟 Detailed Example
+
+A more complete setup with multiple models and event handling:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BelowJS Demo</title>
+    <link rel="stylesheet" href="path/to/belowjs/src/styles/theme.css">
+</head>
+<body>
+    <select id="model-select"></select>
+    <div id="viewer"></div>
+
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        const models = {
+            'ship1': { url: '/models/ship1.glb', name: 'Cargo Ship' },
+            'ship2': { url: '/models/ship2.glb', name: 'Fishing Vessel' }
+        };
+
+        const viewer = new ModelViewer('#viewer', {
+            models,
+            autoLoadFirst: true,
+            showInfo: true
+        });
+
+        // Populate the dropdown and switch models
+        const select = document.getElementById('model-select');
+        Object.keys(models).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = models[key].name;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', e => viewer.switchModel(e.target.value));
+
+        // Listen for events
+        viewer.on('model-loaded', ({ config }) => {
+            console.log(`Loaded: ${config.name}`);
+        });
+
+        viewer.on('model-switched', ({ config }) => {
+            document.title = `Viewing: ${config.name}`;
         });
     </script>
 </body>

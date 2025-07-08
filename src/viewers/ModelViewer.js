@@ -555,13 +555,46 @@ export class ModelViewer extends EventSystem {
   getCurrentModel() {
     return this.belowViewer ? this.belowViewer.getCurrentModel() : null;
   }
-  
+
   getCamera() {
     return this.belowViewer ? this.belowViewer.getCamera() : null;
   }
-  
+
   getScene() {
     return this.belowViewer ? this.belowViewer.sceneManager.scene : null;
+  }
+
+  /**
+   * Get all available model configurations
+   * @returns {Object}
+   */
+  getModels() {
+    return this.options.models;
+  }
+
+  /**
+   * Switch to a different model by key
+   * @param {string} modelKey
+   */
+  switchModel(modelKey) {
+    return this.loadModel(modelKey);
+  }
+
+  /**
+   * Focus the camera on the currently loaded model
+   */
+  focusModel() {
+    const current = this.getCurrentModel();
+    if (current?.model && this.belowViewer?.frameModel) {
+      this.belowViewer.frameModel(current.model);
+    }
+  }
+
+  /**
+   * Access the underlying VR manager
+   */
+  getVRManager() {
+    return this.belowViewer ? this.belowViewer.getVRManager() : null;
   }
   
   /**

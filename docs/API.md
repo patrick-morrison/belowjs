@@ -6,15 +6,32 @@
 
 ## Table of Contents
 
-1. [Quick Start](#quick-start)
-2. [ModelViewer Class](#modelviewer-class)
-3. [VR Support](#vr-support)
-4. [Configuration Options](#configuration-options)
-5. [Events](#events)
-6. [Methods](#methods)
-7. [Theming](#theming)
-8. [Examples](#examples)
-9. [Advanced Usage](#advanced-usage)
+1. [Installation](#installation)
+2. [Quick Start](#quick-start)
+3. [ModelViewer Class](#modelviewer-class)
+4. [VR Support](#vr-support)
+5. [Configuration Options](#configuration-options)
+6. [Events](#events)
+7. [Methods](#methods)
+8. [Theming](#theming)
+9. [Examples](#examples)
+10. [Advanced Usage](#advanced-usage)
+
+---
+
+## Installation
+
+Install BelowJS and its peer dependency Three.js:
+
+```bash
+npm install belowjs three
+```
+
+Import the viewer in your application:
+
+```javascript
+import { ModelViewer } from 'belowjs';
+```
 
 ---
 
@@ -23,7 +40,7 @@
 ### Basic Setup with VR
 
 ```javascript
-import { ModelViewer } from './src/viewers/ModelViewer.js';
+import { ModelViewer } from 'belowjs';
 
 // Define your models with VR positioning
 const models = {
@@ -66,7 +83,7 @@ viewer.on('vr-session-end', () => {
 ### Basic Setup without VR
 
 ```javascript
-import { ModelViewer } from './src/viewers/ModelViewer.js';
+import { ModelViewer } from 'belowjs';
 
 const models = {
   'my-model': {
@@ -743,11 +760,11 @@ Both themes use CSS custom properties that you can override:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My 3D Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="path/to/belowjs/src/styles/theme.css">
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+        import { ModelViewer } from 'belowjs';
 
         const models = {
             'example': {
@@ -779,11 +796,11 @@ Both themes use CSS custom properties that you can override:
 <head>
     <meta charset="UTF-8">
     <title>Light Theme Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme-light.css">
+    <link rel="stylesheet" href="path/to/belowjs/src/styles/theme-light.css">
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+        import { ModelViewer } from 'belowjs';
 
         const viewer = new ModelViewer(document.body, {
             models: {
@@ -811,11 +828,11 @@ Both themes use CSS custom properties that you can override:
 <head>
     <meta charset="UTF-8">
     <title>Minimal Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="path/to/belowjs/src/styles/theme.css">
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+        import { ModelViewer } from 'belowjs';
 
         // Minimal viewer with no UI
         const viewer = new ModelViewer(document.body, {
@@ -838,7 +855,7 @@ Both themes use CSS custom properties that you can override:
 ### Multiple Models Example
 
 ```javascript
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from 'belowjs';
 
 const models = {
     'ship1': {
@@ -964,7 +981,7 @@ viewer.on('progress', ({ loaded, total, percentage }) => {
 
 ```javascript
 // Example: Integration with a UI framework
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from 'belowjs';
 
 class ViewerComponent {
     constructor(element, props) {
@@ -1027,7 +1044,7 @@ const component = new ViewerComponent(document.getElementById('viewer'), {
 ### Focus and Camera Control Examples
 
 ```javascript
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from 'belowjs';
 import * as THREE from 'three';
 
 const viewer = new ModelViewer(container, {
@@ -1149,7 +1166,7 @@ const viewer = new ModelViewer(container, {
 <!-- New BelowJS -->
 <div id="viewer"></div>
 <script type="module">
-    import { ModelViewer } from '/src/viewers/ModelViewer.js';
+    import { ModelViewer } from 'belowjs';
     new ModelViewer('#viewer', {
         models: { 'model': { url: 'model.glb', name: 'Model' } },
         autoLoadFirst: true
