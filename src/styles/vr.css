@@ -192,14 +192,7 @@ div[id*="VR"] button:active,
 }
 
 /* VR button not available - completely hidden */
-#VRButton:not([style*="display: flex"]),
-button[id*="VR"]:not([style*="display: flex"]),
-div[id*="VR"] button:not([style*="display: flex"]),
-.vr-button-glass:not([style*="display: flex"]) {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
+
 
 /* VR button disabled/not allowed - greyed out */
 .vr-button-disabled,

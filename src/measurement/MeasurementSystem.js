@@ -46,15 +46,7 @@ export class MeasurementSystem {
     };
     addMeshes(targets);
     this._raycastTargets = meshTargets;
-    // Debug info
-    console.debug('[MeasurementSystem] setRaycastTargets called:', {
-      input: targets,
-      meshTargets,
-      meshCount: meshTargets.length,
-      meshNames: meshTargets.map(m => m.name || m.uuid),
-      meshTypes: meshTargets.map(m => m.type),
-      meshWorldMatrices: meshTargets.map(m => m.matrixWorld.clone()),
-    });
+    // (Debug logging removed)
 
   }
 
@@ -99,7 +91,28 @@ export class MeasurementSystem {
    * @param {Object} [opts.config] - UI/behavior config (optional)
    */
   constructor({ scene, camera, renderer, controls, dolly, config = {} }) {
-    console.debug('[MeasurementSystem] constructor called', { scene, camera, renderer, controls, dolly, config });
+    // Always initialize ghostSpheres to avoid undefined and allow debug visibility
+    this.ghostSpheres = {
+      left: null,
+      right: null
+    };
+    // Always keep two spheres in VR mode (fix: ensure defined before attachVR)
+    this.MAX_SPHERES = 2;
+    
+    // VR measurement state (Adrasan-style FIFO queue)
+    this.measurementSpheres = []; // FIFO queue for spheres (max 2)
+    this.measurementLine = null;
+    this.measurementLabel = null;
+    this.previousTriggerState = {}; // Track trigger state for polling
+    
+    // Unified measurement points (works across VR and desktop)
+    this.unifiedMeasurementPoints = []; // Max 2 points, works in both VR and desktop
+    this.unifiedMeasurementLine = null;
+    
+    // Legacy desktop state (for compatibility)
+    this.desktopMeasurementPoints = [];
+    this.desktopMeasurementLine = null;
+    
     // Expose for debugging
     if (typeof window !== 'undefined') {
       window.measurementSystem = this;
@@ -115,12 +128,11 @@ export class MeasurementSystem {
     this._raycastTargets = (scene && scene.children) ? scene.children : [];
 
     // Measurement state
-    this.enabled = false;
+    this.enabled = true; // Start enabled by default
     this.isVR = false;
     this.measurementPanel = null;
-    this.desktopMeasurementMode = false;
+    this.desktopMeasurementMode = false; // Start disabled by default
     this.measurementSystemEnabled = true;
-    this.placedSpheres = [];
     this.desktopMeasurementPoints = [];
     this.connectionLine = null;
     this.desktopMeasurementLine = null;
@@ -128,9 +140,59 @@ export class MeasurementSystem {
     this.measurementCanvas = null;
     this.measurementTexture = null;
     this.lastClickTime = 0;
+    this.lastTriggerTime = 0; // Debounce for VR trigger events
+    this._wasInVR = false; // Track VR state changes
     this.focusAnimation = null;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
+
+    // --- Robust VR controller parenting for ghost spheres (auto-attach logic) ---
+    // This logic will auto-attach ghost spheres to VR controllers if present, and re-attach on session start or controller reconnection.
+    // --- Robust VR controller parenting for ghost spheres (auto-attach logic, with fallback and visibility) ---
+    const tryAttachMeasurementVR = () => {
+      let controller1 = null, controller2 = null, controllerGrip1 = null, controllerGrip2 = null;
+      // Try to find controllers via scene graph (THREE/WebXR convention)
+      if (scene && scene.children) {
+        scene.children.forEach(obj => {
+          if (obj && obj.inputSource && obj.inputSource.handedness) {
+            if (obj.inputSource.handedness === 'left') controller1 = obj;
+            if (obj.inputSource.handedness === 'right') controller2 = obj;
+          }
+        });
+      }
+      // Fallback: try to get from renderer.xr if available (for custom VRManager)
+      if ((!controller1 || !controller2) && renderer && renderer.xr && renderer.xr.getController) {
+        try {
+          controller1 = controller1 || renderer.xr.getController(0);
+          controller2 = controller2 || renderer.xr.getController(1);
+        } catch (e) {}
+      }
+      // If controllers found, attach and force ghost spheres visible
+      if (controller1 && controller2) {
+        this.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
+        if (this.ghostSpheres && this.ghostSpheres.left && this.ghostSpheres.right) {
+          this.ghostSpheres.left.visible = true;
+          this.ghostSpheres.right.visible = true;
+        }
+      } else {
+        // If not found, try again later (up to 10s)
+        if (!this._ghostSphereAttachRetries) this._ghostSphereAttachRetries = 0;
+        if (this._ghostSphereAttachRetries < 40) {
+          this._ghostSphereAttachRetries++;
+          setTimeout(tryAttachMeasurementVR, 250);
+        } else {
+          // After repeated failures, log a warning
+          if (typeof window !== 'undefined' && window.console) {
+            console.warn('[MeasurementSystem] Could not find VR controllers to attach ghost spheres after multiple attempts.');
+          }
+        }
+      }
+    };
+    tryAttachMeasurementVR();
+    // Optionally, listen for WebXR session events if available
+    if (renderer && renderer.xr && renderer.xr.addEventListener) {
+      renderer.xr.addEventListener('sessionstart', tryAttachMeasurementVR);
+    }
     this.sphereGeometry = new THREE.SphereGeometry(0.02, 8, 6);
     this.placedMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     // Thick line materials for VR and desktop
@@ -163,7 +225,7 @@ export class MeasurementSystem {
 
     // Mouse events (use capture phase to ensure we get events even if Three.js stops propagation)
     this._boundOnMouseClick = this.onMouseClick.bind(this);
-    console.debug('[MeasurementSystem] Adding mouse event listeners to', this.renderer.domElement);
+    //
     this._boundOnMouseDown = this.onMouseDown.bind(this);
     this._boundOnMouseMove = this.onMouseMove.bind(this);
     this._boundOnMouseUp = this.onMouseUp.bind(this);
@@ -171,6 +233,53 @@ export class MeasurementSystem {
     this.renderer.domElement.addEventListener('mousedown', this._boundOnMouseDown, true);
     this.renderer.domElement.addEventListener('mousemove', this._boundOnMouseMove, true);
     this.renderer.domElement.addEventListener('mouseup', this._boundOnMouseUp, true);
+
+    // --- AUTO-ATTACH VR CONTROLLERS IF AVAILABLE ---
+    if (renderer && renderer.xr && typeof renderer.xr.getController === 'function') {
+      // Always attach VR controllers on every session start
+      const manualAttachVR = () => {
+        if (renderer.xr.isPresenting) {
+          const controller1 = renderer.xr.getController(0);
+          const controller2 = renderer.xr.getController(1);
+          const controllerGrip1 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(0) : undefined;
+          const controllerGrip2 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(1) : undefined;
+          // Always call attachVR if controllers are available
+          this.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
+        }
+      };
+      // Listen for XR session start
+      if (renderer.xr.addEventListener) {
+        renderer.xr.addEventListener('sessionstart', manualAttachVR);
+      }
+      // If already presenting, attach immediately
+      if (renderer.xr.isPresenting) {
+        manualAttachVR();
+      }
+      // Also patch the renderer.xr object's requestSession to always call attachVR after session starts
+      if (renderer.xr && typeof renderer.xr.requestSession === 'function' && !renderer.xr._measurementSystemPatched) {
+        const origRequestSession = renderer.xr.requestSession.bind(renderer.xr);
+        renderer.xr.requestSession = async (...args) => {
+          const session = await origRequestSession(...args);
+          // Wait for session to be fully started
+          setTimeout(() => {
+            manualAttachVR();
+          }, 100);
+          return session;
+        };
+        renderer.xr._measurementSystemPatched = true;
+      }
+    }
+
+    // DEBUG: Warn if attachVR is never called, but only if WebXR is available and presenting
+    setTimeout(() => {
+      if (
+        renderer && renderer.xr && typeof renderer.xr.isPresenting === 'boolean' &&
+        renderer.xr.isPresenting &&
+        !this.isVR
+      ) {
+        console.warn('[MeasurementSystem] WARNING: attachVR() was never called. VR ghost spheres and VR measurement will not work.');
+      }
+    }, 5000);
   }
 
   // --- VR/Shared Logic (Stub for now, will be filled in) ---
@@ -200,12 +309,57 @@ export class MeasurementSystem {
 
   // Clear all measurements (desktop and VR)
   clear() {
-    this.clearDesktopMeasurement();
-    this.clearVRMeasurement();
+    this.clearUnifiedMeasurement();
+    this.clearLegacyDesktopMeasurement();
+    this.clearLegacyVRMeasurement();
+  }
+
+  // Clear unified measurements
+  clearUnifiedMeasurement() {
+    // Clear unified measurement points
+    if (this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length > 0) {
+      this.unifiedMeasurementPoints.forEach(point => {
+        if (point.sphere && this.scene.children.includes(point.sphere)) {
+          this.scene.remove(point.sphere);
+        }
+      });
+      this.unifiedMeasurementPoints.length = 0;
+    }
+    
+    // Clear unified measurement line
+    if (this.unifiedMeasurementLine) {
+      this.scene.remove(this.unifiedMeasurementLine);
+      this.unifiedMeasurementLine = null;
+    }
+    
+    // Clear measurement sprite/label
+    if (this.measurementSprite) {
+      this.measurementSprite.visible = false;
+      this.scene.remove(this.measurementSprite);
+      this.measurementSprite = null;
+    }
+    
+    this.updateMeasurementPanel();
   }
 
   // Clear VR measurements
   clearVRMeasurement() {
+    // Clear FIFO queue spheres (Adrasan-style)
+    if (this.measurementSpheres) {
+      this.measurementSpheres.forEach(sphere => this.scene.remove(sphere));
+      this.measurementSpheres.length = 0;
+    }
+    // Clear measurement line
+    if (this.measurementLine) {
+      this.scene.remove(this.measurementLine);
+      this.measurementLine = null;
+    }
+    // Clear measurement label
+    if (this.measurementLabel) {
+      this.scene.remove(this.measurementLabel);
+      this.measurementLabel = null;
+    }
+    // Clear old placedSpheres if any (legacy compatibility)
     if (this.placedSpheres) {
       this.placedSpheres.forEach(sphere => this.scene.remove(sphere));
       this.placedSpheres.length = 0;
@@ -221,6 +375,39 @@ export class MeasurementSystem {
     this.updateMeasurementPanel();
   }
 
+  /**
+   * Clear legacy VR measurements (old system compatibility)
+   */
+  clearLegacyVRMeasurement() {
+    // Clear old VR FIFO queue spheres (measurementSpheres)
+    if (this.measurementSpheres && this.measurementSpheres.length > 0) {
+      this.measurementSpheres.forEach(sphere => {
+        if (sphere && this.scene.children.includes(sphere)) {
+          this.scene.remove(sphere);
+        }
+      });
+      this.measurementSpheres.length = 0;
+    }
+    
+    // Clear old VR measurement line
+    if (this.measurementLine) {
+      this.scene.remove(this.measurementLine);
+      this.measurementLine = null;
+    }
+    
+    // Clear old connection line
+    if (this.connectionLine) {
+      this.scene.remove(this.connectionLine);
+      this.connectionLine = null;
+    }
+    
+    // Clear old measurement label/sprite
+    if (this.measurementLabel) {
+      this.scene.remove(this.measurementLabel);
+      this.measurementLabel = null;
+    }
+  }
+
   // Sync desktop measurements to VR (stub)
   syncToVR() {
     // Copy desktop measurement points to VR state
@@ -230,19 +417,19 @@ export class MeasurementSystem {
         const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
         newSphere.position.copy(point.position);
         this.scene.add(newSphere);
-        this.placedSpheres.push(newSphere);
+        this.measurementSpheres.push(newSphere);
       });
       // Create VR line
-      if (this.placedSpheres.length === 2) {
+      if (this.measurementSpheres.length === 2) {
         const geometry = new THREE.BufferGeometry().setFromPoints([
-          this.placedSpheres[0].position,
-          this.placedSpheres[1].position
+          this.measurementSpheres[0].position,
+          this.measurementSpheres[1].position
         ]);
         const material = this.vrLineMaterial || new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, depthTest: false });
         this.connectionLine = new THREE.Line(geometry, material);
         this.scene.add(this.connectionLine);
         // Create measurement display
-        this.createMeasurementDisplay(this.placedSpheres[0].position.distanceTo(this.placedSpheres[1].position));
+        this.createMeasurementDisplay(this.measurementSpheres[0].position.distanceTo(this.measurementSpheres[1].position));
         if (this.measurementSprite && !this.scene.children.includes(this.measurementSprite)) {
           this.scene.add(this.measurementSprite);
         }
@@ -254,12 +441,12 @@ export class MeasurementSystem {
 
   // Sync VR measurements to desktop (stub)
   syncToDesktop() {
-    // Copy VR measurement points to desktop state, and clamp to model geometry
-    if (this.placedSpheres.length === 2) {
+    // Copy VR measurement points to desktop state, using new measurementSpheres array
+    if (this.measurementSpheres && this.measurementSpheres.length === 2) {
       this.clearDesktopMeasurement();
       // For each VR point, find closest point on model (raycast from camera to point direction)
       for (let i = 0; i < 2; i++) {
-        const vrPos = this.placedSpheres[i].position.clone();
+        const vrPos = this.measurementSpheres[i].position.clone();
         let clampedPos = vrPos;
         // Try to clamp to model geometry if possible
         if (this._raycastTargets && this._raycastTargets.length > 0 && this.camera) {
@@ -276,23 +463,41 @@ export class MeasurementSystem {
         this.scene.add(newSphere);
         this.desktopMeasurementPoints.push(newSphere);
       }
-      // Create desktop line
+      // Create desktop line using Line2 for consistency
       if (this.desktopMeasurementPoints.length === 2) {
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-          this.desktopMeasurementPoints[0].position,
-          this.desktopMeasurementPoints[1].position
+        const lineGeometry = new LineGeometry();
+        lineGeometry.setPositions([
+          this.desktopMeasurementPoints[0].position.x, this.desktopMeasurementPoints[0].position.y, this.desktopMeasurementPoints[0].position.z,
+          this.desktopMeasurementPoints[1].position.x, this.desktopMeasurementPoints[1].position.y, this.desktopMeasurementPoints[1].position.z
         ]);
-        // Always visible line: depthTest false, transparent true, opacity 1
-        const material = new THREE.LineBasicMaterial({
-          color: 0xffffff,
-          transparent: true,
-          opacity: 1.0,
-          depthTest: false
-        });
-        this.desktopMeasurementLine = new THREE.Line(geometry, material);
+        this.desktopMeasurementLine = new Line2(lineGeometry, this.desktopLineMaterial);
+        this.desktopMeasurementLine.computeLineDistances();
         this.scene.add(this.desktopMeasurementLine);
+        
+        // Create measurement sprite for desktop display
+        const distance = this.desktopMeasurementPoints[0].position.distanceTo(this.desktopMeasurementPoints[1].position);
+        this.createMeasurementDisplay(distance);
+        if (this.measurementSprite) {
+          // Calculate proper midpoint between the two spheres
+          const midpoint = new THREE.Vector3();
+          midpoint.addVectors(this.desktopMeasurementPoints[0].position, this.desktopMeasurementPoints[1].position);
+          midpoint.multiplyScalar(0.5);
+          
+          // Add a proportional offset above the line based on distance
+          const offsetScale = Math.max(0.05, Math.min(0.2, distance * 0.03));
+          midpoint.y += offsetScale;
+          
+          this.measurementSprite.position.copy(midpoint);
+          // Note: Sprite should never be visible in desktop mode, even when syncing from VR
+          this.measurementSprite.visible = false;
+          if (!this.scene.children.includes(this.measurementSprite)) {
+            this.scene.add(this.measurementSprite);
+          }
+          
+          // Auto-centering is now handled directly by VRManager on session end
+        }
       }
-      this.desktopMeasurementMode = true;
+      // Note: Don't auto-enable desktop measurement mode when syncing from VR
       this.updateMeasurementPanel();
     }
   }
@@ -300,13 +505,25 @@ export class MeasurementSystem {
   // Update method for render loop (stub)
   // --- Shared Measurement Display (Sprite/Canvas) ---
   createMeasurementDisplay(distance) {
+    // Use a high-DPI canvas for sharp text at any scale
+    const DPR = (window.devicePixelRatio || 1);
+    const logicalWidth = 256;
+    const logicalHeight = 64;
+    const canvasWidth = logicalWidth * DPR;
+    const canvasHeight = logicalHeight * DPR;
     if (!this.measurementCanvas) {
       this.measurementCanvas = document.createElement('canvas');
-      this.measurementCanvas.width = 256;
-      this.measurementCanvas.height = 64;
+    }
+    if (this.measurementCanvas.width !== canvasWidth || this.measurementCanvas.height !== canvasHeight) {
+      this.measurementCanvas.width = canvasWidth;
+      this.measurementCanvas.height = canvasHeight;
     }
     const context = this.measurementCanvas.getContext('2d');
-    context.clearRect(0, 0, this.measurementCanvas.width, this.measurementCanvas.height);
+    context.setTransform(1, 0, 0, 1, 0, 0); // reset any transforms
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    // Scale context for high-DPI rendering
+    context.save();
+    context.scale(DPR, DPR);
     const baseFontSize = 24;
     let scaleFactor;
     if (distance <= 2.0) {
@@ -326,8 +543,8 @@ export class MeasurementSystem {
     const padding = Math.max(6, fontSize * 0.3);
     const bgWidth = textWidth + (padding * 2);
     const bgHeight = textHeight + (padding * 2);
-    const bgX = (this.measurementCanvas.width - bgWidth) / 2;
-    const bgY = (this.measurementCanvas.height - bgHeight) / 2;
+    const bgX = (logicalWidth - bgWidth) / 2;
+    const bgY = (logicalHeight - bgHeight) / 2;
     context.fillStyle = 'rgba(0, 0, 0, 0.8)';
     context.beginPath();
     context.roundRect(bgX, bgY, bgWidth, bgHeight, Math.max(4, fontSize * 0.2));
@@ -335,19 +552,26 @@ export class MeasurementSystem {
     context.fillStyle = 'white';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(text, this.measurementCanvas.width / 2, this.measurementCanvas.height / 2);
+    context.fillText(text, logicalWidth / 2, logicalHeight / 2);
+    context.restore();
     if (!this.measurementTexture) {
       this.measurementTexture = new THREE.CanvasTexture(this.measurementCanvas);
+      this.measurementTexture.minFilter = THREE.LinearFilter;
+      this.measurementTexture.magFilter = THREE.LinearFilter;
     } else {
       this.measurementTexture.needsUpdate = true;
     }
     if (!this.measurementSprite) {
-      const spriteMaterial = new THREE.SpriteMaterial({ map: this.measurementTexture });
+      const spriteMaterial = new THREE.SpriteMaterial({ 
+        map: this.measurementTexture,
+        depthTest: false,
+        depthWrite: false 
+      });
       this.measurementSprite = new THREE.Sprite(spriteMaterial);
     }
     const baseScale = 0.3;
     const spriteScale = baseScale * scaleFactor;
-    const aspectRatio = this.measurementCanvas.width / this.measurementCanvas.height;
+    const aspectRatio = logicalWidth / logicalHeight;
     this.measurementSprite.scale.set(spriteScale * aspectRatio, spriteScale, 1);
     return this.measurementSprite;
   }
@@ -355,24 +579,47 @@ export class MeasurementSystem {
   // --- VR Logic ---
   // Call this after VR controllers are available and renderer.xr is enabled
   attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 }) {
+    console.debug('[MeasurementSystem] attachVR() called: VR mode begins. Controllers:', controller1, controller2);
+    
     this.controller1 = controller1;
     this.controller2 = controller2;
     this.controllerGrip1 = controllerGrip1;
     this.controllerGrip2 = controllerGrip2;
-    // Ghost spheres for VR
-    this.ghostSpheres = {
-      left: new THREE.Mesh(this.sphereGeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 })),
-      right: new THREE.Mesh(this.sphereGeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 }))
-    };
-    this.ghostSpheres.left.visible = false;
-    this.ghostSpheres.right.visible = false;
-    this.scene.add(this.ghostSpheres.left);
-    this.scene.add(this.ghostSpheres.right);
+    // Ghost spheres for VR (attach to controllers, not scene)
+    // Make ghost spheres ghostly grey, semi-opaque
+    const ghostMaterial = new THREE.MeshBasicMaterial({
+      color: 0x888888, // ghostly grey
+      transparent: true,
+      opacity: 0.25,
+      depthTest: false,
+      depthWrite: false
+    });
+    // Remove any previous ghost spheres from scene or controllers
+    if (this.ghostSpheres.left && this.ghostSpheres.left.parent) this.ghostSpheres.left.parent.remove(this.ghostSpheres.left);
+    if (this.ghostSpheres.right && this.ghostSpheres.right.parent) this.ghostSpheres.right.parent.remove(this.ghostSpheres.right);
+    // Create new ghost spheres
+    this.ghostSpheres.left = new THREE.Mesh(this.sphereGeometry, ghostMaterial.clone());
+    this.ghostSpheres.right = new THREE.Mesh(this.sphereGeometry, ghostMaterial.clone());
+    // Match ghost sphere size to measurement spheres
+    this.ghostSpheres.left.scale.set(1, 1, 1);
+    this.ghostSpheres.right.scale.set(1, 1, 1);
+    // Position at controller tip
+    this.ghostSpheres.left.position.set(0, 0, -0.05);
+    this.ghostSpheres.right.position.set(0, 0, -0.05);
+    // Make them visible by default in VR
+    this.ghostSpheres.left.visible = true;
+    this.ghostSpheres.right.visible = true;
+    if (this.controller1) this.controller1.add(this.ghostSpheres.left);
+    if (this.controller2) this.controller2.add(this.ghostSpheres.right);
     // VR event state
     this.yButtonPressed = false;
     this.MAX_SPHERES = 2;
-    // VR line material
-    this.vrLineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, depthTest: false });
+    
+    // Track trigger state for each hand (like Adrasan)
+    this.triggerState = {
+      left: false,
+      right: false
+    };
 
     // VR controller event listeners
     this._onVRTriggerDown = this._onVRTriggerDown.bind(this);
@@ -390,25 +637,65 @@ export class MeasurementSystem {
       this.controller2.addEventListener('ybuttonup', this._onVRYButtonUp);
     }
     this.isVR = true;
+    
+    // Refresh measurement display for VR if we have existing measurements
+    this.refreshMeasurementDisplayForVR();
   }
 
-  // VR controller event handlers
+  // VR controller event handlers (kept for Y button, but trigger logic moved to update loop)
   _onVRTriggerDown(event) {
-    // Place a measurement point at the controller's tip (free in space, not clamped)
+    // Track which controller triggered
     const controller = event.target;
-    // Get the tip position in world space
-    const tip = new THREE.Vector3(0, 0, -0.05); // 5cm in front of controller
-    tip.applyMatrix4(controller.matrixWorld);
-    this._placeVRMeasurementPoint(tip);
+    const handedness = controller.userData?.inputSource?.handedness || 'unknown';
+    console.log(`🎯 VR trigger DOWN on ${handedness} controller`);
   }
 
   _onVRTriggerUp(event) {
-    // No-op for now (could be used for drag/hold in future)
+    // Place sphere on trigger release - simple approach
+    const controller = event.target;
+    const handedness = controller.userData?.inputSource?.handedness || 'unknown';
+    console.log(`🎯 VR trigger UP on ${handedness} controller - placing sphere`);
+    
+    // Debounce to prevent multiple placements from one trigger press
+    const now = performance.now();
+    if (this.lastTriggerTime && (now - this.lastTriggerTime) < 200) {
+      console.log('🚫 Debounced trigger press');
+      return;
+    }
+    this.lastTriggerTime = now;
+    
+    if (this.measurementSystemEnabled) {
+      // Get the world position where the ghost sphere is positioned
+      const controllerPos = new THREE.Vector3();
+      
+      // Find which ghost sphere corresponds to this controller
+      let ghostSphere = null;
+      if (controller === this.controller1 && this.ghostSpheres.left) {
+        ghostSphere = this.ghostSpheres.left;
+      } else if (controller === this.controller2 && this.ghostSpheres.right) {
+        ghostSphere = this.ghostSpheres.right;
+      }
+      
+      if (ghostSphere) {
+        // Get the world position of the ghost sphere to match exactly
+        ghostSphere.getWorldPosition(controllerPos);
+        console.log(`📍 Placing sphere at ghost sphere world position:`, controllerPos.toArray());
+      } else {
+        // Fallback: controller position with offset
+        controller.getWorldPosition(controllerPos);
+        const forward = new THREE.Vector3(0, 0, -0.05);
+        forward.applyQuaternion(controller.quaternion);
+        controllerPos.add(forward);
+        console.log(`📍 Placing sphere at controller tip (fallback):`, controllerPos.toArray());
+      }
+      
+      this._placeVRMeasurementPoint(controllerPos);
+    }
   }
 
   _onVRYButtonDown(event) {
-    // Clear VR measurement
-    this.clearVRMeasurement();
+    // Clear unified measurement
+    this.clearUnifiedMeasurement();
   }
 
   _onVRYButtonUp(event) {
@@ -424,107 +711,188 @@ export class MeasurementSystem {
     controller.getWorldPosition(rayOrigin);
     const raycaster = new THREE.Raycaster(rayOrigin, rayDirection.normalize());
     const intersects = raycaster.intersectObjects(this.scene.children, true);
-    // Filter out measurement spheres/lines
-    const validIntersects = intersects.filter(intersect =>
-      !this.placedSpheres.includes(intersect.object) &&
-      intersect.object !== this.connectionLine &&
-      !this.desktopMeasurementPoints.includes(intersect.object)
-    );
+    // Filter out measurement spheres/lines using unified system
+    const validIntersects = intersects.filter(intersect => {
+      // Check if object is in unified measurement points
+      const isUnifiedSphere = this.unifiedMeasurementPoints.some(point => point.sphere === intersect.object);
+      // Check if object is the unified measurement line
+      const isUnifiedLine = intersect.object === this.unifiedMeasurementLine;
+      // Check by userData for measurement helpers
+      const isMeasurementHelper = this.isMeasurementHelper(intersect.object);
+      
+      return !isUnifiedSphere && !isUnifiedLine && !isMeasurementHelper;
+    });
     return validIntersects.length > 0 ? validIntersects[0] : null;
   }
 
   _placeVRMeasurementPoint(point) {
-    if (this.placedSpheres.length >= this.MAX_SPHERES) {
-      const oldest = this.placedSpheres.shift();
-      this.scene.remove(oldest);
+    console.debug('[MeasurementSystem][VR] Placing VR measurement point at:', point.toArray());
+    
+    if (this.measurementSystemEnabled) {
+      // Use the unified measurement system
+      this.placeUnifiedMeasurementPoint(point, 'vr');
     }
+  }
+
+  /**
+   * Clear legacy desktop measurements
+   */
+  clearLegacyDesktopMeasurement() {
+    // Clear old desktop measurement points
+    if (this.desktopMeasurementPoints && this.desktopMeasurementPoints.length > 0) {
+      this.desktopMeasurementPoints.forEach(sphere => {
+        if (sphere && this.scene.children.includes(sphere)) {
+          this.scene.remove(sphere);
+        }
+      });
+      this.desktopMeasurementPoints.length = 0;
+    }
+    
+    // Clear old desktop measurement line
+    if (this.desktopMeasurementLine) {
+      this.scene.remove(this.desktopMeasurementLine);
+      this.desktopMeasurementLine = null;
+    }
+  }
+
+  /**
+   * Unified measurement point placement that works across VR and desktop
+   * @param {THREE.Vector3} point - World position to place measurement point
+   * @param {string} source - 'vr' or 'desktop' for tracking
+   */
+  placeUnifiedMeasurementPoint(point, source = 'unknown') {
+    console.debug(`[MeasurementSystem] Placing unified measurement point from ${source}:`, point.toArray());
+    
+    // Only clear legacy systems if this is the start of a new measurement
+    if (this.unifiedMeasurementPoints.length === 0) {
+      console.debug('[MeasurementSystem] Starting new measurement - clearing legacy systems');
+      this.clearLegacyVRMeasurement();
+      this.clearLegacyDesktopMeasurement();
+    }
+    
+    // Remove oldest point if we already have 2 (FIFO)
+    if (this.unifiedMeasurementPoints.length >= 2) {
+      const oldestPoint = this.unifiedMeasurementPoints.shift();
+      if (oldestPoint.sphere) this.scene.remove(oldestPoint.sphere);
+    }
+    
+    // Create new sphere for this point
     const sphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
     sphere.position.copy(point);
+    sphere.userData.isMeasurementSphere = true;
     this.scene.add(sphere);
-    this.placedSpheres.push(sphere);
-    // Update VR line (thick)
-    if (this.placedSpheres.length === 2) {
-      if (this.connectionLine) this.scene.remove(this.connectionLine);
+    
+    // Add to unified measurement points
+    this.unifiedMeasurementPoints.push({
+      position: point.clone(),
+      sphere: sphere,
+      source: source
+    });
+    
+    // Update the unified line if we have 2 points
+    this.updateUnifiedMeasurementLine();
+    
+    // Update panel
+    this.updateMeasurementPanel();
+    
+    console.debug(`[MeasurementSystem] Unified measurement points: ${this.unifiedMeasurementPoints.length}/2`);
+  }
+
+  /**
+   * Update the unified measurement line connecting the points
+   */
+  updateUnifiedMeasurementLine() {
+    // Remove existing unified line
+    if (this.unifiedMeasurementLine) {
+      this.scene.remove(this.unifiedMeasurementLine);
+      this.unifiedMeasurementLine = null;
+    }
+    
+    // Create new line if we have 2 points
+    if (this.unifiedMeasurementPoints.length === 2) {
+      const point1 = this.unifiedMeasurementPoints[0].position;
+      const point2 = this.unifiedMeasurementPoints[1].position;
+      
       const lineGeometry = new LineGeometry();
       lineGeometry.setPositions([
-        this.placedSpheres[0].position.x, this.placedSpheres[0].position.y, this.placedSpheres[0].position.z,
-        this.placedSpheres[1].position.x, this.placedSpheres[1].position.y, this.placedSpheres[1].position.z
+        point1.x, point1.y, point1.z,
+        point2.x, point2.y, point2.z
       ]);
-      this.connectionLine = new Line2(lineGeometry, this.vrLineMaterial);
-      this.connectionLine.computeLineDistances();
-      this.scene.add(this.connectionLine);
-      // Measurement display
-      const dist = this.placedSpheres[0].position.distanceTo(this.placedSpheres[1].position);
-      this.createMeasurementDisplay(dist);
-      if (this.measurementSprite && !this.scene.children.includes(this.measurementSprite)) {
-        this.scene.add(this.measurementSprite);
-      }
-    } else {
-      if (this.connectionLine) {
-        this.scene.remove(this.connectionLine);
-        this.connectionLine = null;
-      }
+      
+      // Use the same material for consistency
+      this.unifiedMeasurementLine = new Line2(lineGeometry, this.desktopLineMaterial);
+      this.unifiedMeasurementLine.computeLineDistances();
+      this.unifiedMeasurementLine.userData.isMeasurementLine = true;
+      this.scene.add(this.unifiedMeasurementLine);
+      
+      // Create/update measurement display
+      const distance = point1.distanceTo(point2);
+      this.createMeasurementDisplay(distance);
+      
       if (this.measurementSprite) {
-        this.measurementSprite.visible = false;
-      }
-    }
-    this.measurementSystemEnabled = true;
-  }
-
-  // VR ghost spheres update (called from update)
-  _updateVRGhostSpheres() {
-    if (!this.isVR || !this.ghostSpheres) return;
-    // Show ghost spheres at controller tips (free in space)
-    const showGhost = this.placedSpheres.length < this.MAX_SPHERES;
-    ['left', 'right'].forEach(hand => {
-      const controller = hand === 'left' ? this.controller1 : this.controller2;
-      if (!controller) return;
-      if (showGhost) {
-        // Place ghost sphere at tip of controller
-        const tip = new THREE.Vector3(0, 0, -0.05); // 5cm in front
-        tip.applyMatrix4(controller.matrixWorld);
-        this.ghostSpheres[hand].position.copy(tip);
-        this.ghostSpheres[hand].visible = true;
-      } else {
-        this.ghostSpheres[hand].visible = false;
-      }
-    });
-  }
-
-  // Call this from your render loop
-  update(time = performance.now()) {
-    // Desktop line pulsing
-    if (this.desktopMeasurementLine && !this.isVR) {
-      const pulse = (Math.sin(time * 0.004) + 1) * 0.2 + 0.5;
-      this.desktopMeasurementLine.material.opacity = pulse;
-      this.desktopMeasurementLine.visible = true;
-    } else if (this.desktopMeasurementLine) {
-      this.desktopMeasurementLine.visible = false;
-    }
-    // VR line pulsing and sprite
-    if (this.connectionLine && this.measurementSystemEnabled && this.isVR) {
-      const pulse = (Math.sin(time * 0.003) + 1) * 0.2 + 0.5;
-      this.connectionLine.material.opacity = pulse;
-      this.connectionLine.visible = true;
-      if (this.measurementSprite && this.placedSpheres.length === 2) {
         const midpoint = new THREE.Vector3();
-        midpoint.addVectors(this.placedSpheres[0].position, this.placedSpheres[1].position);
+        midpoint.addVectors(point1, point2);
         midpoint.multiplyScalar(0.5);
-        const currentDistance = this.placedSpheres[0].position.distanceTo(this.placedSpheres[1].position);
-        const offsetScale = Math.max(0.1, Math.min(0.3, currentDistance * 0.05));
+        
+        const offsetScale = Math.max(0.05, Math.min(0.2, distance * 0.03));
+        midpoint.y += offsetScale;
+        
         this.measurementSprite.position.copy(midpoint);
-        this.measurementSprite.position.y += offsetScale;
-        this.measurementSprite.material.depthTest = false;
-        this.measurementSprite.material.depthWrite = false;
-        this.measurementSprite.material.opacity = 0.9;
-        this.measurementSprite.material.transparent = true;
-        this.measurementSprite.visible = true;
+        
+        // Add sprite to scene if not already there
+        if (!this.scene.children.includes(this.measurementSprite)) {
+          this.scene.add(this.measurementSprite);
+        }
+        
+        // Ensure sprite visibility is set correctly right away
+        const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+        this.measurementSprite.visible = inVR;
+        console.debug('[MeasurementSystem] Sprite visibility set to:', inVR, 'in VR mode');
       }
-    } else if (this.connectionLine) {
-      this.connectionLine.visible = false;
+      
+      // Auto-enable desktop measurement mode so measurements persist
+      if (!this.desktopMeasurementMode) {
+        console.debug('[MeasurementSystem] Auto-enabling desktop measurement mode for unified measurement');
+        this.desktopMeasurementMode = true;
+      }
     }
-    // VR ghost spheres
-    this._updateVRGhostSpheres();
+ }
+
+  /**
+   * Update method called each frame by the render loop
+   */
+  update() {
+    // Update ghost sphere positions to follow VR controllers
+    if (this.isVR && this.ghostSpheres) {
+      // Update left ghost sphere position
+      if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.visible) {
+        // Position at controller tip
+        const controllerPos = new THREE.Vector3();
+        this.controller1.getWorldPosition(controllerPos);
+        const forward = new THREE.Vector3(0, 0, -0.05);
+        forward.applyQuaternion(this.controller1.quaternion);
+        controllerPos.add(forward);
+        this.ghostSpheres.left.position.copy(controllerPos);
+      }
+      
+      // Update right ghost sphere position
+      if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.visible) {
+        // Position at controller tip
+        const controllerPos = new THREE.Vector3();
+        this.controller2.getWorldPosition(controllerPos);
+        const forward = new THREE.Vector3(0, 0, -0.05);
+        forward.applyQuaternion(this.controller2.quaternion);
+        controllerPos.add(forward);
+        this.ghostSpheres.right.position.copy(controllerPos);
+      }
+    }
+    
+    // Update measurement sprite visibility based on current VR state
+    if (this.measurementSprite) {
+      const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+      const hasUnifiedMeasurement = this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length === 2;
+      this.measurementSprite.visible = inVR && hasUnifiedMeasurement;
+    }
   }
 
   // Dispose/cleanup
@@ -566,33 +934,73 @@ export class MeasurementSystem {
       this.scene.remove(this.connectionLine);
       this.connectionLine = null;
     }
-    this.placedSpheres = [];
+    this.measurementSpheres = [];
     this.isVR = false;
+    
+    // Clean up global references
+    if (typeof window !== 'undefined' && window.measurementSystem === this) {
+      window.measurementSystem = undefined;
+    }
   }
   // --- UI Panel ---
   createMeasurementPanel() {
     const panel = document.createElement('div');
     panel.id = 'measurementPanel';
-    panel.className = 'measurement-panel';
-    panel.style.zIndex = 9999;
-    panel.style.position = 'fixed';
-    // Place in bottom right, matching CSS
-    panel.style.bottom = '20px';
-    panel.style.right = '20px';
-    // Remove top positioning if present
-    panel.style.top = '';
-    panel.style.pointerEvents = 'auto';
-    panel.style.display = 'inline-block';
-    panel.style.maxWidth = '240px';
-    panel.style.minHeight = '48px';
-    panel.style.boxSizing = 'border-box';
-    panel.style.verticalAlign = 'top';
-    panel.style.overflow = 'hidden';
+    panel.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      z-index: 100;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+      user-select: none;
+      min-width: 120px;
+      text-align: center;
+    `;
+    panel.addEventListener('mouseenter', () => {
+      panel.style.background = 'rgba(0, 0, 0, 0.8)';
+      panel.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+    });
+    panel.addEventListener('mouseleave', () => {
+      panel.style.background = 'rgba(0, 0, 0, 0.7)';
+      panel.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+    });
     panel.addEventListener('click', () => {
-      this.desktopMeasurementMode = !this.desktopMeasurementMode;
-      this.updateMeasurementPanel();
-      if (!this.desktopMeasurementMode) {
-        this.clearDesktopMeasurement();
+      if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
+        // Desktop mode: toggle desktop measurement
+        this.desktopMeasurementMode = !this.desktopMeasurementMode;
+        console.log(`🖱️ Desktop measurement mode: ${this.desktopMeasurementMode ? 'ON' : 'OFF'}`);
+        
+        if (!this.desktopMeasurementMode) {
+          // When disabling desktop mode, clear everything using unified system
+          this.clearUnifiedMeasurement();
+        }
+        this.updateMeasurementPanel();
+      } else {
+        // VR mode: toggle VR measurement system
+        this.measurementSystemEnabled = !this.measurementSystemEnabled;
+        console.log(`🥽 VR measurement system: ${this.measurementSystemEnabled ? 'ON' : 'OFF'}`);
+        
+        if (!this.measurementSystemEnabled) {
+          // Clear unified measurement when disabling VR
+          this.clearUnifiedMeasurement();
+          if (this.ghostSpheres.left) this.ghostSpheres.left.visible = false;
+          if (this.ghostSpheres.right) this.ghostSpheres.right.visible = false;
+        } else {
+          // Re-enable ghost spheres when enabling VR
+          if (this.ghostSpheres.left) this.ghostSpheres.left.visible = true;
+          if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
+        }
+        this.updateMeasurementPanel();
       }
     });
     document.body.appendChild(panel);
@@ -602,25 +1010,38 @@ export class MeasurementSystem {
   updateMeasurementPanel() {
     const panel = this.measurementPanel;
     if (!panel) return;
-    const isEnabled = this.desktopMeasurementMode;
-    const hasPoints = this.desktopMeasurementPoints.length;
-    const hasMeasurement = (this.desktopMeasurementPoints.length === 2);
+    const isVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+    
+    // Use unified measurement system
+    const hasPoints = this.unifiedMeasurementPoints ? this.unifiedMeasurementPoints.length : 0;
+    const hasMeasurement = hasPoints === 2;
+    
+    const isEnabled = isVR ? this.measurementSystemEnabled : this.desktopMeasurementMode;
+    
+    let distance;
+    if (hasMeasurement) {
+      distance = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position);
+    }
+    
     if (!isEnabled) {
       panel.innerHTML = `
-        <div class="disabled">MEASURE</div>
+        <div style="color: #888;">MEASURE</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to enable</div>
       `;
+      panel.style.borderColor = 'rgba(136, 136, 136, 0.3)';
     } else if (hasMeasurement) {
-      const distance = this.desktopMeasurementPoints[0].position.distanceTo(this.desktopMeasurementPoints[1].position);
       panel.innerHTML = `
-        <div class="measured">${distance.toFixed(2)}m</div>
+        <div style="color: white;">${distance.toFixed(2)}m</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to disable</div>
       `;
+      panel.style.borderColor = 'rgba(255, 255, 255, 0.5)';
     } else {
+      const instruction = isVR ? 'Use triggers' : 'Click points';
       panel.innerHTML = `
-        <div class="active">MEASURE: ON</div>
-        <div style="font-size: 12px; margin-top: 4px;">Click points (${hasPoints}/2)</div>
+        <div style="color: #FFA726;">MEASURE: ON</div>
+        <div style="font-size: 12px; margin-top: 4px;">${instruction} (${hasPoints}/2)</div>
       `;
+      panel.style.borderColor = 'rgba(255, 167, 38, 0.5)';
     }
   }
 
@@ -645,43 +1066,22 @@ export class MeasurementSystem {
     }, 10);
   }
   onMouseClick(event) {
-    // --- DEBUG: Confirm click handler is firing and DOM layering ---
-    console.debug('[MeasurementSystem] onMouseClick event listener fired', event);
-    const elemUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
-    console.debug('[MeasurementSystem] DOM element under mouse:', elemUnderMouse);
-    // Debug: Print current raycast targets
-    if (this._raycastTargets) {
-      console.debug('[MeasurementSystem] Current raycast targets:', this._raycastTargets);
-      this._raycastTargets.forEach((obj, i) => {
-        console.debug(`[MeasurementSystem] Target[${i}]:`, {
-          name: obj.name,
-          uuid: obj.uuid,
-          type: obj.type,
-          visible: obj.visible,
-          geometry: obj.geometry,
-          matrixWorld: obj.matrixWorld,
-        });
-      });
-    }
-
-    // --- DEBUG: Confirm drag/mode logic ---
+    //
     const currentTime = Date.now();
     const isDoubleClick = currentTime - this.lastClickTime < 300;
     this.lastClickTime = currentTime;
     if (this.isDragging) {
-      console.debug('[MeasurementSystem] Ignored click: dragging');
       return;
     }
     if (!this.desktopMeasurementMode) {
-      console.debug('[MeasurementSystem] Ignored click: measurement mode not enabled');
       return;
     }
     // Calculate mouse position
-    // Debug: Use renderer.domElement bounding rect for pointer NDC
+    //
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    console.debug('[MeasurementSystem] Mouse NDC:', { x: this.mouse.x, y: this.mouse.y, clientX: event.clientX, clientY: event.clientY, rect });
+    //
     // Robust camera fallback: try all possible sources
     let camera = this.camera;
     // Use XR camera only if presenting in VR
@@ -689,7 +1089,7 @@ export class MeasurementSystem {
       const xrCamera = this.renderer.xr.getCamera();
       if (xrCamera) {
         camera = xrCamera;
-        console.debug('[MeasurementSystem] Using renderer.xr.getCamera() (presenting VR)', xrCamera);
+        //
       }
     }
     // If still not valid, try to find a camera in the scene
@@ -698,7 +1098,7 @@ export class MeasurementSystem {
         for (const obj of this.scene.children) {
           if (obj.isCamera) {
             camera = obj;
-            console.debug('[MeasurementSystem] Found camera in scene.children', camera);
+            //
             break;
           }
         }
@@ -708,22 +1108,12 @@ export class MeasurementSystem {
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) {
       if (typeof window !== 'undefined' && window.camera && (window.camera.isPerspectiveCamera || window.camera.isOrthographicCamera)) {
         camera = window.camera;
-        console.debug('[MeasurementSystem] Using window.camera', camera);
+        //
       }
     }
     // If still not valid, try to find any PerspectiveCamera or OrthographicCamera in the scene graph (deep search)
-    if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) {
-      if (this.scene && this.scene.traverse) {
-        this.scene.traverse(obj => {
-          if (!camera && (obj.isPerspectiveCamera || obj.isOrthographicCamera)) {
-            camera = obj;
-            console.debug('[MeasurementSystem] Found camera by traverse', camera);
-          }
-        });
-      }
-    }
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera && camera.type !== 'ArrayCamera')) {
-      console.warn('[MeasurementSystem] No valid camera found for raycasting');
+      //
       return;
     }
     // Raycast from camera
@@ -731,65 +1121,40 @@ export class MeasurementSystem {
     // Only use the specified raycast targets (model geometry) for intersection
     const raycastTargets = (this._raycastTargets && this._raycastTargets.length > 0) ? this._raycastTargets : [];
     if (raycastTargets.length === 0) {
-      console.warn('[MeasurementSystem] No raycast targets set for measurement!');
+      //
       return;
     }
     const intersects = this.raycaster.intersectObjects(raycastTargets, true);
-    console.debug('[MeasurementSystem] Raycast result:', {
-      count: intersects.length,
-      intersects,
-      raycastTargets,
-      mouse: { x: this.mouse.x, y: this.mouse.y },
-      camera,
-    });
+    //
     // Only place a measurement point if there is a valid intersection
     if (intersects.length === 0) {
       console.debug('[MeasurementSystem] No intersects found, not placing measurement point.');
       return;
     }
-    // --- DEBUG: Place a temporary test sphere at the first intersection point, regardless of filtering ---
-    const testPoint = intersects[0].point;
-    if (testPoint) {
-      const debugSphere = new THREE.Mesh(
-        new THREE.SphereGeometry(0.01, 8, 6),
-        new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.5 })
-      );
-      debugSphere.position.copy(testPoint);
-      this.scene.add(debugSphere);
-      setTimeout(() => {
-        this.scene.remove(debugSphere);
-      }, 1000);
-      console.debug('[MeasurementSystem] Placed debug sphere at', testPoint);
-    }
+    //
     // Filter out measurement spheres and lines from intersections
-    const validIntersects = intersects.filter(intersect =>
-      !this.desktopMeasurementPoints.includes(intersect.object) &&
-      intersect.object !== this.desktopMeasurementLine &&
-      !this.placedSpheres.includes(intersect.object)
-    );
-    console.debug('[MeasurementSystem] Valid intersects', { count: validIntersects.length, validIntersects });
+    const validIntersects = intersects.filter(intersect => {
+      // Check if object is in unified measurement points
+      const isUnifiedSphere = this.unifiedMeasurementPoints.some(point => point.sphere === intersect.object);
+      // Check if object is the unified measurement line
+      const isUnifiedLine = intersect.object === this.unifiedMeasurementLine;
+      // Check by userData for measurement helpers
+      const isMeasurementHelper = this.isMeasurementHelper(intersect.object);
+      
+      return !isUnifiedSphere && !isUnifiedLine && !isMeasurementHelper;
+    });
+    //
     if (validIntersects.length > 0) {
       if (isDoubleClick) {
-        console.debug('[MeasurementSystem] Double click: focusing on point', validIntersects[0].point);
+        //
         this.focusOnPoint(validIntersects[0].point);
       } else {
-        // Place measurement point
+        // Place measurement point using unified system
         const intersectionPoint = validIntersects[0].point;
-        console.debug('[MeasurementSystem] Placing measurement point at', intersectionPoint);
-        if (this.desktopMeasurementPoints.length >= this.MAX_DESKTOP_POINTS) {
-          const oldestSphere = this.desktopMeasurementPoints.shift();
-          this.scene.remove(oldestSphere);
-          console.debug('[MeasurementSystem] Removed oldest measurement sphere');
-        }
-        const measurementSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
-        measurementSphere.position.copy(intersectionPoint);
-        this.scene.add(measurementSphere);
-        this.desktopMeasurementPoints.push(measurementSphere);
-        console.debug('[MeasurementSystem] Added new measurement sphere', measurementSphere);
-        this.updateDesktopMeasurement();
+        this.placeUnifiedMeasurementPoint(intersectionPoint, 'desktop');
       }
     } else {
-      console.debug('[MeasurementSystem] No valid intersects for measurement');
+      //
     }
   }
 
@@ -819,35 +1184,77 @@ export class MeasurementSystem {
     this.focusAnimation = requestAnimationFrame(animate);
   }
 
-  updateDesktopMeasurement() {
-    this.updateMeasurementPanel();
-    if (this.desktopMeasurementPoints.length === 2) {
-      if (this.desktopMeasurementLine) {
-        this.scene.remove(this.desktopMeasurementLine);
+  _focusOnPoint(point) {
+    // Internal focus method that cancels any existing animation and smoothly moves to point
+    if (this.focusAnimation) {
+      cancelAnimationFrame(this.focusAnimation);
+      this.focusAnimation = null;
+    }
+    
+    if (!this.controls || !this.camera) {
+      console.warn('[MeasurementSystem] No controls or camera available for focusing');
+      return;
+    }
+    
+    const startTarget = this.controls.target.clone();
+    const startPosition = this.camera.position.clone();
+    const offset = startPosition.clone().sub(startTarget);
+    const newPosition = point.clone().add(offset);
+    const duration = 1000;
+    const startTime = performance.now();
+    
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      
+      this.controls.target.lerpVectors(startTarget, point, eased);
+      this.camera.position.lerpVectors(startPosition, newPosition, eased);
+      this.controls.update();
+      
+      if (progress < 1) {
+        this.focusAnimation = requestAnimationFrame(animate);
+      } else {
+        this.focusAnimation = null;
       }
-      const lineGeometry = new LineGeometry();
-      lineGeometry.setPositions([
-        this.desktopMeasurementPoints[0].position.x, this.desktopMeasurementPoints[0].position.y, this.desktopMeasurementPoints[0].position.z,
-        this.desktopMeasurementPoints[1].position.x, this.desktopMeasurementPoints[1].position.y, this.desktopMeasurementPoints[1].position.z
-      ]);
-      this.desktopMeasurementLine = new Line2(lineGeometry, this.desktopLineMaterial);
-      this.desktopMeasurementLine.computeLineDistances();
-      this.scene.add(this.desktopMeasurementLine);
-    } else {
-      if (this.desktopMeasurementLine) {
-        this.scene.remove(this.desktopMeasurementLine);
-        this.desktopMeasurementLine = null;
+    };
+    this.focusAnimation = requestAnimationFrame(animate);
+  }
+
+  /**
+   * Refresh measurement display when entering VR
+   * Called when VR mode is activated to ensure sprite is visible
+   */
+  refreshMeasurementDisplayForVR() {
+    if (this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length === 2) {
+      const point1 = this.unifiedMeasurementPoints[0].position;
+      const point2 = this.unifiedMeasurementPoints[1].position;
+      const distance = point1.distanceTo(point2);
+      
+      // Recreate measurement display to ensure it's properly set up for VR
+      this.createMeasurementDisplay(distance);
+      
+      if (this.measurementSprite) {
+        const midpoint = new THREE.Vector3();
+        midpoint.addVectors(point1, point2);
+        midpoint.multiplyScalar(0.5);
+        
+        const offsetScale = Math.max(0.05, Math.min(0.2, distance * 0.03));
+        midpoint.y += offsetScale;
+        
+        this.measurementSprite.position.copy(midpoint);
+        
+        // Ensure sprite is in scene and visible in VR
+        if (!this.scene.children.includes(this.measurementSprite)) {
+          this.scene.add(this.measurementSprite);
+        }
+        
+        // Force visibility in VR
+        this.measurementSprite.visible = true;
+        console.debug('[MeasurementSystem] Refreshed measurement sprite for VR mode');
       }
     }
   }
 
-  clearDesktopMeasurement() {
-    this.desktopMeasurementPoints.forEach(sphere => this.scene.remove(sphere));
-    this.desktopMeasurementPoints.length = 0;
-    if (this.desktopMeasurementLine) {
-      this.scene.remove(this.desktopMeasurementLine);
-      this.desktopMeasurementLine = null;
-    }
-    this.updateMeasurementPanel();
-  }
+  // Set measurement system state
 }

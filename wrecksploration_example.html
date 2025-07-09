@@ -1,0 +1,2902 @@
+<!--
+  WreckSploration VR
+  -------------------------------------------------------
+  • Desktop/phone: Orbit drag & scroll.
+  • Quest 2 VR   : Thumbsticks to fly/turn.
+  • Even lighting; KTX2, Draco & Meshopt decoding wired.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WreckSploration VR</title>
+
+<!-- PWA Meta Tags -->
+<meta name="description" content="Immersive virtual diving experience exploring historical shipwrecks in VR">
+<meta name="theme-color" content="#041729">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WreckSploration VR">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="./manifest.json">
+
+<!-- PWA Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16x16.png">
+<link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512x512.png">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0a0a0a;color:#e8e8e8;font-family:'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif}
+  
+  /* Global Panel Styling */
+  .panel{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)}
+  
+  /* Info Panel */
+  #info{position:absolute;top:20px;left:20px;z-index:10;padding:20px 24px;max-width:340px;backdrop-filter:blur(20px);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+  #infoTitle{color:#64B5F6;font-size:22px;font-weight:800;margin-bottom:12px;text-transform:uppercase;letter-spacing:1.2px;background:linear-gradient(135deg, #64B5F6, #42A5F5);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 8px rgba(100,181,246,0.3))}
+  #infoControls{margin-top:8px;font-size:13px;line-height:1.5;color:#b0b0b0}
+  #infoControls strong{color:#e8e8e8;font-weight:600}
+  
+  /* Model Selector - Now integrated */
+  #modelSelector{position:absolute;top:20px;right:20px;z-index:10;background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+  #modelSelector select{background:rgba(255,255,255,0.06);color:#e8e8e8;border:1px solid rgba(255,255,255,0.1);padding:16px 20px;font-size:23px;font-weight:500;font-family:inherit;cursor:pointer;outline:none;transition:all 0.3s ease;min-width:100%;border-radius:12px}
+  #modelSelector select:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
+  #modelSelector select:disabled{cursor:not-allowed;opacity:0.5}
+  #modelSelector select option{background:#1a1a1a;color:#e8e8e8;padding:12px;font-size:14px}
+  
+  /* Mode Toggle Container - Now inside same box */
+  #modeToggleContainer{display:flex;flex-direction:column;gap:20px}
+  
+  /* Semantic Toggle Switch */
+  .semantic-toggle{position:relative;width:180px;height:60px;margin:0 auto;background:rgba(255,255,255,0.06);border-radius:30px;border:1px solid rgba(255,255,255,0.1);overflow:hidden}
+  .semantic-toggle input{position:absolute;opacity:0;width:0;height:0}
+  .toggle-option{position:absolute;top:0;width:90px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+  .toggle-option.left{left:0}
+  .toggle-option.right{right:0}
+  .toggle-icon{font-size:20px;margin-bottom:4px;transition:all 0.3s ease}
+  .toggle-text{color:#888;transition:all 0.3s ease;font-size:12px}
+  
+  /* Active State Slider */
+  .toggle-slider-bg{position:absolute;top:4px;left:4px;width:82px;height:52px;background:linear-gradient(135deg, #4CAF50, #388E3C);border-radius:26px;transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 4px 16px rgba(76,175,80,0.4), 0 2px 8px rgba(0,0,0,0.2)}
+  
+  /* Toggle States */
+  .semantic-toggle input:checked + .toggle-slider-bg{transform:translateX(90px);background:linear-gradient(135deg, #64B5F6, #42A5F5);box-shadow:0 4px 16px rgba(100,181,246,0.4), 0 2px 8px rgba(0,0,0,0.2)}
+  
+  .semantic-toggle input:not(:checked) ~ .toggle-option.left .toggle-icon{color:#fff;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5))}
+  .semantic-toggle input:not(:checked) ~ .toggle-option.left .toggle-text{color:#fff;font-weight:700}
+  .semantic-toggle input:checked ~ .toggle-option.right .toggle-icon{color:#fff;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5))}
+  .semantic-toggle input:checked ~ .toggle-option.right .toggle-text{color:#fff;font-weight:700}
+  
+  /* Hover Effects */
+  .semantic-toggle:hover .toggle-slider-bg{box-shadow:0 6px 20px rgba(76,175,80,0.5), 0 2px 12px rgba(0,0,0,0.3)}
+  .semantic-toggle input:checked:hover + .toggle-slider-bg{box-shadow:0 6px 20px rgba(100,181,246,0.5), 0 2px 12px rgba(0,0,0,0.3)}
+  
+  /* Model Credit */
+  #modelCredit{position:absolute;bottom:20px;right:20px;z-index:10;background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);padding:8px 16px;border-radius:12px;font-size:11px;text-align:center;color:#888;border:1px solid rgba(255,255,255,0.08)}
+  
+  /* Install Prompt & Other Elements */
+  #installPrompt{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);color:#e8e8e8;padding:16px 24px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);display:none;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+  #installPrompt button{background:linear-gradient(135deg, #64B5F6, #42A5F5);color:white;border:none;padding:10px 20px;border-radius:12px;margin:0 8px;cursor:pointer;font-weight:600;transition:all 0.3s ease}
+  #installPrompt button:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(100,181,246,0.4)}
+  #installPrompt .cancel{background:rgba(255,255,255,0.1);color:#e8e8e8}
+  #installPrompt .cancel:hover{background:rgba(255,255,255,0.15);transform:translateY(-1px)}
+  #offlineIndicator{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(255,87,34,0.9);backdrop-filter:blur(20px);color:white;padding:12px 20px;border-radius:12px;display:none;z-index:100;border:1px solid rgba(255,87,34,0.3)}
+  a{color:#64B5F6;text-decoration:none;transition:color 0.3s ease}
+  a:hover{color:#42A5F5}
+  
+  /* WebXR VR Button Styling - Multiple selectors to ensure it applies */
+  #VRButton, 
+  button[id*="VR"], 
+  div[id*="VR"] button,
+  [style*="position: absolute"][style*="bottom"] {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 100 !important;
+    
+    /* Glassmorphism styling - Blue for VR ready */
+    background: rgba(30, 58, 138, 0.3) !important; /* Darker blue background */
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(147, 197, 253, 0.4) !important; /* Light blue border */
+    border-radius: 16px !important;
+    padding: 16px 32px !important;
+    min-width: fit-content !important; /* Fit text width */
+    width: auto !important; /* Auto width to fit text */
+    
+    /* Typography */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 18px !important; /* Slightly larger */
+    font-weight: 700 !important; /* Bolder */
+    color: #f8fafc !important; /* Close to white for readability */
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important; /* More spacing for impact */
+    white-space: nowrap !important; /* Keep text on one line */
+    text-align: center !important; /* Center text properly */
+    
+    /* White glow effects - slow pulse like waiting */
+    box-shadow: 
+      0 0 30px rgba(255, 255, 255, 0.4),
+      0 0 60px rgba(255, 255, 255, 0.2),
+      0 8px 32px rgba(0, 0, 0, 0.3), 
+      0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    animation: vrWaiting 4s ease-in-out infinite !important;
+    
+    /* Remove default button styling */
+    outline: none !important;
+    text-decoration: none !important;
+  }
+  
+  #VRButton:hover,
+  button[id*="VR"]:hover,
+  div[id*="VR"] button:hover,
+  [style*="position: absolute"][style*="bottom"]:hover {
+    background: rgba(30, 58, 138, 0.5) !important;
+    border-color: rgba(147, 197, 253, 0.6) !important;
+    color: #ffffff !important; /* Pure white on hover */
+    transform: translateX(-50%) translateY(-4px) !important;
+    box-shadow: 
+      0 0 40px rgba(255, 255, 255, 0.6),
+      0 0 80px rgba(255, 255, 255, 0.3),
+      0 12px 40px rgba(0, 0, 0, 0.4), 
+      0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  #VRButton:active,
+  button[id*="VR"]:active,
+  div[id*="VR"] button:active,
+  [style*="position: absolute"][style*="bottom"]:active {
+    transform: translateX(-50%) translateY(-1px) !important; /* Subtle press, no jump */
+    background: rgba(30, 58, 138, 0.6) !important; /* Slightly darker on press */
+    box-shadow: 
+      0 0 25px rgba(255, 255, 255, 0.3),
+      0 0 50px rgba(255, 255, 255, 0.15),
+      0 4px 16px rgba(0, 0, 0, 0.4) !important; /* Reduced shadow for press effect */
+    transition: all 0.1s ease !important; /* Quick response */
+  }
+  
+  /* When WebXR is not supported - Faded grey */
+  #VRButton:disabled,
+  button[id*="VR"]:disabled,
+  div[id*="VR"] button:disabled,
+  [style*="position: absolute"][style*="bottom"]:disabled {
+    background: rgba(156, 163, 175, 0.1) !important; /* Grey background */
+    border: 1px solid rgba(156, 163, 175, 0.2) !important; /* Grey border */
+    color: #9ca3af !important; /* Grey text */
+    cursor: not-allowed !important;
+    min-width: 220px !important;
+    white-space: nowrap !important;
+    opacity: 0.6 !important;
+    text-align: center !important;
+    
+    /* Subtle shadow only */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+    
+    /* No animation for disabled */
+    animation: none !important;
+  }
+  
+  /* Generic disabled state - Faded grey (for non-WebXR specific issues) */
+  .vr-generic-disabled {
+    background: rgba(156, 163, 175, 0.1) !important;
+    border: 1px solid rgba(156, 163, 175, 0.2) !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+    opacity: 0.6 !important;
+    animation: none !important; /* No pulse for generic disabled */
+  }
+  
+  /* Slow waiting pulse animation for VR ready */
+  @keyframes vrWaiting {
+    0%, 100% {
+      box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.4),
+        0 0 60px rgba(255, 255, 255, 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.3), 
+        0 2px 8px rgba(0, 0, 0, 0.2);
+      border-color: rgba(147, 197, 253, 0.4);
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      box-shadow: 
+        0 0 50px rgba(255, 255, 255, 0.6),
+        0 0 100px rgba(255, 255, 255, 0.3),
+        0 0 150px rgba(255, 255, 255, 0.1),
+        0 8px 32px rgba(0, 0, 0, 0.3), 
+        0 2px 8px rgba(0, 0, 0, 0.2);
+      border-color: rgba(147, 197, 253, 0.6);
+      transform: translateX(-50%) scale(1.01);
+    }
+  }
+  
+  /* Responsive design - hide info panel on small screens to prevent overlap */
+  @media (max-width: 768px) {
+    #info {
+      display: none;
+    }
+    
+    #VRButton {
+      bottom: 10px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      font-size: 14px !important;
+      padding: 12px 20px !important;
+    }
+  }
+  
+  /* Additional breakpoint for very small screens */
+  @media (max-width: 640px) {
+    #info {
+      display: none;
+    }
+    
+    #modelSelector {
+      right: 10px;
+      top: 10px;
+      min-width: 200px;
+    }
+    
+    #modelCredit {
+      right: 10px;
+      bottom: 10px;
+    }
+  }
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.177.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="info">
+  <div id="infoTitle">WreckSploration VR</div>
+  <div id="infoControls">
+    <strong>VR:</strong> Thumbsticks to move/fly/turn | X/A buttons to toggle modes | Grips for speed boost<br>
+    <strong>Desktop:</strong> Drag to orbit | Scroll to zoom | Double-click to focus
+  </div>
+</div>
+
+<div id="modelSelector">
+  <select id="modelDropdown">
+  </select>
+  <div id="modeToggleContainer">
+    <div class="semantic-toggle">
+      <input type="checkbox" id="modeToggleSwitch">
+      <div class="toggle-slider-bg"></div>
+      <div class="toggle-option left">
+        <div class="toggle-icon">📋</div>
+        <div class="toggle-text">Survey</div>
+      </div>
+      <div class="toggle-option right">
+        <div class="toggle-icon">🌊</div>
+        <div class="toggle-text">Dive</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modelCredit">
+  <span id="creditText">Model by WreckSploration</span>
+</div>
+
+<!-- PWA Install Prompt -->
+<div id="installPrompt">
+  <p>Install WreckSploration VR for the best experience!</p>
+  <button id="installButton">Install</button>
+  <button id="cancelInstall" class="cancel">Cancel</button>
+</div>
+
+<!-- Offline Indicator -->
+<div id="offlineIndicator">
+  📱 Offline Mode - Some features may be limited
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader }  from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/loaders/DRACOLoader.js';
+import { KTX2Loader }  from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/meshopt_decoder.module.js';
+import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/webxr/VRButton.js';
+import { XRControllerModelFactory } from 'https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/webxr/XRControllerModelFactory.js';
+
+// Device detection for VR optimization
+let isQuest2 = false;
+let isQuest3 = false;
+
+// Function to detect Quest device type
+function detectQuestDevice() {
+  try {
+    const userAgent = navigator.userAgent.toLowerCase();
+    
+    // Quest 2 detection patterns
+    if (userAgent.includes('quest 2') || 
+        userAgent.includes('oculus quest 2') ||
+        (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
+      isQuest2 = true;
+      console.log('🥽 Quest 2 detected - applying performance optimizations');
+      return 'quest2';
+    }
+    
+    // Quest 3 detection patterns
+    if (userAgent.includes('quest 3') || 
+        userAgent.includes('oculus quest 3') ||
+        userAgent.includes('meta quest 3')) {
+      isQuest3 = true;
+      console.log('🥽 Quest 3 detected - using full render distance');
+      return 'quest3';
+    }
+    
+    console.log('🥽 Unknown VR device or desktop - using default settings');
+    return 'unknown';
+  } catch (error) {
+    console.warn('Device detection failed:', error);
+    return 'unknown';
+  }
+}
+
+// Function to apply Quest-specific optimizations
+function applyQuestOptimizations(deviceType) {
+  if (deviceType === 'quest2') {
+    // Limit render distance to 20m for Quest 2 performance
+    camera.far = 20;
+    camera.updateProjectionMatrix();
+    
+    // Only update fog if dive mode is enabled
+    if (isDiveModeEnabled) {
+      scene.fog = new THREE.FogExp2(0x041729, 0.084); // Enhanced visibility - denser fog for 20m visibility on Quest 2
+    }
+    
+    console.log('📊 Quest 2 optimizations applied: 20m render limit, denser fog');
+  } else {
+    // Quest 3 or other devices - use full render distance
+    camera.far = 2000;
+    camera.updateProjectionMatrix();
+    
+    // Only update fog if dive mode is enabled
+    if (isDiveModeEnabled) {
+      scene.fog = new THREE.FogExp2(0x041729, 0.056); // Enhanced visibility for full render distance
+    }
+    
+    console.log('📊 Full render distance maintained: 2000m range');
+  }
+}
+
+// Function to apply desktop/VR specific lighting and fog settings
+let currentVRMode = null; // Track current mode to avoid unnecessary updates
+
+function applyModeSpecificSettings() {
+  const isVRMode = renderer.xr.isPresenting;
+  
+  // Only update if mode has changed
+  if (currentVRMode === isVRMode) return;
+  
+  currentVRMode = isVRMode;
+  
+  // Only apply fog and lighting changes if dive mode is enabled
+  if (!isDiveModeEnabled) {
+    scene.fog = null;
+    console.log('🌊 Dive mode disabled - no fog applied, Survey mode lighting preserved');
+    return; // Exit early - don't modify lighting in Survey mode
+  }
+  
+  if (isVRMode) {
+    // VR Mode - keep original settings for dive mode with 30% more visibility
+    scene.fog = new THREE.FogExp2(0x041729, 0.056); // Reduced from 0.08 for 30% more visibility (~20m visibility)
+    
+    // Keep dim ambient lighting for VR dive mode
+    if (overheadLight) {
+      overheadLight.intensity = 0.005; // Very dim for VR atmosphere
+      overheadLight.color.setHex(0x1a3b5c); // Blue-tinted light
+    }
+    
+    console.log('🥽 VR dive mode: Enhanced fog visibility and dim lighting applied');
+  } else {
+    // Desktop Mode - enhanced visibility with lighter fog for dive mode
+    scene.fog = new THREE.FogExp2(0x041729, 0.0105); // Reduced from 0.015 for 30% more visibility (~140m visibility)
+    
+    // Neutral lighting for desktop dive mode
+    if (overheadLight) {
+      overheadLight.intensity = 0.3; // Neutral lighting for desktop
+      overheadLight.color.setHex(0x404040); // Neutral gray light
+    }
+    
+    console.log('🖥️ Desktop dive mode: Enhanced fog visibility and neutral lighting applied');
+  }
+  
+  // Update particle material fog uniforms if they exist
+  if (particleMaterial && particleMaterial.uniforms && scene.fog) {
+    particleMaterial.uniforms.fogColor.value = scene.fog.color;
+    particleMaterial.uniforms.fogDensity.value = scene.fog.density;
+  }
+}
+
+// ------------------------ Config ----------------------------
+// Available models with display names, credits, and initial positions
+const MODELS = {
+  'key_biscayne': { 
+    url: 'models/key_biscayne.glb', 
+    name: 'Key Biscayne', 
+    credit: 'WreckSploration',
+    initialPositions: {
+      desktop: {
+        camera: { x: 33.494, y: 36.42, z: -83.442 },
+        target: { x: -3.602, y: -6.611, z: -23.97 }
+      },
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },
+        rotation: { x: 0, y: 0, z: 0 }
+      }
+    }
+  },
+  'kxi': { 
+    url: 'models/kxi.glb', 
+    name: 'HNLMS K XI (1946)', 
+    credit: 'WreckSploration',
+    initialPositions: {
+      desktop: {
+        camera: { x: -6.391, y: 12.461, z: -42.105 },
+        target: { x: 1.529, y: 0.088, z: -14.334 }
+      },
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },
+        rotation: { x: 0, y: 0, z: 0 }
+      }
+    }
+  },
+  'sesa': { 
+    url: 'models/sesa.glb', 
+    name: 'Sesa', 
+    credit: 'WreckSploration',
+    initialPositions: {
+      desktop: {
+        camera: { x: 18.93, y: 11.572, z: 52.508 },
+        target: { x: -1.613, y: -8.088, z: 4.822 }
+      },
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },
+        rotation: { x: 0, y: 0, z: 0 }
+      }
+    }
+  },
+  'unknown': { 
+    url: 'models/unknown.glb', 
+    name: 'Unknown Wreck', 
+    credit: 'WreckSploration',
+    initialPositions: {
+      desktop: {
+        camera: { x: 34.226, y: 10.354, z: 2.12 },
+        target: { x: 10.959, y: -1.07, z: 2.247 }
+      },
+      vr: {
+        dolly: { x: 0, y: 2, z: 15 },
+        rotation: { x: 0, y: 0, z: 0 }
+      }
+    }
+  }
+};
+
+// Function to apply initial positions based on model configuration
+function applyInitialPositions(modelConfig) {
+  const isVRMode = renderer.xr.isPresenting;
+  const positions = modelConfig.initialPositions;
+  
+  if (!positions) {
+    console.log('No initial positions defined for model, using defaults');
+    return;
+  }
+  
+  if (isVRMode && positions.vr) {
+    // Apply VR positions
+    dolly.position.set(
+      positions.vr.dolly.x,
+      positions.vr.dolly.y,
+      positions.vr.dolly.z
+    );
+    dolly.rotation.set(
+      positions.vr.rotation.x,
+      positions.vr.rotation.y,
+      positions.vr.rotation.z
+    );
+    
+    console.log('📍 Applied VR initial position:', positions.vr);
+  } else if (!isVRMode && positions.desktop) {
+    // Apply Desktop positions
+    camera.position.set(
+      positions.desktop.camera.x,
+      positions.desktop.camera.y,
+      positions.desktop.camera.z
+    );
+    controls.target.set(
+      positions.desktop.target.x,
+      positions.desktop.target.y,
+      positions.desktop.target.z
+    );
+    controls.update();
+    
+    console.log('📍 Applied Desktop initial position:', positions.desktop);
+  }
+}
+
+let currentModelKey = 'kxi'; // Default model
+const MODEL_URL = MODELS[currentModelKey].url;
+const MOVE_SPEED = 2.0;    // m/s base movement speed
+const TURN_SPEED = 1.5;    // rad/s turn speed
+const FLY_SPEED = 1.0;     // m/s vertical movement
+
+// Dive mode control
+let isDiveModeEnabled = false; // Start with survey mode (default)
+let clearModeDirectionalLight = null; // Additional light for clear mode
+let clearModeHemisphereLight = null; // Additional hemisphere light for clear mode
+
+// Function to toggle dive mode
+function toggleDiveMode() {
+  isDiveModeEnabled = !isDiveModeEnabled;
+  const toggleSwitch = document.getElementById('modeToggleSwitch');
+  
+  // Update switch state (checked = dive mode, unchecked = survey mode)
+  if (toggleSwitch) {
+    toggleSwitch.checked = isDiveModeEnabled;
+  }
+  
+  // Apply the lighting and visual changes
+  applyModeSettings();
+  
+  console.log(`🔄 Mode changed to: ${isDiveModeEnabled ? 'Dive' : 'Survey'}`);
+}
+
+// Consolidated function to apply all mode-specific settings
+function applyModeSettings() {
+  if (isDiveModeEnabled) {
+    // DIVE MODE: Dark underwater lighting with particles and fog
+    console.log('🌊 Applying Dive Mode settings');
+    
+    // Set dark underwater lighting
+    if (overheadLight) {
+      overheadLight.intensity = 0.005;
+      overheadLight.color.setHex(0x1a3b5c); // Dark blue underwater
+    }
+    
+    // Remove bright survey lights
+    if (clearModeDirectionalLight) {
+      scene.remove(clearModeDirectionalLight);
+      clearModeDirectionalLight = null;
+    }
+    if (clearModeHemisphereLight) {
+      scene.remove(clearModeHemisphereLight);
+      clearModeHemisphereLight = null;
+    }
+    
+    // Show particles
+    if (particles) {
+      particles.visible = true;
+      particles.material.opacity = 1;
+    }
+    
+    // Enable spotlight
+    if (controllerSpotlight) {
+      controllerSpotlight.visible = true;
+    }
+    
+    // Apply fog for underwater effect
+    const deviceType = detectQuestDevice();
+    applyQuestOptimizations(deviceType);
+    
+  } else {
+    // SURVEY MODE: Bright clear lighting, no particles
+    console.log('☀️ Applying Survey Mode settings');
+    
+    // Restore bright overhead lighting
+    if (overheadLight) {
+      overheadLight.intensity = 1.0;
+      overheadLight.color.setHex(0xffffff); // White light
+    }
+    
+    // Add bright directional light if it doesn't exist
+    if (!clearModeDirectionalLight) {
+      clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      clearModeDirectionalLight.position.set(10, 10, 5);
+      clearModeDirectionalLight.castShadow = true;
+      scene.add(clearModeDirectionalLight);
+    }
+    
+    // Add hemisphere light if it doesn't exist
+    if (!clearModeHemisphereLight) {
+      clearModeHemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x444444, 0.6);
+      scene.add(clearModeHemisphereLight);
+    }
+    
+    // Hide particles
+    if (particles) {
+      particles.visible = false;
+    }
+    
+    // Disable spotlight
+    if (controllerSpotlight) {
+      controllerSpotlight.visible = false;
+    }
+    
+    // Remove fog for clear survey view
+    scene.fog = null;
+  }
+}
+
+// Function to enable dive mode (fog + particles)
+function enableDiveMode() {
+  // Apply appropriate fog based on current device and VR mode
+  const deviceType = detectQuestDevice();
+  applyQuestOptimizations(deviceType);
+  applyModeSpecificSettings();
+  
+  // Show particles with fade in
+  if (particles) {
+    particles.visible = true;
+    particles.material.opacity = 0;
+    fadeParticles(0, 1, 800); // Fade in over 800ms
+  }
+  
+  // Enable spotlight for dive mode
+  if (controllerSpotlight) {
+    controllerSpotlight.visible = true;
+    console.log('🔦 Spotlight enabled for dive mode');
+  }
+  
+  // Restore original underwater lighting with fade
+  if (overheadLight) {
+    fadeLighting({
+      target: overheadLight,
+      fromIntensity: overheadLight.intensity,
+      toIntensity: 0.005,
+      fromColor: overheadLight.color.getHex(),
+      toColor: 0x1a3b5c,
+      duration: 800
+    });
+  }
+  
+  // Remove additional clear mode lights with fade
+  if (clearModeDirectionalLight) {
+    fadeLighting({
+      target: clearModeDirectionalLight,
+      fromIntensity: clearModeDirectionalLight.intensity,
+      toIntensity: 0,
+      duration: 600,
+      onComplete: () => {
+        scene.remove(clearModeDirectionalLight);
+        clearModeDirectionalLight = null; // Clear the reference
+      }
+    });
+  }
+  if (clearModeHemisphereLight) {
+    fadeLighting({
+      target: clearModeHemisphereLight,
+      fromIntensity: clearModeHemisphereLight.intensity,
+      toIntensity: 0,
+      duration: 600,
+      onComplete: () => {
+        scene.remove(clearModeHemisphereLight);
+        clearModeHemisphereLight = null; // Clear the reference
+      }
+    });
+  }
+  
+  console.log('🌊 Dive mode enabled - fog and particles active');
+}
+
+// Function to disable dive mode (no fog + no particles) - Survey Mode
+function disableDiveMode() {
+  console.log('📋 Starting Survey mode transition...');
+  
+  // Remove fog
+  scene.fog = null;
+  
+  // Hide particles with fade out
+  if (particles) {
+    fadeParticles(particles.material.opacity, 0, 600, () => {
+      particles.visible = false;
+    });
+  }
+  
+  // Disable spotlight for survey mode (bright ambient lighting is sufficient)
+  if (controllerSpotlight) {
+    controllerSpotlight.visible = false;
+    console.log('🔦 Spotlight disabled for survey mode');
+  }
+  
+  // Apply bright, even lighting for survey mode with fade
+  if (overheadLight) {
+    console.log('💡 Fading overhead light from', overheadLight.intensity, 'to 0.5, color from', overheadLight.color.getHexString(), 'to white');
+    fadeLighting({
+      target: overheadLight,
+      fromIntensity: overheadLight.intensity,
+      toIntensity: 0.5, // Match initial Survey mode brightness
+      fromColor: overheadLight.color.getHex(),
+      toColor: 0xffffff, // Pure white like initial state
+      duration: 800
+    });
+  }
+  
+  // Add directional light for survey mode if it doesn't exist
+  if (!clearModeDirectionalLight) {
+    console.log('✨ Creating new directional light for Survey mode');
+    clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 0);
+    clearModeDirectionalLight.position.set(5, 10, 5);
+    clearModeDirectionalLight.castShadow = false;
+    scene.add(clearModeDirectionalLight);
+    
+    fadeLighting({
+      target: clearModeDirectionalLight,
+      fromIntensity: 0,
+      toIntensity: 0.72,
+      duration: 800
+    });
+  } else {
+    console.log('✨ Restoring existing directional light for Survey mode');
+    // Ensure existing directional light is restored to full Survey mode brightness
+    fadeLighting({
+      target: clearModeDirectionalLight,
+      fromIntensity: clearModeDirectionalLight.intensity,
+      toIntensity: 0.72,
+      fromColor: clearModeDirectionalLight.color.getHex(),
+      toColor: 0xffffff,
+      duration: 800
+    });
+  }
+  
+  // Add hemisphere light for even lighting from all directions
+  if (!clearModeHemisphereLight) {
+    console.log('🌤️ Creating new hemisphere light for Survey mode');
+    clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0xcccccc, 0);
+    scene.add(clearModeHemisphereLight);
+    
+    fadeLighting({
+      target: clearModeHemisphereLight,
+      fromIntensity: 0,
+      toIntensity: 0.6,
+      duration: 800
+    });
+  } else {
+    console.log('🌤️ Restoring existing hemisphere light for Survey mode');
+    // Ensure existing hemisphere light is restored to full Survey mode brightness
+    fadeLighting({
+      target: clearModeHemisphereLight,
+      fromIntensity: clearModeHemisphereLight.intensity,
+      toIntensity: 0.6,
+      duration: 800
+    });
+  }
+  
+  console.log('📋 Survey mode enabled - fog and particles disabled, bright even lighting applied');
+}
+
+// Fade lighting helper function
+function fadeLighting({target, fromIntensity, toIntensity, fromColor, toColor, duration = 500, onComplete}) {
+  const startTime = performance.now();
+  const intensityDelta = toIntensity - fromIntensity;
+  
+  let colorFrom, colorTo;
+  if (fromColor !== undefined && toColor !== undefined) {
+    colorFrom = new THREE.Color(fromColor);
+    colorTo = new THREE.Color(toColor);
+  }
+  
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    
+    // Fade intensity
+    target.intensity = fromIntensity + (intensityDelta * eased);
+    
+    // Fade color if specified
+    if (colorFrom && colorTo) {
+      target.color.lerpColors(colorFrom, colorTo, eased);
+    }
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else if (onComplete) {
+      onComplete();
+    }
+  }
+  
+  requestAnimationFrame(animate);
+}
+
+// Fade particles helper function
+function fadeParticles(fromOpacity, toOpacity, duration = 500, onComplete) {
+  if (!particles || !particles.material) return;
+  
+  const startTime = performance.now();
+  const opacityDelta = toOpacity - fromOpacity;
+  
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    
+    particles.material.opacity = fromOpacity + (opacityDelta * eased);
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else if (onComplete) {
+      onComplete();
+    }
+  }
+  
+  requestAnimationFrame(animate);
+}
+
+// Speed ramping variables
+let currentSpeed = 0;      // Current ramped speed (0-1)
+let targetSpeed = 0;       // Target speed (0-1)
+let currentBoostLevel = 0; // Current boost level (0-1)
+let targetBoostLevel = 0;  // Target boost level (0-1)
+const SPEED_RAMP_RATE = 3.0;    // How fast speed ramps up/down (units per second)
+const BOOST_RAMP_RATE = 4.0;    // How fast boost ramps up/down (units per second)
+
+// Audio System for Movement Sounds
+let audioContext = null;
+let dpvSound = null;
+let dpvHighSound = null;
+let ambienceSound = null;
+let currentMovementSound = null;
+let currentBoostSound = null;
+let currentAmbienceSound = null;
+let baseGainNode = null;
+let boostGainNode = null;
+let ambienceGainNode = null;
+let isMoving = false;
+
+// Initialize audio system
+async function initAudio() {
+  try {
+    // Create audio context
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Load DPV sounds and ambience
+    const [dpvBuffer, dpvHighBuffer, ambienceBuffer] = await Promise.all([
+      loadAudioBuffer('sound/dpv.ogg'),
+      loadAudioBuffer('sound/dpvhigh.ogg'),
+      loadAudioBuffer('sound/vrambience.ogg')
+    ]);
+    
+    dpvSound = dpvBuffer;
+    dpvHighSound = dpvHighBuffer;
+    ambienceSound = ambienceBuffer;
+    
+    // Start ambient sound immediately
+    startAmbienceSound();
+    
+    console.log('Audio system initialized successfully');
+  } catch (error) {
+    console.warn('Audio initialization failed:', error);
+  }
+}
+
+// Load audio buffer from URL
+async function loadAudioBuffer(url) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  return await audioContext.decodeAudioData(arrayBuffer);
+}
+
+// Start ambient underwater sound
+function startAmbienceSound() {
+  if (!audioContext || !ambienceSound || currentAmbienceSound) return;
+  
+  try {
+    const ambienceSource = audioContext.createBufferSource();
+    ambienceGainNode = audioContext.createGain();
+    
+    ambienceSource.buffer = ambienceSound;
+    ambienceSource.connect(ambienceGainNode);
+    ambienceGainNode.connect(audioContext.destination);
+    
+    ambienceSource.loop = true;
+    ambienceGainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Start at full volume - seamless loop
+    
+    ambienceSource.start();
+    currentAmbienceSound = ambienceSource;
+    
+    console.log('Ambient underwater sound started');
+  } catch (error) {
+    console.warn('Error starting ambient sound:', error);
+  }
+}
+
+// Stop ambient sound immediately - seamless loop
+function stopAmbienceSound() {
+  if (currentAmbienceSound && ambienceGainNode && audioContext) {
+    try {
+      currentAmbienceSound.stop();
+      currentAmbienceSound = null;
+      ambienceGainNode = null;
+      console.log('Ambient sound stopped');
+    } catch (error) {
+      console.warn('Error stopping ambient sound:', error);
+    }
+  }
+}
+
+// Play movement sound with smooth audio setup
+function playMovementSound() {
+  if (!audioContext || !dpvSound || !dpvHighSound) return;
+  
+  // Stop current movement sounds if playing
+  if (currentMovementSound) {
+    currentMovementSound.stop();
+    currentMovementSound = null;
+  }
+  if (currentBoostSound) {
+    currentBoostSound.stop();
+    currentBoostSound = null;
+  }
+  if (baseGainNode) {
+    baseGainNode.disconnect();
+  }
+  if (boostGainNode) {
+    boostGainNode.disconnect();
+  }
+  
+  try {
+    // Always create and play the base DPV sound
+    const baseSource = audioContext.createBufferSource();
+    baseGainNode = audioContext.createGain();
+    
+    baseSource.buffer = dpvSound;
+    baseSource.connect(baseGainNode);
+    baseGainNode.connect(audioContext.destination);
+    
+    baseSource.loop = true;
+    baseGainNode.gain.setValueAtTime(0, audioContext.currentTime); // Start at 0 for smooth ramp
+    
+    baseSource.start();
+    currentMovementSound = baseSource;
+    
+    // Create boost sound (always available for smooth transitions)
+    const boostSource = audioContext.createBufferSource();
+    boostGainNode = audioContext.createGain();
+    
+    boostSource.buffer = dpvHighSound;
+    boostSource.connect(boostGainNode);
+    boostGainNode.connect(audioContext.destination);
+    
+    boostSource.loop = true;
+    boostGainNode.gain.setValueAtTime(0, audioContext.currentTime); // Start at 0
+    
+    boostSource.start();
+    currentBoostSound = boostSource;
+    
+    console.log('Movement audio system started with smooth ramping');
+  } catch (error) {
+    console.warn('Error playing movement sound:', error);
+  }
+}
+
+// Update audio volumes based on current speed and boost levels
+function updateAudioLevels() {
+  if (!baseGainNode || !boostGainNode || !audioContext) return;
+  
+  try {
+    // Base volume scales with movement speed (increased by 1.3x again: 1.17 → 1.52)
+    const baseVolume = currentSpeed * 1.52;
+    
+    // Boost volume scales with boost level (increased by 1.3x again: 0.78 → 1.01)
+    const boostVolume = currentBoostLevel * 1.01;
+    
+    // Smooth volume transitions
+    baseGainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + 0.1);
+    boostGainNode.gain.linearRampToValueAtTime(boostVolume, audioContext.currentTime + 0.1);
+    
+  } catch (error) {
+    console.warn('Error updating audio levels:', error);
+  }
+}
+
+// Stop movement sound with smooth fade
+function stopMovementSound() {
+  if (baseGainNode && audioContext) {
+    try {
+      baseGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+      setTimeout(() => {
+        if (currentMovementSound) {
+          currentMovementSound.stop();
+          currentMovementSound = null;
+        }
+      }, 250);
+    } catch (error) {
+      console.warn('Error stopping base movement sound:', error);
+    }
+  }
+  
+  if (boostGainNode && audioContext) {
+    try {
+      boostGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+      setTimeout(() => {
+        if (currentBoostSound) {
+          currentBoostSound.stop();
+          currentBoostSound = null;
+        }
+        baseGainNode = null;
+        boostGainNode = null;
+      }, 250);
+    } catch (error) {
+      console.warn('Error stopping boost movement sound:', error);
+    }
+  }
+}
+
+// Initialize audio on user interaction (required for web audio)
+let audioInitialized = false;
+function initAudioOnInteraction() {
+  if (!audioInitialized) {
+    initAudio();
+    audioInitialized = true;
+  }
+}
+
+//-------------------------------------------------------------
+
+// Scene basics
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x041729); // Much darker deep ocean blue
+
+// Start with no fog for Survey mode (default)
+scene.fog = null;
+
+const camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.05, 2000);
+const dolly  = new THREE.Group(); dolly.add(camera); scene.add(dolly);
+
+const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.xr.enabled = true;
+
+// Optimize renderer settings for faster loading/rendering
+renderer.shadowMap.enabled = true; // Re-enable shadows for realistic lighting
+renderer.shadowMap.type = THREE.VSMShadowMap; // Variance shadows reduce moire effects and banding
+renderer.physicallyCorrectLights = false;
+renderer.toneMapping = THREE.NoToneMapping;
+
+// Reduce pixel ratio on mobile for better performance
+if (window.devicePixelRatio > 2) {
+  renderer.setPixelRatio(1.5);
+}
+
+document.body.appendChild(renderer.domElement);
+
+// Create and style VR button
+const vrButton = VRButton.createButton(renderer);
+document.body.appendChild(vrButton);
+
+// Style the VR button to match the modern design
+setTimeout(() => {
+  const vrBtn = document.querySelector('button') || vrButton;
+  if (vrBtn) {
+    // Replace unfriendly text with more welcoming message
+    if (vrBtn.textContent.includes('WEBXR NOT AVAILABLE') || vrBtn.textContent.includes('VR NOT SUPPORTED')) {
+      vrBtn.textContent = 'PLEASE USE A VR HEADSET';
+    }
+    
+    // Check specific VR states
+    const buttonText = vrBtn.textContent.toUpperCase();
+    const isWebXRNotSupported = buttonText.includes('NOT SUPPORTED') || buttonText.includes('WEBXR NOT AVAILABLE') || buttonText.includes('PLEASE USE A VR HEADSET');
+    const isGenericDisabled = vrBtn.disabled && !isWebXRNotSupported;
+    
+    if (isWebXRNotSupported) {
+      // Special styling for WebXR not supported - Blue with glow and pulse
+      vrBtn.style.cssText = `
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 100 !important;
+        background: rgba(59, 130, 246, 0.15) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 16px !important;
+        padding: 16px 32px !important;
+        min-width: 200px !important;
+        white-space: nowrap !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: #3b82f6 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        cursor: not-allowed !important;
+        outline: none !important;
+        text-decoration: none !important;
+        animation: vrPulse 2s ease-in-out infinite !important;
+      `;
+      console.log('🔵 VR Button styled - WebXR not supported (blue, glowing, animated)');
+    } else if (isGenericDisabled) {
+      // Generic disabled state - Faded grey
+      vrBtn.style.cssText = `
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 100 !important;
+        background: rgba(156, 163, 175, 0.1) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(156, 163, 175, 0.2) !important;
+        border-radius: 16px !important;
+        padding: 16px 24px !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: #9ca3af !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        white-space: nowrap !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+        cursor: not-allowed !important;
+        outline: none !important;
+        text-decoration: none !important;
+        opacity: 0.6 !important;
+      `;
+      console.log('⚫ VR Button styled - Generic disabled (faded grey)');
+    } else {
+      // Normal VR available styling - Blue with white text
+      vrBtn.style.cssText = `
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 100 !important;
+        background: rgba(30, 58, 138, 0.3) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(147, 197, 253, 0.4) !important;
+        border-radius: 16px !important;
+        padding: 16px 32px !important;
+        min-width: fit-content !important;
+        width: auto !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        animation: vrWaiting 4s ease-in-out infinite !important;
+        outline: none !important;
+        text-decoration: none !important;
+      `;
+      
+      // Add hover effects only for available VR
+      vrBtn.addEventListener('mouseenter', () => {
+        vrBtn.style.background = 'rgba(30, 58, 138, 0.5) !important';
+        vrBtn.style.borderColor = 'rgba(147, 197, 253, 0.6) !important';
+        vrBtn.style.color = '#ffffff !important';
+        vrBtn.style.transform = 'translateX(-50%) translateY(-2px) !important';
+        vrBtn.style.boxShadow = '0 0 40px rgba(255, 255, 255, 0.6), 0 0 80px rgba(255, 255, 255, 0.3), 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3) !important';
+      });
+      
+      vrBtn.addEventListener('mouseleave', () => {
+        vrBtn.style.background = 'rgba(30, 58, 138, 0.3) !important';
+        vrBtn.style.borderColor = 'rgba(147, 197, 253, 0.4) !important';
+        vrBtn.style.color = '#f8fafc !important';
+        vrBtn.style.transform = 'translateX(-50%) translateY(0px) !important';
+        vrBtn.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2) !important';
+      });
+      
+      console.log('� VR Button styled - VR available (blue, glowing)');
+    }
+  }
+}, 100);
+
+// Monitor VR button for state changes
+let lastVRButtonText = '';
+setInterval(() => {
+  const vrBtn = document.querySelector('button');
+  if (vrBtn && vrBtn.textContent !== lastVRButtonText) {
+    // Replace unfriendly text with more welcoming message
+    if (vrBtn.textContent.includes('WEBXR NOT AVAILABLE') || vrBtn.textContent.includes('VR NOT SUPPORTED')) {
+      vrBtn.textContent = 'PLEASE USE A VR HEADSET';
+    }
+    
+    lastVRButtonText = vrBtn.textContent;
+    console.log('🔄 VR Button text changed to:', lastVRButtonText);
+    
+    // Re-apply styling based on new state
+    const buttonText = vrBtn.textContent.toUpperCase();
+    const isWebXRNotSupported = buttonText.includes('NOT SUPPORTED') || buttonText.includes('WEBXR NOT AVAILABLE') || buttonText.includes('PLEASE USE A VR HEADSET');
+    const isGenericDisabled = vrBtn.disabled && !isWebXRNotSupported;
+    
+    if (isWebXRNotSupported) {
+      vrBtn.className = 'vr-webxr-not-supported';
+      console.log('🔵 VR Button state: WebXR not supported');
+    } else if (isGenericDisabled) {
+      vrBtn.className = 'vr-generic-disabled';
+      console.log('⚫ VR Button state: Generic disabled');
+    } else {
+      vrBtn.className = 'vr-available';
+      console.log('🟢 VR Button state: VR available');
+    }
+  }
+}, 1000);
+
+// Desktop orbit controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; 
+controls.dampingFactor = 0.08;
+controls.maxDistance = 100;
+controls.minDistance = 0.5;
+
+// Cancel focus animation when user manually controls camera
+controls.addEventListener('start', () => {
+  if (focusAnimation) {
+    cancelAnimationFrame(focusAnimation);
+    focusAnimation = null;
+  }
+});
+
+// Raycaster for interactions
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Double-click focus system
+let lastClickTime = 0;
+const DOUBLE_CLICK_TIME = 300;
+let focusAnimation = null; // Track ongoing animation
+
+window.addEventListener('resize',()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// Mouse/touch interaction
+renderer.domElement.addEventListener('click', onMouseClick);
+
+// Add these variables near the top with other declarations
+let isDragging = false;
+let dragStartPosition = { x: 0, y: 0 };
+const DRAG_THRESHOLD = 5; // pixels
+
+// Add mouse event listeners for drag detection
+renderer.domElement.addEventListener('mousedown', onMouseDown);
+renderer.domElement.addEventListener('mousemove', onMouseMove);
+renderer.domElement.addEventListener('mouseup', onMouseUp);
+
+// Add audio initialization event listeners
+renderer.domElement.addEventListener('click', initAudioOnInteraction);
+renderer.domElement.addEventListener('keydown', initAudioOnInteraction);
+renderer.domElement.addEventListener('touchstart', initAudioOnInteraction);
+
+function onMouseDown(event) {
+  isDragging = false;
+  dragStartPosition.x = event.clientX;
+  dragStartPosition.y = event.clientY;
+}
+
+function onMouseMove(event) {
+  if (!isDragging) {
+    const deltaX = Math.abs(event.clientX - dragStartPosition.x);
+    const deltaY = Math.abs(event.clientY - dragStartPosition.y);
+    
+    if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+      isDragging = true;
+    }
+  }
+}
+
+function onMouseUp(event) {
+  // Reset drag state after a short delay to allow click event to process
+  setTimeout(() => {
+    isDragging = false;
+  }, 10);
+}
+
+// Update the onMouseClick function for double-click focus only
+function onMouseClick(event) {
+  const currentTime = Date.now();
+  const isDoubleClick = currentTime - lastClickTime < DOUBLE_CLICK_TIME;
+  lastClickTime = currentTime;
+  
+  if (renderer.xr.isPresenting || isDragging) return; // Don't process when dragging
+  
+  if (isDoubleClick) {
+    // Calculate mouse position
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    // Raycast from camera
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    
+    if (intersects.length > 0) {
+      // Double-click: focus on point
+      focusOnPoint(intersects[0].point);
+    }
+  }
+}
+
+function focusOnPoint(point) {
+  // Cancel any existing focus animation
+  if (focusAnimation) {
+    cancelAnimationFrame(focusAnimation);
+    focusAnimation = null;
+  }
+  
+  const startTarget = controls.target.clone();
+  const startPosition = camera.position.clone();
+  
+  // Calculate new camera position (maintain relative offset)
+  const offset = startPosition.clone().sub(startTarget);
+  const newPosition = point.clone().add(offset);
+  
+  // Smooth animation
+  const duration = 1000; // 1 second
+  const startTime = performance.now();
+  
+  function animate() {
+    const elapsed = performance.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    
+    controls.target.lerpVectors(startTarget, point, eased);
+    camera.position.lerpVectors(startPosition, newPosition, eased);
+    
+    if (progress < 1) {
+      focusAnimation = requestAnimationFrame(animate);
+    } else {
+      focusAnimation = null; // Animation complete
+    }
+  }
+  
+  focusAnimation = requestAnimationFrame(animate);
+}
+
+// Add bright overhead lighting for Survey mode (default)
+let overheadLight = new THREE.AmbientLight(0xffffff, 0.5); // Bright white light for Survey mode
+scene.add(overheadLight);
+
+// Declare spotlight variables - will be created after model loading
+let controllerSpotlight = null;
+let spotlightTarget = null;
+
+// Function to create/recreate the spotlight
+function createSpotlight(beamWidthDegrees = 35) {
+  // Remove existing spotlight if it exists
+  if (controllerSpotlight) {
+    scene.remove(controllerSpotlight);
+    scene.remove(spotlightTarget);
+  }
+  
+  // Convert degrees to radians
+  const beamWidthRadians = (beamWidthDegrees * Math.PI) / 180;
+  
+  // Adjust spotlight distance based on Quest device for performance
+  const spotlightDistance = isQuest2 ? 15 : 15; // Keep same distance for now, could reduce further if needed
+  
+  // Create new spotlight with configurable beam width
+  controllerSpotlight = new THREE.SpotLight(
+    0xffffff,        // Pure white light
+    2.5,             // Realistic underwater torch intensity
+    spotlightDistance, // Adjustable distance based on device
+    beamWidthRadians, // Configurable beam width in radians
+    0.15,            // Softer penumbra for more realistic falloff
+    0.8              // Higher decay for realistic underwater attenuation
+  );
+
+  // Configure spotlight properties
+  controllerSpotlight.position.set(0, 0, 0);
+  // Start hidden since Survey mode is default (spotlight only for Dive mode)
+  controllerSpotlight.visible = false;
+  controllerSpotlight.castShadow = true; // Enable shadow casting
+  
+  // Optimize shadow settings for VR performance and eliminate moire effects
+  const shadowMapSize = isQuest2 ? 512 : 1024; // Reduce shadow quality on Quest 2
+  controllerSpotlight.shadow.mapSize.width = shadowMapSize;
+  controllerSpotlight.shadow.mapSize.height = shadowMapSize;
+  controllerSpotlight.shadow.camera.near = 0.1;
+  controllerSpotlight.shadow.camera.far = spotlightDistance; // Match spotlight distance
+  controllerSpotlight.shadow.camera.fov = beamWidthDegrees; // Match spotlight angle
+  
+  // Fix shadow acne and moire effects with proper bias settings
+  controllerSpotlight.shadow.bias = -0.0005; // Negative bias to prevent shadow acne
+  controllerSpotlight.shadow.normalBias = 0.02; // Normal bias to reduce peter panning
+  controllerSpotlight.shadow.radius = 4; // Softer shadow edges to reduce artifacts
+  controllerSpotlight.shadow.blurSamples = 10; // More samples for smoother shadows
+
+  // Add spotlight to scene
+  scene.add(controllerSpotlight);
+
+  // Create a simple target object for the spotlight
+  spotlightTarget = new THREE.Object3D();
+  scene.add(spotlightTarget);
+  controllerSpotlight.target = spotlightTarget;
+
+  console.log(`Spotlight created/recreated with ${beamWidthDegrees}° beam width, ${spotlightDistance}m distance, and ${shadowMapSize}px shadows:`, controllerSpotlight);
+}
+
+// Add underwater particles system - dynamically sized based on wreck
+let particleCount = 1750; // Halved from 3500 - Initial default, will be recalculated per wreck
+const particleGeometry = new THREE.BufferGeometry();
+let particlePositions = new Float32Array(particleCount * 3);
+let particleVelocities = new Float32Array(particleCount * 3);
+let particleSizes = new Float32Array(particleCount); // Add size variation
+
+// Particle boundary variables - will be set when wreck loads
+let particleBounds = {
+  min: new THREE.Vector3(-50, -25, -50),
+  max: new THREE.Vector3(50, 25, 50)
+};
+
+// Function to calculate optimal particle count based on wreck size
+function calculateParticleCount(wreckBounds) {
+  const size = new THREE.Vector3();
+  wreckBounds.getSize(size);
+  
+  // Calculate volume of the expanded particle field (2.5x wreck size)
+  const expansion = 2.5;
+  const expandedSize = size.clone().multiplyScalar(expansion);
+  const volume = expandedSize.x * expandedSize.y * expandedSize.z;
+  
+  // Dynamic density scaling - much lower for small sites to avoid overcrowding
+  // Small sites get very low density, medium sites scale up gradually, large sites maintain good density
+  let targetDensity;
+  if (volume < 5000) {
+    // Small sites (e.g., 20x5m): 0.0625 particles/m³ (3x reduction from original)
+    targetDensity = 0.0625;
+  } else if (volume < 20000) {
+    // Medium sites: Scale from 0.0625 to 2.0 particles/m³ 
+    const scaleFactor = (volume - 5000) / 15000; // 0 to 1
+    targetDensity = 0.0625 + (scaleFactor * 1.9375); // 0.0625 to 2.0
+  } else {
+    // Large sites (e.g., 70x15m): Keep good density at 3.5 particles/m³
+    targetDensity = 3.5;
+  }
+  
+  const calculatedCount = Math.round(volume * targetDensity);
+  
+  // Clamp between reasonable limits - much lower minimum for small sites
+  const minParticles = 100;   // Further reduced for small sites
+  const maxParticles = 8000;  // Slightly reduced cap for performance
+  const finalCount = Math.max(minParticles, Math.min(maxParticles, calculatedCount));
+  
+  console.log(`Wreck size: ${size.x.toFixed(1)}×${size.y.toFixed(1)}×${size.z.toFixed(1)}m`);
+  console.log(`Particle field volume: ${volume.toFixed(1)}m³`);
+  console.log(`Calculated particles: ${calculatedCount} (${targetDensity.toFixed(1)}/m³)`);
+  console.log(`Final particle count: ${finalCount}`);
+  
+  return finalCount;
+}
+
+// Function to update particle boundaries based on wreck
+function updateParticleBounds() {
+  if (wreck) {
+    const box = new THREE.Box3().setFromObject(wreck);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    
+    // Calculate new particle count based on wreck size
+    const newParticleCount = calculateParticleCount(box);
+    
+    // If particle count changed significantly, recreate the particle system
+    if (Math.abs(newParticleCount - particleCount) > particleCount * 0.2) {
+      console.log(`Recreating particle system: ${particleCount} → ${newParticleCount} particles`);
+      
+      // Remove old particle system
+      scene.remove(particles);
+      
+      // Update particle count and recreate arrays
+      particleCount = newParticleCount;
+      particlePositions = new Float32Array(particleCount * 3);
+      particleVelocities = new Float32Array(particleCount * 3);
+      particleSizes = new Float32Array(particleCount);
+      
+      // Initialize new particles
+      initializeParticles();
+      
+      // Recreate geometry and particle system
+      createParticleSystem();
+      scene.add(particles);
+    }
+    
+    // Expand bounds to 2.5x the wreck size for realistic sediment field
+    const expansion = 2.5;
+    const expandedSize = size.multiplyScalar(expansion);
+    
+    particleBounds.min.copy(center).sub(expandedSize.clone().multiplyScalar(0.5));
+    particleBounds.max.copy(center).add(expandedSize.clone().multiplyScalar(0.5));
+    
+    console.log('Updated particle bounds:', particleBounds);
+    
+    // Update shader uniforms with new bounds
+    if (particleMaterial && particleMaterial.uniforms) {
+      particleMaterial.uniforms.boundsMin.value.copy(particleBounds.min);
+      particleMaterial.uniforms.boundsMax.value.copy(particleBounds.max);
+    }
+    
+    // Redistribute existing particles within new bounds
+    redistributeParticles();
+  }
+}
+
+// Function to redistribute particles within bounds
+function redistributeParticles() {
+  const positions = particles.geometry.attributes.position.array;
+  
+  for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+    
+    // Random positions within wreck bounds
+    positions[i3] = particleBounds.min.x + Math.random() * (particleBounds.max.x - particleBounds.min.x);
+    positions[i3 + 1] = particleBounds.min.y + Math.random() * (particleBounds.max.y - particleBounds.min.y);
+    positions[i3 + 2] = particleBounds.min.z + Math.random() * (particleBounds.max.z - particleBounds.min.z);
+  }
+  
+  particles.geometry.attributes.position.needsUpdate = true;
+}
+
+// Function to initialize particle data with additional attributes for GPU shader
+function initializeParticles() {
+  // Initialize position, velocity, and size arrays
+  for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+    
+    // Start with default bounds, will be updated when wreck loads
+    particlePositions[i3] = particleBounds.min.x + Math.random() * (particleBounds.max.x - particleBounds.min.x);
+    particlePositions[i3 + 1] = particleBounds.min.y + Math.random() * (particleBounds.max.y - particleBounds.min.y);
+    particlePositions[i3 + 2] = particleBounds.min.z + Math.random() * (particleBounds.max.z - particleBounds.min.z);
+    
+    // Slow trending velocities for gentle, directional drifting motion
+    // Create a subtle underwater current with some random variation
+    const baseCurrentX = 0.0001; // Half speed - very slow eastward current
+    const baseCurrentY = -0.00005; // Half speed - very slow downward settling
+    const baseCurrentZ = 0.00005; // Half speed - very slow northward current
+    
+    // Add small random variation to the base current (much less random than before)
+    particleVelocities[i3] = baseCurrentX + (Math.random() - 0.5) * 0.0002;     // x velocity - half speed with trend
+    particleVelocities[i3 + 1] = baseCurrentY + (-Math.random() * 0.0001 - 0.00005); // y velocity - half speed downward trend
+    particleVelocities[i3 + 2] = baseCurrentZ + (Math.random() - 0.5) * 0.0002; // z velocity - half speed with trend
+    
+    // Vary particle sizes - most small, some medium, few large
+    const rand = Math.random();
+    if (rand < 0.7) {
+      particleSizes[i] = 0.03 + Math.random() * 0.02; // Small particles (0.03-0.05)
+    } else if (rand < 0.9) {
+      particleSizes[i] = 0.05 + Math.random() * 0.03; // Medium particles (0.05-0.08)
+    } else {
+      particleSizes[i] = 0.08 + Math.random() * 0.04; // Large particles (0.08-0.12)
+    }
+  }
+  
+  // Create additional attributes for GPU shader
+  const particleIndices = new Float32Array(particleCount);
+  for (let i = 0; i < particleCount; i++) {
+    particleIndices[i] = i; // Unique index for each particle
+  }
+  
+  // Return data for geometry creation (don't access particles yet)
+  return {
+    velocities: particleVelocities,
+    indices: particleIndices
+  };
+}
+
+// Function to create particle geometry and system with GPU attributes
+function createParticleSystem() {
+  particleGeometry.dispose(); // Clean up old geometry
+  
+  // Set up basic attributes
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));  
+  particleGeometry.setAttribute('originalSize', new THREE.BufferAttribute(particleSizes, 1));
+  
+  // Initialize particle data if not already done
+  const particleData = initializeParticles();
+  
+  // Set up GPU shader attributes
+  particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(particleData.velocities, 3));
+  particleGeometry.setAttribute('particleIndex', new THREE.BufferAttribute(particleData.indices, 1));
+  
+  // Update particles object with new data (only if particles exists)
+  if (particles) {
+    particles.geometry = particleGeometry;
+    particles.userData = particleData;
+  }
+}
+
+// Initialize particles with default values
+const particleData = initializeParticles();
+
+// Set all particle geometry attributes
+particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+particleGeometry.setAttribute('originalSize', new THREE.BufferAttribute(particleSizes, 1));
+particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(particleData.velocities, 3));
+particleGeometry.setAttribute('particleIndex', new THREE.BufferAttribute(particleData.indices, 1));
+
+// Create a simple circular texture for round particles
+const canvas = document.createElement('canvas');
+canvas.width = canvas.height = 32; // Small texture for performance
+const ctx = canvas.getContext('2d');
+
+// Draw a white circle with soft edges
+const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.8)');
+gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 32, 32);
+
+const circleTexture = new THREE.CanvasTexture(canvas);
+circleTexture.needsUpdate = true;
+
+// GPU-based particle material with custom shaders
+const particleMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    time: { value: 0 },
+    pointTexture: { value: circleTexture },
+    color: { value: new THREE.Color(0x8fafbf) }, // Brighter, more visible color
+    opacity: { value: 0.8 }, // Even higher opacity for debugging
+    size: { value: 0.5 }, // Half the previous size
+    boundsMin: { value: new THREE.Vector3(-50, -25, -50) },
+    boundsMax: { value: new THREE.Vector3(50, 25, 50) },
+    // Fog uniforms - start with default values for no fog
+    fogColor: { value: new THREE.Color(0x041729) },
+    fogDensity: { value: 0.0 } // No fog initially (Survey mode)
+  },
+  vertexShader: `
+    uniform float time;
+    uniform float size;
+    uniform vec3 boundsMin;
+    uniform vec3 boundsMax;
+    
+    attribute float originalSize;
+    attribute vec3 velocity;
+    attribute float particleIndex;
+    
+    varying float vOpacity;
+    varying float vFogFactor;
+    
+    void main() {
+      // Calculate animated position
+      vec3 animatedPosition = position;
+      
+      // Apply constant velocity drift
+      animatedPosition += velocity * time;
+      
+      // Add very subtle wave motion with slower, more trending patterns
+      float waveX = sin(time * 0.0000025 + particleIndex * 0.001) * 0.0000075; // Half speed again, smaller amplitude
+      float waveY = cos(time * 0.000002 + particleIndex * 0.0008) * 0.000005; // Half speed again, smaller amplitude  
+      float waveZ = sin(time * 0.000003 + particleIndex * 0.0012) * 0.0000075; // Half speed again, smaller amplitude
+      animatedPosition += vec3(waveX, waveY, waveZ);
+      
+      // Boundary wrapping - modulo operation for seamless wrapping
+      vec3 boundsSize = boundsMax - boundsMin;
+      animatedPosition = boundsMin + mod(animatedPosition - boundsMin, boundsSize);
+      
+      // Subtle size pulsing - even slower and gentler
+      float sizePulse = 1.0 + sin(time * 0.0001 + particleIndex * 0.01) * 0.025; // Half speed again, even smaller variation
+      float finalSize = originalSize * sizePulse * size;
+      
+      // Transform to screen space
+      vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      
+      // Size attenuation - made more visible
+      gl_PointSize = finalSize * (800.0 / -mvPosition.z);
+      
+      // Calculate fog factor for exponential squared fog
+      float fogDistance = -mvPosition.z;
+      vFogFactor = 1.0 - exp(-fogDistance * fogDistance * 0.0064); // fogDensity squared
+      vFogFactor = clamp(vFogFactor, 0.0, 1.0);
+      
+      // Vary opacity slightly per particle
+      vOpacity = 0.8 + sin(particleIndex * 0.1) * 0.2;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D pointTexture;
+    uniform vec3 color;
+    uniform float opacity;
+    uniform vec3 fogColor;
+    
+    varying float vOpacity;
+    varying float vFogFactor;
+    
+    void main() {
+      // Sample the circular texture
+      vec4 textureColor = texture2D(pointTexture, gl_PointCoord);
+      
+      // Base particle color
+      vec3 finalColor = color;
+      
+      // Apply fog mixing
+      finalColor = mix(finalColor, fogColor, vFogFactor);
+      
+      // Final alpha with texture alpha and fog consideration
+      float finalAlpha = textureColor.a * opacity * vOpacity * (1.0 - vFogFactor * 0.8);
+      
+      gl_FragColor = vec4(finalColor, finalAlpha);
+      
+      // Alpha test to prevent z-fighting
+      if (gl_FragColor.a < 0.01) discard;
+    }
+  `,
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.NormalBlending,
+  fog: false // We handle fog manually in the shader
+});
+
+const particles = new THREE.Points(particleGeometry, particleMaterial);
+// Store particle data for later use
+particles.userData = particleData;
+scene.add(particles);
+
+// Loaders setup with better error handling and progress
+const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/draco/');
+const ktx2  = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/').detectSupport(renderer);
+
+const loader = new GLTFLoader();
+loader.setDRACOLoader(draco);
+loader.setKTX2Loader(ktx2);
+loader.setMeshoptDecoder(MeshoptDecoder);
+
+// Add loading indicator
+const loadingDiv = document.createElement('div');
+loadingDiv.style.cssText = `
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: sans-serif;
+  z-index: 1000;
+  display: none;
+`;
+loadingDiv.innerHTML = 'Loading model...';
+document.body.appendChild(loadingDiv);
+
+// Load the wreck with progress tracking
+let wreck = null;
+let isModelLoading = false; // Track loading state
+
+// Function to load a model by key
+function loadModel(modelKey) {
+  const modelConfig = MODELS[modelKey];
+  if (!modelConfig) {
+    console.error('Model not found:', modelKey);
+    return;
+  }
+  
+  // If already loading, ignore the request
+  if (isModelLoading) {
+    console.log('Model already loading, ignoring request for:', modelKey);
+    return;
+  }
+  
+  // Set loading state
+  isModelLoading = true;
+  
+  // Disable dropdown during loading
+  const dropdown = document.getElementById('modelDropdown');
+  if (dropdown) {
+    dropdown.disabled = true;
+    dropdown.style.opacity = '0.5';
+  }
+  
+  // Remove existing model if present
+  if (wreck) {
+    scene.remove(wreck);
+    wreck = null;
+  }
+  
+  // Show loading indicator
+  loadingDiv.innerHTML = `Loading ${modelConfig.name}...`;
+  loadingDiv.style.display = 'block';
+  
+  // Update page title
+  document.title = `Virtual Dive – ${modelConfig.name}`;
+  
+  // Update credit display
+  const creditText = document.getElementById('creditText');
+  if (creditText) {
+    creditText.textContent = `Model by ${modelConfig.credit}`;
+  }
+  
+  loader.load(
+    modelConfig.url,
+    gltf => {
+      wreck = gltf.scene;
+      
+      // Traverse the scene to remove embedded lights and fix materials
+      gltf.scene.traverse(obj => {
+        if (obj.isLight) {
+          obj.visible = false; // nuke embedded lights
+          console.log('Disabled embedded light:', obj.name);
+        }
+        
+        // CONSISTENT MATERIAL CLEANING - Remove self-illumination, enable shadows, preserve spotlight response
+        if (obj.isMesh && obj.material) {
+          // Consistently enable shadow properties for all meshes
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+          
+          // Handle both single materials and material arrays
+          const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+          
+          materials.forEach((material, materialIndex) => {
+            console.log('Processing material:', material.type, 'for object:', obj.name);
+            
+            // Remove all emissive properties but preserve everything else
+            if (material.emissive) {
+              material.emissive.setHex(0x000000); // Remove emissive color
+              console.log('Removed emissive color from:', obj.name);
+            }
+            if (material.emissiveIntensity !== undefined) {
+              material.emissiveIntensity = 0; // Remove emissive intensity
+              console.log('Removed emissive intensity from:', obj.name);
+            }
+            if (material.emissiveMap) {
+              material.emissiveMap = null; // Remove emissive texture map
+              console.log('Removed emissive map from:', obj.name);
+            }
+            
+            // Remove light maps that might cause self-illumination
+            if (material.lightMap) {
+              material.lightMap = null;
+              console.log('Removed light map from:', obj.name);
+            }
+            if (material.lightMapIntensity !== undefined) {
+              material.lightMapIntensity = 0;
+            }
+            
+            // CONVERT ALL problematic materials to MeshLambertMaterial for consistent lighting
+            if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
+              console.log(`Converting ${material.type} to MeshLambertMaterial for:`, obj.name);
+              
+              // Use MeshLambertMaterial which responds consistently to spotlights and shadows
+              const newMaterial = new THREE.MeshLambertMaterial({
+                map: material.map,                    // Main texture/diffuse map
+                color: material.color || new THREE.Color(0xffffff),
+                transparent: material.transparent,
+                opacity: material.opacity !== undefined ? material.opacity : 1.0,
+                alphaMap: material.alphaMap,          // Alpha/transparency map
+                side: material.side !== undefined ? material.side : THREE.FrontSide,
+                // Copy any other relevant properties
+                wireframe: material.wireframe || false,
+                vertexColors: material.vertexColors || false,
+                fog: material.fog !== undefined ? material.fog : true,
+                // Additional texture maps that might be present
+                aoMap: material.aoMap,                // Ambient occlusion map
+                aoMapIntensity: material.aoMapIntensity || 1.0,
+                envMap: material.envMap,              // Environment map
+                reflectivity: material.reflectivity || 1.0,
+                refractionRatio: material.refractionRatio || 0.98,
+                combine: material.combine || THREE.MultiplyOperation
+              });
+              
+              // Force material to update immediately
+              newMaterial.needsUpdate = true;
+              
+              // Replace the material
+              if (Array.isArray(obj.material)) {
+                obj.material[materialIndex] = newMaterial;
+              } else {
+                obj.material = newMaterial;
+              }
+              
+              console.log(`Successfully converted to MeshLambertMaterial for: ${obj.name}, with texture: ${!!material.map}`);
+            }
+            
+            // For MeshStandardMaterial and other materials, just clean them without conversion
+            else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
+              // These materials work well with shadows, just ensure proper settings
+              material.needsUpdate = true;
+              console.log(`Cleaned ${material.type} for: ${obj.name} (kept original material type)`);
+            }
+            
+            // Force geometry updates for better shadow calculations
+            if (obj.geometry) {
+              obj.geometry.computeVertexNormals();
+              obj.geometry.normalizeNormals();
+            }
+            
+            // Ensure material updates
+            const currentMaterial = Array.isArray(obj.material) ? obj.material[materialIndex] : obj.material;
+            if (currentMaterial && currentMaterial.needsUpdate !== undefined) {
+              currentMaterial.needsUpdate = true;
+            }
+          });
+          
+          console.log('Material cleaning complete for:', obj.name, 'Material type:', 
+                     Array.isArray(obj.material) ? obj.material.map(m => m.type) : obj.material.type,
+                     'Shadows enabled: cast=' + obj.castShadow + ', receive=' + obj.receiveShadow);
+        }
+      });
+      
+      scene.add(wreck);
+      
+      // Force scene update after material changes
+      scene.updateMatrixWorld(true);
+      
+      // Create/recreate spotlight AFTER materials are cleaned
+      createSpotlight(); //
+      
+      // Force a render update to ensure materials are properly applied
+      setTimeout(() => {
+        if (controllerSpotlight) {
+          console.log('Total lights in scene:', scene.children.filter(child => child.isLight).length);
+          console.log('Spotlight in scene:', scene.children.includes(controllerSpotlight));
+          console.log('Spotlight ready with realistic intensity:', controllerSpotlight.intensity);
+        }
+      }, 1000);
+      
+      const box = new THREE.Box3().setFromObject(wreck);
+      const sz = box.getSize(new THREE.Vector3()).length();
+      const ctr = box.getCenter(new THREE.Vector3());
+      wreck.position.sub(ctr); // centre
+      
+      // Apply model-specific initial positions if available, otherwise use defaults
+      const hasCustomPositions = modelConfig.initialPositions;
+      
+      if (hasCustomPositions) {
+        applyInitialPositions(modelConfig);
+      } else {
+        // Fallback to automatic positioning based on model size
+        controls.target.set(0, 0, 0);
+        camera.position.set(0, sz * 0.3, sz * 0.8);
+        
+        // Reset VR dolly position
+        dolly.position.set(0, 0, 0);
+        dolly.rotation.set(0, 0, 0);
+      }
+      
+      // Update particle bounds based on new wreck
+      updateParticleBounds();
+      
+      // Initialize Survey mode lighting (default state)
+      if (!clearModeDirectionalLight) {
+        clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.72);
+        clearModeDirectionalLight.position.set(5, 10, 5);
+        clearModeDirectionalLight.castShadow = false;
+        scene.add(clearModeDirectionalLight);
+      }
+      
+      if (!clearModeHemisphereLight) {
+        clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.6);
+        scene.add(clearModeHemisphereLight);
+      }
+      
+      // Ensure overhead light is at Survey mode values
+      if (overheadLight) {
+        overheadLight.intensity = 0.5;
+        overheadLight.color.setHex(0xffffff);
+      }
+      
+      // Ensure particles are hidden in Survey mode (default)
+      if (particles) {
+        particles.visible = false;
+        particles.material.opacity = 0;
+      }
+      
+      console.log('📋 Survey mode initialized as default with bright lighting and no particles');
+      
+      // Hide loading indicator
+      loadingDiv.style.display = 'none';
+      
+      // Reset loading state and re-enable dropdown
+      isModelLoading = false;
+      const dropdown = document.getElementById('modelDropdown');
+      if (dropdown) {
+        dropdown.disabled = false;
+        dropdown.style.opacity = '1';
+        dropdown.value = modelKey; // Ensure dropdown shows the correct selection
+      }
+      
+      console.log(`${modelConfig.name} loaded successfully`);
+      currentModelKey = modelKey;
+    },
+    progress => {
+      if (progress.lengthComputable) {
+        const percentComplete = progress.loaded / progress.total * 100;
+        loadingDiv.innerHTML = `Loading ${modelConfig.name}... ${Math.round(percentComplete)}%`;
+      }
+    },
+    err => {
+      console.error(`${modelConfig.name} loading failed:`, err);
+      loadingDiv.innerHTML = `Failed to load ${modelConfig.name}`;
+      loadingDiv.style.color = '#ff6666';
+      
+      // Reset loading state and re-enable dropdown
+      isModelLoading = false;
+      const dropdown = document.getElementById('modelDropdown');
+      if (dropdown) {
+        dropdown.disabled = false;
+        dropdown.style.opacity = '1';
+        // Revert dropdown to previous selection
+        dropdown.value = currentModelKey;
+      }
+      
+      setTimeout(() => {
+        loadingDiv.style.display = 'none';
+        loadingDiv.style.color = 'white';
+      }, 3000);
+    }
+  );
+}
+
+// Initialize model dropdown
+function initializeModelDropdown() {
+  const dropdown = document.getElementById('modelDropdown');
+  
+  // Populate dropdown with models
+  Object.entries(MODELS).forEach(([key, config]) => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = config.name;
+    if (key === currentModelKey) {
+      option.selected = true;
+    }
+    dropdown.appendChild(option);
+  });
+  
+  // Handle model selection
+  dropdown.addEventListener('change', (event) => {
+    const selectedModelKey = event.target.value;
+    
+    // If already loading, revert selection and show message
+    if (isModelLoading) {
+      console.log('Cannot change model while loading');
+      event.target.value = currentModelKey; // Revert to current selection
+      
+      // Show brief message to user
+      const loadingDiv = document.querySelector('[style*="Loading"]') || document.querySelector('div[style*="position: fixed"]');
+      if (loadingDiv && loadingDiv.style.display !== 'none') {
+        const originalText = loadingDiv.innerHTML;
+        loadingDiv.innerHTML = 'Please wait for current model to finish loading...';
+        loadingDiv.style.color = '#ffaa00';
+        setTimeout(() => {
+          loadingDiv.innerHTML = originalText;
+          loadingDiv.style.color = 'white';
+        }, 2000);
+      }
+      return;
+    }
+    
+    if (selectedModelKey !== currentModelKey) {
+      loadModel(selectedModelKey);
+    }
+  });
+}
+
+// Initialize mode toggle switch
+const modeToggleSwitch = document.getElementById('modeToggleSwitch');
+if (modeToggleSwitch) {
+  // Ensure toggle starts in Survey mode (unchecked)
+  modeToggleSwitch.checked = false;
+  isDiveModeEnabled = false;
+  
+  // Apply initial survey mode settings
+  applyModeSettings();
+  
+  modeToggleSwitch.addEventListener('change', toggleDiveMode);
+  
+  console.log('📋 Mode toggle initialized: Survey mode (unchecked) is default');
+}
+
+// Add click handlers for toggle options
+const toggleOptions = document.querySelectorAll('.toggle-option');
+toggleOptions.forEach(option => {
+  option.addEventListener('click', () => {
+    const isRight = option.classList.contains('right'); // Right = Dive
+    const currentlyDiveMode = modeToggleSwitch.checked;
+    
+    // Only toggle if clicking on inactive option
+    if ((isRight && !currentlyDiveMode) || (!isRight && currentlyDiveMode)) {
+      toggleDiveMode();
+    }
+  });
+});
+
+// Initialize credit display
+const creditText = document.getElementById('creditText');
+if (creditText) {
+  creditText.textContent = `Model by ${MODELS[currentModelKey].credit}`;
+}
+
+// Initialize model dropdown
+initializeModelDropdown();
+
+// Load initial model
+loadModel(currentModelKey);
+
+// Initialize VR controllers - simplified approach with proper race condition fixes
+const controllerModelFactory = new XRControllerModelFactory();
+let controller1, controller2, controllerGrip1, controllerGrip2;
+
+// Build two placeholder controllers + grips immediately
+const controllers = [];
+const controllerGrips = [];
+
+for (let i = 0; i < 2; i++) {
+  const ctrl = renderer.xr.getController(i);
+  const grip = renderer.xr.getControllerGrip(i);
+  grip.add(controllerModelFactory.createControllerModel(grip));
+
+  // Add to scene now – they'll be invisible until `connected`
+  dolly.add(ctrl);
+  dolly.add(grip);
+
+  controllers.push(ctrl);
+  controllerGrips.push(grip);
+}
+
+// Use the controller's own events
+controllers.forEach((ctrl, index) => {
+  ctrl.addEventListener('connected', evt => {
+    const { handedness, targetRayMode } = evt.data;
+    if (targetRayMode !== 'tracked-pointer') return; // skip hands
+
+    // Assign the global refs
+    if (handedness === 'left') {
+      controller1 = ctrl;
+      controllerGrip1 = controllerGrips[index];
+    } else if (handedness === 'right') {
+      controller2 = ctrl;
+      controllerGrip2 = controllerGrips[index];
+    }
+
+    ctrl.userData.handedness = handedness;
+    ctrl.userData.initialised = true;
+    console.log(`✅ ${handedness} controller connected`);
+  });
+
+  ctrl.addEventListener('disconnected', () => {
+    const hand = ctrl.userData.handedness;
+    if (hand === 'left') { controller1 = controllerGrip1 = null; }
+    if (hand === 'right') { controller2 = controllerGrip2 = null; }
+    console.log(`❌ ${hand} controller disconnected`);
+  });
+
+  // Add button event handlers for Quest 3 X and A buttons
+  ctrl.addEventListener('selectstart', (event) => {
+    // Handle trigger button press - could be used for other actions
+    console.log(`🎮 ${ctrl.userData.handedness} controller trigger pressed`);
+  });
+
+  ctrl.addEventListener('squeezestart', (event) => {
+    // Handle grip button press - could be used for other actions  
+    console.log(`🎮 ${ctrl.userData.handedness} controller grip pressed`);
+  });
+});
+
+// Track button states for Quest controllers
+let buttonStates = new Map();
+
+// Check for X and A button presses in the animation loop
+function checkControllerButtons() {
+  const session = renderer.xr.getSession();
+  if (!session) return;
+
+  // Get input sources (controllers)
+  for (let inputSource of session.inputSources) {
+    if (inputSource.gamepad && inputSource.handedness) {
+      const gamepad = inputSource.gamepad;
+      const handedness = inputSource.handedness;
+      
+      // Debug: Log all available buttons and their states (only once per controller)
+      const debugKey = `debug-${handedness}`;
+      if (!buttonStates.get(debugKey)) {
+        console.log(`🎮 ${handedness} controller detected with ${gamepad.buttons.length} buttons:`);
+        gamepad.buttons.forEach((button, index) => {
+          console.log(`  Button[${index}]: pressed=${button.pressed}, touched=${button.touched}, value=${button.value}`);
+        });
+        buttonStates.set(debugKey, true);
+      }
+      
+      // Only check specific buttons for mode toggle (X and A buttons, not grips/triggers)
+      // Common Quest button mapping: 
+      // - Button[4] = X (left) or A (right) 
+      // - Button[5] = Y (left) or B (right)
+      // - Button[0] = trigger (exclude)
+      // - Button[1] = grip (exclude - used for speed boost)
+      
+      let modeToggleButtons = [];
+      if (handedness === 'left') {
+        // Left controller: Check for X button (usually button[4] or button[5])
+        modeToggleButtons = [4, 5];
+      } else if (handedness === 'right') {
+        // Right controller: Check for A button (usually button[4] or button[5])  
+        modeToggleButtons = [4, 5];
+      }
+      
+      // Check only the mode toggle buttons (not triggers or grips)
+      modeToggleButtons.forEach(index => {
+        if (gamepad.buttons[index]) {
+          const button = gamepad.buttons[index];
+          const buttonKey = `${handedness}-${index}`;
+          const wasPressed = buttonStates.get(buttonKey) || false;
+          const isPressed = button.pressed;
+          
+          // Detect button press (not held)
+          if (isPressed && !wasPressed) {
+            console.log(`🎮 ${handedness} controller button[${index}] pressed for mode toggle!`);
+            
+            // Call toggleDiveMode directly - same as the UI toggle
+            toggleDiveMode();
+            
+            console.log(`🔄 Mode toggled to ${isDiveModeEnabled ? 'Dive' : 'Survey'} via ${handedness} controller button[${index}]`);
+          }
+          
+          buttonStates.set(buttonKey, isPressed);
+        }
+      });
+    }
+  }
+}
+
+// Enhanced VR movement - always smooth
+function vrMove(dt) {
+  const session = renderer.xr.getSession();
+  if (!session || session.visibilityState !== 'visible') {
+    return;
+  }
+
+  // Initialize audio on first VR interaction
+  initAudioOnInteraction();
+
+  // Update controller spotlight if right controller is available and spotlight exists and in Dive mode
+  if (controller2 && controller2.userData.initialised && controllerSpotlight && isDiveModeEnabled) {
+    try {
+      // Get world position and quaternion from controller
+      const tempMatrix = new THREE.Matrix4();
+      tempMatrix.copy(controller2.matrixWorld);
+      
+      const controllerPosition = new THREE.Vector3();
+      const controllerQuaternion = new THREE.Quaternion();
+      const controllerScale = new THREE.Vector3();
+      
+      tempMatrix.decompose(controllerPosition, controllerQuaternion, controllerScale);
+      
+      // Position spotlight at controller
+      controllerSpotlight.position.copy(controllerPosition);
+      controllerSpotlight.visible = true;
+      
+      // Calculate target position 8 meters forward from controller
+      const forwardDirection = new THREE.Vector3(0, 0, -1);
+      forwardDirection.applyQuaternion(controllerQuaternion);
+      
+      const targetPosition = controllerPosition.clone();
+      targetPosition.add(forwardDirection.multiplyScalar(8));
+      
+      spotlightTarget.position.copy(targetPosition);
+      
+      // Debug output every 60 frames
+      if (Math.floor(performance.now() / 16) % 60 === 0) {
+        console.log('Spotlight Debug:', {
+          visible: controllerSpotlight.visible,
+          intensity: controllerSpotlight.intensity,
+          position: controllerPosition.toArray(),
+          target: targetPosition.toArray(),
+          distance: controllerSpotlight.distance,
+          angle: controllerSpotlight.angle
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error updating controller spotlight:', error);
+    }
+  } else {
+    // Hide spotlight if right controller is not available, spotlight doesn't exist, or not in Dive mode
+    if (controllerSpotlight && controllerSpotlight.visible) {
+      controllerSpotlight.visible = false;
+      if (!isDiveModeEnabled) {
+        console.log('Spotlight hidden - Survey mode active');
+      } else {
+        console.log('Spotlight hidden - no controller or spotlight');
+      }
+    }
+  }
+
+  // Early return if controllers aren't ready for movement input
+  if (!controller1 || !controller2) {
+    return;
+  }
+
+  // Track movement state for ramping
+  let currentlyMoving = false;
+  let isBoosted = false;
+
+  // Process input sources - improved with better error checking
+  for (let i = 0; i < session.inputSources.length; i++) {
+    const src = session.inputSources[i];
+    
+    // Enhanced validation - check if controller is fully ready
+    if (!src || !src.gamepad || !src.gamepad.buttons || !src.gamepad.axes || src.gamepad.axes.length < 4) {
+      continue; // Graceful skipping - continue to next controller if current one isn't ready
+    }
+
+    const gamepad = src.gamepad;
+    const hand = src.handedness;
+    const controller = hand === 'left' ? controller1 : controller2;
+    
+    // Skip if controller not available
+    if (!controller) {
+      console.log(`No controller object for ${hand} hand`);
+      continue;
+    }
+
+    // Movement controls - axes already validated above
+    const x = gamepad.axes[2] || 0; // strafe/turn
+    const y = gamepad.axes[3] || 0; // walk/fly (-y = forward)
+
+    if (src.handedness === 'left') {
+      // Cancel focus animation if user starts moving
+      if (focusAnimation && (Math.abs(x) > 0.1 || Math.abs(y) > 0.1)) {
+        cancelAnimationFrame(focusAnimation);
+        focusAnimation = null;
+        console.log('Cancelled focus animation due to left controller movement');
+      }
+      
+      // Speed boost with grip/squeeze (button 1) - add safety check
+      const gripButton = gamepad.buttons[1];
+      const speedMultiplier = (gripButton && gripButton.pressed) ? 3 : 1;
+      
+      // Check if boosted for audio
+      if (gripButton && gripButton.pressed) {
+        isBoosted = true;
+      }
+      
+      const forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0; // Lock to dolly's yaw
+      forward.normalize();
+      
+      const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+      
+      // Horizontal movement ONLY (forward/back, strafe)
+      if (Math.abs(y) > 0.1) {
+        const rampedSpeed = MOVE_SPEED * speedMultiplier * currentSpeed * dt;
+        dolly.position.addScaledVector(forward, -y * rampedSpeed); // Negative for forward
+        currentlyMoving = true;
+      }
+      if (Math.abs(x) > 0.1) {
+        const rampedSpeed = MOVE_SPEED * speedMultiplier * currentSpeed * dt;
+        dolly.position.addScaledVector(right, x * rampedSpeed);
+        currentlyMoving = true;
+      }
+    }
+    
+    if (src.handedness === 'right') {
+      // Cancel focus animation if user starts turning/flying
+      if (focusAnimation && (Math.abs(x) > 0.1 || Math.abs(y) > 0.1)) {
+        cancelAnimationFrame(focusAnimation);
+        focusAnimation = null;
+        console.log('Cancelled focus animation due to right controller movement');
+      }
+      
+      // Speed boost with grip/squeeze (button 1) - only for vertical movement
+      const gripButton = gamepad.buttons[1];
+      const verticalSpeedMultiplier = (gripButton && gripButton.pressed) ? 3 : 1;
+      
+      // Check if boosted for vertical movement audio
+      if (gripButton && gripButton.pressed && Math.abs(y) > 0.1) {
+        isBoosted = true;
+      }
+      
+      // Smooth turning with right stick X (no speed boost)
+      if (Math.abs(x) > 0.1) {
+        dolly.rotation.y -= x * TURN_SPEED * dt; // No speed multiplier for turning
+        // Turning doesn't count as movement for audio
+      }
+      
+      // Vertical movement with right stick Y (with speed boost)
+      if (Math.abs(y) > 0.1) {
+        const rampedSpeed = FLY_SPEED * verticalSpeedMultiplier * currentSpeed * dt;
+        dolly.position.y -= y * rampedSpeed;
+        currentlyMoving = true;
+      }
+    }
+  }
+
+  // Update target speeds based on input
+  targetSpeed = currentlyMoving ? 1.0 : 0.0;
+  targetBoostLevel = isBoosted ? 1.0 : 0.0;
+
+  // Smoothly ramp speeds towards targets
+  if (currentSpeed < targetSpeed) {
+    currentSpeed = Math.min(targetSpeed, currentSpeed + SPEED_RAMP_RATE * dt);
+  } else if (currentSpeed > targetSpeed) {
+    currentSpeed = Math.max(targetSpeed, currentSpeed - SPEED_RAMP_RATE * dt);
+  }
+
+  if (currentBoostLevel < targetBoostLevel) {
+    currentBoostLevel = Math.min(targetBoostLevel, currentBoostLevel + BOOST_RAMP_RATE * dt);
+  } else if (currentBoostLevel > targetBoostLevel) {
+    currentBoostLevel = Math.max(targetBoostLevel, currentBoostLevel - BOOST_RAMP_RATE * dt);
+  }
+
+  // Handle movement audio with ramping
+  if (currentSpeed > 0.05) { // Small threshold to avoid audio flutter
+    if (!isMoving) {
+      // Start movement sound
+      playMovementSound();
+      isMoving = true;
+    }
+    // Update audio levels based on ramped values
+    updateAudioLevels();
+  } else {
+    if (isMoving) {
+      // Stop movement sound
+      stopMovementSound();
+      isMoving = false;
+    }
+  }
+}
+
+// Add this variable declaration near the top with other variables
+let lastTime = 0;
+
+// Performance monitoring for GPU optimization verification
+let frameCount = 0;
+let performanceStartTime = performance.now();
+let averageFrameTime = 0;
+
+// Performance monitoring function
+function updatePerformanceStats(currentTime) {
+  frameCount++;
+  if (frameCount % 60 === 0) { // Every 60 frames (roughly 1 second at 60fps)
+    const elapsed = currentTime - performanceStartTime;
+    averageFrameTime = elapsed / 60;
+    performanceStartTime = currentTime;
+    
+    // Log performance metrics
+    if (frameCount % 300 === 0) { // Every 5 seconds
+      console.log(`🚀 GPU Particle Performance:`, {
+        averageFrameTime: `${averageFrameTime.toFixed(2)}ms`,
+        targetFrameTime: '16.67ms (60fps)',
+        particleCount: particleCount,
+        status: averageFrameTime < 16.67 ? '✅ Smooth' : '⚠️ Needs optimization'
+      });
+      
+      // Log camera/dolly position and view direction every 5 seconds
+      logCurrentViewPosition();
+    }
+  }
+}
+
+// Function to log current camera/dolly position and view direction
+function logCurrentViewPosition() {
+  const isVRMode = renderer.xr.isPresenting;
+  
+  if (isVRMode) {
+    // VR Mode - log dolly position and camera direction within dolly
+    const dollyPosition = dolly.position.clone();
+    const dollyRotation = dolly.rotation.clone();
+    
+    // Get camera world direction
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection);
+    
+    console.log('📍 VR Position Data:', {
+      mode: 'VR',
+      dolly: {
+        position: {
+          x: parseFloat(dollyPosition.x.toFixed(3)),
+          y: parseFloat(dollyPosition.y.toFixed(3)),
+          z: parseFloat(dollyPosition.z.toFixed(3))
+        },
+        rotation: {
+          x: parseFloat(dollyRotation.x.toFixed(3)),
+          y: parseFloat(dollyRotation.y.toFixed(3)),
+          z: parseFloat(dollyRotation.z.toFixed(3))
+        }
+      },
+      camera: {
+        localPosition: {
+          x: parseFloat(camera.position.x.toFixed(3)),
+          y: parseFloat(camera.position.y.toFixed(3)),
+          z: parseFloat(camera.position.z.toFixed(3))
+        },
+        viewDirection: {
+          x: parseFloat(cameraDirection.x.toFixed(3)),
+          y: parseFloat(cameraDirection.y.toFixed(3)),
+          z: parseFloat(cameraDirection.z.toFixed(3))
+        }
+      },
+      currentModel: currentModelKey
+    });
+  } else {
+    // Desktop Mode - log camera position and controls target
+    const cameraPosition = camera.position.clone();
+    const controlsTarget = controls.target.clone();
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection);
+    
+    console.log('📍 Desktop Position Data:', {
+      mode: 'Desktop',
+      camera: {
+        position: {
+          x: parseFloat(cameraPosition.x.toFixed(3)),
+          y: parseFloat(cameraPosition.y.toFixed(3)),
+          z: parseFloat(cameraPosition.z.toFixed(3))
+        },
+        viewDirection: {
+          x: parseFloat(cameraDirection.x.toFixed(3)),
+          y: parseFloat(cameraDirection.y.toFixed(3)),
+          z: parseFloat(cameraDirection.z.toFixed(3))
+        }
+      },
+      controls: {
+        target: {
+          x: parseFloat(controlsTarget.x.toFixed(3)),
+          y: parseFloat(controlsTarget.y.toFixed(3)),
+          z: parseFloat(controlsTarget.z.toFixed(3))
+        }
+      },
+      currentModel: currentModelKey
+    });
+  }
+}
+
+// Add VR session event listeners to handle mode transitions
+renderer.xr.addEventListener('sessionstart', () => {
+  console.log('VR session started');
+  
+  // Detect Quest device and apply optimizations
+  const deviceType = detectQuestDevice();
+  applyQuestOptimizations(deviceType);
+  
+  // Apply VR initial positions for current model
+  const modelConfig = MODELS[currentModelKey];
+  if (modelConfig) {
+    applyInitialPositions(modelConfig);
+  }
+  
+  // Recreate spotlight with device-specific optimizations
+  if (controllerSpotlight) {
+    createSpotlight(35); // Recreate with Quest-specific settings
+    controllerSpotlight.visible = false; // Will be enabled when controller is detected
+    console.log('Spotlight recreated with device optimizations, intensity:', controllerSpotlight.intensity);
+  }
+  
+  // Initialize audio for VR session
+  initAudioOnInteraction();
+});
+
+renderer.xr.addEventListener('sessionend', () => {
+  console.log('VR session ended');
+  
+  // Reset camera to full render distance for desktop
+  camera.far = 2000;
+  camera.updateProjectionMatrix();
+  
+  // Only reset fog if dive mode is enabled
+  if (isDiveModeEnabled) {
+    scene.fog = new THREE.FogExp2(0x041729, 0.056); // Enhanced visibility when exiting VR
+  } else {
+    scene.fog = null; // Keep no fog in Survey mode
+  }
+  
+  // Reset Quest detection flags
+  isQuest2 = false;
+  isQuest3 = false;
+  
+  console.log('📊 Render settings reset to desktop defaults');
+  
+  // Stop any playing movement sounds
+  stopMovementSound();
+  isMoving = false;
+  
+  // Only re-enable controller spotlight for desktop mode if in Dive mode
+  if (controllerSpotlight && isDiveModeEnabled) {
+    controllerSpotlight.visible = true;
+    console.log('Spotlight re-enabled for desktop mode (Dive mode active)');
+  } else if (controllerSpotlight) {
+    controllerSpotlight.visible = false;
+    console.log('Spotlight kept disabled for desktop mode (Survey mode active)');
+  }
+  
+  // Get the current camera position from the dolly before resetting
+  const vrCameraPosition = new THREE.Vector3();
+  camera.getWorldPosition(vrCameraPosition);
+  
+  // Reset the dolly position and rotation
+  dolly.position.set(0, 0, 0);
+  dolly.rotation.set(0, 0, 0);
+  
+  // Set the camera position directly (outside the dolly)
+  camera.position.copy(vrCameraPosition);
+  
+  // Reset orbit controls target
+  controls.target.set(0, 0, 0);
+  
+  // Reset and enable orbit controls
+  controls.enabled = true;
+  controls.update();
+  
+  // Apply desktop initial positions for current model
+  const modelConfig = MODELS[currentModelKey];
+  if (modelConfig) {
+    applyInitialPositions(modelConfig);
+  }
+});
+
+// Update the render loop with GPU-optimized particle animation
+renderer.setAnimationLoop(time => {
+  const t = time;
+  const dt = Math.min((time - lastTime) / 1000, 0.1);
+  lastTime = time;
+
+  // Performance monitoring
+  updatePerformanceStats(t);
+
+  // Apply mode-specific settings (VR vs Desktop)
+  applyModeSpecificSettings();
+
+  // Update GPU particle shader uniforms (eliminates CPU bottleneck)
+  if (particleMaterial && particleMaterial.uniforms) {
+    particleMaterial.uniforms.time.value = t;
+    
+    // Update particle bounds if they've changed
+    if (particleBounds) {
+      particleMaterial.uniforms.boundsMin.value.copy(particleBounds.min);
+      particleMaterial.uniforms.boundsMax.value.copy(particleBounds.max);
+    }
+  }
+  
+  // No more CPU particle animation - everything is handled in GPU shaders!
+  // This eliminates the 2-3ms CPU bottleneck on Quest-class devices
+  
+  if (renderer.xr.isPresenting) {
+    vrMove(dt);
+    checkControllerButtons(); // Check for X and A button presses
+    controls.enabled = false;
+  } else {
+    controls.enabled = true;
+    controls.update();
+    
+    // Position spotlight at camera for desktop mode only if in Dive mode
+    if (controllerSpotlight && isDiveModeEnabled) {
+      // Position spotlight at camera position
+      controllerSpotlight.position.copy(camera.position);
+      controllerSpotlight.visible = true;
+      
+      // Point spotlight in the direction the camera is looking
+      const cameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(cameraDirection);
+      
+      // Calculate target position 8 meters forward from camera
+      const targetPosition = camera.position.clone();
+      targetPosition.add(cameraDirection.multiplyScalar(8));
+      
+      if (spotlightTarget) {
+        spotlightTarget.position.copy(targetPosition);
+      }
+    } else if (controllerSpotlight && !isDiveModeEnabled) {
+      // Hide spotlight in Survey mode
+      controllerSpotlight.visible = false;
+    }
+  }
+  
+  renderer.render(scene, camera);
+});
+
+// Apply device-specific optimizations on load
+const detectedDevice = detectQuestDevice();
+applyQuestOptimizations(detectedDevice);
+
+// Apply initial mode-specific settings (will be desktop mode initially)
+applyModeSpecificSettings();
+
+// ======================== PWA FUNCTIONALITY ========================
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('✅ PWA: Service Worker registered successfully:', registration.scope);
+        
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          console.log('🔄 PWA: New service worker found, installing...');
+          
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available
+              if (confirm('New version available! Refresh to update?')) {
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
+      .catch(error => {
+        console.error('❌ PWA: Service Worker registration failed:', error);
+      });
+  });
+}
+
+// PWA Install Prompt
+let deferredPrompt;
+const installPrompt = document.getElementById('installPrompt');
+const installButton = document.getElementById('installButton');
+const cancelInstall = document.getElementById('cancelInstall');
+
+// Listen for the beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('📱 PWA: Install prompt triggered');
+  
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault();
+  
+  // Stash the event so it can be triggered later
+  deferredPrompt = e;
+  
+  // Show the install prompt after a delay (better UX)
+  setTimeout(() => {
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+      installPrompt.style.display = 'block';
+    }
+  }, 5000); // Show after 5 seconds
+});
+
+// Handle install button click
+installButton.addEventListener('click', async () => {
+  if (!deferredPrompt) {
+    console.log('❌ PWA: No install prompt available');
+    return;
+  }
+  
+  // Hide the prompt
+  installPrompt.style.display = 'none';
+  
+  // Show the install prompt
+  deferredPrompt.prompt();
+  
+  // Wait for the user to respond to the prompt
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`📱 PWA: User response to install prompt: ${outcome}`);
+  
+  // Clear the deferredPrompt
+  deferredPrompt = null;
+});
+
+// Handle cancel button click
+cancelInstall.addEventListener('click', () => {
+  installPrompt.style.display = 'none';
+  deferredPrompt = null;
+  
+  // Don't show again for this session
+  sessionStorage.setItem('installPromptDismissed', 'true');
+});
+
+// Check if app is already installed
+window.addEventListener('appinstalled', () => {
+  console.log('✅ PWA: App was installed successfully');
+  installPrompt.style.display = 'none';
+  deferredPrompt = null;
+});
+
+// Hide install prompt if already in standalone mode
+if (window.matchMedia('(display-mode: standalone)').matches || 
+    window.navigator.standalone === true) {
+  console.log('📱 PWA: App is running in standalone mode');
+  installPrompt.style.display = 'none';
+}
+
+// Network Status Monitoring
+const offlineIndicator = document.getElementById('offlineIndicator');
+let isOnline = navigator.onLine;
+
+function updateOnlineStatus() {
+  if (navigator.onLine && !isOnline) {
+    // Just came back online
+    isOnline = true;
+    offlineIndicator.style.display = 'none';
+    console.log('🌐 PWA: Back online');
+    
+    // Trigger background sync if supported
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+      navigator.serviceWorker.ready.then(registration => {
+        return registration.sync.register('background-sync');
+      }).catch(err => console.log('Background sync registration failed:', err));
+    }
+  } else if (!navigator.onLine && isOnline) {
+    // Just went offline
+    isOnline = false;
+    offlineIndicator.style.display = 'block';
+    console.log('📱 PWA: Gone offline');
+  }
+}
+
+// Listen for online/offline events
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// Initial status check
+updateOnlineStatus();
+
+// PWA Display Mode Detection
+function getPWADisplayMode() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (document.referrer.startsWith('android-app://')) {
+    return 'twa';
+  } else if (navigator.standalone || isStandalone) {
+    return 'standalone';
+  }
+  return 'browser';
+}
+
+// Log PWA status
+console.log('📱 PWA Status:', {
+  displayMode: getPWADisplayMode(),
+  isOnline: navigator.onLine,
+  hasServiceWorker: 'serviceWorker' in navigator,
+  canInstall: !!deferredPrompt
+});
+
+// Performance monitoring for PWA
+if ('performance' in window) {
+  window.addEventListener('load', () => {
+    const perfData = performance.getEntriesByType('navigation')[0];
+    console.log('⚡ PWA Performance:', {
+      loadTime: `${Math.round(perfData.loadEventEnd - perfData.loadEventStart)}ms`,
+      domReady: `${Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart)}ms`,
+      firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime || 'N/A',
+      firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 'N/A'
+    });
+  });
+}
+
+// Wake Lock API for VR sessions (prevent screen sleep)
+let wakeLock = null;
+
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('🔒 PWA: Screen wake lock activated');
+      
+      wakeLock.addEventListener('release', () => {
+        console.log('🔓 PWA: Screen wake lock released');
+      });
+    } catch (err) {
+      console.warn('⚠️ PWA: Wake lock request failed:', err);
+    }
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock) {
+    await wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+// Request wake lock when entering VR
+renderer.xr.addEventListener('sessionstart', () => {
+  requestWakeLock();
+});
+
+// Release wake lock when exiting VR
+renderer.xr.addEventListener('sessionend', () => {
+  releaseWakeLock();
+});
+
+console.log('🌊 Shipwrecks VR PWA initialized successfully');
+</script>
+</body>
+</html>

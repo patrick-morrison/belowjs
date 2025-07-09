@@ -94,6 +94,14 @@ export class BelowViewer extends EventSystem {
     // Initialize VR manager with original patterns
     this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene);
     
+    // Set controls reference for camera state preservation
+    this.vrManager.setControls(this.cameraManager.controls);
+    
+    // Make BelowViewer globally accessible for VR-measurement coordination
+    if (typeof window !== 'undefined') {
+      window.belowViewer = this;
+    }
+    
     // Setup VR callbacks
     this.vrManager.onModeToggle = () => {
       this.emit('vr-mode-toggle');
@@ -389,6 +397,11 @@ export class BelowViewer extends EventSystem {
     // Cancel any pending model loads
     if (this.currentAbortController) {
       this.currentAbortController.abort();
+    }
+    
+    // Clean up global reference
+    if (typeof window !== 'undefined' && window.belowViewer === this) {
+      window.belowViewer = undefined;
     }
     
     // Dispose VR manager

@@ -28,6 +28,12 @@ export class ModelViewer extends EventSystem {
     this.measurementSystem = null;
     this.comfortGlyph = null;
     this.lastComfortMode = null;
+    
+    // Make this instance globally accessible for measurement system auto-centering
+    if (typeof window !== 'undefined') {
+      window.modelViewer = this;
+    }
+    
     this.init();
   }
   
@@ -112,6 +118,7 @@ export class ModelViewer extends EventSystem {
       renderer: this.belowViewer.renderer,
       controls: this.belowViewer.cameraManager.controls
     });
+    // Note: Measurement system starts disabled by default - user must click to enable
     // Attach update to render loop
     const update = () => this.measurementSystem && this.measurementSystem.update();
     if (this.belowViewer.onAfterRender) {
@@ -214,7 +221,20 @@ export class ModelViewer extends EventSystem {
       this.ui.selector.style.pointerEvents = 'none';
       this.ui.selector.style.opacity = '0.5';
     }
-    
+
+    // --- Ensure VR measurement system is attached ---
+    if (this.measurementSystem && typeof this.measurementSystem.attachVR === 'function') {
+      // Try to get controllers from renderer.xr if available
+      const renderer = this.belowViewer?.renderer;
+      if (renderer && renderer.xr && typeof renderer.xr.getController === 'function') {
+        const controller1 = renderer.xr.getController(0);
+        const controller2 = renderer.xr.getController(1);
+        const controllerGrip1 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(0) : undefined;
+        const controllerGrip2 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(1) : undefined;
+        this.measurementSystem.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
+      }
+    }
+
     console.log('🥽 VR session started - UI adapted for VR');
   }
 
@@ -595,6 +615,11 @@ export class ModelViewer extends EventSystem {
     if (box) {
       const size = box.getSize(new THREE.Vector3());
     }
+    
+    // Update measurement system with the loaded model
+    if (this.measurementSystem) {
+      this.measurementSystem.setRaycastTargets(model);
+    }
   }
   
   onModelLoadError({ error }) {
@@ -673,6 +698,11 @@ export class ModelViewer extends EventSystem {
   }
   
   dispose() {
+    // Clean up global reference
+    if (typeof window !== 'undefined' && window.modelViewer === this) {
+      window.modelViewer = null;
+    }
+    
     // Clean up focus interaction event handlers
     if (this.focusEventHandlers && this.belowViewer?.renderer?.domElement) {
       const domElement = this.belowViewer.renderer.domElement;

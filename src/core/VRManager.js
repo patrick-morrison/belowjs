@@ -37,6 +37,23 @@ export class VRManager {
     this.controllers = [];
     this.controllerGrips = [];
     
+    // Camera state preservation for VR transitions (independent of measurements)
+    this._preVRCameraState = {
+      target: null,
+      position: null,
+      zoom: null,
+      minDistance: null,
+      maxDistance: null,
+      enableDamping: null,
+      dampingFactor: null,
+      enableZoom: null,
+      enablePan: null,
+      enableRotate: null,
+      autoRotate: null,
+      autoRotateSpeed: null,
+      controls: null // Reference to controls object
+    };
+    
     // Comfort tracking
     this.lastComfortLog = 0;
     
@@ -68,12 +85,21 @@ export class VRManager {
   setupModuleConnections() {
     // Connect VR Core callbacks
     this.vrCore.onSessionStart = () => {
+      // Always save camera state before entering VR
+      console.debug('[VRManager] VR session starting - saving camera state');
+      this._saveCameraState();
       this.isVRPresenting = true;
       this.vrAudio.initAudioOnInteraction();
     };
     
     this.vrCore.onSessionEnd = () => {
+      console.debug('[VRManager] VR session ending - will restore camera state');
       this.isVRPresenting = false;
+      
+      // Always restore camera state after exiting VR
+      setTimeout(() => {
+        this._restoreCameraState();
+      }, 100);
     };
     
     // Connect Controller callbacks (no movement sound on trigger, joystick only)
@@ -239,6 +265,89 @@ export class VRManager {
     } catch (error) {
       console.warn('VR position application failed:', error);
     }
+  }
+  
+  /**
+   * Set the orbit controls reference for camera state preservation
+   * @param {Object} controls - OrbitControls instance
+   */
+  setControls(controls) {
+    this._preVRCameraState.controls = controls;
+    console.debug('[VRManager] OrbitControls reference set for camera state preservation');
+  }
+
+  /**
+   * Save current camera state before entering VR
+   */
+  _saveCameraState() {
+    if (this._preVRCameraState.controls && this._preVRCameraState.controls.target && this.camera) {
+      const controls = this._preVRCameraState.controls;
+      
+      // Save camera position and target
+      this._preVRCameraState.target = controls.target.clone();
+      this._preVRCameraState.position = this.camera.position.clone();
+      this._preVRCameraState.zoom = this.camera.zoom;
+      
+      // Save all OrbitControls properties
+      this._preVRCameraState.minDistance = controls.minDistance;
+      this._preVRCameraState.maxDistance = controls.maxDistance;
+      this._preVRCameraState.enableDamping = controls.enableDamping;
+      this._preVRCameraState.dampingFactor = controls.dampingFactor;
+      this._preVRCameraState.enableZoom = controls.enableZoom;
+      this._preVRCameraState.enablePan = controls.enablePan;
+      this._preVRCameraState.enableRotate = controls.enableRotate;
+      this._preVRCameraState.autoRotate = controls.autoRotate;
+      this._preVRCameraState.autoRotateSpeed = controls.autoRotateSpeed;
+      
+      console.debug('[VRManager] Saved complete pre-VR camera state:', {
+        target: this._preVRCameraState.target.toArray(),
+        position: this._preVRCameraState.position.toArray(),
+        zoom: this._preVRCameraState.zoom,
+        minDistance: this._preVRCameraState.minDistance,
+        maxDistance: this._preVRCameraState.maxDistance,
+        enableDamping: this._preVRCameraState.enableDamping
+      });
+    }
+  }
+
+  /**
+   * Restore camera state after exiting VR
+   */
+  _restoreCameraState() {
+    if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position) {
+      console.debug('[VRManager] No saved camera state to restore');
+      return;
+    }
+    
+    const controls = this._preVRCameraState.controls;
+    
+    console.debug('[VRManager] Restoring complete camera state from pre-VR:', {
+      target: this._preVRCameraState.target.toArray(),
+      position: this._preVRCameraState.position.toArray(),
+      zoom: this._preVRCameraState.zoom
+    });
+    
+    // Restore camera properties
+    this.camera.position.copy(this._preVRCameraState.position);
+    this.camera.zoom = this._preVRCameraState.zoom || 1;
+    this.camera.updateProjectionMatrix();
+    
+    // Restore OrbitControls properties
+    controls.target.copy(this._preVRCameraState.target);
+    controls.minDistance = this._preVRCameraState.minDistance;
+    controls.maxDistance = this._preVRCameraState.maxDistance;
+    controls.enableDamping = this._preVRCameraState.enableDamping;
+    controls.dampingFactor = this._preVRCameraState.dampingFactor;
+    controls.enableZoom = this._preVRCameraState.enableZoom;
+    controls.enablePan = this._preVRCameraState.enablePan;
+    controls.enableRotate = this._preVRCameraState.enableRotate;
+    controls.autoRotate = this._preVRCameraState.autoRotate;
+    controls.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed;
+    
+    // Force controls update to apply all changes
+    controls.update();
+    
+    console.debug('[VRManager] Camera state restoration complete');
   }
   
   // Get VR system status

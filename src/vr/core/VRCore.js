@@ -93,11 +93,8 @@ export class VRCore {
   
   createVRButton() {
     try {
-      console.log('🎮 Creating VR button...');
-
       // Wait for VR CSS to load before creating button
       this.waitForVRCSS().then(() => {
-        // Pass hand-tracking and other features to sessionInit
         const sessionInit = {
           optionalFeatures: [
             'hand-tracking',
@@ -106,35 +103,25 @@ export class VRCore {
             'layers'
           ]
         };
-        // Create VR button using THREE.js VRButton with hand tracking enabled
         this.vrButton = VRButton.createButton(this.renderer, sessionInit);
-
-        // Apply original styling format and classes
         this.vrButton.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
         this.vrButton.className = 'vr-button-glass vr-button-available';
         this.vrButton.disabled = false;
-
-        // Ensure button is immediately visible with inline styles (original pattern)
         this.vrButton.style.cssText = `
           position: fixed !important;
           bottom: 80px !important;
           left: 50% !important;
           transform: translateX(-50%) !important;
-          z-index: 100 !important;
+          z-index: 2147483647 !important;
           display: flex !important;
           visibility: visible !important;
           opacity: 1 !important;
+          pointer-events: auto !important;
+          cursor: pointer !important;
         `;
-
-        // Add to DOM
         document.body.appendChild(this.vrButton);
-
-        // Apply original styling
         this.styleVRButton();
-
-        console.log('✅ VR button created and styled');
       });
-
     } catch (error) {
       console.error('❌ VR button creation failed:', error);
     }
@@ -165,7 +152,7 @@ export class VRCore {
       // Normal VR available styling with shimmer
       vrBtn.disabled = false;
       vrBtn.classList.remove('vr-generic-disabled');
-      console.log('✨ VR Button styled - Ready with glassmorphism and shimmer');
+      // VR Button styled
       
       return true;
     };
@@ -278,13 +265,13 @@ export class VRCore {
   }
   
   removeExistingVRButtons() {
-    // Remove any existing VR buttons to prevent duplicates (original pattern)
-    const existingButtons = document.querySelectorAll('button[class*="VRButton"], a[href="#VR"]');
+    // Remove only legacy VR buttons to prevent duplicates, but do NOT remove new VR button (less aggressive)
+    const existingButtons = document.querySelectorAll('button.legacy-vr-button, a[href="#VR"]');
     existingButtons.forEach(button => {
       try {
         if (button.parentNode) {
           button.parentNode.removeChild(button);
-          console.log('🧹 Removed existing VR button');
+          console.log('🧹 Removed legacy VR button');
         }
       } catch (error) {
         console.warn('Failed to remove VR button:', error);
@@ -294,17 +281,16 @@ export class VRCore {
   
   startVRButtonMonitoring() {
     // Monitor for programmatically added VR buttons and handle them
+    // Only hide legacy VR buttons, not the new VR button
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const vrButtons = node.querySelectorAll ? 
-              node.querySelectorAll('button[class*="VRButton"], a[href="#VR"]') : [];
-            
+              node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
             if (vrButtons.length > 0 || 
-                (node.tagName === 'BUTTON' && node.className.includes('VRButton'))) {
-              
-              console.log('🚫 VR not supported - hiding VR button');
+                (node.tagName === 'BUTTON' && node.classList.contains('legacy-vr-button'))) {
+              console.log('🚫 VR not supported - hiding legacy VR button');
               const buttonToHide = vrButtons.length > 0 ? vrButtons[0] : node;
               buttonToHide.style.display = 'none';
             }
@@ -312,7 +298,6 @@ export class VRCore {
         });
       });
     });
-    
     observer.observe(document.body, { childList: true, subtree: true });
   }
   
