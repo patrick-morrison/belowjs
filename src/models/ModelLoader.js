@@ -132,38 +132,74 @@ export class ModelLoader {
 
   processModel(gltf) {
     const model = gltf.scene;
-    
-    // Basic material processing - convert problematic materials
-    model.traverse((child) => {
-      if (child.isMesh) {
-        // Enable shadows
-        child.castShadow = true;
-        child.receiveShadow = true;
-        
-        // Basic material processing
-        if (child.material) {
-          this.processMaterial(child.material);
+    // Remove/disables all embedded lights and clean all materials
+    model.traverse((obj) => {
+      if (obj.isLight) {
+        obj.visible = false;
+      }
+      if (obj.isMesh && obj.material) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+        const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        materials.forEach((material, idx) => {
+          // Remove emissive properties
+          if (material.emissive) material.emissive.setHex(0x000000);
+          if (material.emissiveIntensity !== undefined) material.emissiveIntensity = 0;
+          if (material.emissiveMap) material.emissiveMap = null;
+          // Remove light maps
+          if (material.lightMap) material.lightMap = null;
+          if (material.lightMapIntensity !== undefined) material.lightMapIntensity = 0;
+          // Convert problematic materials to MeshLambertMaterial
+          if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
+            const newMaterial = new THREE.MeshLambertMaterial({
+              map: material.map,
+              color: material.color || new THREE.Color(0xffffff),
+              transparent: material.transparent,
+              opacity: material.opacity !== undefined ? material.opacity : 1.0,
+              alphaMap: material.alphaMap,
+              side: material.side !== undefined ? material.side : THREE.FrontSide,
+              wireframe: material.wireframe || false,
+              vertexColors: material.vertexColors || false,
+              fog: material.fog !== undefined ? material.fog : true,
+              aoMap: material.aoMap,
+              aoMapIntensity: material.aoMapIntensity || 1.0,
+              envMap: material.envMap,
+              reflectivity: material.reflectivity || 1.0,
+              refractionRatio: material.refractionRatio || 0.98,
+              combine: material.combine || THREE.MultiplyOperation
+            });
+            newMaterial.needsUpdate = true;
+            if (Array.isArray(obj.material)) {
+              obj.material[idx] = newMaterial;
+            } else {
+              obj.material = newMaterial;
+            }
+          } else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
+            material.needsUpdate = true;
+          }
+          // Ensure update for all materials
+          const currentMaterial = Array.isArray(obj.material) ? obj.material[idx] : obj.material;
+          if (currentMaterial && currentMaterial.needsUpdate !== undefined) {
+            currentMaterial.needsUpdate = true;
+          }
+        });
+        // Recompute geometry normals for better shadow calculations
+        if (obj.geometry) {
+          obj.geometry.computeVertexNormals();
+          obj.geometry.normalizeNormals();
         }
       }
     });
-
     // Calculate bounding box for camera positioning
     const box = new THREE.Box3().setFromObject(model);
     model.userData.boundingBox = box;
-    
     return model;
   }
 
   processMaterial(material) {
-    // Remove emissive properties that can interfere with lighting
-    if (material.emissive) {
-      material.emissive.setHex(0x000000);
-      material.emissiveIntensity = 0;
-    }
-    
-    // Ensure materials work well with our lighting
-    if (material.type === 'MeshStandardMaterial') {
-      // Keep standard materials as-is, they work well with PBR lighting
+    // Deprecated: all material cleaning is now handled in processModel
+    // (kept for API compatibility)
+    if (material && material.needsUpdate !== undefined) {
       material.needsUpdate = true;
     }
   }
