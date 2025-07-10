@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/src/styles/vr.css">
     <link rel="stylesheet" href="/src/vr/ui/vrui.css">
     <link rel="stylesheet" href="/src/styles/measurement.css">
+    <link rel="stylesheet" href="/src/styles/dive.css">
     
     <style>
         body, html {
@@ -31,15 +32,30 @@
         <div id="infoTitle">BelowJS VR (Refactored)</div>
         <div id="infoControls">
             <strong>Desktop:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
-            <strong>VR:</strong> Thumbsticks to move/fly/turn • Push joystick forward (like throwing) + release to teleport<br>
+            <strong>VR:</strong> Thumbsticks to move/fly/turn • X/A buttons to toggle dive mode<br>
             <strong>Mobile:</strong> Touch and drag to explore<br>
-            <em>✨ Now with modular architecture!</em>
+            <strong>Dive Mode:</strong> Toggle for underwater experience with particles and torch<br>
+            <em>✨ Now with modular architecture & dive system!</em>
         </div>
     </div>
 
     <div id="modelSelector">
         <select id="modelDropdown">
         </select>
+        <div id="modeToggleContainer">
+            <div class="semantic-toggle">
+                <input type="checkbox" id="modeToggleSwitch">
+                <div class="toggle-slider-bg"></div>
+                <div class="toggle-option left">
+                    <div class="toggle-icon">📋</div>
+                    <div class="toggle-text">Survey</div>
+                </div>
+                <div class="toggle-option right">
+                    <div class="toggle-icon">🌊</div>
+                    <div class="toggle-text">Dive</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Comfort glyph will be created by VRComfortGlyph component -->
@@ -50,6 +66,7 @@
 
     <script type="module">
         import { ModelViewer } from '/src/index.js';
+        import { DiveSystem } from '/src/dive/DiveSystem.js';
 
         // Model configuration
         const models = {
@@ -143,6 +160,106 @@
           initialModel: currentModel,
           initialPositions: models[currentModel].initialPositions
         });
+
+        // Initialize dive system when model loads
+        viewer.on('model-loaded', () => {
+          if (!window.diveSystemInitialized) {
+            initializeDiveSystem();
+          }
+        });
+        
+        function initializeDiveSystem() {
+          if (!viewer.getScene() || !viewer.belowViewer.renderer || !viewer.getCamera()) {
+            return;
+          }
+          
+          window.diveSystemInitialized = true;
+          const diveSystem = new DiveSystem(viewer.getScene(), viewer.belowViewer.renderer, viewer.getCamera());
+          window.diveSystem = diveSystem; // Make globally accessible
+          
+          // Initialize UI toggle switch
+          setTimeout(() => {
+            diveSystem.initializeToggleSwitch();
+          }, 100);
+          
+          // Update particle bounds when model loads
+          viewer.on('model-loaded', (data) => {
+            console.log('🌊 Model loaded, updating particle bounds for:', data.model);
+            diveSystem.updateParticleBounds(data.model);
+          });
+          
+          // Button state tracking for VR controllers
+          const buttonStates = new Map();
+          
+          // Check for X and A button presses in the animation loop
+          function checkControllerButtons() {
+            const session = viewer.belowViewer.renderer.xr.getSession();
+            if (!session) return;
+
+            // Get input sources (controllers)
+            for (let inputSource of session.inputSources) {
+              if (inputSource.gamepad && inputSource.handedness) {
+                const gamepad = inputSource.gamepad;
+                const handedness = inputSource.handedness;
+                
+                // Check for X button (left controller, button 4) or A button (right controller, button 4)
+                let modeToggleButtons = [4, 5]; // X/A buttons or Y/B buttons
+                
+                modeToggleButtons.forEach(index => {
+                  if (gamepad.buttons[index]) {
+                    const button = gamepad.buttons[index];
+                    const buttonKey = `${handedness}-${index}`;
+                    const wasPressed = buttonStates.get(buttonKey) || false;
+                    const isPressed = button.pressed;
+                    
+                    // Detect button press (not held)
+                    if (isPressed && !wasPressed) {
+                      diveSystem.toggleDiveMode();
+                    }
+                    
+                    buttonStates.set(buttonKey, isPressed);
+                  }
+                });
+              }
+            }
+          }
+          
+          // Update dive system in animation loop - use belowViewer's render event
+          viewer.belowViewer.on('before-render', (deltaTime) => {
+            // Get current time for particle shader uniforms
+            const currentTime = performance.now();
+            diveSystem.update(currentTime, deltaTime);
+            
+            // Check VR controller buttons
+            checkControllerButtons();
+            
+            // Update torch position for VR controllers
+            if (viewer.belowViewer.vrManager && viewer.belowViewer.vrManager.vrCore) {
+              const vrCore = viewer.belowViewer.vrManager.vrCore;
+              if (vrCore.controller1) {
+                diveSystem.updateTorchPosition(vrCore.controller1);
+              } else if (vrCore.controller2) {
+                diveSystem.updateTorchPosition(vrCore.controller2);
+              }
+            }
+            
+            // Update torch for desktop camera
+            if (!viewer.belowViewer.renderer.xr.isPresenting) {
+              diveSystem.torch.updateCameraPosition(viewer.getCamera());
+            }
+          });
+        }
+        
+        // Handle model selection changes - the ModelViewer will populate the dropdown
+        const dropdown = document.getElementById('modelDropdown');
+        dropdown.addEventListener('change', (event) => {
+          const selectedModelKey = event.target.value;
+          if (selectedModelKey !== currentModel) {
+            console.log('🌊 Loading new model:', selectedModelKey);
+            viewer.loadModel(models[selectedModelKey].url, selectedModelKey);
+          }
+        });
+        
         // Optionally, you can listen to events on viewer for further customization
     </script>
 </body>

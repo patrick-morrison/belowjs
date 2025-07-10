@@ -318,6 +318,9 @@ export class BelowViewer extends EventSystem {
         this.cameraManager.update();
       }
       
+      // Emit before-render event for external systems (like DiveSystem)
+      this.emit('before-render', deltaTime);
+      
       // Render the scene
       if (this.renderer && this.sceneManager && this.cameraManager) {
         this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
