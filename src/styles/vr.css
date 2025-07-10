@@ -296,6 +296,12 @@ button.vr-button-disabled::before {
   z-index: 999;
 }
 
+/* CSS loading marker for VR button detection */
+.vr-mode-active {
+  --vr-css-loaded: true;
+  opacity: 0.999;
+}
+
 /* VR teleportation indicator */
 .vr-teleport-indicator {
   position: absolute;

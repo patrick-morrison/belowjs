@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BelowJS - Basic Model Viewer (Refactored)</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
+    <title>BelowJS - Dark Minimal Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
     
-    <!-- BelowJS Styling (updated to use packaged VR UI) -->
+    <!-- BelowJS Core Styling -->
     <link rel="stylesheet" href="/src/styles/theme.css">
     <link rel="stylesheet" href="/src/styles/vr.css">
-    <link rel="stylesheet" href="/src/vr/ui/vrui.css">
-    <link rel="stylesheet" href="/src/styles/measurement.css">
     <link rel="stylesheet" href="/src/styles/dive.css">
     
     <style>
@@ -18,27 +16,15 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            background: #0f172a;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        /* Hide old comfort button */
-        #vrComfortButton {
-            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="info">
-        <div id="infoTitle">BelowJS Model Viewer</div>
-        <div id="infoControls">
-            <strong>Controls:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
-            <strong>VR:</strong> Thumbsticks to move • X/A to toggle dive mode<br>
-        </div>
-    </div>
-
+    <!-- Model selector with dive mode toggle -->
     <div id="modelSelector">
-        <select id="modelDropdown">
-        </select>
+        <select id="modelDropdown"></select>
         <div id="modeToggleContainer">
             <div class="semantic-toggle">
                 <input type="checkbox" id="modeToggleSwitch">
@@ -55,19 +41,14 @@
         </div>
     </div>
 
-    <!-- Comfort glyph will be created by VRComfortGlyph component -->
-
-    <div id="loading">Loading...</div>
-
     <script type="module">
         import { ModelViewer } from '/src/index.js';
 
         // Model configuration
         const models = {
           'key_biscayne': { 
-            url: './models/key_biscayne.glb', 
-            name: 'Key Biscayne', 
-            credit: 'WreckSploration',
+            url: '../basic-viewer/models/key_biscayne.glb', 
+            name: 'Key Biscayne',
             initialPositions: {
               desktop: {
                 camera: { x: 33.494, y: 36.42, z: -83.442 },
@@ -80,9 +61,8 @@
             }
           },
           'kxi': { 
-            url: './models/kxi.glb', 
-            name: 'HNLMS K XI (1946)', 
-            credit: 'WreckSploration',
+            url: '../basic-viewer/models/kxi.glb', 
+            name: 'HNLMS K XI (1946)',
             initialPositions: {
               desktop: {
                 camera: { x: -6.391, y: 12.461, z: -42.105 },
@@ -95,9 +75,8 @@
             }
           },
           'sesa': { 
-            url: './models/sesa.glb', 
-            name: 'Sesa', 
-            credit: 'WreckSploration',
+            url: '../basic-viewer/models/sesa.glb', 
+            name: 'Sesa',
             initialPositions: {
               desktop: {
                 camera: { x: 18.93, y: 11.572, z: 52.508 },
@@ -110,9 +89,8 @@
             }
           },
           'unknown': { 
-            url: './models/unknown.glb', 
-            name: 'Unknown Wreck', 
-            credit: 'WreckSploration',
+            url: '../basic-viewer/models/unknown.glb', 
+            name: 'Unknown Wreck',
             initialPositions: {
               desktop: {
                 camera: { x: 34.226, y: 10.354, z: 2.12 },
@@ -126,8 +104,7 @@
           }
         };
 
-        // Minimal ModelViewer usage with all systems enabled
-        const currentModel = 'key_biscayne';
+        // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.top = '0';
@@ -137,37 +114,20 @@
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
+        // Dark minimal viewer: just models, dive mode, and VR
         const viewer = new ModelViewer(viewerContainer, {
-          enableVR: true,
-          enableControls: true,
-          enableInfo: true,
-          showStats: false,
-          showStatus: false,
-          autoRotate: false,
           models: models,
-          enableMeasurement: true,
-          enableVRComfortGlyph: true,
-          enableDiveSystem: true, // Enable dive system integration
+          enableDiveSystem: true,
+          enableVR: true,  // Enable VR to show VR button
+          showInfo: false,
+          showStatus: false,
+          showLoadingIndicator: false,
           viewerConfig: {
             scene: {
-              backgroundColor: '#001122'
+              background: { type: 'color', value: '#0f172a' }
             }
-          },
-          initialModel: currentModel,
-          initialPositions: models[currentModel].initialPositions
-        });
-        
-        // Handle model selection changes - the ModelViewer will populate the dropdown
-        const dropdown = document.getElementById('modelDropdown');
-        dropdown.addEventListener('change', (event) => {
-          const selectedModelKey = event.target.value;
-          if (selectedModelKey !== currentModel) {
-            console.log('🌊 Loading new model:', selectedModelKey);
-            viewer.loadModel(selectedModelKey);
           }
         });
-        
-        // Optionally, you can listen to events on viewer for further customization
     </script>
 </body>
 </html>

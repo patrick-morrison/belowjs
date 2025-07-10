@@ -328,6 +328,11 @@ export class DiveSystem {
     // Update torch with deltaTime for animation
     this.torch.update(deltaTime);
     
+    // Check VR controller buttons for mode switching
+    if (this.renderer) {
+      this.checkVRControllerButtons(this.renderer);
+    }
+    
     // Check for VR mode changes
     this.applyModeSpecificSettings();
   }
@@ -388,6 +393,50 @@ export class DiveSystem {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Check VR controller buttons for mode switching
+   * This replaces the button checking logic that was in the example
+   */
+  checkVRControllerButtons(renderer) {
+    if (!renderer || !renderer.xr) return;
+    
+    const session = renderer.xr.getSession();
+    if (!session) return;
+
+    // Get input sources (controllers)
+    for (let inputSource of session.inputSources) {
+      if (inputSource.gamepad && inputSource.handedness) {
+        const gamepad = inputSource.gamepad;
+        const handedness = inputSource.handedness;
+        
+        // Check for X button (left controller, button 4) or A button (right controller, button 4)
+        let modeToggleButtons = [4, 5]; // X/A buttons or Y/B buttons
+        
+        modeToggleButtons.forEach(index => {
+          if (gamepad.buttons[index]) {
+            const button = gamepad.buttons[index];
+            const buttonKey = `${handedness}-${index}`;
+            
+            // Initialize button states if not exists
+            if (!this.buttonStates) {
+              this.buttonStates = new Map();
+            }
+            
+            const wasPressed = this.buttonStates.get(buttonKey) || false;
+            const isPressed = button.pressed;
+            
+            // Detect button press (not held)
+            if (isPressed && !wasPressed) {
+              this.toggleDiveMode();
+            }
+            
+            this.buttonStates.set(buttonKey, isPressed);
+          }
+        });
+      }
+    }
   }
   
   /**

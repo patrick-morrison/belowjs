@@ -3,6 +3,7 @@ import { BelowViewer } from '../core/BelowViewer.js';
 import { EventSystem } from '../utils/EventSystem.js';
 import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
 import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
+import { DiveSystem } from '../dive/DiveSystem.js';
 
 /**
  * ModelViewer - A high-level viewer for managing multiple models with dropdown selection
@@ -18,8 +19,11 @@ export class ModelViewer extends EventSystem {
       showLoadingIndicator: true,
       showStatus: true,
       showInfo: false,  // Info panel is optional now
+      enableVR: false, // Enable VR support
       enableMeasurement: false, // New: auto-attach measurement system
+      measurementTheme: 'dark', // 'dark' or 'light' theme for measurement panel
       enableVRComfortGlyph: false, // New: auto-attach VR comfort glyph
+      enableDiveSystem: false, // New: auto-attach dive system
       ...options
     };
     this.currentModelKey = null;
@@ -27,6 +31,7 @@ export class ModelViewer extends EventSystem {
     this.ui = {};
     this.measurementSystem = null;
     this.comfortGlyph = null;
+    this.diveSystem = null;
     this.lastComfortMode = null;
     
     // Make this instance globally accessible for measurement system auto-centering
@@ -72,10 +77,13 @@ export class ModelViewer extends EventSystem {
     const viewerConfig = {
       ...defaultConfig,
       ...this.options.viewerConfig,
+      // Enable VR if requested
+      ...(this.options.enableVR && { vr: { enabled: true } }),
       // Allow scene config to be passed at top level for convenience
       ...(this.options.scene && { scene: { ...defaultConfig.scene, ...this.options.scene } }),
       ...(this.options.camera && { camera: { ...defaultConfig.camera, ...this.options.camera } }),
-      ...(this.options.renderer && { renderer: { ...defaultConfig.renderer, ...this.options.renderer } })
+      ...(this.options.renderer && { renderer: { ...defaultConfig.renderer, ...this.options.renderer } }),
+      ...(this.options.vr && { vr: { ...this.options.vr } })
     };
     
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
@@ -88,6 +96,7 @@ export class ModelViewer extends EventSystem {
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
+      this._maybeAttachDiveSystem();
     });
 
     // Also try setting it up immediately in case the event already fired
@@ -95,6 +104,7 @@ export class ModelViewer extends EventSystem {
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
+      this._maybeAttachDiveSystem();
     }
 
     // Create UI if models are provided
@@ -116,7 +126,8 @@ export class ModelViewer extends EventSystem {
       scene: this.belowViewer.sceneManager.scene,
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
-      controls: this.belowViewer.cameraManager.controls
+      controls: this.belowViewer.cameraManager.controls,
+      theme: this.options.measurementTheme
     });
     // Note: Measurement system starts disabled by default - user must click to enable
     // Attach update to render loop
@@ -172,6 +183,61 @@ export class ModelViewer extends EventSystem {
     });
     // Cleanup
     window.addEventListener('beforeunload', () => this.comfortGlyph && this.comfortGlyph.dispose());
+  }
+
+  _maybeAttachDiveSystem() {
+    if (!this.options.enableDiveSystem || this.diveSystem) return;
+    
+    this.diveSystem = new DiveSystem(
+      this.belowViewer.sceneManager.scene,
+      this.belowViewer.renderer,
+      this.belowViewer.cameraManager.camera
+    );
+
+    // Initialize UI toggle switch
+    setTimeout(() => {
+      this.diveSystem.initializeToggleSwitch();
+    }, 100);
+
+    // Attach update to render loop
+    const update = (deltaTime) => {
+      if (this.diveSystem) {
+        const currentTime = performance.now();
+        this.diveSystem.update(currentTime, deltaTime);
+        
+        // Update torch from VRManager if available
+        if (this.belowViewer.vrManager) {
+          this.diveSystem.updateTorchFromVRManager(this.belowViewer.vrManager);
+        }
+        
+        // Update torch for desktop camera when not in VR
+        if (!this.belowViewer.renderer.xr.isPresenting) {
+          this.diveSystem.torch.updateCameraPosition(this.belowViewer.cameraManager.camera);
+        }
+      }
+    };
+
+    if (this.belowViewer.onAfterRender) {
+      this.belowViewer.onAfterRender(update);
+    } else {
+      // Use the before-render event
+      this.belowViewer.on('before-render', update);
+    }
+
+    // Update particle bounds when model loads
+    this.on('model-loaded', (data) => {
+      if (this.diveSystem && data.model) {
+        console.log('🌊 Model loaded, updating particle bounds for:', data.model);
+        this.diveSystem.updateParticleBounds(data.model);
+      }
+    });
+
+    // Make dive system globally accessible for debugging
+    if (typeof window !== 'undefined') {
+      window.diveSystem = this.diveSystem;
+    }
+
+    console.log('🌊 DiveSystem attached to ModelViewer');
   }
   
   setupEventForwarding() {
@@ -719,6 +785,14 @@ export class ModelViewer extends EventSystem {
     if (this.comfortGlyph) {
       this.comfortGlyph.dispose();
       this.comfortGlyph = null;
+    }
+    if (this.diveSystem) {
+      this.diveSystem.dispose();
+      this.diveSystem = null;
+      // Clean up global reference
+      if (typeof window !== 'undefined' && window.diveSystem === this.diveSystem) {
+        window.diveSystem = null;
+      }
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();

@@ -90,7 +90,7 @@ export class MeasurementSystem {
    * @param {THREE.Group} [opts.dolly] - VR dolly/group (optional)
    * @param {Object} [opts.config] - UI/behavior config (optional)
    */
-  constructor({ scene, camera, renderer, controls, dolly, config = {} }) {
+  constructor({ scene, camera, renderer, controls, dolly, config = {}, theme = 'dark' }) {
     // Always initialize ghostSpheres to avoid undefined and allow debug visibility
     this.ghostSpheres = {
       left: null,
@@ -123,6 +123,7 @@ export class MeasurementSystem {
     this.controls = controls;
     this.dolly = dolly;
     this.config = config;
+    this.theme = theme; // 'dark' or 'light'
 
     // By default, raycast against all scene children
     this._raycastTargets = (scene && scene.children) ? scene.children : [];
@@ -946,34 +947,8 @@ export class MeasurementSystem {
   createMeasurementPanel() {
     const panel = document.createElement('div');
     panel.id = 'measurementPanel';
-    panel.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 16px 20px;
-      border-radius: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      z-index: 100;
-      cursor: pointer;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(5px);
-      transition: all 0.3s ease;
-      user-select: none;
-      min-width: 120px;
-      text-align: center;
-    `;
-    panel.addEventListener('mouseenter', () => {
-      panel.style.background = 'rgba(0, 0, 0, 0.8)';
-      panel.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-    });
-    panel.addEventListener('mouseleave', () => {
-      panel.style.background = 'rgba(0, 0, 0, 0.7)';
-      panel.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-    });
+    panel.className = `measurement-panel${this.theme === 'light' ? ' light-theme' : ''}`;
+    
     panel.addEventListener('click', () => {
       if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
         // Desktop mode: toggle desktop measurement
@@ -1023,25 +998,28 @@ export class MeasurementSystem {
       distance = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position);
     }
     
+    // Clear existing state classes
+    panel.classList.remove('disabled', 'active', 'measured');
+    
     if (!isEnabled) {
+      panel.classList.add('disabled');
       panel.innerHTML = `
-        <div style="color: #888;">MEASURE</div>
+        <div>MEASURE</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to enable</div>
       `;
-      panel.style.borderColor = 'rgba(136, 136, 136, 0.3)';
     } else if (hasMeasurement) {
+      panel.classList.add('measured');
       panel.innerHTML = `
-        <div style="color: white;">${distance.toFixed(2)}m</div>
+        <div>${distance.toFixed(2)}m</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to disable</div>
       `;
-      panel.style.borderColor = 'rgba(255, 255, 255, 0.5)';
     } else {
+      panel.classList.add('active');
       const instruction = isVR ? 'Use triggers' : 'Click points';
       panel.innerHTML = `
-        <div style="color: #FFA726;">MEASURE: ON</div>
+        <div>MEASURE: ON</div>
         <div style="font-size: 12px; margin-top: 4px;">${instruction} (${hasPoints}/2)</div>
       `;
-      panel.style.borderColor = 'rgba(255, 167, 38, 0.5)';
     }
   }
 

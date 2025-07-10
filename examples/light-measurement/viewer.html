@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Measurement Viewer</title>
+    
+    <!-- BelowJS Core Styling -->
+    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="/src/styles/measurement.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Hide dive mode toggle - measurement only */
+        #modeToggleContainer,
+        .semantic-toggle {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        // Single model configuration - Unknown Wreck only
+        const models = {
+          'unknown': { 
+            url: '../basic-viewer/models/unknown.glb', 
+            name: 'Unknown Wreck',
+            initialPositions: {
+              desktop: {
+                camera: { x: 34.226, y: 10.354, z: 2.12 },
+                target: { x: 10.959, y: -1.07, z: 2.247 }
+              }
+            }
+          }
+        };
+
+        // Create viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.top = '0';
+        viewerContainer.style.left = '0';
+        viewerContainer.style.width = '100%';
+        viewerContainer.style.height = '100%';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        // Light measurement viewer: clean, bright, measurement-focused
+        const viewer = new ModelViewer(viewerContainer, {
+          models: models,
+          enableMeasurement: true,
+          measurementTheme: 'light', // Use light theme for measurement panel
+          enableDiveSystem: true, // Enable dive system for survey lighting
+          autoLoadFirst: true,
+          showInfo: false,
+          showStatus: false,
+          showLoadingIndicator: false,
+          viewerConfig: {
+            scene: {
+              background: { type: 'color', value: '#f8f9fa' }, // Softer light gray 
+              fog: { enabled: false }
+            },
+            camera: {
+              fov: 65,
+              near: 0.05,
+              far: 2000
+            }
+          }
+        });
+    </script>
+</body>
+</html>
