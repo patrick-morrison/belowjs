@@ -6,18 +6,46 @@ import * as THREE from 'three';
 export class DiveParticles {
   constructor(scene) {
     this.scene = scene;
-    this.particleCount = 3500;
-    
     // Default bounds - will be updated when model loads
     this.particleBounds = {
       min: new THREE.Vector3(-50, -25, -50),
       max: new THREE.Vector3(50, 25, 50)
     };
-    
+    // Initial particle count (will be recalculated on first model load)
+    this.particleCount = 1750;
     // Create particle system immediately
     this.createParticleSystem();
-    
     console.log('🐠 Particle system initialized with', this.particleCount, 'particles');
+  }
+  /**
+   * Calculate optimal particle count based on bounds (volume)
+   * Matches WreckSploration logic
+   */
+  calculateParticleCount(bounds) {
+    const size = new THREE.Vector3();
+    bounds.getSize(size);
+    // Calculate volume of the expanded particle field (2.5x model size)
+    const expansion = 2.5;
+    const expandedSize = size.clone().multiplyScalar(expansion);
+    const volume = expandedSize.x * expandedSize.y * expandedSize.z;
+    let targetDensity;
+    if (volume < 5000) {
+      targetDensity = 0.0625;
+    } else if (volume < 20000) {
+      const scaleFactor = (volume - 5000) / 15000;
+      targetDensity = 0.0625 + (scaleFactor * 1.9375);
+    } else {
+      targetDensity = 3.5;
+    }
+    const calculatedCount = Math.round(volume * targetDensity);
+    const minParticles = 100;
+    const maxParticles = 8000;
+    const finalCount = Math.max(minParticles, Math.min(maxParticles, calculatedCount));
+    console.log(`🐠 Model size: ${size.x.toFixed(1)}×${size.y.toFixed(1)}×${size.z.toFixed(1)}m`);
+    console.log(`🐠 Particle field volume: ${volume.toFixed(1)}m³`);
+    console.log(`🐠 Calculated particles: ${calculatedCount} (${targetDensity.toFixed(2)}/m³)`);
+    console.log(`🐠 Final particle count: ${finalCount}`);
+    return finalCount;
   }
   
   /**
@@ -247,23 +275,31 @@ export class DiveParticles {
    */
   updateBounds(model) {
     if (!model) return;
-    
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    
     // Expand bounds to 2.5x the model size (like wrecksploration)
     const expansion = 2.5;
     const halfExpandedSize = size.clone().multiplyScalar(expansion * 0.5);
-    
     this.particleBounds.min.copy(center).sub(halfExpandedSize);
     this.particleBounds.max.copy(center).add(halfExpandedSize);
-    
-    console.log('🐠 Particle bounds updated around model:', 
-      size.x.toFixed(1) + '×' + size.y.toFixed(1) + '×' + size.z.toFixed(1) + 'm');
-    
-    // Redistribute particles within new bounds
-    this.redistributeParticles();
+    // Calculate new particle count based on bounds
+    const newParticleCount = this.calculateParticleCount(new THREE.Box3(this.particleBounds.min, this.particleBounds.max));
+    // If particle count changed significantly, recreate the system
+    if (Math.abs(newParticleCount - this.particleCount) > this.particleCount * 0.2) {
+      if (this.particles) {
+        this.scene.remove(this.particles);
+        if (this.particles.geometry) this.particles.geometry.dispose();
+        if (this.particles.material) this.particles.material.dispose();
+        this.particles = null;
+      }
+      this.particleCount = newParticleCount;
+      this.createParticleSystem();
+      console.log('🐠 Particle system recreated with', this.particleCount, 'particles');
+    } else {
+      // Redistribute particles within new bounds
+      this.redistributeParticles();
+    }
   }
   
   /**
