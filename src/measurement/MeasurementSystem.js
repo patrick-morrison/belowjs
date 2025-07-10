@@ -1076,6 +1076,12 @@ export class MeasurementSystem {
     if (!this.desktopMeasurementMode) {
       return;
     }
+    
+    // Prevent other click handlers from running when in measurement mode
+    if (this.desktopMeasurementMode) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     // Calculate mouse position
     //
     const rect = this.renderer.domElement.getBoundingClientRect();

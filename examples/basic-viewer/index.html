@@ -29,13 +29,10 @@
 </head>
 <body>
     <div id="info">
-        <div id="infoTitle">BelowJS VR (Refactored)</div>
+        <div id="infoTitle">BelowJS Model Viewer</div>
         <div id="infoControls">
-            <strong>Desktop:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
-            <strong>VR:</strong> Thumbsticks to move/fly/turn • X/A buttons to toggle dive mode<br>
-            <strong>Mobile:</strong> Touch and drag to explore<br>
-            <strong>Dive Mode:</strong> Toggle for underwater experience with particles and torch<br>
-            <em>✨ Now with modular architecture & dive system!</em>
+            <strong>Controls:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
+            <strong>VR:</strong> Thumbsticks to move • X/A to toggle dive mode<br>
         </div>
     </div>
 
@@ -233,14 +230,10 @@
             // Check VR controller buttons
             checkControllerButtons();
             
-            // Update torch position for VR controllers
-            if (viewer.belowViewer.vrManager && viewer.belowViewer.vrManager.vrCore) {
-              const vrCore = viewer.belowViewer.vrManager.vrCore;
-              if (vrCore.controller1) {
-                diveSystem.updateTorchPosition(vrCore.controller1);
-              } else if (vrCore.controller2) {
-                diveSystem.updateTorchPosition(vrCore.controller2);
-              }
+            // Update torch position for VR controllers using VRManager
+            if (viewer.belowViewer.vrManager) {
+              // Use the new VRManager-based torch tracking method
+              diveSystem.updateTorchFromVRManager(viewer.belowViewer.vrManager);
             }
             
             // Update torch for desktop camera

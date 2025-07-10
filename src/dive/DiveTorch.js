@@ -140,7 +140,12 @@ export class DiveTorch {
    * Update torch position based on controller
    */
   updatePosition(controller) {
-    if (!this.controllerSpotlight || !this.spotlightTarget || !controller) return;
+    if (!this.controllerSpotlight || !this.spotlightTarget || !controller) {
+      if (!controller) {
+        console.warn('🔦 updatePosition called with null controller');
+      }
+      return;
+    }
     
     // Get controller world position and rotation
     const controllerPosition = new THREE.Vector3();
@@ -159,6 +164,17 @@ export class DiveTorch {
     // Position target in front of controller
     const targetPosition = controllerPosition.clone().add(forward.multiplyScalar(2));
     this.spotlightTarget.position.copy(targetPosition);
+    
+    // Debug logging (occasional to avoid spam)
+    if (Math.random() < 0.01) { // 1% chance to log
+      console.log('🔦 VR torch updated:', {
+        controllerPos: controllerPosition.toArray(),
+        spotlightPos: this.controllerSpotlight.position.toArray(),
+        targetPos: this.spotlightTarget.position.toArray(),
+        visible: this.controllerSpotlight.visible,
+        intensity: this.controllerSpotlight.intensity
+      });
+    }
   }
   
   /**

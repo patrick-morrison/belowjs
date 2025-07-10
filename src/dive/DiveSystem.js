@@ -154,18 +154,19 @@ export class DiveSystem {
     if (isVRMode) {
       // VR Mode - keep original settings for dive mode with 30% more visibility
       this.scene.fog = new THREE.FogExp2(0x041729, 0.056); // Reduced from 0.08 for 30% more visibility (~20m visibility)
-      
       // Keep dim ambient lighting for VR dive mode
       this.lighting.setVRDiveMode();
-      
-      console.log('🥽 VR dive mode: Enhanced fog visibility and dim lighting applied');
+      // Ensure torch is enabled in VR dive mode
+      if (this.isDiveModeEnabled) {
+        this.torch.enableTorch();
+      }
+      console.log('🥽 VR dive mode: Enhanced fog visibility, dim lighting, and torch enabled');
     } else {
       // Desktop Mode - enhanced visibility with lighter fog for dive mode
       this.scene.fog = new THREE.FogExp2(0x041729, 0.0105); // Reduced from 0.015 for 30% more visibility (~140m visibility)
-      
       // Neutral lighting for desktop dive mode
       this.lighting.setDesktopDiveMode();
-      
+      // Torch may be handled differently on desktop
       console.log('🖥️ Desktop dive mode: Enhanced fog visibility and neutral lighting applied');
     }
     
@@ -252,7 +253,71 @@ export class DiveSystem {
       this.torch.updatePosition(controller);
     }
   }
-  
+
+  /**
+   * Update torch position using the right-hand VR controller (if present)
+   * Call this in your animation loop for VR torch tracking.
+   */
+  updateTorchFromRightController() {
+    if (!this.renderer.xr.isPresenting || !this.isDiveModeEnabled) return;
+    
+    const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
+    if (!session) return;
+    
+    const inputSources = session.inputSources;
+    for (let i = 0; i < inputSources.length; i++) {
+      if (inputSources[i].handedness === 'right') {
+        const rightController = this.renderer.xr.getController(i);
+        this.updateTorchPosition(rightController);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Update torch position using VRManager (recommended approach)
+   * This uses the VRManager's synced controller properties for consistency
+   */
+  updateTorchFromVRManager(vrManager) {
+    if (!vrManager || !vrManager.isVRPresenting || !this.isDiveModeEnabled) {
+      if (!vrManager) {
+        console.warn('🔦 updateTorchFromVRManager: vrManager is null');
+      } else if (!vrManager.isVRPresenting) {
+        // This is normal when not in VR, don't spam console
+      } else if (!this.isDiveModeEnabled) {
+        // This is normal when not in dive mode, don't spam console
+      }
+      return;
+    }
+    
+    // Use controller2 (right hand) for torch tracking
+    if (vrManager.controller2) {
+      this.updateTorchPosition(vrManager.controller2);
+    } else if (vrManager.controllers && vrManager.controllers.length > 0) {
+      // Fallback: find right-handed controller in controllers array
+      const rightController = vrManager.controllers.find(c => 
+        c.userData && c.userData.inputSource && c.userData.inputSource.handedness === 'right'
+      );
+      if (rightController) {
+        this.updateTorchPosition(rightController);
+      } else {
+        // Debug: no right controller found
+        if (Math.random() < 0.01) { // 1% chance to log
+          console.log('🔦 No right-handed controller found in controllers array:', vrManager.controllers);
+        }
+      }
+    } else {
+      // Debug: no controllers available
+      if (Math.random() < 0.01) { // 1% chance to log
+        console.log('🔦 No controllers available:', {
+          controller1: vrManager.controller1,
+          controller2: vrManager.controller2,
+          controllersArray: vrManager.controllers
+        });
+      }
+    }
+  }
+
   /**
    * Update system (call in animation loop)
    */
