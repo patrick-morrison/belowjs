@@ -148,9 +148,17 @@ export class ModelViewer extends EventSystem {
     }
   }
 
-  _maybeAttachVRComfortGlyph() {
+  async _maybeAttachVRComfortGlyph() {
     if (!this.options.enableVRComfortGlyph || this.comfortGlyph) return;
     if (!this.belowViewer.vrManager) return;
+    if (!this.belowViewer.vrManager.vrCore) return;
+    
+    // Wait for VR support check to complete
+    await this.belowViewer.vrManager.vrCore.checkVRSupported();
+    
+    // Only create comfort glyph if VR is supported
+    if (!this.belowViewer.vrManager.vrCore.isVRSupported) return;
+    
     this.comfortGlyph = new VRComfortGlyph(this.belowViewer.vrManager, {
       position: 'bottom-right',
       offsetX: 20,

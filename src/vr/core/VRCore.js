@@ -40,15 +40,19 @@ export class VRCore {
     // Clean up any existing VR buttons first
     this.removeExistingVRButtons();
     
-    // Create VR button with original styling - wait for DOM if needed
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        this.createVRButton();
-      });
-    } else {
-      // DOM is already loaded, create immediately
-      this.createVRButton();
-    }
+    // Create VR button only if WebXR is supported
+    this.checkVRSupported().then(() => {
+      if (this.isVRSupported) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            this.createVRButton();
+          });
+        } else {
+          // DOM is already loaded, create immediately
+          this.createVRButton();
+        }
+      }
+    });
     
     // Setup VR session listeners (original pattern)
     this.setupSessionListeners();
@@ -70,25 +74,31 @@ export class VRCore {
   }
   
   checkVRSupported() {
-    try {
-      if ('xr' in navigator) {
-        navigator.xr.isSessionSupported('immersive-vr')
-          .then(supported => {
-            this.isVRSupported = supported;
-            console.log('🥽 VR Support:', supported ? 'YES' : 'NO');
-          })
-          .catch(error => {
-            console.warn('VR support check failed:', error);
-            this.isVRSupported = false;
-          });
-      } else {
-        console.log('🥽 WebXR not available');
+    return new Promise((resolve) => {
+      try {
+        if ('xr' in navigator) {
+          navigator.xr.isSessionSupported('immersive-vr')
+            .then(supported => {
+              this.isVRSupported = supported;
+              console.log('🥽 VR Support:', supported ? 'YES' : 'NO');
+              resolve();
+            })
+            .catch(error => {
+              console.warn('VR support check failed:', error);
+              this.isVRSupported = false;
+              resolve();
+            });
+        } else {
+          console.log('🥽 WebXR not available');
+          this.isVRSupported = false;
+          resolve();
+        }
+      } catch (error) {
+        console.warn('VR support check error:', error);
         this.isVRSupported = false;
+        resolve();
       }
-    } catch (error) {
-      console.warn('VR support check error:', error);
-      this.isVRSupported = false;
-    }
+    });
   }
   
   createVRButton() {

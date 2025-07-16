@@ -163,7 +163,7 @@ export class DiveSystem {
       console.log('🥽 VR dive mode: Enhanced fog visibility, dim lighting, and torch enabled');
     } else {
       // Desktop Mode - enhanced visibility with lighter fog for dive mode
-      this.scene.fog = new THREE.FogExp2(0x041729, 0.0105); // Reduced from 0.015 for 30% more visibility (~140m visibility)
+      this.scene.fog = new THREE.FogExp2(0x041729, 0.005); // Reduced from 0.0105 for 50% clearer visibility (~280m visibility)
       // Neutral lighting for desktop dive mode
       this.lighting.setDesktopDiveMode();
       // Torch may be handled differently on desktop
