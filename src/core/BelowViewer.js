@@ -92,7 +92,8 @@ export class BelowViewer extends EventSystem {
     this.sceneManager.scene.add(this.dolly);
     
     // Initialize VR manager with original patterns
-    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene);
+    const audioPath = this.config.audioPath || './sound/';
+    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath);
     
     // Set controls reference for camera state preservation
     this.vrManager.setControls(this.cameraManager.controls);

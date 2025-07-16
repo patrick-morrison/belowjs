@@ -14,10 +14,11 @@ import { VRComfort } from '../vr/locomotion/VRComfort.js';
 import { VRAudio } from '../vr/audio/VRAudio.js';
 
 export class VRManager {
-  constructor(renderer, camera, scene) {
+  constructor(renderer, camera, scene, audioPath = './sound/') {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
+    this.audioPath = audioPath;
     
     // Core VR modules
     this.vrCore = new VRCore(renderer, camera, scene);
@@ -77,7 +78,7 @@ export class VRManager {
     this.setupModuleConnections();
     
     // Initialize sound system (optional) - async
-    this.vrAudio.init('./sound/').catch(error => {
+    this.vrAudio.init(this.audioPath).catch(error => {
       console.warn('🔇 Sound system initialization failed:', error);
     });
   }

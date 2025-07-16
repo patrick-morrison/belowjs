@@ -79,6 +79,8 @@ export class ModelViewer extends EventSystem {
       ...this.options.viewerConfig,
       // Enable VR if requested
       ...(this.options.enableVR && { vr: { enabled: true } }),
+      // Pass audioPath if provided
+      ...(this.options.audioPath && { audioPath: this.options.audioPath }),
       // Allow scene config to be passed at top level for convenience
       ...(this.options.scene && { scene: { ...defaultConfig.scene, ...this.options.scene } }),
       ...(this.options.camera && { camera: { ...defaultConfig.camera, ...this.options.camera } }),

@@ -65,7 +65,7 @@
 
 .vr-comfort-glyph.position-top-right {
   top: var(--vr-comfort-offset-y, 20px);
-  right: var(--vr-comfort-offset-x, 20px);
+  right: var(--vr-comfort-offset-x, 260px);
 }
 
 .vr-comfort-glyph.position-top-left {

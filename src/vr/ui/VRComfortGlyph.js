@@ -269,10 +269,6 @@ export class VRComfortGlyph {
           justify-content: center !important;
         }
         
-        .semantic-toggle {
-          width: 150px !important;
-          height: 50px !important;
-        }
         
         .vr-comfort-glyph {
           width: 48px !important;
