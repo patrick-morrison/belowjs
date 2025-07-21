@@ -32,7 +32,7 @@ export class DiveLighting {
     }
 
     try {
-      // Create overhead light but don't add it to scene yet
+      // Create overhead light but don't add it to scene yet - enhanced intensity
       this.overheadLight = new THREE.AmbientLight(0xffffff, 0.5);
       
       // Don't set currentMode - let DiveSystem handle the initial mode setup
@@ -52,18 +52,43 @@ export class DiveLighting {
     }
 
     try {
-      // Add directional light for survey mode
+      // Enhanced main directional light with high-quality shadows
       if (!this.clearModeDirectionalLight) {
-        this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.72);
-        this.clearModeDirectionalLight.position.set(5, 10, 5);
-        this.clearModeDirectionalLight.castShadow = false;
+        this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        this.clearModeDirectionalLight.position.set(10, 20, 10);
+        this.clearModeDirectionalLight.castShadow = true;
+        
+        // High-resolution shadow mapping
+        this.clearModeDirectionalLight.shadow.mapSize.width = 2048;
+        this.clearModeDirectionalLight.shadow.mapSize.height = 2048;
+        this.clearModeDirectionalLight.shadow.camera.near = 0.5;
+        this.clearModeDirectionalLight.shadow.camera.far = 100;
+        this.clearModeDirectionalLight.shadow.camera.left = -20;
+        this.clearModeDirectionalLight.shadow.camera.right = 20;
+        this.clearModeDirectionalLight.shadow.camera.top = 20;
+        this.clearModeDirectionalLight.shadow.camera.bottom = -20;
+        
         this.scene.add(this.clearModeDirectionalLight);
       }
       
-      // Add hemisphere light for even lighting from all directions
+      // Enhanced hemisphere light for natural gradient
       if (!this.clearModeHemisphereLight) {
-        this.clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.6);
+        this.clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
         this.scene.add(this.clearModeHemisphereLight);
+      }
+
+      // Add fill light from opposite side
+      if (!this.fillLight) {
+        this.fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        this.fillLight.position.set(-10, 10, -10);
+        this.scene.add(this.fillLight);
+      }
+
+      // Add bottom light for surface detail visibility
+      if (!this.bottomLight) {
+        this.bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        this.bottomLight.position.set(0, -10, 0);
+        this.scene.add(this.bottomLight);
       }
     } catch (error) {
       console.error('💡 Failed to create survey mode lights:', error);
@@ -91,6 +116,17 @@ export class DiveLighting {
       this.scene.remove(this.clearModeHemisphereLight);
       this.clearModeHemisphereLight = null;
     }
+
+    // Remove additional survey lights
+    if (this.fillLight) {
+      this.scene.remove(this.fillLight);
+      this.fillLight = null;
+    }
+
+    if (this.bottomLight) {
+      this.scene.remove(this.bottomLight);
+      this.bottomLight = null;
+    }
     
     this.currentMode = 'dive';
     console.log('🌊 Dive mode lighting set');
@@ -109,7 +145,7 @@ export class DiveLighting {
     
     // Set bright lighting immediately
     if (this.overheadLight) {
-      this.overheadLight.intensity = 0.5;
+      this.overheadLight.intensity = 0.6;
       this.overheadLight.color.setHex(0xffffff);
     }
     

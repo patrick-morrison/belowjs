@@ -404,39 +404,73 @@ export class ModelViewer extends EventSystem {
     const camera = this.belowViewer.cameraManager.getCamera();
     raycaster.setFromCamera(mouse, camera);
 
-    // Find intersections with scene objects
-    const scene = this.belowViewer.sceneManager.getScene();
+    // Use proper raycast targets - prefer measurement system's curated targets if available
+    let raycastTargets = [];
     
-    // Try the scene children approach first
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    if (intersects.length === 0) {
-      // Fallback: try all meshes directly
-      const allMeshes = [];
+    if (this.measurementSystem && this.measurementSystem._raycastTargets && this.measurementSystem._raycastTargets.length > 0) {
+      // Use measurement system's curated targets (excludes helpers, only model geometry)
+      raycastTargets = this.measurementSystem._raycastTargets;
+    } else {
+      // Fallback: filter scene children to exclude measurement helpers
+      const scene = this.belowViewer.sceneManager.getScene();
+      raycastTargets = [];
       scene.traverse(child => {
-        if (child.isMesh) {
-          allMeshes.push(child);
+        if (child.isMesh && child.geometry && !this.isMeasurementHelper(child)) {
+          raycastTargets.push(child);
         }
       });
-      
-      if (allMeshes.length > 0) {
-        const meshIntersects = raycaster.intersectObjects(allMeshes, false);
-        
-        if (meshIntersects.length > 0) {
-          const point = meshIntersects[0].point;
-          this.belowViewer.cameraManager.focusOn(point);
-          this.emit('focus', { point, intersect: meshIntersects[0] });
-          return;
-        }
-      }
-    } else {
-      const point = intersects[0].point;
-      this.belowViewer.cameraManager.focusOn(point);
-      this.emit('focus', { point, intersect: intersects[0] });
+    }
+    
+    if (raycastTargets.length === 0) {
+      console.debug('[ModelViewer] No valid raycast targets found for focusing');
       return;
     }
 
-    // No intersections found - could emit a 'focus-miss' event if needed
+    // Find intersections with proper targets only
+    const intersects = raycaster.intersectObjects(raycastTargets, true);
+    
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      this.belowViewer.cameraManager.focusOn(point);
+      this.emit('focus', { point, intersect: intersects[0] });
+    } else {
+      console.debug('[ModelViewer] No intersections found with valid targets');
+    }
+  }
+
+  // Helper method to identify measurement helpers (similar to MeasurementSystem)
+  isMeasurementHelper(obj) {
+    if (!obj) return false;
+    
+    // Check userData flags
+    if (obj.userData.isMeasurementSphere || obj.userData.isMeasurementLine) return true;
+    
+    // Check object types
+    if (obj.type === 'Line2' || obj.type === 'Line') return true;
+    
+    // Check geometry types that are typically helpers
+    if (obj.geometry) {
+      const helperGeometries = ['RingGeometry', 'TubeGeometry', 'PlaneGeometry', 'CircleGeometry', 'SphereGeometry'];
+      if (helperGeometries.includes(obj.geometry.type)) {
+        // For sphere geometry, check if it's small (likely a measurement sphere)
+        if (obj.geometry.type === 'SphereGeometry') {
+          const sphere = obj.geometry;
+          if (sphere.parameters && sphere.parameters.radius < 0.1) return true;
+        } else {
+          return true;
+        }
+      }
+    }
+    
+    // Check by name convention
+    if (typeof obj.name === 'string' && 
+        (obj.name.startsWith('MeasurementHelper') || 
+         obj.name.includes('measurement') || 
+         obj.name.includes('ghost'))) {
+      return true;
+    }
+    
+    return false;
   }
   
   createUI() {

@@ -166,8 +166,24 @@ export class ModelLoader {
               envMap: material.envMap,
               reflectivity: material.reflectivity || 1.0,
               refractionRatio: material.refractionRatio || 0.98,
-              combine: material.combine || THREE.MultiplyOperation
+              combine: material.combine || THREE.MultiplyOperation,
+              // Enhanced normal map support
+              normalMap: material.normalMap,
+              normalScale: material.normalScale || new THREE.Vector2(1, 1),
+              // Explicit smooth shading for non-blocky appearance
+              flatShading: false
             });
+            
+            // Enhance texture quality if texture maps exist
+            if (newMaterial.map) {
+              newMaterial.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+              newMaterial.map.needsUpdate = true;
+            }
+            if (newMaterial.normalMap) {
+              newMaterial.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+              newMaterial.normalMap.needsUpdate = true;
+            }
+            
             newMaterial.needsUpdate = true;
             if (Array.isArray(obj.material)) {
               obj.material[idx] = newMaterial;
@@ -183,10 +199,16 @@ export class ModelLoader {
             currentMaterial.needsUpdate = true;
           }
         });
-        // Recompute geometry normals for better shadow calculations
+        // Enhanced geometry processing for better surface quality
         if (obj.geometry) {
           obj.geometry.computeVertexNormals();
           obj.geometry.normalizeNormals();
+          
+          // Compute tangents for normal maps if any material has them
+          const hasMormalMaps = materials.some(mat => mat.normalMap);
+          if (hasMormalMaps) {
+            obj.geometry.computeTangents();
+          }
         }
       }
     });

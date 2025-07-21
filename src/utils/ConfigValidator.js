@@ -27,7 +27,7 @@ export const defaultConfig = {
     powerPreference: 'high-performance',
     pixelRatio: Math.min(window.devicePixelRatio, 2.0),
     outputColorSpace: 'srgb',
-    toneMapping: 'aces-filmic',
+    toneMapping: 'none',
     toneMappingExposure: 1.0
   },
   

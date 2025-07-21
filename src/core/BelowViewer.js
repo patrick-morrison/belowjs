@@ -82,6 +82,14 @@ export class BelowViewer extends EventSystem {
     // Better color space
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     
+    // Apply tone mapping from config
+    if (this.config.renderer.toneMapping === 'aces-filmic') {
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    } else if (this.config.renderer.toneMapping === 'none') {
+      this.renderer.toneMapping = THREE.NoToneMapping;
+    }
+    this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure;
+    
     this.container.appendChild(this.renderer.domElement);
   }
 
@@ -495,7 +503,6 @@ export class BelowViewer extends EventSystem {
         });
       }
       
-      console.log('📍 Applied Desktop initial position:', positions);
     };
     
     // Apply immediately and also after a short delay to handle timing issues

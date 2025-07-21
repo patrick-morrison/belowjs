@@ -66,7 +66,7 @@ export class DiveTorch {
     const beamWidthRadians = (beamWidthDegrees * Math.PI) / 180;
     
     // Adjust spotlight distance based on Quest device for performance
-    const spotlightDistance = this.isQuest2 ? 100 : 100; // Extended range for underwater visibility
+    const spotlightDistance = this.isQuest2 ? 15 : 15; // Keep same distance for now
     
     // Create new spotlight with configurable beam width
     this.controllerSpotlight = new THREE.SpotLight(
@@ -75,7 +75,7 @@ export class DiveTorch {
       spotlightDistance, // Adjustable distance based on device
       beamWidthRadians, // Configurable beam width in radians
       0.15,            // Softer penumbra for more realistic falloff
-      1.2              // Higher decay for realistic underwater attenuation
+      0.8              // Higher decay for realistic underwater attenuation
     );
     
     // Configure spotlight properties
@@ -162,7 +162,7 @@ export class DiveTorch {
     forward.applyQuaternion(controllerQuaternion);
     
     // Position target in front of controller
-    const targetPosition = controllerPosition.clone().add(forward.multiplyScalar(50));
+    const targetPosition = controllerPosition.clone().add(forward.multiplyScalar(2));
     this.spotlightTarget.position.copy(targetPosition);
     
     // Debug logging (occasional to avoid spam)

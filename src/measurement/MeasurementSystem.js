@@ -224,16 +224,16 @@ export class MeasurementSystem {
     this.createMeasurementPanel();
     this.updateMeasurementPanel();
 
-    // Mouse events (use capture phase to ensure we get events even if Three.js stops propagation)
+    // Mouse events (don't use capture to avoid interfering with ModelViewer's focus system)
     this._boundOnMouseClick = this.onMouseClick.bind(this);
     //
     this._boundOnMouseDown = this.onMouseDown.bind(this);
     this._boundOnMouseMove = this.onMouseMove.bind(this);
     this._boundOnMouseUp = this.onMouseUp.bind(this);
-    this.renderer.domElement.addEventListener('click', this._boundOnMouseClick, true);
-    this.renderer.domElement.addEventListener('mousedown', this._boundOnMouseDown, true);
-    this.renderer.domElement.addEventListener('mousemove', this._boundOnMouseMove, true);
-    this.renderer.domElement.addEventListener('mouseup', this._boundOnMouseUp, true);
+    this.renderer.domElement.addEventListener('click', this._boundOnMouseClick, false);
+    this.renderer.domElement.addEventListener('mousedown', this._boundOnMouseDown, false);
+    this.renderer.domElement.addEventListener('mousemove', this._boundOnMouseMove, false);
+    this.renderer.domElement.addEventListener('mouseup', this._boundOnMouseUp, false);
 
     // --- AUTO-ATTACH VR CONTROLLERS IF AVAILABLE ---
     if (renderer && renderer.xr && typeof renderer.xr.getController === 'function') {
@@ -904,10 +904,10 @@ export class MeasurementSystem {
       this.measurementPanel = null;
     }
     // Remove event listeners
-    this.renderer.domElement.removeEventListener('click', this._boundOnMouseClick, true);
-    this.renderer.domElement.removeEventListener('mousedown', this._boundOnMouseDown, true);
-    this.renderer.domElement.removeEventListener('mousemove', this._boundOnMouseMove, true);
-    this.renderer.domElement.removeEventListener('mouseup', this._boundOnMouseUp, true);
+    this.renderer.domElement.removeEventListener('click', this._boundOnMouseClick, false);
+    this.renderer.domElement.removeEventListener('mousedown', this._boundOnMouseDown, false);
+    this.renderer.domElement.removeEventListener('mousemove', this._boundOnMouseMove, false);
+    this.renderer.domElement.removeEventListener('mouseup', this._boundOnMouseUp, false);
     // Remove VR controller listeners
     if (this.controller1 && this.controller2) {
       this.controller1.removeEventListener('selectstart', this._onVRTriggerDown);
@@ -1052,6 +1052,8 @@ export class MeasurementSystem {
       return;
     }
     if (!this.desktopMeasurementMode) {
+      // When measurement is disabled, don't interfere with other click handlers
+      // (like the ModelViewer's double-click focus system)
       return;
     }
     
