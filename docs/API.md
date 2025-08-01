@@ -84,10 +84,7 @@ const models = {
 // Create viewer container
 const viewerContainer = document.createElement('div');
 viewerContainer.style.position = 'fixed';
-viewerContainer.style.top = '0';
-viewerContainer.style.left = '0';
-viewerContainer.style.width = '100%';
-viewerContainer.style.height = '100%';
+viewerContainer.style.inset = '0';
 viewerContainer.style.zIndex = '0';
 document.body.appendChild(viewerContainer);
 
@@ -593,7 +590,7 @@ const viewer = new ModelViewer(container, {
 
 A small circular control appears near the bottom-right corner when `enableFullscreen` is `true`.
 Its glassmorphic style matches other buttons and the arrow icon points outward to indicate entering fullscreen, flipping inward once fullscreen is active. The icon color adapts to the current theme.
-The button floats a bit above the VR comfort and measurement controls so everything remains visible when embedded or fullscreened.
+The button sits near the bottom-right corner, just above the measurement panel and comfort glyph so everything remains visible when embedded or fullscreened.
 Press the button or hit `Esc` to exit fullscreen.
 
 ---
@@ -1095,10 +1092,7 @@ Complete example with all features enabled (see `examples/basic-viewer/`):
         // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
-        viewerContainer.style.top = '0';
-        viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
@@ -1389,8 +1383,8 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.top = '0';
         viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 

@@ -582,11 +582,15 @@ export class ModelViewer extends EventSystem {
   createModelSelector() {
     // Check if modelSelector div exists
     let selectorContainer = document.getElementById('modelSelector');
+    const parent = this.container || document.body;
     if (!selectorContainer) {
       selectorContainer = document.createElement('div');
       selectorContainer.id = 'modelSelector';
       selectorContainer.className = 'below-panel';
-      const parent = this.container || document.body;
+      parent.appendChild(selectorContainer);
+    } else if (selectorContainer.parentElement !== parent) {
+      // Ensure the selector lives inside the viewer container for fullscreen
+      selectorContainer.classList.add('below-panel');
       parent.appendChild(selectorContainer);
     }
     
