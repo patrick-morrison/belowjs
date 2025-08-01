@@ -16,6 +16,9 @@ export class ModelViewer extends EventSystem {
       container = document.querySelector(container);
     }
     this.container = container || document.body;
+    if (window.getComputedStyle(this.container).position === 'static') {
+      this.container.style.position = 'relative';
+    }
     this.options = {
       models: {},
       autoLoadFirst: true,
@@ -274,8 +277,7 @@ export class ModelViewer extends EventSystem {
       }
     });
 
-    const parent = this.container || document.body;
-    parent.appendChild(button);
+    this.container.appendChild(button);
     this.fullscreenButton = button;
     this.ui.fullscreen = button;
 
@@ -539,34 +541,26 @@ export class ModelViewer extends EventSystem {
     } else {
       this.container.classList.add('below-viewer-container');
     }
-    
+
     // Only create model selector dropdown if there are multiple models
     const modelCount = Object.keys(this.options.models).length;
-    if (modelCount > 1) {
-      if (!document.getElementById('modelDropdown')) {
-        this.createModelSelector();
-      } else {
-        this.ui.dropdown = document.getElementById('modelDropdown');
-      }
+    if (modelCount > 1 && !this.ui.dropdown) {
+      this.createModelSelector();
     }
-    
-    // Create info panel only if enabled and doesn't exist
-    if (this.options.showInfo && !document.getElementById('info')) {
+
+    // Create info panel only if enabled and not already present
+    if (this.options.showInfo && !this.ui.info) {
       this.createInfoPanel();
     }
-    
-    // Create loading indicator if it doesn't exist and enabled
-    if (this.options.showLoadingIndicator && !document.getElementById('loading')) {
+
+    // Create loading indicator if enabled
+    if (this.options.showLoadingIndicator && !this.ui.loading) {
       this.createLoadingIndicator();
-    } else if (this.options.showLoadingIndicator) {
-      this.ui.loading = document.getElementById('loading');
     }
-    
-    // Create status indicator if it doesn't exist and enabled
-    if (this.options.showStatus && !document.getElementById('status')) {
+
+    // Create status indicator if enabled
+    if (this.options.showStatus && !this.ui.status) {
       this.createStatusIndicator();
-    } else if (this.options.showStatus) {
-      this.ui.status = document.getElementById('status');
     }
     
     // Set up event listeners
@@ -580,9 +574,9 @@ export class ModelViewer extends EventSystem {
   }
   
   createModelSelector() {
-    // Check if modelSelector div exists
-    let selectorContainer = document.getElementById('modelSelector');
-    const parent = this.container || document.body;
+    // Check if modelSelector div exists within the container
+    let selectorContainer = this.container.querySelector('#modelSelector');
+    const parent = this.container;
     if (!selectorContainer) {
       selectorContainer = document.createElement('div');
       selectorContainer.id = 'modelSelector';
@@ -593,15 +587,17 @@ export class ModelViewer extends EventSystem {
       selectorContainer.classList.add('below-panel');
       parent.appendChild(selectorContainer);
     }
-    
+
     // Create dropdown if it doesn't exist
-    if (!document.getElementById('modelDropdown')) {
-      const dropdown = document.createElement('select');
+    let dropdown = selectorContainer.querySelector('#modelDropdown');
+    if (!dropdown) {
+      dropdown = document.createElement('select');
       dropdown.id = 'modelDropdown';
       selectorContainer.appendChild(dropdown);
     }
-    
-    this.ui.dropdown = document.getElementById('modelDropdown');
+
+    this.ui.dropdown = dropdown;
+    this.ui.selector = selectorContainer;
   }
   
   createLoadingIndicator() {
@@ -610,8 +606,7 @@ export class ModelViewer extends EventSystem {
     loading.className = 'below-loading';
     loading.textContent = 'Loading...';
     loading.style.display = 'none';
-    const parent = this.container || document.body;
-    parent.appendChild(loading);
+    this.container.appendChild(loading);
     this.ui.loading = loading;
   }
   
@@ -620,8 +615,7 @@ export class ModelViewer extends EventSystem {
     status.id = 'status';
     status.className = 'status below-status';
     status.style.display = 'none';
-    const parent = this.container || document.body;
-    parent.appendChild(status);
+    this.container.appendChild(status);
     this.ui.status = status;
   }
   
@@ -643,9 +637,8 @@ export class ModelViewer extends EventSystem {
     
     info.appendChild(title);
     info.appendChild(controls);
-    const parent = this.container || document.body;
-    parent.appendChild(info);
-    
+    this.container.appendChild(info);
+
     this.ui.info = info;
   }
   
