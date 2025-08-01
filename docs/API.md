@@ -145,9 +145,7 @@ new ModelViewer(container, options)
 - `container` (Element | string): DOM element or selector for the viewer container
 - `options` (Object): Configuration options object
 
-The viewer injects its UI elements into the supplied `container`. When embedding
-the viewer inside another layout, ensure this container has `position: relative`
-so overlays like the measurement panel and model selector appear correctly.
+The viewer injects its UI elements into the supplied `container`. When embedding the viewer inside another layout, ensure this container has `position: relative` so overlays like the measurement panel and model selector remain positioned correctly in fullscreen.
 
 ### Basic Example
 
@@ -593,9 +591,9 @@ const viewer = new ModelViewer(container, {
 });
 ```
 
-A small circular control appears in the bottom-right of the viewer when `enableFullscreen` is `true`.
-Its arrow icon points outward to indicate entering fullscreen and flips to point inward once fullscreen is active.
-The button sits above other controls near the measurement panel so it remains visible in fullscreen or when embedded.
+A small circular control appears near the bottom-right corner when `enableFullscreen` is `true`.
+Its glassmorphic style matches other buttons and the arrow icon points outward to indicate entering fullscreen, flipping inward once fullscreen is active. The icon color adapts to the current theme.
+The button is tucked just above the measurement panel so it stays visible when embedded or fullscreened.
 Press the button or hit `Esc` to exit fullscreen.
 
 ---

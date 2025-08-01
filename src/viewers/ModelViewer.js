@@ -285,12 +285,14 @@ export class ModelViewer extends EventSystem {
     if (this.isFullscreen()) {
       const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
       if (exit) exit.call(document);
+      this.updateFullscreenButton();
     } else {
       const elem = this.container;
       const request = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.msRequestFullscreen;
       if (request) {
         request.call(elem).catch((err) => console.error('[ModelViewer] Failed to enter fullscreen', err));
       }
+      this.updateFullscreenButton();
     }
   }
 
