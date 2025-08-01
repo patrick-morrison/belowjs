@@ -271,7 +271,8 @@ export class ModelViewer extends EventSystem {
       }
     });
 
-    document.body.appendChild(button);
+    const parent = this.container || document.body;
+    parent.appendChild(button);
     this.fullscreenButton = button;
     this.ui.fullscreen = button;
 
@@ -579,7 +580,8 @@ export class ModelViewer extends EventSystem {
       selectorContainer = document.createElement('div');
       selectorContainer.id = 'modelSelector';
       selectorContainer.className = 'below-panel';
-      document.body.appendChild(selectorContainer);
+      const parent = this.container || document.body;
+      parent.appendChild(selectorContainer);
     }
     
     // Create dropdown if it doesn't exist
@@ -598,7 +600,8 @@ export class ModelViewer extends EventSystem {
     loading.className = 'below-loading';
     loading.textContent = 'Loading...';
     loading.style.display = 'none';
-    document.body.appendChild(loading);
+    const parent = this.container || document.body;
+    parent.appendChild(loading);
     this.ui.loading = loading;
   }
   
@@ -607,7 +610,8 @@ export class ModelViewer extends EventSystem {
     status.id = 'status';
     status.className = 'status below-status';
     status.style.display = 'none';
-    document.body.appendChild(status);
+    const parent = this.container || document.body;
+    parent.appendChild(status);
     this.ui.status = status;
   }
   
@@ -629,7 +633,8 @@ export class ModelViewer extends EventSystem {
     
     info.appendChild(title);
     info.appendChild(controls);
-    document.body.appendChild(info);
+    const parent = this.container || document.body;
+    parent.appendChild(info);
     
     this.ui.info = info;
   }

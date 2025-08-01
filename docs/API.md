@@ -589,7 +589,7 @@ const viewer = new ModelViewer(container, {
 });
 ```
 
-Click the button in the top-right corner to toggle fullscreen. Press `Esc` to exit fullscreen.
+Click the button in the bottom-right corner to toggle fullscreen. Press `Esc` to exit fullscreen.
 
 ---
 
