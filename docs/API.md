@@ -14,12 +14,13 @@
 4. [Measurement System](#measurement-system)
 5. [Dive System](#dive-system)
 6. [VR Comfort Glyph](#vr-comfort-glyph)
-7. [Configuration Options](#configuration-options)
-8. [Events](#events)
-9. [Methods](#methods)
-10. [Theming](#theming)
-11. [Examples](#examples)
-12. [Advanced Usage](#advanced-usage)
+7. [Fullscreen Button](#fullscreen-button)
+8. [Configuration Options](#configuration-options)
+9. [Events](#events)
+10. [Methods](#methods)
+11. [Theming](#theming)
+12. [Examples](#examples)
+13. [Advanced Usage](#advanced-usage)
 
 ---
 
@@ -574,6 +575,22 @@ comfortGlyph.setComfortMode(false);  // Disable comfort mode
 const isComfortMode = comfortGlyph.isComfortMode;
 ```
 
+## Fullscreen Button
+
+The viewer can display an optional fullscreen toggle that enters or exits browser fullscreen mode using the standard Fullscreen API.
+
+### Enabling Fullscreen Button
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models,
+  enableFullscreen: true,
+  autoLoadFirst: true
+});
+```
+
+Click the button in the top-right corner to toggle fullscreen. Press `Esc` to exit fullscreen.
+
 ---
 
 ## Configuration Options
@@ -601,6 +618,7 @@ const isComfortMode = comfortGlyph.isComfortMode;
   measurementTheme: 'dark',     // Measurement UI theme ('dark' or 'light')
   enableVRComfortGlyph: false,  // Enable VR comfort toggle UI
   enableDiveSystem: false,      // Enable dive/survey mode system
+  enableFullscreen: false,     // Show fullscreen button
   audioPath: './sound/',       // VR audio file path
   
   // Model loading

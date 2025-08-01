@@ -24,6 +24,7 @@ export class ModelViewer extends EventSystem {
       measurementTheme: 'dark', // 'dark' or 'light' theme for measurement panel
       enableVRComfortGlyph: false, // Auto-attach VR comfort glyph
       enableDiveSystem: false, // Auto-attach dive system
+      enableFullscreen: false, // Show fullscreen toggle button
       ...options
     };
     this.currentModelKey = null;
@@ -32,6 +33,7 @@ export class ModelViewer extends EventSystem {
     this.measurementSystem = null;
     this.comfortGlyph = null;
     this.diveSystem = null;
+    this.fullscreenButton = null;
     this.lastComfortMode = null;
     
     // Make this instance globally accessible for measurement system auto-centering
@@ -99,6 +101,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachFullscreenButton();
     });
 
     // Also try setting it up immediately in case the event already fired
@@ -107,6 +110,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachFullscreenButton();
     }
 
     // Create UI if models are provided
@@ -246,6 +250,59 @@ export class ModelViewer extends EventSystem {
       window.diveSystem = this.diveSystem;
     }
 
+  }
+
+  _maybeAttachFullscreenButton() {
+    if (!this.options.enableFullscreen || this.fullscreenButton) return;
+
+    const button = document.createElement('div');
+    button.id = 'fullscreenButton';
+    button.className = 'fullscreen-button';
+    button.innerHTML = '&#x26F6;';
+    button.tabIndex = 0;
+    button.title = 'Enter Fullscreen';
+    button.setAttribute('aria-label', 'Enter Fullscreen');
+
+    button.addEventListener('click', () => this.toggleFullscreen());
+    button.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggleFullscreen();
+      }
+    });
+
+    document.body.appendChild(button);
+    this.fullscreenButton = button;
+    this.ui.fullscreen = button;
+
+    this._onFullscreenChange = () => this.updateFullscreenButton();
+    document.addEventListener('fullscreenchange', this._onFullscreenChange);
+    this.updateFullscreenButton();
+  }
+
+  toggleFullscreen() {
+    if (this.isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exit) exit.call(document);
+    } else {
+      const elem = this.container;
+      const request = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.msRequestFullscreen;
+      if (request) {
+        request.call(elem).catch((err) => console.error('[ModelViewer] Failed to enter fullscreen', err));
+      }
+    }
+  }
+
+  isFullscreen() {
+    const elem = this.container;
+    return document.fullscreenElement === elem || document.webkitFullscreenElement === elem || document.msFullscreenElement === elem;
+  }
+
+  updateFullscreenButton() {
+    if (!this.fullscreenButton) return;
+    const active = this.isFullscreen();
+    this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
+    this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
   }
   
   setupEventForwarding() {
@@ -832,6 +889,11 @@ export class ModelViewer extends EventSystem {
       if (typeof window !== 'undefined' && window.diveSystem === this.diveSystem) {
         window.diveSystem = null;
       }
+    }
+    if (this.fullscreenButton) {
+      this.fullscreenButton.remove();
+      this.fullscreenButton = null;
+      document.removeEventListener('fullscreenchange', this._onFullscreenChange);
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();
