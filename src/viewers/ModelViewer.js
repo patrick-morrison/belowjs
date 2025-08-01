@@ -258,7 +258,7 @@ export class ModelViewer extends EventSystem {
     const button = document.createElement('div');
     button.id = 'fullscreenButton';
     button.className = 'fullscreen-button';
-    button.innerHTML = '&#x26F6;';
+    button.textContent = '\u2922'; // outward arrows symbol
     button.tabIndex = 0;
     button.title = 'Enter Fullscreen';
     button.setAttribute('aria-label', 'Enter Fullscreen');
@@ -304,6 +304,7 @@ export class ModelViewer extends EventSystem {
     const active = this.isFullscreen();
     this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
     this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
+    this.fullscreenButton.textContent = active ? '\u2921' : '\u2922';
   }
   
   setupEventForwarding() {

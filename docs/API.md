@@ -593,7 +593,9 @@ const viewer = new ModelViewer(container, {
 });
 ```
 
-Click the button in the bottom-right corner to toggle fullscreen. Press `Esc` to exit fullscreen.
+A small circular control appears in the top-right of the viewer when `enableFullscreen` is `true`.
+Its arrow icon points outward to indicate entering fullscreen and flips to point inward once fullscreen is active.
+Press the button or hit `Esc` to exit fullscreen.
 
 ---
 
