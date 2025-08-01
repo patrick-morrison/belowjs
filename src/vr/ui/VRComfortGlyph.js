@@ -104,7 +104,7 @@ export class VRComfortGlyph {
     styleSheet.textContent = `
       /* VR Comfort Glyph Styles */
       .vr-comfort-glyph {
-        position: fixed;
+        position: absolute;
         width: 40px;
         height: 40px;
         border-radius: 50%;

@@ -145,6 +145,10 @@ new ModelViewer(container, options)
 - `container` (Element | string): DOM element or selector for the viewer container
 - `options` (Object): Configuration options object
 
+The viewer injects its UI elements into the supplied `container`. When embedding
+the viewer inside another layout, ensure this container has `position: relative`
+so overlays like the measurement panel and model selector appear correctly.
+
 ### Basic Example
 
 ```javascript
