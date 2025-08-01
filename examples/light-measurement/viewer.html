@@ -45,10 +45,7 @@
         // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
-        viewerContainer.style.top = '0';
-        viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
@@ -58,6 +55,7 @@
           enableMeasurement: true,
           measurementTheme: 'light', // Use light theme for measurement panel
           enableDiveSystem: true, // Enable dive system for survey lighting
+          enableFullscreen: true,
           autoLoadFirst: true,
           showInfo: false,
           showStatus: false,

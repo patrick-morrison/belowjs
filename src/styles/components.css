@@ -7,7 +7,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  z-index: 10;
+  z-index: 50;
   background: var(--below-panel-bg);
   backdrop-filter: var(--below-panel-backdrop);
   border: 1px solid var(--below-panel-border);
@@ -120,4 +120,47 @@
     padding: 16px;
     min-width: 180px;
   }
+}
+
+/* Fullscreen Button */
+#fullscreenButton,
+.fullscreen-button {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--below-panel-bg);
+  border: 1px solid var(--below-panel-border);
+  color: var(--below-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 120;
+  backdrop-filter: var(--below-panel-backdrop);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#fullscreenButton:hover,
+.fullscreen-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark style when paired with light-themed measurement panel */
+.fullscreen-button.light-theme {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.fullscreen-button.light-theme:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }

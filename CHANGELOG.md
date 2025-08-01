@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Professional logging system with reduced console output
 - Comprehensive code cleanup removing development artifacts
 - Audio path configuration now properly supported via `audioPath` option
+- Optional fullscreen toggle via `enableFullscreen` configuration
 
 ### Changed
 - **BREAKING**: Removed emoji-based console logging throughout codebase
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Console output now professional and minimal (90% reduction in log spam)
 - Examples now use proper ES modules pattern with production CSS
 - Documentation updated to remove marketing language and emoji references
+- UI overlays like the measurement panel and model selector now attach to the viewer container instead of `document.body`
+- Measurement and VR comfort controls position absolutely inside the container for reliable embedding
 
 ### Fixed
 - Audio routing properly configured in basic-viewer example
@@ -37,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All functionality preserved while removing development noise
 
 ### API Compatibility
-- **No breaking API changes** - all existing code continues to work
+- **BREAKING**: UI elements attach to the provided container, so custom CSS may need updates when upgrading
 - All configuration options remain the same
 - All methods and events unchanged
 - Only logging behavior and bundle sizes affected

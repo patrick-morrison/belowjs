@@ -14,12 +14,13 @@
 4. [Measurement System](#measurement-system)
 5. [Dive System](#dive-system)
 6. [VR Comfort Glyph](#vr-comfort-glyph)
-7. [Configuration Options](#configuration-options)
-8. [Events](#events)
-9. [Methods](#methods)
-10. [Theming](#theming)
-11. [Examples](#examples)
-12. [Advanced Usage](#advanced-usage)
+7. [Fullscreen Button](#fullscreen-button)
+8. [Configuration Options](#configuration-options)
+9. [Events](#events)
+10. [Methods](#methods)
+11. [Theming](#theming)
+12. [Examples](#examples)
+13. [Advanced Usage](#advanced-usage)
 
 ---
 
@@ -83,10 +84,7 @@ const models = {
 // Create viewer container
 const viewerContainer = document.createElement('div');
 viewerContainer.style.position = 'fixed';
-viewerContainer.style.top = '0';
-viewerContainer.style.left = '0';
-viewerContainer.style.width = '100%';
-viewerContainer.style.height = '100%';
+viewerContainer.style.inset = '0';
 viewerContainer.style.zIndex = '0';
 document.body.appendChild(viewerContainer);
 
@@ -143,6 +141,8 @@ new ModelViewer(container, options)
 **Parameters:**
 - `container` (Element | string): DOM element or selector for the viewer container
 - `options` (Object): Configuration options object
+
+The viewer injects its UI elements into the supplied `container`. When embedding the viewer inside another layout, ensure this container has `position: relative` so overlays like the measurement panel and model selector remain positioned correctly in fullscreen.
 
 ### Basic Example
 
@@ -574,6 +574,25 @@ comfortGlyph.setComfortMode(false);  // Disable comfort mode
 const isComfortMode = comfortGlyph.isComfortMode;
 ```
 
+## Fullscreen Button
+
+The viewer can display an optional fullscreen toggle that enters or exits browser fullscreen mode using the standard Fullscreen API.
+
+### Enabling Fullscreen Button
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models,
+  enableFullscreen: true,
+  autoLoadFirst: true
+});
+```
+
+A small circular control appears near the bottom-right corner when `enableFullscreen` is `true`.
+Its glassmorphic style matches other buttons and the arrow icon points outward to indicate entering fullscreen, flipping inward once fullscreen is active. The icon color adapts to the current theme.
+The button sits near the bottom-right corner, just above the measurement panel and comfort glyph so everything remains visible when embedded or fullscreened.
+Press the button or hit `Esc` to exit fullscreen.
+
 ---
 
 ## Configuration Options
@@ -601,6 +620,7 @@ const isComfortMode = comfortGlyph.isComfortMode;
   measurementTheme: 'dark',     // Measurement UI theme ('dark' or 'light')
   enableVRComfortGlyph: false,  // Enable VR comfort toggle UI
   enableDiveSystem: false,      // Enable dive/survey mode system
+  enableFullscreen: false,     // Show fullscreen button
   audioPath: './sound/',       // VR audio file path
   
   // Model loading
@@ -1072,10 +1092,7 @@ Complete example with all features enabled (see `examples/basic-viewer/`):
         // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
-        viewerContainer.style.top = '0';
-        viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
@@ -1366,8 +1383,8 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.top = '0';
         viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 

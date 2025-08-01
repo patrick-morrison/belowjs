@@ -20,24 +20,6 @@
     </style>
 </head>
 <body>
-    <!-- Model selector with dive mode toggle -->
-    <div id="modelSelector">
-        <select id="modelDropdown"></select>
-        <div id="modeToggleContainer">
-            <div class="semantic-toggle">
-                <input type="checkbox" id="modeToggleSwitch">
-                <div class="toggle-slider-bg"></div>
-                <div class="toggle-option left">
-                    <div class="toggle-icon">📋</div>
-                    <div class="toggle-text">Survey</div>
-                </div>
-                <div class="toggle-option right">
-                    <div class="toggle-icon">🌊</div>
-                    <div class="toggle-text">Dive</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         import { ModelViewer } from '/src/index.js';
@@ -105,10 +87,7 @@
         // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
-        viewerContainer.style.top = '0';
-        viewerContainer.style.left = '0';
-        viewerContainer.style.width = '100%';
-        viewerContainer.style.height = '100%';
+        viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
@@ -117,6 +96,7 @@
           models: models,
           enableDiveSystem: true,
           enableVR: true,  // Enable VR to show VR button
+          enableFullscreen: true,
           showInfo: false,
           showStatus: false,
           showLoadingIndicator: false,

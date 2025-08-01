@@ -964,7 +964,8 @@ export class MeasurementSystem {
         this.updateMeasurementPanel();
       }
     });
-    document.body.appendChild(panel);
+    const parent = (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement) || document.body;
+    parent.appendChild(panel);
     this.measurementPanel = panel;
   }
 

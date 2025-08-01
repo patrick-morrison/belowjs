@@ -12,7 +12,13 @@ import { DiveSystem } from '../dive/DiveSystem.js';
 export class ModelViewer extends EventSystem {
   constructor(container, options = {}) {
     super();
-    this.container = container;
+    if (typeof container === 'string') {
+      container = document.querySelector(container);
+    }
+    this.container = container || document.body;
+    if (window.getComputedStyle(this.container).position === 'static') {
+      this.container.style.position = 'relative';
+    }
     this.options = {
       models: {},
       autoLoadFirst: true,
@@ -24,6 +30,7 @@ export class ModelViewer extends EventSystem {
       measurementTheme: 'dark', // 'dark' or 'light' theme for measurement panel
       enableVRComfortGlyph: false, // Auto-attach VR comfort glyph
       enableDiveSystem: false, // Auto-attach dive system
+      enableFullscreen: false, // Show fullscreen toggle button
       ...options
     };
     this.currentModelKey = null;
@@ -32,6 +39,7 @@ export class ModelViewer extends EventSystem {
     this.measurementSystem = null;
     this.comfortGlyph = null;
     this.diveSystem = null;
+    this.fullscreenButton = null;
     this.lastComfortMode = null;
     
     // Make this instance globally accessible for measurement system auto-centering
@@ -99,6 +107,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachFullscreenButton();
     });
 
     // Also try setting it up immediately in case the event already fired
@@ -107,6 +116,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachFullscreenButton();
     }
 
     // Create UI if models are provided
@@ -246,6 +256,65 @@ export class ModelViewer extends EventSystem {
       window.diveSystem = this.diveSystem;
     }
 
+  }
+
+  _maybeAttachFullscreenButton() {
+    if (!this.options.enableFullscreen || this.fullscreenButton) return;
+
+    const button = document.createElement('div');
+    button.id = 'fullscreenButton';
+    button.className = 'fullscreen-button';
+    if (this.options.measurementTheme === 'light') {
+      button.classList.add('light-theme');
+    }
+    button.textContent = '\u2922'; // outward arrows symbol
+    button.tabIndex = 0;
+    button.title = 'Enter Fullscreen';
+    button.setAttribute('aria-label', 'Enter Fullscreen');
+
+    button.addEventListener('click', () => this.toggleFullscreen());
+    button.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggleFullscreen();
+      }
+    });
+
+    this.container.appendChild(button);
+    this.fullscreenButton = button;
+    this.ui.fullscreen = button;
+
+    this._onFullscreenChange = () => this.updateFullscreenButton();
+    document.addEventListener('fullscreenchange', this._onFullscreenChange);
+    this.updateFullscreenButton();
+  }
+
+  toggleFullscreen() {
+    if (this.isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exit) exit.call(document);
+      this.updateFullscreenButton();
+    } else {
+      const elem = this.container;
+      const request = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.msRequestFullscreen;
+      if (request) {
+        request.call(elem).catch((err) => console.error('[ModelViewer] Failed to enter fullscreen', err));
+      }
+      this.updateFullscreenButton();
+    }
+  }
+
+  isFullscreen() {
+    const elem = this.container;
+    return document.fullscreenElement === elem || document.webkitFullscreenElement === elem || document.msFullscreenElement === elem;
+  }
+
+  updateFullscreenButton() {
+    if (!this.fullscreenButton) return;
+    const active = this.isFullscreen();
+    this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
+    this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
+    this.fullscreenButton.textContent = active ? '\u2921' : '\u2922';
   }
   
   setupEventForwarding() {
@@ -475,34 +544,26 @@ export class ModelViewer extends EventSystem {
     } else {
       this.container.classList.add('below-viewer-container');
     }
-    
+
     // Only create model selector dropdown if there are multiple models
     const modelCount = Object.keys(this.options.models).length;
-    if (modelCount > 1) {
-      if (!document.getElementById('modelDropdown')) {
-        this.createModelSelector();
-      } else {
-        this.ui.dropdown = document.getElementById('modelDropdown');
-      }
+    if (modelCount > 1 && !this.ui.dropdown) {
+      this.createModelSelector();
     }
-    
-    // Create info panel only if enabled and doesn't exist
-    if (this.options.showInfo && !document.getElementById('info')) {
+
+    // Create info panel only if enabled and not already present
+    if (this.options.showInfo && !this.ui.info) {
       this.createInfoPanel();
     }
-    
-    // Create loading indicator if it doesn't exist and enabled
-    if (this.options.showLoadingIndicator && !document.getElementById('loading')) {
+
+    // Create loading indicator if enabled
+    if (this.options.showLoadingIndicator && !this.ui.loading) {
       this.createLoadingIndicator();
-    } else if (this.options.showLoadingIndicator) {
-      this.ui.loading = document.getElementById('loading');
     }
-    
-    // Create status indicator if it doesn't exist and enabled
-    if (this.options.showStatus && !document.getElementById('status')) {
+
+    // Create status indicator if enabled
+    if (this.options.showStatus && !this.ui.status) {
       this.createStatusIndicator();
-    } else if (this.options.showStatus) {
-      this.ui.status = document.getElementById('status');
     }
     
     // Set up event listeners
@@ -516,23 +577,69 @@ export class ModelViewer extends EventSystem {
   }
   
   createModelSelector() {
-    // Check if modelSelector div exists
-    let selectorContainer = document.getElementById('modelSelector');
-    if (!selectorContainer) {
-      selectorContainer = document.createElement('div');
-      selectorContainer.id = 'modelSelector';
-      selectorContainer.className = 'below-panel';
-      document.body.appendChild(selectorContainer);
+    const parent = this.container;
+
+    // Remove any existing selector to avoid duplicates
+    const existing = parent.querySelector('#modelSelector') || document.getElementById('modelSelector');
+    if (existing && existing.parentElement) {
+      existing.remove();
     }
-    
-    // Create dropdown if it doesn't exist
-    if (!document.getElementById('modelDropdown')) {
-      const dropdown = document.createElement('select');
-      dropdown.id = 'modelDropdown';
-      selectorContainer.appendChild(dropdown);
+
+    const selectorContainer = document.createElement('div');
+    selectorContainer.id = 'modelSelector';
+    selectorContainer.className = 'below-panel';
+    parent.appendChild(selectorContainer);
+
+    const dropdown = document.createElement('select');
+    dropdown.id = 'modelDropdown';
+    selectorContainer.appendChild(dropdown);
+
+    if (this.options.enableDiveSystem) {
+      const toggleContainer = document.createElement('div');
+      toggleContainer.id = 'modeToggleContainer';
+
+      const toggle = document.createElement('div');
+      toggle.className = 'semantic-toggle';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = 'modeToggleSwitch';
+      toggle.appendChild(checkbox);
+
+      const slider = document.createElement('div');
+      slider.className = 'toggle-slider-bg';
+      toggle.appendChild(slider);
+
+      const left = document.createElement('div');
+      left.className = 'toggle-option left';
+      const leftIcon = document.createElement('div');
+      leftIcon.className = 'toggle-icon';
+      leftIcon.textContent = '\uD83D\uDCCB';
+      const leftText = document.createElement('div');
+      leftText.className = 'toggle-text';
+      leftText.textContent = 'Survey';
+      left.appendChild(leftIcon);
+      left.appendChild(leftText);
+
+      const right = document.createElement('div');
+      right.className = 'toggle-option right';
+      const rightIcon = document.createElement('div');
+      rightIcon.className = 'toggle-icon';
+      rightIcon.textContent = '\uD83C\uDF0A';
+      const rightText = document.createElement('div');
+      rightText.className = 'toggle-text';
+      rightText.textContent = 'Dive';
+      right.appendChild(rightIcon);
+      right.appendChild(rightText);
+
+      toggle.appendChild(left);
+      toggle.appendChild(right);
+      toggleContainer.appendChild(toggle);
+      selectorContainer.appendChild(toggleContainer);
     }
-    
-    this.ui.dropdown = document.getElementById('modelDropdown');
+
+    this.ui.dropdown = dropdown;
+    this.ui.selector = selectorContainer;
   }
   
   createLoadingIndicator() {
@@ -541,7 +648,7 @@ export class ModelViewer extends EventSystem {
     loading.className = 'below-loading';
     loading.textContent = 'Loading...';
     loading.style.display = 'none';
-    document.body.appendChild(loading);
+    this.container.appendChild(loading);
     this.ui.loading = loading;
   }
   
@@ -550,7 +657,7 @@ export class ModelViewer extends EventSystem {
     status.id = 'status';
     status.className = 'status below-status';
     status.style.display = 'none';
-    document.body.appendChild(status);
+    this.container.appendChild(status);
     this.ui.status = status;
   }
   
@@ -572,8 +679,8 @@ export class ModelViewer extends EventSystem {
     
     info.appendChild(title);
     info.appendChild(controls);
-    document.body.appendChild(info);
-    
+    this.container.appendChild(info);
+
     this.ui.info = info;
   }
   
@@ -832,6 +939,11 @@ export class ModelViewer extends EventSystem {
       if (typeof window !== 'undefined' && window.diveSystem === this.diveSystem) {
         window.diveSystem = null;
       }
+    }
+    if (this.fullscreenButton) {
+      this.fullscreenButton.remove();
+      this.fullscreenButton = null;
+      document.removeEventListener('fullscreenchange', this._onFullscreenChange);
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();
