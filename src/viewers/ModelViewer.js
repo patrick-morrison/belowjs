@@ -574,16 +574,17 @@ export class ModelViewer extends EventSystem {
   }
   
   createModelSelector() {
-    // Check if modelSelector div exists within the container
-    let selectorContainer = this.container.querySelector('#modelSelector');
     const parent = this.container;
+    // Prefer any existing selector element in the document
+    let selectorContainer = parent.querySelector('#modelSelector') || document.getElementById('modelSelector');
+
     if (!selectorContainer) {
       selectorContainer = document.createElement('div');
       selectorContainer.id = 'modelSelector';
       selectorContainer.className = 'below-panel';
-      parent.appendChild(selectorContainer);
-    } else if (selectorContainer.parentElement !== parent) {
-      // Ensure the selector lives inside the viewer container for fullscreen
+    }
+
+    if (selectorContainer.parentElement !== parent) {
       selectorContainer.classList.add('below-panel');
       parent.appendChild(selectorContainer);
     }
