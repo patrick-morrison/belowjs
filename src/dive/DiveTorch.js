@@ -176,14 +176,6 @@ export class DiveTorch {
     const targetPosition = camera.position.clone().add(forward.multiplyScalar(8));
     this.spotlightTarget.position.copy(targetPosition);
     
-    // Debug logging (only occasionally to avoid spam)
-    // if (Math.random() < 0.01) { // 1% chance to log
-    //   console.log('🔦 Torch positioned at camera:', {
-    //     spotlightPos: this.controllerSpotlight.position,
-    //     targetPos: this.spotlightTarget.position,
-    //     visible: this.controllerSpotlight.visible
-    //   });
-    // }
   }
   
   /**

@@ -253,8 +253,7 @@ export class VRManager {
     }
     
     // Only log occasionally to avoid spam
-    if (!this.lastComfortLog || Date.now() - this.lastComfortLog > 10000) { // Every 10 seconds
-      console.log('🎮 VR comfort mode:', settings.locomotionMode === 'teleport' ? 'SAFETY/COMFORT' : 'EXPERIENCED');
+    if (!this.lastComfortLog || Date.now() - this.lastComfortLog > 10000) {
       this.lastComfortLog = Date.now();
     }
   }
@@ -408,8 +407,6 @@ export class VRManager {
     this.onMovementStart = null;
     this.onMovementStop = null;
     this.onMovementUpdate = null;
-    
-    console.log('🧹 VR Manager disposed completely');
   }
   
   // Legacy method compatibility

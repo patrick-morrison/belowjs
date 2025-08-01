@@ -470,8 +470,6 @@ export class BelowViewer extends EventSystem {
     this.removeAllListeners();
     
     this.isInitialized = false;
-    
-    console.log('✅ BelowViewer disposed');
   }
   
   applyDesktopPositions(positions) {

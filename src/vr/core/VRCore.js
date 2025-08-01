@@ -194,7 +194,6 @@ export class VRCore {
     
     // VR session end (original pattern)
     this.renderer.xr.addEventListener('sessionend', () => {
-      console.log('🛑 VR session ended');
       this.isVRPresenting = false;
       
       if (this.onSessionEnd) {
@@ -237,7 +236,6 @@ export class VRCore {
       // Limit render distance to 20m for Quest 2 performance (original)
       this.camera.far = 20;
       this.camera.updateProjectionMatrix();
-      console.log('📊 Quest 2 optimizations applied - render distance limited to 20m');
     }
   }
   
@@ -275,7 +273,6 @@ export class VRCore {
       try {
         if (button.parentNode) {
           button.parentNode.removeChild(button);
-          console.log('🧹 Removed legacy VR button');
         }
       } catch (error) {
         console.warn('Failed to remove VR button:', error);
@@ -294,7 +291,6 @@ export class VRCore {
               node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
             if (vrButtons.length > 0 || 
                 (node.tagName === 'BUTTON' && node.classList.contains('legacy-vr-button'))) {
-              console.log('🚫 VR not supported - hiding legacy VR button');
               const buttonToHide = vrButtons.length > 0 ? vrButtons[0] : node;
               buttonToHide.style.display = 'none';
             }

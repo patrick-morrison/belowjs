@@ -296,6 +296,5 @@ export class VRAudio {
     this.ambienceGainNode = null;
     
     this.soundEnabled = false;
-    console.log('🔇 VR Sound system disposed');
   }
 }

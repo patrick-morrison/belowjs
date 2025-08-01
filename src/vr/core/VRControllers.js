@@ -93,7 +93,7 @@ export class VRControllers {
           const pinchDist = thumbPos.distanceTo(indexPos);
           this.handStates[hand].pinch = pinchDist < 0.025; // Threshold for pinch
           if (this.handStates[hand].pinch) {
-            console.log(`[HandTracking] Pinch detected on ${hand} hand. Distance:`, pinchDist);
+            // Pinch detected
           }
         }
         // --- Fist detection (scaffold, simple heuristic) ---
@@ -117,7 +117,7 @@ export class VRControllers {
         }
         this.handStates[hand].fist = fist;
         if (fist) {
-          console.log(`[HandTracking] Fist detected on ${hand} hand.`);
+          // Fist detected
         }
         // --- Direction (scaffold: use index finger direction) ---
         if (indexTip && palm && indexTip.transform && palm.transform) {
@@ -126,7 +126,6 @@ export class VRControllers {
           this.handStates[hand].direction = new THREE.Vector3().subVectors(indexPos, palmPos).normalize();
         }
         // Log current hand state for debugging
-        console.log(`[HandTracking] ${hand} hand state:`, this.handStates[hand]);
       }
     }
   }
@@ -174,11 +173,10 @@ export class VRControllers {
 
         ctrl.userData.handedness = handedness;
         ctrl.userData.initialised = true;
-        console.log(`✅ ${handedness} controller connected`);
       });
 
       ctrl.addEventListener('disconnected', () => {
-        console.log('❌ Controller disconnected');
+        // Controller disconnected
       });
 
       // WebXR Controller Input Events (essential for Chrome WebXR)
@@ -196,14 +194,12 @@ export class VRControllers {
 
       ctrl.addEventListener('squeezestart', (event) => {
         if (ctrl.userData && ctrl.userData.initialised) {
-          console.log(`✊ ${ctrl.userData.handedness} controller squeeze started`);
           this.onControllerSqueezeStart(ctrl, event);
         }
       });
 
       ctrl.addEventListener('squeezeend', (event) => {
         if (ctrl.userData && ctrl.userData.initialised) {
-          console.log(`✊ ${ctrl.userData.handedness} controller squeeze ended`);
           this.onControllerSqueezeEnd(ctrl, event);
         }
       });
@@ -234,7 +230,6 @@ export class VRControllers {
   
   onControllerSqueezeEnd(controller, event) {
     const handedness = controller.userData.handedness;
-    console.log(`🛑 ${handedness} controller squeeze ended - boost deactivated`);
     if (this.onSqueezeEnd) {
       this.onSqueezeEnd(handedness, controller, event);
     }
@@ -254,10 +249,6 @@ export class VRControllers {
         // Original debug logging (once per controller)
         const debugKey = `debug-${handedness}`;
         if (!this.buttonStates.get(debugKey)) {
-          console.log(`🎮 ${handedness} controller detected with ${gamepad.buttons.length} buttons:`);
-          gamepad.buttons.forEach((button, index) => {
-            console.log(`  Button[${index}]: pressed=${button.pressed}, touched=${button.touched}, value=${button.value}`);
-          });
           this.buttonStates.set(debugKey, true);
         }
         
@@ -279,8 +270,6 @@ export class VRControllers {
             
             // Detect button press (not held) - original logic
             if (isPressed && !wasPressed) {
-              console.log(`🎮 ${handedness} controller button[${index}] pressed for mode toggle!`);
-              
               // Trigger mode toggle callback
               if (this.onModeToggle) {
                 this.onModeToggle();

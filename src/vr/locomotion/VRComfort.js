@@ -155,7 +155,6 @@ export class VRComfort {
     
     if (Object.keys(validSettings).length > 0) {
       this.presets[name] = validSettings;
-      console.log(`✅ Added custom comfort preset: ${name}`);
       return true;
     } else {
       console.warn('Invalid settings for custom preset');
