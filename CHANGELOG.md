@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive code cleanup removing development artifacts
 - Audio path configuration now properly supported via `audioPath` option
 - Optional fullscreen toggle via `enableFullscreen` configuration
+- VR audio system can now be disabled via `enableVRAudio: false` configuration option
 
 ### Changed
 - **BREAKING**: Removed emoji-based console logging throughout codebase
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VR audio initialization feedback made silent
 - Locomotion system status messages removed
 - Dive system mode switching logs eliminated
+- VR audio 404 errors can now be prevented by disabling the audio system entirely
 
 ### Developer Experience
 - Build system produces cleaner, smaller bundles

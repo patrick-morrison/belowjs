@@ -14,11 +14,12 @@ import { VRComfort } from '../vr/locomotion/VRComfort.js';
 import { VRAudio } from '../vr/audio/VRAudio.js';
 
 export class VRManager {
-  constructor(renderer, camera, scene, audioPath = './sound/') {
+  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = true) {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
     this.audioPath = audioPath;
+    this.enableAudio = enableAudio;
     
     // Core VR modules
     this.vrCore = new VRCore(renderer, camera, scene);
@@ -26,7 +27,7 @@ export class VRManager {
     this.vrTeleport = new VRTeleport(scene, camera);
     this.vrLocomotion = new VRLocomotion(camera, renderer);
     this.vrComfort = new VRComfort();
-    this.vrAudio = new VRAudio();
+    this.vrAudio = this.enableAudio ? new VRAudio() : null;
     
     // Legacy compatibility properties
     this.isVRSupported = false;
@@ -78,9 +79,11 @@ export class VRManager {
     this.setupModuleConnections();
     
     // Initialize sound system (optional) - async
-    this.vrAudio.init(this.audioPath).catch(error => {
-      console.warn('🔇 Sound system initialization failed:', error);
-    });
+    if (this.vrAudio) {
+      this.vrAudio.init(this.audioPath).catch(error => {
+        console.warn('🔇 Sound system initialization failed:', error);
+      });
+    }
   }
   
   setupModuleConnections() {
@@ -90,7 +93,9 @@ export class VRManager {
       console.debug('[VRManager] VR session starting - saving camera state');
       this._saveCameraState();
       this.isVRPresenting = true;
-      this.vrAudio.initAudioOnInteraction();
+      if (this.vrAudio) {
+        this.vrAudio.initAudioOnInteraction();
+      }
     };
     
     this.vrCore.onSessionEnd = () => {
@@ -130,14 +135,18 @@ export class VRManager {
     
     // Connect Locomotion callbacks
     this.vrLocomotion.onMovementStart = () => {
-      this.vrAudio.startMovementSound();
+      if (this.vrAudio) {
+        this.vrAudio.startMovementSound();
+      }
       if (this.onMovementStart) {
         this.onMovementStart();
       }
     };
     
     this.vrLocomotion.onMovementStop = () => {
-      this.vrAudio.stopMovementSound();
+      if (this.vrAudio) {
+        this.vrAudio.stopMovementSound();
+      }
       if (this.onMovementStop) {
         this.onMovementStop();
       }
@@ -145,7 +154,9 @@ export class VRManager {
     
     this.vrLocomotion.onMovementUpdate = (movementState) => {
       // Update audio levels with current movement state
-      this.vrAudio.updateAudioLevels(movementState.currentSpeed, movementState.currentBoostLevel);
+      if (this.vrAudio) {
+        this.vrAudio.updateAudioLevels(movementState.currentSpeed, movementState.currentBoostLevel);
+      }
       
       if (this.onMovementUpdate) {
         this.onMovementUpdate(movementState);
@@ -352,7 +363,7 @@ export class VRManager {
   // Get VR system status
   getVRStatus() {
     const coreStatus = this.vrCore.getVRStatus();
-    const audioStatus = this.vrAudio.getAudioStatus();
+    const audioStatus = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: false };
     const movementState = this.vrLocomotion.getMovementState();
     const comfortSettings = this.vrComfort.getSettings();
     
@@ -366,11 +377,15 @@ export class VRManager {
   
   // Audio control methods
   setAudioMuted(muted) {
-    this.vrAudio.setMuted(muted);
+    if (this.vrAudio) {
+      this.vrAudio.setMuted(muted);
+    }
   }
   
   setAudioVolumeMultipliers(base, boost, ambience) {
-    this.vrAudio.setVolumeMultipliers(base, boost, ambience);
+    if (this.vrAudio) {
+      this.vrAudio.setVolumeMultipliers(base, boost, ambience);
+    }
   }
   
   // Teleportation methods
@@ -384,7 +399,9 @@ export class VRManager {
     this.vrCore.dispose();
     this.vrControllers.dispose();
     this.vrTeleport.dispose();
-    this.vrAudio.dispose();
+    if (this.vrAudio) {
+      this.vrAudio.dispose();
+    }
     
     // Clear callbacks
     this.onModeToggle = null;

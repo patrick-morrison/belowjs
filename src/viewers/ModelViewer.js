@@ -89,6 +89,8 @@ export class ModelViewer extends EventSystem {
       ...(this.options.enableVR && { vr: { enabled: true } }),
       // Pass audioPath if provided
       ...(this.options.audioPath && { audioPath: this.options.audioPath }),
+      // Pass VR audio enablement option
+      ...(typeof this.options.enableVRAudio !== 'undefined' && { enableVRAudio: this.options.enableVRAudio }),
       // Allow scene config to be passed at top level for convenience
       ...(this.options.scene && { scene: { ...defaultConfig.scene, ...this.options.scene } }),
       ...(this.options.camera && { camera: { ...defaultConfig.camera, ...this.options.camera } }),
@@ -267,7 +269,11 @@ export class ModelViewer extends EventSystem {
     if (this.options.measurementTheme === 'light') {
       button.classList.add('light-theme');
     }
-    button.textContent = '\u2922'; // outward arrows symbol
+    // Position at bottom-right when no measurement system
+    if (!this.options.enableMeasurement) {
+      button.classList.add('no-measurement');
+    }
+    button.textContent = '\u26F6'; // fullscreen glyph
     button.tabIndex = 0;
     button.title = 'Enter Fullscreen';
     button.setAttribute('aria-label', 'Enter Fullscreen');
@@ -314,7 +320,7 @@ export class ModelViewer extends EventSystem {
     const active = this.isFullscreen();
     this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
     this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
-    this.fullscreenButton.textContent = active ? '\u2921' : '\u2922';
+    this.fullscreenButton.textContent = active ? '\u26F6' : '\u26F6';
   }
   
   setupEventForwarding() {

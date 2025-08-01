@@ -42,7 +42,7 @@ BelowJS examples use ES modules with production CSS for optimal performance:
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
         
         const viewer = new ModelViewer(container, {
             models: models,
@@ -341,6 +341,42 @@ BelowJS includes a glassmorphism VR button with shimmer effect:
 }
 ```
 
+### VR Audio System
+
+BelowJS includes an optional VR audio system that provides immersive sound effects during VR movement:
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models: models,
+  enableVR: true,
+  enableVRAudio: true,        // Enable VR audio (default: true)
+  audioPath: './sound/',     // Path to VR audio files
+  autoLoadFirst: true
+});
+```
+
+**Audio Files Required:**
+- `dpv.ogg` - Base movement sound
+- `dpvhigh.ogg` - High-speed movement sound  
+- `vrambience.ogg` - Background ambience
+
+**Disabling VR Audio:**
+Set `enableVRAudio: false` to disable audio loading entirely, preventing 404 errors when audio files are not available:
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models: models,
+  enableVR: true,
+  enableVRAudio: false,       // Disable VR audio system
+  autoLoadFirst: true
+});
+```
+
+This is useful for:
+- Measurement-only viewers that don't need audio
+- Environments where audio files are not available
+- Custom audio implementations
+
 ### Device Optimization
 
 BelowJS automatically detects VR devices and applies optimizations:
@@ -612,6 +648,7 @@ Press the button or hit `Esc` to exit fullscreen.
   
   // Feature enablement
   enableVR: false,              // Enable VR support
+  enableVRAudio: true,          // Enable VR audio system (default: true)
   enableControls: true,         // Enable camera controls
   enableInfo: true,             // Enable info panel display
   showStats: false,             // Show performance stats
@@ -1199,7 +1236,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
 
         const models = {
             'shipwreck': {
@@ -1295,7 +1332,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
 
         const viewer = new ModelViewer(document.body, {
             models: {
@@ -1313,6 +1350,61 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
     </script>
 </body>
 </html>
+```
+
+### Light Measurement Example (URL Parameter Integration)
+
+A measurement-focused viewer that can be embedded with URL parameters and disabled VR audio:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Light Measurement Viewer</title>
+    <link rel="stylesheet" href="/dist/belowjs.css">
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from '/dist/belowjs.es.js';
+
+        // Parse URL parameters for dynamic configuration
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelUrl = urlParams.get('model') || 'default-model.glb';
+        const modelName = urlParams.get('name') || 'Default Model';
+        const backgroundColor = urlParams.get('bg') || '#f8f9fa';
+
+        const viewer = new ModelViewer(container, {
+            models: {
+                'model': { 
+                    url: modelUrl, 
+                    name: modelName 
+                }
+            },
+            enableMeasurement: true,
+            measurementTheme: 'light',
+            enableVRAudio: false,        // Disable VR audio for measurement-focused viewer
+            enableFullscreen: true,
+            autoLoadFirst: true,
+            showInfo: false,
+            viewerConfig: {
+                scene: {
+                    background: { type: 'color', value: backgroundColor }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
+**Usage in iframe:**
+```html
+<iframe 
+    src="viewer.html?model=wreck.glb&name=Historic%20Wreck&bg=%23f8f9fa"
+    width="100%" 
+    height="500px">
+</iframe>
 ```
 
 ### Minimal Viewer Example
@@ -1359,7 +1451,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
     </div>
 
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
 
         const models = {
             'shipwreck': {

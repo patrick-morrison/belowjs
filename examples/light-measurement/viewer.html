@@ -26,17 +26,31 @@
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
 
-        // Single model configuration - Unknown Wreck only
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelUrl = urlParams.get('model') || '../basic-viewer/models/unknown.glb';
+        const modelName = urlParams.get('name') || 'Unknown Wreck';
+        const cameraX = parseFloat(urlParams.get('cx')) || 34.226;
+        const cameraY = parseFloat(urlParams.get('cy')) || 10.354;
+        const cameraZ = parseFloat(urlParams.get('cz')) || 2.12;
+        const targetX = parseFloat(urlParams.get('tx')) || 10.959;
+        const targetY = parseFloat(urlParams.get('ty')) || -1.07;
+        const targetZ = parseFloat(urlParams.get('tz')) || 2.247;
+        const backgroundColor = urlParams.get('bg') || '#f8f9fa';
+        const credit = urlParams.get('credit') || '';
+
+        // Dynamic model configuration based on URL parameters
         const models = {
-          'unknown': { 
-            url: '../basic-viewer/models/unknown.glb', 
-            name: 'Unknown Wreck',
+          'model': { 
+            url: modelUrl, 
+            name: modelName,
+            credit: credit,
             initialPositions: {
               desktop: {
-                camera: { x: 34.226, y: 10.354, z: 2.12 },
-                target: { x: 10.959, y: -1.07, z: 2.247 }
+                camera: { x: cameraX, y: cameraY, z: cameraZ },
+                target: { x: targetX, y: targetY, z: targetZ }
               }
             }
           }
@@ -60,9 +74,10 @@
           showInfo: false,
           showStatus: false,
           showLoadingIndicator: false,
+          enableVRAudio: false, // Disable VR audio to prevent 404 errors
           viewerConfig: {
             scene: {
-              background: { type: 'color', value: '#f8f9fa' }, // Softer light gray 
+              background: { type: 'color', value: backgroundColor }, // Configurable background 
               fog: { enabled: false }
             },
             camera: {

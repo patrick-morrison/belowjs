@@ -324,8 +324,7 @@ export class DiveSystem {
       });
       
     } else {
-      console.warn('Mode toggle switch not found in DOM');
-      // Still apply initial mode settings even without UI
+      // No UI toggle found - apply default survey mode for minimal viewers
       this.disableDiveMode();
     }
     

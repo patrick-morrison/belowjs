@@ -22,7 +22,7 @@
 <body>
 
     <script type="module">
-        import { ModelViewer } from '/src/index.js';
+        import { ModelViewer } from '/dist/belowjs.es.js';
 
         // Model configuration
         const models = {
@@ -96,6 +96,7 @@
           models: models,
           enableDiveSystem: true,
           enableVR: true,  // Enable VR to show VR button
+          enableVRAudio: false,  // Disable VR audio for minimal viewer
           enableFullscreen: true,
           showInfo: false,
           showStatus: false,
