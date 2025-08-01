@@ -593,8 +593,9 @@ const viewer = new ModelViewer(container, {
 });
 ```
 
-A small circular control appears in the top-right of the viewer when `enableFullscreen` is `true`.
+A small circular control appears in the bottom-right of the viewer when `enableFullscreen` is `true`.
 Its arrow icon points outward to indicate entering fullscreen and flips to point inward once fullscreen is active.
+The button sits above other controls near the measurement panel so it remains visible in fullscreen or when embedded.
 Press the button or hit `Esc` to exit fullscreen.
 
 ---

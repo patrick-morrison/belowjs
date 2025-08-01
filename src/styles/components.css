@@ -126,10 +126,10 @@
 #fullscreenButton,
 .fullscreen-button {
   position: absolute;
-  top: 20px;
+  bottom: 120px;
   right: 20px;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--below-panel-bg);
   border: 1px solid var(--below-panel-border);
@@ -138,9 +138,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 30;
   backdrop-filter: var(--below-panel-backdrop);
-  box-shadow: var(--below-panel-shadow);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   user-select: none;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -148,5 +148,5 @@
 #fullscreenButton:hover,
 .fullscreen-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
