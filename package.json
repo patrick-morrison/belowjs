@@ -12,8 +12,7 @@
     "dev:minimal": "vite serve --open examples/dark-minimal/",
     "dev:measurement": "vite serve --open examples/light-measurement/",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "jest"
+    "preview": "vite preview"
   },
   "keywords": [
     "threejs",
@@ -25,7 +24,13 @@
     "webgl"
   ],
   "author": "Patrick Morrison",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patrick-morrison/belowjs"
+  },
+  "bugs": { "url": "https://github.com/patrick-morrison/belowjs/issues" },
+  "homepage": "https://github.com/patrick-morrison/belowjs#readme",
   "dependencies": {
     "three": "^0.177.0"
   },

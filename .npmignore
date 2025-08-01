@@ -11,8 +11,8 @@ vite.config.js
 node_modules/
 
 # Documentation
-*.md
-docs/
+# Include documentation in published package
+!README.md
 
 # Git
 .git/

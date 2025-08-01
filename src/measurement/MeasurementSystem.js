@@ -1,8 +1,6 @@
 // MeasurementSystem.js
-// BelowJS Measurement System (EXTRACTION STUB)
-// This file will encapsulate all measurement logic for VR and desktop, ported from the Adrasan VR Measurement Tool.
-//
-// Step 1: Scaffold the class and API, ready for incremental porting.
+// Provides distance measurement tools for both VR and desktop modes.
+// Originally inspired by the Adrasan VR Measurement Tool.
 
 
 import * as THREE from 'three';
@@ -656,7 +654,6 @@ export class MeasurementSystem {
     // Debounce to prevent multiple placements from one trigger press
     const now = performance.now();
     if (this.lastTriggerTime && (now - this.lastTriggerTime) < 200) {
-      console.log('🚫 Debounced trigger press');
       return;
     }
     this.lastTriggerTime = now;

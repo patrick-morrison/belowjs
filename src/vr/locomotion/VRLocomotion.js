@@ -78,7 +78,6 @@ export class VRLocomotion {
       this.onMovementStop();
     }
     
-    console.log('🛑 Movement stopped');
   }
   
   setTeleportSystem(teleportSystem) {

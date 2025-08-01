@@ -497,11 +497,7 @@ export class VRTeleport {
         this.executeTeleport();
         // Reset floor height so it will be set to user's Y on next aim
         this.teleportFloorHeight = null;
-      } else {
-        console.log(`🚫 Invalid teleport distance: ${horizontalDistance.toFixed(2)}m (must be 3-30m)`);
       }
-    } else {
-      console.log('🚫 Teleport failed - no valid surface found');
     }
   }
   

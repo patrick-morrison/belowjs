@@ -415,7 +415,6 @@ export class VRComfortGlyph {
     }
     
     this.updateVisualState();
-    console.log(`🎮 Comfort mode: ${this.isComfortMode ? 'ON (Safe/Teleport)' : 'OFF (Smooth)'}`);
     
     // Trigger custom event
     const event = new CustomEvent('vrcomfortchange', {
@@ -492,7 +491,6 @@ export class VRComfortGlyph {
     }
     
     this.vrManager = null;
-    console.log('🧹 VR Comfort Glyph disposed');
   }
   
   // Static method to create and initialize

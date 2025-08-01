@@ -13,7 +13,6 @@ A modular Three.js library for creating 3D model viewers with WebXR support and 
 - **UI Themes**: Dark and light theme support with customizable interfaces
 - **Interactive Controls**: Camera controls with focus targeting and orbit navigation
 - **Mobile Support**: Touch-optimized controls for mobile devices
-- **TypeScript Ready**: Comprehensive type definitions and documentation
 - **Performance Optimized**: Efficient model loading and rendering pipeline
 
 ## Installation
@@ -178,7 +177,7 @@ npm run build
 
 ## License
 
-MIT License - see LICENSE file for details.
+GPLv3 License - see LICENSE file for details.
 
 ## Credits
 
