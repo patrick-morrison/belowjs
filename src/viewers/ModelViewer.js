@@ -12,7 +12,10 @@ import { DiveSystem } from '../dive/DiveSystem.js';
 export class ModelViewer extends EventSystem {
   constructor(container, options = {}) {
     super();
-    this.container = container;
+    if (typeof container === 'string') {
+      container = document.querySelector(container);
+    }
+    this.container = container || document.body;
     this.options = {
       models: {},
       autoLoadFirst: true,

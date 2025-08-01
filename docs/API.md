@@ -593,7 +593,7 @@ const viewer = new ModelViewer(container, {
 
 A small circular control appears near the bottom-right corner when `enableFullscreen` is `true`.
 Its glassmorphic style matches other buttons and the arrow icon points outward to indicate entering fullscreen, flipping inward once fullscreen is active. The icon color adapts to the current theme.
-The button is tucked just above the measurement panel so it stays visible when embedded or fullscreened.
+The button floats a bit above the VR comfort and measurement controls so everything remains visible when embedded or fullscreened.
 Press the button or hit `Esc` to exit fullscreen.
 
 ---
