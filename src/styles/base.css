@@ -29,6 +29,13 @@ html, body {
   position: relative;
 }
 
+/* Ensure renderer canvas fills the container without gaps */
+.below-viewer-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* Base panel styling with glassmorphism effect */
 .below-panel {
   background: var(--below-panel-bg);

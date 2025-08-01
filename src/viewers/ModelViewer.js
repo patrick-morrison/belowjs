@@ -575,26 +575,64 @@ export class ModelViewer extends EventSystem {
   
   createModelSelector() {
     const parent = this.container;
-    // Prefer any existing selector element in the document
-    let selectorContainer = parent.querySelector('#modelSelector') || document.getElementById('modelSelector');
 
-    if (!selectorContainer) {
-      selectorContainer = document.createElement('div');
-      selectorContainer.id = 'modelSelector';
-      selectorContainer.className = 'below-panel';
+    // Remove any existing selector to avoid duplicates
+    const existing = parent.querySelector('#modelSelector') || document.getElementById('modelSelector');
+    if (existing && existing.parentElement) {
+      existing.remove();
     }
 
-    if (selectorContainer.parentElement !== parent) {
-      selectorContainer.classList.add('below-panel');
-      parent.appendChild(selectorContainer);
-    }
+    const selectorContainer = document.createElement('div');
+    selectorContainer.id = 'modelSelector';
+    selectorContainer.className = 'below-panel';
+    parent.appendChild(selectorContainer);
 
-    // Create dropdown if it doesn't exist
-    let dropdown = selectorContainer.querySelector('#modelDropdown');
-    if (!dropdown) {
-      dropdown = document.createElement('select');
-      dropdown.id = 'modelDropdown';
-      selectorContainer.appendChild(dropdown);
+    const dropdown = document.createElement('select');
+    dropdown.id = 'modelDropdown';
+    selectorContainer.appendChild(dropdown);
+
+    if (this.options.enableDiveSystem) {
+      const toggleContainer = document.createElement('div');
+      toggleContainer.id = 'modeToggleContainer';
+
+      const toggle = document.createElement('div');
+      toggle.className = 'semantic-toggle';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = 'modeToggleSwitch';
+      toggle.appendChild(checkbox);
+
+      const slider = document.createElement('div');
+      slider.className = 'toggle-slider-bg';
+      toggle.appendChild(slider);
+
+      const left = document.createElement('div');
+      left.className = 'toggle-option left';
+      const leftIcon = document.createElement('div');
+      leftIcon.className = 'toggle-icon';
+      leftIcon.textContent = '\uD83D\uDCCB';
+      const leftText = document.createElement('div');
+      leftText.className = 'toggle-text';
+      leftText.textContent = 'Survey';
+      left.appendChild(leftIcon);
+      left.appendChild(leftText);
+
+      const right = document.createElement('div');
+      right.className = 'toggle-option right';
+      const rightIcon = document.createElement('div');
+      rightIcon.className = 'toggle-icon';
+      rightIcon.textContent = '\uD83C\uDF0A';
+      const rightText = document.createElement('div');
+      rightText.className = 'toggle-text';
+      rightText.textContent = 'Dive';
+      right.appendChild(rightIcon);
+      right.appendChild(rightText);
+
+      toggle.appendChild(left);
+      toggle.appendChild(right);
+      toggleContainer.appendChild(toggle);
+      selectorContainer.appendChild(toggleContainer);
     }
 
     this.ui.dropdown = dropdown;
