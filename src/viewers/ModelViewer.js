@@ -264,6 +264,9 @@ export class ModelViewer extends EventSystem {
     const button = document.createElement('div');
     button.id = 'fullscreenButton';
     button.className = 'fullscreen-button';
+    if (this.options.measurementTheme === 'light') {
+      button.classList.add('light-theme');
+    }
     button.textContent = '\u2922'; // outward arrows symbol
     button.tabIndex = 0;
     button.title = 'Enter Fullscreen';

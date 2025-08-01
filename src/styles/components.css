@@ -126,7 +126,7 @@
 #fullscreenButton,
 .fullscreen-button {
   position: absolute;
-  bottom: 120px;
+  bottom: 80px;
   right: 20px;
   width: 36px;
   height: 36px;
@@ -149,4 +149,18 @@
 .fullscreen-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark style when paired with light-themed measurement panel */
+.fullscreen-button.light-theme {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.fullscreen-button.light-theme:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
