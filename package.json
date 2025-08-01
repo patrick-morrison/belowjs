@@ -2,12 +2,15 @@
   "name": "belowjs",
   "version": "0.1.3",
   "description": "A modular Three.js library for creating immersive underwater/dive model viewers with VR support",
-  "main": "dist/belowjs.js",
-  "module": "src/index.js",
+  "main": "dist/belowjs.umd.js",
+  "module": "dist/belowjs.es.js",
+  "style": "dist/belowjs.css",
   "type": "module",
   "scripts": {
     "dev": "vite serve --open examples/basic-viewer/",
     "dev:basic": "vite serve --open examples/basic-viewer/",
+    "dev:minimal": "vite serve --open examples/dark-minimal/",
+    "dev:measurement": "vite serve --open examples/light-measurement/",
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest"

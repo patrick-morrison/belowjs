@@ -80,7 +80,6 @@ export class VRCore {
           navigator.xr.isSessionSupported('immersive-vr')
             .then(supported => {
               this.isVRSupported = supported;
-              console.log('🥽 VR Support:', supported ? 'YES' : 'NO');
               resolve();
             })
             .catch(error => {
@@ -89,7 +88,6 @@ export class VRCore {
               resolve();
             });
         } else {
-          console.log('🥽 WebXR not available');
           this.isVRSupported = false;
           resolve();
         }
@@ -183,7 +181,6 @@ export class VRCore {
   setupSessionListeners() {
     // VR session start (original pattern)
     this.renderer.xr.addEventListener('sessionstart', () => {
-      console.log('🚀 VR session started');
       this.isVRPresenting = true;
       
       // Detect Quest device and apply optimizations (original)
@@ -216,7 +213,6 @@ export class VRCore {
           userAgent.includes('oculus quest 2') ||
           (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
         this.isQuest2 = true;
-        console.log('🥽 Quest 2 detected - applying performance optimizations');
         return 'quest2';
       }
       
@@ -225,11 +221,9 @@ export class VRCore {
           userAgent.includes('oculus quest 3') ||
           userAgent.includes('meta quest 3')) {
         this.isQuest3 = true;
-        console.log('🥽 Quest 3 detected - using full render distance');
         return 'quest3';
       }
       
-      console.log('🥽 Unknown VR device or desktop - using default settings');
       return 'unknown';
     } catch (error) {
       console.warn('Device detection failed:', error);

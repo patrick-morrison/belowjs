@@ -5,7 +5,6 @@
 // Step 1: Scaffold the class and API, ready for incremental porting.
 
 
-console.debug('[MeasurementSystem] MeasurementSystem.js loaded');
 import * as THREE from 'three';
 import { Line2, LineMaterial, LineGeometry } from './ThickLine.js';
 
@@ -580,7 +579,6 @@ export class MeasurementSystem {
   // --- VR Logic ---
   // Call this after VR controllers are available and renderer.xr is enabled
   attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 }) {
-    console.debug('[MeasurementSystem] attachVR() called: VR mode begins. Controllers:', controller1, controller2);
     
     this.controller1 = controller1;
     this.controller2 = controller2;
@@ -648,14 +646,12 @@ export class MeasurementSystem {
     // Track which controller triggered
     const controller = event.target;
     const handedness = controller.userData?.inputSource?.handedness || 'unknown';
-    console.log(`🎯 VR trigger DOWN on ${handedness} controller`);
   }
 
   _onVRTriggerUp(event) {
     // Place sphere on trigger release - simple approach
     const controller = event.target;
     const handedness = controller.userData?.inputSource?.handedness || 'unknown';
-    console.log(`🎯 VR trigger UP on ${handedness} controller - placing sphere`);
     
     // Debounce to prevent multiple placements from one trigger press
     const now = performance.now();
@@ -680,14 +676,12 @@ export class MeasurementSystem {
       if (ghostSphere) {
         // Get the world position of the ghost sphere to match exactly
         ghostSphere.getWorldPosition(controllerPos);
-        console.log(`📍 Placing sphere at ghost sphere world position:`, controllerPos.toArray());
       } else {
         // Fallback: controller position with offset
         controller.getWorldPosition(controllerPos);
         const forward = new THREE.Vector3(0, 0, -0.05);
         forward.applyQuaternion(controller.quaternion);
         controllerPos.add(forward);
-        console.log(`📍 Placing sphere at controller tip (fallback):`, controllerPos.toArray());
       }
       
       this._placeVRMeasurementPoint(controllerPos);
@@ -727,7 +721,6 @@ export class MeasurementSystem {
   }
 
   _placeVRMeasurementPoint(point) {
-    console.debug('[MeasurementSystem][VR] Placing VR measurement point at:', point.toArray());
     
     if (this.measurementSystemEnabled) {
       // Use the unified measurement system
@@ -762,11 +755,9 @@ export class MeasurementSystem {
    * @param {string} source - 'vr' or 'desktop' for tracking
    */
   placeUnifiedMeasurementPoint(point, source = 'unknown') {
-    console.debug(`[MeasurementSystem] Placing unified measurement point from ${source}:`, point.toArray());
     
     // Only clear legacy systems if this is the start of a new measurement
     if (this.unifiedMeasurementPoints.length === 0) {
-      console.debug('[MeasurementSystem] Starting new measurement - clearing legacy systems');
       this.clearLegacyVRMeasurement();
       this.clearLegacyDesktopMeasurement();
     }
@@ -796,7 +787,6 @@ export class MeasurementSystem {
     // Update panel
     this.updateMeasurementPanel();
     
-    console.debug(`[MeasurementSystem] Unified measurement points: ${this.unifiedMeasurementPoints.length}/2`);
   }
 
   /**
@@ -848,12 +838,10 @@ export class MeasurementSystem {
         // Ensure sprite visibility is set correctly right away
         const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
         this.measurementSprite.visible = inVR;
-        console.debug('[MeasurementSystem] Sprite visibility set to:', inVR, 'in VR mode');
       }
       
       // Auto-enable desktop measurement mode so measurements persist
       if (!this.desktopMeasurementMode) {
-        console.debug('[MeasurementSystem] Auto-enabling desktop measurement mode for unified measurement');
         this.desktopMeasurementMode = true;
       }
     }
@@ -953,7 +941,6 @@ export class MeasurementSystem {
       if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
         // Desktop mode: toggle desktop measurement
         this.desktopMeasurementMode = !this.desktopMeasurementMode;
-        console.log(`🖱️ Desktop measurement mode: ${this.desktopMeasurementMode ? 'ON' : 'OFF'}`);
         
         if (!this.desktopMeasurementMode) {
           // When disabling desktop mode, clear everything using unified system
@@ -963,7 +950,6 @@ export class MeasurementSystem {
       } else {
         // VR mode: toggle VR measurement system
         this.measurementSystemEnabled = !this.measurementSystemEnabled;
-        console.log(`🥽 VR measurement system: ${this.measurementSystemEnabled ? 'ON' : 'OFF'}`);
         
         if (!this.measurementSystemEnabled) {
           // Clear unified measurement when disabling VR
@@ -1114,7 +1100,6 @@ export class MeasurementSystem {
     //
     // Only place a measurement point if there is a valid intersection
     if (intersects.length === 0) {
-      console.debug('[MeasurementSystem] No intersects found, not placing measurement point.');
       return;
     }
     //
@@ -1237,7 +1222,6 @@ export class MeasurementSystem {
         
         // Force visibility in VR
         this.measurementSprite.visible = true;
-        console.debug('[MeasurementSystem] Refreshed measurement sprite for VR mode');
       }
     }
   }

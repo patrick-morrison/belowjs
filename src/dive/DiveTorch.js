@@ -19,7 +19,6 @@ export class DiveTorch {
     // Initialize torch system
     this.createSpotlight();
     
-    console.log('🔦 Torch system initialized');
   }
   
   /**
@@ -106,7 +105,6 @@ export class DiveTorch {
     this.scene.add(this.spotlightTarget);
     this.controllerSpotlight.target = this.spotlightTarget;
     
-    console.log(`🔦 Spotlight created with ${beamWidthDegrees}° beam width, ${spotlightDistance}m distance, and ${shadowMapSize}px shadows`);
   }
   
   /**
@@ -114,15 +112,9 @@ export class DiveTorch {
    */
   enableTorch() {
     if (this.controllerSpotlight) {
-      console.log('🔦 Torch object:', this.controllerSpotlight);
-      console.log('🔦 Torch position before enable:', this.controllerSpotlight.position);
-      console.log('🔦 Torch intensity:', this.controllerSpotlight.intensity);
-      console.log('🔦 Torch in scene:', this.scene.children.includes(this.controllerSpotlight));
       this.controllerSpotlight.visible = true;
-      console.log('🔦 Torch enabled for dive mode, visible:', this.controllerSpotlight.visible);
-      console.log('🔦 Torch position after enable:', this.controllerSpotlight.position);
     } else {
-      console.error('🔦 Cannot enable torch - controllerSpotlight is null');
+      console.error('Cannot enable torch - controllerSpotlight is null');
     }
   }
   
@@ -132,7 +124,6 @@ export class DiveTorch {
   disableTorch() {
     if (this.controllerSpotlight) {
       this.controllerSpotlight.visible = false;
-      console.log('🔦 Torch disabled for survey mode');
     }
   }
   
@@ -142,7 +133,7 @@ export class DiveTorch {
   updatePosition(controller) {
     if (!this.controllerSpotlight || !this.spotlightTarget || !controller) {
       if (!controller) {
-        console.warn('🔦 updatePosition called with null controller');
+        console.warn('updatePosition called with null controller');
       }
       return;
     }
@@ -166,15 +157,6 @@ export class DiveTorch {
     this.spotlightTarget.position.copy(targetPosition);
     
     // Debug logging (occasional to avoid spam)
-    if (Math.random() < 0.01) { // 1% chance to log
-      console.log('🔦 VR torch updated:', {
-        controllerPos: controllerPosition.toArray(),
-        spotlightPos: this.controllerSpotlight.position.toArray(),
-        targetPos: this.spotlightTarget.position.toArray(),
-        visible: this.controllerSpotlight.visible,
-        intensity: this.controllerSpotlight.intensity
-      });
-    }
   }
   
   /**

@@ -58,7 +58,6 @@ export class VRComfort {
       if (this.settings.locomotionMode !== newSettings.locomotionMode) {
         this.settings.locomotionMode = newSettings.locomotionMode;
         changed = true;
-        console.log(`🔄 Locomotion mode changed to: ${newSettings.locomotionMode}`);
       }
     }
     
@@ -66,7 +65,6 @@ export class VRComfort {
       if (this.settings.turningMode !== newSettings.turningMode) {
         this.settings.turningMode = newSettings.turningMode;
         changed = true;
-        console.log(`🔄 Turning mode changed to: ${newSettings.turningMode}`);
       }
     }
     
@@ -81,7 +79,6 @@ export class VRComfort {
       if (this.settings.reducedMotion !== newSettings.reducedMotion) {
         this.settings.reducedMotion = newSettings.reducedMotion;
         changed = true;
-        console.log(`🔄 Reduced motion: ${newSettings.reducedMotion ? 'ON' : 'OFF'}`);
       }
     }
     
@@ -113,7 +110,6 @@ export class VRComfort {
   setPreset(presetName) {
     if (this.presets[presetName]) {
       this.setSettings(this.presets[presetName]);
-      console.log(`🎯 Applied comfort preset: ${presetName}`);
       return true;
     } else {
       console.warn(`Unknown comfort preset: ${presetName}`);

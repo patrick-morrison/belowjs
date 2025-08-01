@@ -68,7 +68,6 @@ export class VRLocomotion {
       this.onMovementStart();
     }
     
-    console.log(`🏃‍♂️ Movement started: ${type}`);
   }
   
   stopMovement() {
@@ -319,7 +318,6 @@ export class VRLocomotion {
         if (this.teleportSystem) {
           this.teleportSystem.resetTeleportState();
         }
-        console.log(`🔄 Locomotion mode changed to: ${settings.locomotionMode}`);
       }
     }
     
@@ -331,7 +329,6 @@ export class VRLocomotion {
         if (this.teleportSystem) {
           this.teleportSystem.resetSnapTurnState();
         }
-        console.log(`🔄 Turning mode changed to: ${settings.turningMode}`);
       }
     }
     
@@ -341,7 +338,6 @@ export class VRLocomotion {
     
     if (typeof settings.reducedMotion === 'boolean') {
       this.comfortSettings.reducedMotion = settings.reducedMotion;
-      console.log(`🔄 Reduced motion: ${settings.reducedMotion ? 'ON' : 'OFF'}`);
     }
     
     if (typeof settings.showTeleportArc === 'boolean') {
@@ -389,7 +385,6 @@ export class VRLocomotion {
     
     if (presets[preset]) {
       this.setComfortSettings(presets[preset]);
-      console.log(`🎯 Applied comfort preset: ${preset}`);
     } else {
       console.warn(`Unknown comfort preset: ${preset}`);
     }
@@ -397,13 +392,11 @@ export class VRLocomotion {
   
   setupLocomotion() {
     // Initialize comfort settings - can be called mid-session
-    console.log('🎮 Locomotion system ready with comfort settings');
   }
   
   ensureComfortSettingsApplied() {
     // Force apply comfort settings (can be called mid-session)
     // This is a placeholder for any immediate setting applications
-    console.log('✅ Comfort settings applied');
   }
   
   getMovementState() {

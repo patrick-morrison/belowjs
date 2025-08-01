@@ -1,4 +1,9 @@
 // BelowJS - Modular Three.js VR/Desktop Model Viewer Library
+
+// Import CSS styles for bundling
+import './styles/index.css';
+
+// Export main classes
 export { BelowViewer } from './core/BelowViewer.js';
 export { ModelViewer } from './viewers/ModelViewer.js';
 export { VRManager } from './core/VRManager.js';

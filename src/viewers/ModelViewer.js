@@ -20,10 +20,10 @@ export class ModelViewer extends EventSystem {
       showStatus: true,
       showInfo: false,  // Info panel is optional now
       enableVR: false, // Enable VR support
-      enableMeasurement: false, // New: auto-attach measurement system
+      enableMeasurement: false, // Auto-attach measurement system
       measurementTheme: 'dark', // 'dark' or 'light' theme for measurement panel
-      enableVRComfortGlyph: false, // New: auto-attach VR comfort glyph
-      enableDiveSystem: false, // New: auto-attach dive system
+      enableVRComfortGlyph: false, // Auto-attach VR comfort glyph
+      enableDiveSystem: false, // Auto-attach dive system
       ...options
     };
     this.currentModelKey = null;
@@ -237,7 +237,6 @@ export class ModelViewer extends EventSystem {
     // Update particle bounds when model loads
     this.on('model-loaded', (data) => {
       if (this.diveSystem && data.model) {
-        console.log('🌊 Model loaded, updating particle bounds for:', data.model);
         this.diveSystem.updateParticleBounds(data.model);
       }
     });
@@ -247,7 +246,6 @@ export class ModelViewer extends EventSystem {
       window.diveSystem = this.diveSystem;
     }
 
-    console.log('🌊 DiveSystem attached to ModelViewer');
   }
   
   setupEventForwarding() {
@@ -311,7 +309,6 @@ export class ModelViewer extends EventSystem {
       }
     }
 
-    console.log('🥽 VR session started - UI adapted for VR');
   }
 
   onVRSessionEnd() {
@@ -324,12 +321,10 @@ export class ModelViewer extends EventSystem {
       this.ui.selector.style.opacity = '1';
     }
     
-    console.log('🖥️ VR session ended - UI restored for desktop');
   }
 
   onVRModeToggle() {
     // This could be used for mode-specific UI changes in the future
-    console.log('🔄 VR mode toggled');
   }
    setupFocusInteraction() {
     const domElement = this.belowViewer.renderer.domElement;

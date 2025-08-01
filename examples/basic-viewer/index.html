@@ -6,12 +6,8 @@
     <title>BelowJS - Basic Model Viewer (Refactored)</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
     
-    <!-- BelowJS Styling (updated to use packaged VR UI) -->
-    <link rel="stylesheet" href="/src/styles/theme.css">
-    <link rel="stylesheet" href="/src/styles/vr.css">
-    <link rel="stylesheet" href="/src/vr/ui/vrui.css">
-    <link rel="stylesheet" href="/src/styles/measurement.css">
-    <link rel="stylesheet" href="/src/styles/dive.css">
+    <!-- BelowJS Production Build -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
     
     <style>
         body, html {
@@ -28,17 +24,9 @@
     </style>
 </head>
 <body>
-    <div id="info">
-        <div id="infoTitle">BelowJS Model Viewer</div>
-        <div id="infoControls">
-            <strong>Controls:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
-            <strong>VR:</strong> Thumbsticks to move • X/A to toggle dive mode<br>
-        </div>
-    </div>
-
+    <!-- Model selector will be auto-created, but we need dive toggle inside it -->
     <div id="modelSelector">
-        <select id="modelDropdown">
-        </select>
+        <select id="modelDropdown"></select>
         <div id="modeToggleContainer">
             <div class="semantic-toggle">
                 <input type="checkbox" id="modeToggleSwitch">
@@ -54,10 +42,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Comfort glyph will be created by VRComfortGlyph component -->
-
-    <div id="loading">Loading...</div>
 
     <script type="module">
         import { ModelViewer } from '/src/index.js';
@@ -148,6 +132,7 @@
           enableMeasurement: true,
           enableVRComfortGlyph: true,
           enableDiveSystem: true, // Enable dive system integration
+          audioPath: './sound/', // Audio files for VR experience
           viewerConfig: {
             scene: {
               backgroundColor: '#001122'
@@ -162,7 +147,7 @@
         dropdown.addEventListener('change', (event) => {
           const selectedModelKey = event.target.value;
           if (selectedModelKey !== currentModel) {
-            console.log('🌊 Loading new model:', selectedModelKey);
+            console.log('Loading new model:', selectedModelKey);
             viewer.loadModel(selectedModelKey);
           }
         });

@@ -1,6 +1,8 @@
 # BelowJS API Documentation
 
-**A comprehensive guide to the BelowJS 3D model viewer library with VR support**
+**A comprehensive guide to the BelowJS 3D model viewer library with VR support and underwater exploration features**
+
+*Version 0.1.3*
 
 ---
 
@@ -9,21 +11,55 @@
 1. [Quick Start](#quick-start)
 2. [ModelViewer Class](#modelviewer-class)
 3. [VR Support](#vr-support)
-4. [Configuration Options](#configuration-options)
-5. [Events](#events)
-6. [Methods](#methods)
-7. [Theming](#theming)
-8. [Examples](#examples)
-9. [Advanced Usage](#advanced-usage)
+4. [Measurement System](#measurement-system)
+5. [Dive System](#dive-system)
+6. [VR Comfort Glyph](#vr-comfort-glyph)
+7. [Configuration Options](#configuration-options)
+8. [Events](#events)
+9. [Methods](#methods)
+10. [Theming](#theming)
+11. [Examples](#examples)
+12. [Advanced Usage](#advanced-usage)
 
 ---
 
 ## Quick Start
 
-### Basic Setup with VR
+### Production Usage (All Examples Use This)
+
+BelowJS examples use ES modules with production CSS for optimal performance:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My 3D Viewer</title>
+    
+    <!-- BelowJS Production CSS Bundle -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+        
+        const viewer = new ModelViewer(container, {
+            models: models,
+            enableVR: true,
+            enableMeasurement: true,
+            enableDiveSystem: true
+        });
+    </script>
+</body>
+</html>
+```
+
+### ES Module Import Pattern
+
+This is the recommended approach used by all examples:
 
 ```javascript
-import { ModelViewer } from './src/viewers/ModelViewer.js';
+import { ModelViewer } from '/src/index.js';
 
 // Define your models with VR positioning
 const models = {
@@ -44,13 +80,21 @@ const models = {
   }
 };
 
+// Create viewer container
+const viewerContainer = document.createElement('div');
+viewerContainer.style.position = 'fixed';
+viewerContainer.style.top = '0';
+viewerContainer.style.left = '0';
+viewerContainer.style.width = '100%';
+viewerContainer.style.height = '100%';
+viewerContainer.style.zIndex = '0';
+document.body.appendChild(viewerContainer);
+
 // Create VR-enabled viewer
-const viewer = new ModelViewer(document.body, {
+const viewer = new ModelViewer(viewerContainer, {
   models: models,
   autoLoadFirst: true,
-  viewerConfig: {
-    vr: { enabled: true } // Enable VR support
-  }
+  enableVR: true // Enable VR support
 });
 
 // VR event handling
@@ -66,7 +110,7 @@ viewer.on('vr-session-end', () => {
 ### Basic Setup without VR
 
 ```javascript
-import { ModelViewer } from './src/viewers/ModelViewer.js';
+import { ModelViewer } from '/src/index.js';
 
 const models = {
   'my-model': {
@@ -103,7 +147,14 @@ new ModelViewer(container, options)
 ### Basic Example
 
 ```javascript
-const viewer = new ModelViewer('#my-container', {
+// Create viewer container
+const container = document.getElementById('my-container');
+const viewerContainer = document.createElement('div');
+viewerContainer.style.width = '100%';
+viewerContainer.style.height = '500px';
+container.appendChild(viewerContainer);
+
+const viewer = new ModelViewer(viewerContainer, {
   models: {
     'shipwreck': {
       url: 'models/wreck.glb',
@@ -262,10 +313,10 @@ viewer.on('vr-movement-update', ({ speed, boostLevel }) => {
 
 ### VR Button Styling
 
-BelowJS includes a premium glassmorphism VR button with shimmer effect:
+BelowJS includes a glassmorphism VR button with shimmer effect:
 
 ```css
-/* Modern VR button with glassmorphism and shimmer */
+/* VR button with glassmorphism and shimmer effect */
 .vr-button-glass {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px) saturate(140%);
@@ -336,6 +387,195 @@ vrManager.applyVRPositions({
 
 ---
 
+## Measurement System
+
+BelowJS includes a comprehensive measurement system for both VR and desktop environments, enabling precise distance measurements on 3D models.
+
+### Features
+
+- **VR & Desktop Support**: Point-and-click measurements on desktop, controller-based measurements in VR
+- **Real-time Distance Display**: Live measurement updates with metric/imperial units
+- **Visual Feedback**: 3D spheres and lines showing measurement points and distances
+- **Model Integration**: Automatic target filtering to measure only model geometry
+- **Theming**: Dark and light theme support to match your application
+
+### Enabling Measurements
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models: models,
+  enableMeasurement: true,          // Enable the measurement system
+  measurementTheme: 'dark',         // 'dark' or 'light' theme
+  autoLoadFirst: true
+});
+```
+
+### Desktop Usage
+
+- Click the measurement toggle button to activate measurement mode
+- Click two points on the model to create a measurement
+- Measurements appear as connected spheres with distance labels
+- Click the clear button to remove all measurements
+
+### VR Usage
+
+- Use controller triggers to place measurement points
+- Measurements automatically sync between controllers
+- Visual feedback shows placement points and distances in 3D space
+- Support for both Quest 2 and Quest 3 controllers
+
+### Measurement API
+
+```javascript
+// Access the measurement system
+const measurementSystem = viewer.measurementSystem;
+
+// Enable/disable measurement mode
+measurementSystem.enable();
+measurementSystem.disable();
+
+// Clear all measurements
+measurementSystem.clearMeasurements();
+
+// Set raycast targets (automatically done when models load)
+measurementSystem.setRaycastTargets(model);
+
+// Check if measurement mode is active
+const isActive = measurementSystem.isEnabled();
+```
+
+---
+
+## Dive System
+
+The Dive System provides immersive underwater exploration with dynamic lighting, particle effects, and dive/survey mode switching.
+
+### Features
+
+- **Dive/Survey Modes**: Toggle between bright survey lighting and atmospheric dive lighting
+- **Dynamic Particles**: Underwater particle simulation with floating debris
+- **Interactive Torch**: Flashlight simulation with realistic lighting and shadows
+- **VR Integration**: Torch follows VR controller movements, mode switching via controller buttons
+- **Quest Optimization**: Automatic performance adjustments for Quest 2 devices
+
+### Enabling Dive System
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models: models,
+  enableDiveSystem: true,           // Enable dive system
+  autoLoadFirst: true
+});
+```
+
+### Mode Toggle
+
+**Desktop:**
+- Use the toggle switch in the UI to switch between Survey and Dive modes
+
+**VR:**
+- Press X/A buttons on either controller to toggle modes
+- Visual feedback shows current mode state
+
+### Dive System API
+
+```javascript
+// Access the dive system
+const diveSystem = viewer.diveSystem;
+
+// Toggle between dive and survey modes
+diveSystem.toggleDiveMode();
+
+// Set mode directly
+diveSystem.setDiveMode(true);  // Enable dive mode
+diveSystem.setDiveMode(false); // Enable survey mode
+
+// Check current mode
+const isDiving = diveSystem.isDiveMode();
+
+// Update particle bounds when model changes
+diveSystem.updateParticleBounds(model);
+```
+
+### Lighting Modes
+
+**Survey Mode:**
+- Bright, even lighting for detailed inspection
+- Minimal atmospheric effects
+- Clear visibility of all model details
+
+**Dive Mode:**
+- Atmospheric underwater lighting
+- Dynamic torch illumination
+- Particle effects and underwater ambiance
+- Reduced ambient lighting for realism
+
+---
+
+## VR Comfort Glyph
+
+The VR Comfort Glyph provides an easy-to-access comfort mode toggle for VR users, helping prevent motion sickness.
+
+### Features
+
+- **Floating UI Element**: Positioned outside the main interface for easy VR access
+- **Comfort Mode Toggle**: Switch between smooth movement and comfort settings
+- **Accessibility**: Full keyboard and screen reader support
+- **Visual Feedback**: Clear indication of current comfort state
+
+### Enabling VR Comfort Glyph
+
+```javascript
+const viewer = new ModelViewer(container, {
+  models: models,
+  enableVR: true,
+  enableVRComfortGlyph: true,       // Enable comfort glyph
+  autoLoadFirst: true
+});
+```
+
+### Usage
+
+**Desktop:**
+- Click the comfort settings icon to toggle comfort mode
+- Keyboard shortcut: `Ctrl+C` (or `Cmd+C` on Mac)
+
+**VR:**
+- Look for the floating comfort glyph in your peripheral vision
+- Point and click with controller to toggle
+
+### Comfort States
+
+**Comfort Mode OFF (Default):**
+- Smooth movement and turning
+- Full VR navigation freedom
+- Best for experienced VR users
+
+**Comfort Mode ON:**
+- Teleportation-based movement
+- Snap turning
+- Reduced motion effects
+- Best for motion-sensitive users
+
+### VR Comfort API
+
+```javascript
+// Access the comfort glyph
+const comfortGlyph = viewer.comfortGlyph;
+
+// Toggle comfort mode programmatically
+comfortGlyph.toggle();
+
+// Set comfort mode directly
+comfortGlyph.setComfortMode(true);   // Enable comfort mode
+comfortGlyph.setComfortMode(false);  // Disable comfort mode
+
+// Check current state
+const isComfortMode = comfortGlyph.isComfortMode;
+```
+
+---
+
 ## Configuration Options
 
 ### Top-Level Options
@@ -351,6 +591,22 @@ vrManager.applyVRPositions({
   showStatus: true,             // Show status text
   showInfo: false,              // Show info panel (optional)
   
+  // Feature enablement
+  enableVR: false,              // Enable VR support
+  enableControls: true,         // Enable camera controls
+  enableInfo: true,             // Enable info panel display
+  showStats: false,             // Show performance stats
+  autoRotate: false,            // Auto-rotate camera
+  enableMeasurement: false,     // Enable measurement system
+  measurementTheme: 'dark',     // Measurement UI theme ('dark' or 'light')
+  enableVRComfortGlyph: false,  // Enable VR comfort toggle UI
+  enableDiveSystem: false,      // Enable dive/survey mode system
+  audioPath: './sound/',       // VR audio file path
+  
+  // Model loading
+  initialModel: 'model-key',    // Key of model to load initially
+  initialPositions: {},         // Initial camera positions for first model
+  
   // Scene configuration (for themes)
   scene: {
     background: { type: 'color', value: '#ffffff' },
@@ -364,7 +620,17 @@ vrManager.applyVRPositions({
   },
   
   // Advanced configuration
-  viewerConfig: {}              // Direct BelowViewer configuration
+  viewerConfig: {               // Direct BelowViewer configuration
+    scene: {
+      background: { type: 'color', value: '#ffffff' },
+      backgroundColor: '#ffffff' // Alternative syntax
+    },
+    camera: {
+      fov: 65,
+      near: 0.05,
+      far: 2000
+    }
+  }
 }
 ```
 
@@ -529,11 +795,11 @@ viewer.on('camera-reset', ({ modelKey, position }) => {
 
 ### Model Management
 
-#### `switchModel(modelKey)`
-Switch to a different model.
+#### `loadModel(modelKey)`
+Load a different model.
 
 ```javascript
-await viewer.switchModel('my-other-model');
+await viewer.loadModel('my-other-model');
 ```
 
 #### `getCurrentModel()`
@@ -734,7 +1000,9 @@ Both themes use CSS custom properties that you can override:
 
 ## Examples
 
-### Complete Basic Example
+### Basic Viewer Example
+
+Complete example with all features enabled (see `examples/basic-viewer/`):
 
 ```html
 <!DOCTYPE html>
@@ -742,29 +1010,256 @@ Both themes use CSS custom properties that you can override:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My 3D Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
+    <title>BelowJS - Basic Model Viewer</title>
+    
+    <!-- BelowJS Production Build -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
 </head>
 <body>
-    <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+    <div id="info">
+        <div id="infoTitle">BelowJS Model Viewer</div>
+        <div id="infoControls">
+            <strong>Controls:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
+            <strong>VR:</strong> Thumbsticks to move • X/A to toggle dive mode<br>
+        </div>
+    </div>
 
+    <div id="modelSelector">
+        <select id="modelDropdown"></select>
+        <div id="modeToggleContainer">
+            <div class="semantic-toggle">
+                <input type="checkbox" id="modeToggleSwitch">
+                <div class="toggle-slider-bg"></div>
+                <div class="toggle-option left">
+                    <div class="toggle-icon">S</div>
+                    <div class="toggle-text">Survey</div>
+                </div>
+                <div class="toggle-option right">
+                    <div class="toggle-icon">D</div>
+                    <div class="toggle-text">Dive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">Loading...</div>
+
+    <!-- Three.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.177.0/build/three.min.js"></script>
+    
+    <!-- BelowJS Production Bundle -->
+    <script src="/dist/belowjs.umd.js"></script>
+    
+    <script>
         const models = {
-            'example': {
-                url: '/models/example.glb',
-                name: 'Example Model',
-                credit: 'Model Creator'
+            'shipwreck': {
+                url: '/models/wreck.glb',
+                name: 'Historic Shipwreck',
+                credit: 'Maritime Museum',
+                initialPositions: {
+                    desktop: {
+                        camera: { x: 33.494, y: 36.42, z: -83.442 },
+                        target: { x: -3.602, y: -6.611, z: -23.97 }
+                    },
+                    vr: {
+                        dolly: { x: 0, y: 2, z: 15 },
+                        rotation: { x: 0, y: 0, z: 0 }
+                    }
+                }
             }
         };
 
-        const viewer = new ModelViewer(document.body, {
+        // Create viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.top = '0';
+        viewerContainer.style.left = '0';
+        viewerContainer.style.width = '100%';
+        viewerContainer.style.height = '100%';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        const viewer = new BelowJS.ModelViewer(viewerContainer, {
+            enableVR: true,
             models: models,
+            enableMeasurement: true,
+            enableVRComfortGlyph: true,
+            enableDiveSystem: true,
             autoLoadFirst: true,
             showInfo: true
         });
 
+        // Handle model selection
+        const dropdown = document.getElementById('modelDropdown');
+        dropdown.addEventListener('change', (event) => {
+            if (event.target.value) {
+                viewer.loadModel(event.target.value);
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
+### Build and Distribution
+
+To create production bundles:
+
+```bash
+npm run build
+```
+
+This creates:
+- `dist/belowjs.umd.js` - UMD bundle for script tags
+- `dist/belowjs.es.js` - ES modules bundle 
+- `dist/belowjs.css` - Complete CSS bundle
+
+### Package.json Configuration
+
+```json
+{
+  "main": "dist/belowjs.umd.js",
+  "module": "dist/belowjs.es.js", 
+  "style": "dist/belowjs.css"
+}
+```
+
+### Required HTML Structure
+
+BelowJS automatically creates UI elements, but you can provide custom HTML structure for better control:
+
+```html
+<body>
+    <!-- Info panel (optional) -->
+    <div id="info">
+        <div id="infoTitle">BelowJS Model Viewer</div>
+        <div id="infoControls">
+            <strong>Controls:</strong> Drag to rotate • Scroll to zoom • Double-click to focus<br>
+            <strong>VR:</strong> Thumbsticks to move • X/A to toggle dive mode<br>
+        </div>
+    </div>
+
+    <!-- Model selector and dive mode toggle -->
+    <div id="modelSelector">
+        <select id="modelDropdown"></select>
+        <div id="modeToggleContainer">
+            <div class="semantic-toggle">
+                <input type="checkbox" id="modeToggleSwitch">
+                <div class="toggle-slider-bg"></div>
+                <div class="toggle-option left">
+                    <div class="toggle-icon">S</div>
+                    <div class="toggle-text">Survey</div>
+                </div>
+                <div class="toggle-option right">
+                    <div class="toggle-icon">D</div>
+                    <div class="toggle-text">Dive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading">Loading...</div>
+    
+    <!-- Your viewer container will be created by JavaScript -->
+</body>
+```
+
+### Complete Featured Example with All Systems
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Full Featured Viewer</title>
+    <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="/src/styles/vr.css">
+    <link rel="stylesheet" href="/src/vr/ui/vrui.css">
+    <link rel="stylesheet" href="/src/styles/measurement.css">
+    <link rel="stylesheet" href="/src/styles/dive.css">
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        const models = {
+            'shipwreck': {
+                url: '/models/wreck.glb',
+                name: 'Historic Shipwreck',
+                credit: 'Maritime Museum',
+                initialPositions: {
+                    desktop: {
+                        camera: { x: 33.494, y: 36.42, z: -83.442 },
+                        target: { x: -3.602, y: -6.611, z: -23.97 }
+                    },
+                    vr: {
+                        dolly: { x: 0, y: 2, z: 15 },
+                        rotation: { x: 0, y: 0, z: 0 }
+                    }
+                }
+            }
+        };
+
+        // Create full-featured viewer with all systems enabled
+        const viewer = new ModelViewer(document.body, {
+            models: models,
+            autoLoadFirst: true,
+            showInfo: true,
+            
+            // Enable all advanced features
+            enableVR: true,                    // VR support
+            enableMeasurement: true,           // Measurement system
+            measurementTheme: 'dark',          // Dark measurement theme
+            enableVRComfortGlyph: true,        // VR comfort toggle
+            enableDiveSystem: true,            // Dive/survey modes
+            audioPath: './sound/',            // VR audio files
+            
+            // Scene configuration for underwater theme
+            scene: {
+                background: { type: 'color', value: '#001122' }
+            }
+        });
+
+        // Event listeners for all systems
         viewer.on('model-loaded', ({ config }) => {
-            console.log(`${config.name} is ready!`);
+            console.log(`${config.name} loaded successfully`);
+        });
+
+        viewer.on('vr-session-start', () => {
+            console.log('VR session started');
+        });
+
+        viewer.on('vr-session-end', () => {
+            console.log('VR session ended');
+        });
+
+        // Access individual systems
+        // Handle model selection changes
+        const dropdown = document.getElementById('modelDropdown');
+        if (dropdown) {
+            dropdown.addEventListener('change', (event) => {
+                const selectedModelKey = event.target.value;
+                if (selectedModelKey) {
+                    console.log('Loading model:', selectedModelKey);
+                    viewer.loadModel(selectedModelKey);
+                }
+            });
+        }
+
+        viewer.on('initialized', () => {
+            // Measurement system
+            const measurementSystem = viewer.measurementSystem;
+            console.log('Measurement system ready:', measurementSystem);
+            
+            // Dive system
+            const diveSystem = viewer.diveSystem;
+            console.log('Dive system ready:', diveSystem);
+            
+            // VR comfort glyph
+            const comfortGlyph = viewer.comfortGlyph;
+            console.log('Comfort glyph ready:', comfortGlyph);
         });
     </script>
 </body>
@@ -783,7 +1278,7 @@ Both themes use CSS custom properties that you can override:
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+        import { ModelViewer } from '/src/index.js';
 
         const viewer = new ModelViewer(document.body, {
             models: {
@@ -810,25 +1305,85 @@ Both themes use CSS custom properties that you can override:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Minimal Viewer</title>
+    <title>Dark Minimal Viewer</title>
+    <!-- BelowJS Core Styling -->
     <link rel="stylesheet" href="/src/styles/theme.css">
+    <link rel="stylesheet" href="/src/styles/vr.css">
+    <link rel="stylesheet" href="/src/styles/dive.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0f172a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
 </head>
 <body>
-    <script type="module">
-        import { ModelViewer } from '/src/viewers/ModelViewer.js';
+    <!-- Model selector with dive mode toggle -->
+    <div id="modelSelector">
+        <select id="modelDropdown"></select>
+        <div id="modeToggleContainer">
+            <div class="semantic-toggle">
+                <input type="checkbox" id="modeToggleSwitch">
+                <div class="toggle-slider-bg"></div>
+                <div class="toggle-option left">
+                    <div class="toggle-icon">S</div>
+                    <div class="toggle-text">Survey</div>
+                </div>
+                <div class="toggle-option right">
+                    <div class="toggle-icon">D</div>
+                    <div class="toggle-text">Dive</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Minimal viewer with no UI
-        const viewer = new ModelViewer(document.body, {
-            models: {
-                'model': {
-                    url: '/models/model.glb',
-                    name: 'Model'
+    <script type="module">
+        import { ModelViewer } from '/src/index.js';
+
+        const models = {
+            'shipwreck': {
+                url: '/models/wreck.glb',
+                name: 'Shipwreck',
+                initialPositions: {
+                    desktop: {
+                        camera: { x: 33.494, y: 36.42, z: -83.442 },
+                        target: { x: -3.602, y: -6.611, z: -23.97 }
+                    },
+                    vr: {
+                        dolly: { x: 0, y: 2, z: 15 },
+                        rotation: { x: 0, y: 0, z: 0 }
+                    }
                 }
-            },
-            autoLoadFirst: true,
-            showLoadingIndicator: false,
+            }
+        };
+
+        // Create viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.top = '0';
+        viewerContainer.style.left = '0';
+        viewerContainer.style.width = '100%';
+        viewerContainer.style.height = '100%';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        // Dark minimal viewer: just models, dive mode, and VR
+        const viewer = new ModelViewer(viewerContainer, {
+            models: models,
+            enableDiveSystem: true,
+            enableVR: true,
+            showInfo: false,
             showStatus: false,
-            showInfo: false
+            showLoadingIndicator: false,
+            viewerConfig: {
+                scene: {
+                    background: { type: 'color', value: '#0f172a' }
+                }
+            }
         });
     </script>
 </body>
@@ -838,7 +1393,7 @@ Both themes use CSS custom properties that you can override:
 ### Multiple Models Example
 
 ```javascript
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from '/src/index.js';
 
 const models = {
     'ship1': {
@@ -878,11 +1433,11 @@ viewer.on('model-switched', ({ config }) => {
 
 // Programmatically switch models
 document.getElementById('ship1-btn').addEventListener('click', () => {
-    viewer.switchModel('ship1');
+    viewer.loadModel('ship1');
 });
 
 document.getElementById('ship2-btn').addEventListener('click', () => {
-    viewer.switchModel('ship2');
+    viewer.loadModel('ship2');
 });
 ```
 
@@ -964,7 +1519,7 @@ viewer.on('progress', ({ loaded, total, percentage }) => {
 
 ```javascript
 // Example: Integration with a UI framework
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from '/src/index.js';
 
 class ViewerComponent {
     constructor(element, props) {
@@ -1002,8 +1557,8 @@ class ViewerComponent {
         });
     }
 
-    switchModel(modelKey) {
-        return this.viewer.switchModel(modelKey);
+    loadModel(modelKey) {
+        return this.viewer.loadModel(modelKey);
     }
 
     dispose() {
@@ -1027,7 +1582,7 @@ const component = new ViewerComponent(document.getElementById('viewer'), {
 ### Focus and Camera Control Examples
 
 ```javascript
-import { ModelViewer } from '/src/viewers/ModelViewer.js';
+import { ModelViewer } from '/src/index.js';
 import * as THREE from 'three';
 
 const viewer = new ModelViewer(container, {
@@ -1133,7 +1688,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer();
 // ... lots of setup code
 
-// New BelowJS code
+// BelowJS implementation
 const viewer = new ModelViewer(container, {
     models: { 'my-model': { url: 'model.glb', name: 'My Model' } },
     autoLoadFirst: true
@@ -1146,10 +1701,10 @@ const viewer = new ModelViewer(container, {
 <!-- Old model-viewer -->
 <model-viewer src="model.glb" camera-controls></model-viewer>
 
-<!-- New BelowJS -->
+<!-- BelowJS implementation -->
 <div id="viewer"></div>
 <script type="module">
-    import { ModelViewer } from '/src/viewers/ModelViewer.js';
+    import { ModelViewer } from '/src/index.js';
     new ModelViewer('#viewer', {
         models: { 'model': { url: 'model.glb', name: 'Model' } },
         autoLoadFirst: true
@@ -1199,7 +1754,7 @@ viewer.on('model-error', ({ error }) => {
 
 ## VR Comfort Settings
 
-BelowJS includes modern VR comfort features to prevent motion sickness:
+BelowJS includes VR comfort features to prevent motion sickness:
 
 ### Comfort Presets
 ```javascript

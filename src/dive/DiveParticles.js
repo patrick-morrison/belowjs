@@ -15,7 +15,6 @@ export class DiveParticles {
     this.particleCount = 1750;
     // Create particle system immediately
     this.createParticleSystem();
-    console.log('🐠 Particle system initialized with', this.particleCount, 'particles');
   }
   /**
    * Calculate optimal particle count based on bounds (volume)
@@ -41,10 +40,6 @@ export class DiveParticles {
     const minParticles = 100;
     const maxParticles = 8000;
     const finalCount = Math.max(minParticles, Math.min(maxParticles, calculatedCount));
-    console.log(`🐠 Model size: ${size.x.toFixed(1)}×${size.y.toFixed(1)}×${size.z.toFixed(1)}m`);
-    console.log(`🐠 Particle field volume: ${volume.toFixed(1)}m³`);
-    console.log(`🐠 Calculated particles: ${calculatedCount} (${targetDensity.toFixed(2)}/m³)`);
-    console.log(`🐠 Final particle count: ${finalCount}`);
     return finalCount;
   }
   
@@ -245,8 +240,6 @@ export class DiveParticles {
       // Ensure we're using the shader material with time uniform
       this.particles.material = this.originalMaterial;
       this.particles.visible = true;
-      console.log('🐠 Particles enabled with shader material');
-      console.log('🐠 Material has time uniform:', !!this.particles.material.uniforms?.time);
     }
   }
   
@@ -256,7 +249,6 @@ export class DiveParticles {
   disable() {
     if (this.particles) {
       this.particles.visible = false;
-      console.log('🐠 Particles disabled');
     }
   }
   
@@ -295,7 +287,6 @@ export class DiveParticles {
       }
       this.particleCount = newParticleCount;
       this.createParticleSystem();
-      console.log('🐠 Particle system recreated with', this.particleCount, 'particles');
     } else {
       // Redistribute particles within new bounds
       this.redistributeParticles();

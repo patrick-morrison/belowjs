@@ -30,7 +30,6 @@ export class DiveSystem {
     // Initialize in survey mode
     this.applyModeSettings();
     
-    console.log('🌊 DiveSystem initialized in Survey mode');
   }
   
   /**
@@ -40,19 +39,16 @@ export class DiveSystem {
     const previousMode = this.isDiveModeEnabled;
     this.isDiveModeEnabled = !this.isDiveModeEnabled;
     
-    console.log(`🔄 Mode toggle: ${previousMode ? 'Dive' : 'Survey'} → ${this.isDiveModeEnabled ? 'Dive' : 'Survey'}`);
     
     // Update toggle switch UI if it exists
     const toggleSwitch = document.getElementById('modeToggleSwitch');
     if (toggleSwitch) {
       toggleSwitch.checked = this.isDiveModeEnabled;
-      console.log('🔄 Toggle switch updated:', toggleSwitch.checked);
     }
     
     // Apply the mode settings
     this.applyModeSettings();
     
-    console.log(`🔄 Mode changed to: ${this.isDiveModeEnabled ? 'Dive' : 'Survey'}`);
   }
   
   /**
@@ -83,7 +79,6 @@ export class DiveSystem {
           userAgent.includes('oculus quest 2') ||
           (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
         this.isQuest2 = true;
-        console.log('🥽 Quest 2 detected - applying performance optimizations');
         return 'quest2';
       }
       
@@ -92,11 +87,9 @@ export class DiveSystem {
           userAgent.includes('oculus quest 3') ||
           userAgent.includes('meta quest 3')) {
         this.isQuest3 = true;
-        console.log('🥽 Quest 3 detected - using full render distance');
         return 'quest3';
       }
       
-      console.log('🥽 Unknown VR device or desktop - using default settings');
       return 'unknown';
     } catch (error) {
       console.warn('Device detection failed:', error);
@@ -118,7 +111,6 @@ export class DiveSystem {
         this.scene.fog = new THREE.FogExp2(0x041729, 0.084); // Enhanced visibility - denser fog for 20m visibility on Quest 2
       }
       
-      console.log('📊 Quest 2 optimizations applied: 20m render limit, denser fog');
     } else {
       // Quest 3 or other devices - use full render distance
       this.camera.far = 2000;
@@ -129,7 +121,6 @@ export class DiveSystem {
         this.scene.fog = new THREE.FogExp2(0x041729, 0.056); // Enhanced visibility for full render distance
       }
       
-      console.log('📊 Full render distance maintained: 2000m range');
     }
   }
   
@@ -147,7 +138,6 @@ export class DiveSystem {
     // Only apply fog and lighting changes if dive mode is enabled
     if (!this.isDiveModeEnabled) {
       this.scene.fog = null;
-      console.log('🌊 Dive mode disabled - no fog applied, Survey mode lighting preserved');
       return; // Exit early - don't modify lighting in Survey mode
     }
     
@@ -160,14 +150,12 @@ export class DiveSystem {
       if (this.isDiveModeEnabled) {
         this.torch.enableTorch();
       }
-      console.log('🥽 VR dive mode: Enhanced fog visibility, dim lighting, and torch enabled');
     } else {
       // Desktop Mode - enhanced visibility with lighter fog for dive mode
       this.scene.fog = new THREE.FogExp2(0x041729, 0.005); // Reduced from 0.0105 for 50% clearer visibility (~280m visibility)
       // Neutral lighting for desktop dive mode
       this.lighting.setDesktopDiveMode();
       // Torch may be handled differently on desktop
-      console.log('🖥️ Desktop dive mode: Enhanced fog visibility and neutral lighting applied');
     }
     
     // Update particle material fog uniforms if they exist
@@ -178,7 +166,6 @@ export class DiveSystem {
    * Apply all mode-specific settings
    */
   applyModeSettings() {
-    console.log(`🎯 Applying ${this.isDiveModeEnabled ? 'Dive' : 'Survey'} mode settings...`);
     
     if (this.isDiveModeEnabled) {
       this.enableDiveMode();
@@ -186,14 +173,12 @@ export class DiveSystem {
       this.disableDiveMode();
     }
     
-    console.log(`✅ ${this.isDiveModeEnabled ? 'Dive' : 'Survey'} mode settings applied`);
   }
   
   /**
    * Enable dive mode (fog + particles + torch)
    */
   enableDiveMode() {
-    console.log('🌊 Enabling dive mode');
     
     // Set lighting
     this.lighting.enableDiveMode();
@@ -207,14 +192,12 @@ export class DiveSystem {
     // Enable torch
     this.torch.enableTorch();
     
-    console.log('🌊 Dive mode enabled');
   }
   
   /**
    * Disable dive mode (no fog + no particles) - Survey Mode
    */
   disableDiveMode() {
-    console.log('📋 Enabling survey mode');
     
     // Remove fog
     this.scene.fog = null;
@@ -228,20 +211,17 @@ export class DiveSystem {
     // Set lighting
     this.lighting.enableSurveyMode();
     
-    console.log('📋 Survey mode enabled');
   }
   
   /**
    * Update particle boundaries based on model
    */
   updateParticleBounds(model) {
-    console.log('🎯 DiveSystem.updateParticleBounds called with model:', model);
     
     if (model) {
       this.particles.updateBounds(model);
-      console.log('🎯 Particle bounds updated successfully');
     } else {
-      console.warn('🎯 updateParticleBounds called with no model');
+      console.warn('updateParticleBounds called with no model');
     }
   }
   
@@ -281,7 +261,7 @@ export class DiveSystem {
   updateTorchFromVRManager(vrManager) {
     if (!vrManager || !vrManager.isVRPresenting || !this.isDiveModeEnabled) {
       if (!vrManager) {
-        console.warn('🔦 updateTorchFromVRManager: vrManager is null');
+        console.warn('updateTorchFromVRManager: vrManager is null');
       } else if (!vrManager.isVRPresenting) {
         // This is normal when not in VR, don't spam console
       } else if (!this.isDiveModeEnabled) {
@@ -301,20 +281,8 @@ export class DiveSystem {
       if (rightController) {
         this.updateTorchPosition(rightController);
       } else {
-        // Debug: no right controller found
-        if (Math.random() < 0.01) { // 1% chance to log
-          console.log('🔦 No right-handed controller found in controllers array:', vrManager.controllers);
-        }
       }
     } else {
-      // Debug: no controllers available
-      if (Math.random() < 0.01) { // 1% chance to log
-        console.log('🔦 No controllers available:', {
-          controller1: vrManager.controller1,
-          controller2: vrManager.controller2,
-          controllersArray: vrManager.controllers
-        });
-      }
     }
   }
 
@@ -352,13 +320,11 @@ export class DiveSystem {
       this.disableDiveMode();
       
       modeToggleSwitch.addEventListener('change', () => {
-        console.log('🔄 Toggle switch changed:', modeToggleSwitch.checked);
         this.toggleDiveMode();
       });
       
-      console.log('📋 Mode toggle initialized: Survey mode (unchecked) is default');
     } else {
-      console.warn('📋 Mode toggle switch not found in DOM');
+      console.warn('Mode toggle switch not found in DOM');
       // Still apply initial mode settings even without UI
       this.disableDiveMode();
     }
@@ -366,14 +332,12 @@ export class DiveSystem {
     // Add click handlers for toggle options
     const toggleOptions = document.querySelectorAll('.toggle-option');
     
-    console.log('📋 Found toggle options:', toggleOptions.length);
     
     toggleOptions.forEach((option) => {
       option.addEventListener('click', () => {
         const isRight = option.classList.contains('right'); // Right = Dive
         const currentlyDiveMode = modeToggleSwitch ? modeToggleSwitch.checked : false;
         
-        console.log('📋 Toggle option clicked:', { isRight, currentlyDiveMode });
         
         // Only toggle if clicking on inactive option
         if ((isRight && !currentlyDiveMode) || (!isRight && currentlyDiveMode)) {

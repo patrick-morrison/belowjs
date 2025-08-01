@@ -1,119 +1,111 @@
 # BelowJS
 
-A modern, modular Three.js library for creating immersive 3D model viewers with VR support. Originally designed for underwater shipwreck exploration, BelowJS provides a clean, composable API for any 3D model viewing application.
+A modular Three.js library for creating 3D model viewers with WebXR support and underwater exploration capabilities. Designed for underwater shipwreck exploration applications.
 
-## ✨ Features
+## Features
 
-- **🎛️ Modular Architecture**: Clean, composable API with configurable components
-- **🎨 Beautiful UI**: Dark/light themes with minimal and full-featured UI options
-- **🖱️ Interactive Controls**: Intuitive camera controls with double-click-to-focus
-- **📱 Mobile Ready**: Touch-optimized controls for mobile devices
-- **🔧 Developer Friendly**: TypeScript-ready with comprehensive documentation
-- **⚡ Performance Optimized**: Efficient model loading and rendering
+- **VR Support**: WebXR implementation with Quest device optimizations and locomotion systems
+- **Measurement System**: Distance measurement tools for both VR and desktop environments
+- **Dive/Survey Modes**: Configurable lighting and particle systems for underwater simulation
+- **VR Comfort**: Motion sickness mitigation through teleportation and comfort settings
+- **Modular Architecture**: Composable API with configurable component systems
+- **UI Themes**: Dark and light theme support with customizable interfaces
+- **Interactive Controls**: Camera controls with focus targeting and orbit navigation
+- **Mobile Support**: Touch-optimized controls for mobile devices
+- **TypeScript Ready**: Comprehensive type definitions and documentation
+- **Performance Optimized**: Efficient model loading and rendering pipeline
 
-## 📦 Installation
+## Installation
 
-### Built Files (Current)
-The library is built and ready to use from the `dist/` folder:
+### Build Requirements
+Build the production bundles:
 
-- **ES Module**: `dist/belowjs.es.js` (406.07 kB)
-- **UMD**: `dist/belowjs.umd.js` (316.92 kB)
+```bash
+npm run build
+```
+
+This generates:
+- **CSS Bundle**: `dist/belowjs.css` (19.7 kB) - Complete stylesheet
+- **ES Module**: `dist/belowjs.es.js` (400.9 kB) - Modern browser support  
+- **UMD Bundle**: `dist/belowjs.umd.js` (311.5 kB) - Script tag compatibility
 
 ### Future NPM Installation
 ```bash
-npm install belowjs  # Coming soon!
+npm install belowjs  # Not yet published
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
-### Using Built ES Module
+### ES Modules with Production CSS
+
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My 3D Viewer</title>
-</head>
-<body>
-    <script type="module">
-        import { ModelViewer } from './dist/belowjs.es.js';
-
-        const viewer = new ModelViewer(document.body, {
-            models: {
-                'my-model': {
-                    url: 'path/to/model.glb',
-                    name: 'My 3D Model'
-                }
-            },
-            autoLoadFirst: true
-        });
-    </script>
-</body>
-</html>
-```
-
-### Using Built UMD
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My 3D Viewer</title>
-</head>
-<body>
-    <script src="./dist/belowjs.umd.js"></script>
-    <script>
-        const viewer = new BelowJS.ModelViewer(document.body, {
-            models: {
-                'my-model': {
-                    url: 'path/to/model.glb',
-                    name: 'My 3D Model'
-                }
-            },
-            autoLoadFirst: true
-        });
-    </script>
-</body>
-</html>
-```
-
-### Local Development
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My 3D Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
+    <title>3D Model Viewer</title>
+    <link rel="stylesheet" href="/dist/belowjs.css">
 </head>
 <body>
     <script type="module">
         import { ModelViewer } from '/src/index.js';
 
-        const viewer = new ModelViewer(document.body, {
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        document.body.appendChild(container);
+
+        const viewer = new ModelViewer(container, {
             models: {
-                'my-model': {
+                'model-key': {
                     url: 'path/to/model.glb',
-                    name: 'My 3D Model'
+                    name: 'Model Name',
+                    initialPositions: {
+                        desktop: {
+                            camera: { x: 10, y: 5, z: 15 },
+                            target: { x: 0, y: 0, z: 0 }
+                        },
+                        vr: {
+                            dolly: { x: 0, y: 2, z: 10 },
+                            rotation: { x: 0, y: 0, z: 0 }
+                        }
+                    }
                 }
             },
-            autoLoadFirst: true
+            autoLoadFirst: true,
+            enableVR: true,
+            enableMeasurement: true,
+            enableDiveSystem: true,
+            enableVRComfortGlyph: true
         });
     </script>
 </body>
 </html>
 ```
 
-## 📖 Documentation
+### Development Workflow
 
-- **[API Reference](docs/API.md)** - Complete API documentation
-- **[Development Plan](BELOWJS_LIBRARY_PLAN.md)** - Roadmap and architecture overview
-- **[Examples](examples/)** - Live examples with different configurations
+1. Modify source files in `/src/`
+2. Build production bundles: `npm run build`
+3. Test with examples: `npm run dev`
 
-## 🎯 Examples
+Examples use production builds, so rebuild after source changes.
 
-- **[Basic Viewer](examples/basic-viewer/)** - Full-featured viewer with all UI components
-- **[Clean Viewer](examples/clean-viewer/)** - Minimal UI for focused viewing
-- **[Light Theme](examples/light-theme/)** - Light theme demonstration
+## Documentation
 
-## 🛠️ Development
+- [API Reference](docs/API.md) - Complete API documentation
+- [Development Plan](BELOWJS_LIBRARY_PLAN.md) - Architecture and roadmap
+- [Examples](examples/) - Implementation examples
+
+## Examples
+
+- [Basic Viewer](examples/basic-viewer/) - Full-featured viewer implementation
+- [Dark Minimal](examples/dark-minimal/) - Minimal interface configuration
+- [Light Measurement](examples/light-measurement/) - Measurement-focused interface
+
+## Development
 
 ```bash
 # Install dependencies
@@ -126,10 +118,10 @@ npm run dev
 npm run build
 ```
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details.
 
-## 🙏 Credits
+## Credits
 
-Originally developed for underwater shipwreck exploration. Models courtesy of WreckSploration.
+Developed for underwater shipwreck exploration applications. Models courtesy of WreckSploration.

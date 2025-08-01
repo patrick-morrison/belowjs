@@ -1,0 +1,54 @@
+# Claude Development Notes
+
+## Project Status
+BelowJS is a production-ready 3D model viewer library with VR support and underwater exploration features.
+
+## Build System
+- **Production bundles**: All examples use `/dist/belowjs.css` and `/dist/belowjs.umd.js`
+- **Build command**: `npm run build` creates optimized bundles
+- **External deps**: Three.js loaded from CDN (not bundled)
+- **Testing**: Examples use production builds, not source files
+
+## Development Workflow
+1. Make changes to source files in `/src/`
+2. Run `npm run build` to create production bundles
+3. Test using examples that load from `/dist/` files
+4. Examples automatically use production builds
+
+## Key Files
+- **Main entry**: `src/index.js` (imports CSS for bundling)
+- **CSS bundle**: `src/styles/index.css` (imports all stylesheets)
+- **Examples**: All three examples use production bundles
+- **Build output**: `dist/belowjs.css`, `dist/belowjs.umd.js`, `dist/belowjs.es.js`
+
+## Testing Notes
+- Examples are production-ready and use built bundles
+- No source file imports in examples
+- Three.js loaded dynamically from multiple CDNs (fallback support)
+- Build required before testing changes
+- Examples include proper error handling for CDN failures
+
+## Development Server Commands
+
+### Primary Test Server
+```bash
+npm run dev
+```
+- Starts Vite dev server on `http://localhost:5173`
+- Auto-opens `examples/basic-viewer/` 
+- Full-featured viewer with all systems enabled
+
+### Alternative Examples
+```bash
+npm run dev:basic        # Same as npm run dev
+npm run dev:minimal      # Dark minimal theme example
+npm run dev:measurement  # Light theme measurement-focused example
+```
+
+### Complete Development Workflow
+1. **Make changes** to source files in `/src/`
+2. **Build production bundles**: `npm run build`
+3. **Start test server**: `npm run dev` (in separate terminal)
+4. **Test changes** at `http://localhost:5173`
+
+**Note**: Examples use production builds, so `npm run build` is required before testing changes.

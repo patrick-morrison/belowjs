@@ -27,7 +27,7 @@ export class DiveLighting {
    */
   initializeLighting() {
     if (this.isDisposed || !this.scene) {
-      console.warn('💡 Cannot initialize lighting: system disposed or no scene');
+      console.warn('Cannot initialize lighting: system disposed or no scene');
       return;
     }
 
@@ -37,9 +37,8 @@ export class DiveLighting {
       
       // Don't set currentMode - let DiveSystem handle the initial mode setup
       this.currentMode = null;
-      console.log('💡 Lighting system initialized (no initial mode set)');
     } catch (error) {
-      console.error('💡 Failed to initialize lighting system:', error);
+      console.error('Failed to initialize lighting system:', error);
     }
   }
   
@@ -91,7 +90,7 @@ export class DiveLighting {
         this.scene.add(this.bottomLight);
       }
     } catch (error) {
-      console.error('💡 Failed to create survey mode lights:', error);
+      console.error('Failed to create survey mode lights:', error);
     }
   }
   
@@ -99,7 +98,6 @@ export class DiveLighting {
    * Enable dive mode lighting
    */
   enableDiveMode() {
-    console.log('🌊 Setting dive mode lighting - NO AMBIENT LIGHT');
     
     // Remove overhead light completely in dive mode
     if (this.overheadLight && this.scene.children.includes(this.overheadLight)) {
@@ -129,14 +127,12 @@ export class DiveLighting {
     }
     
     this.currentMode = 'dive';
-    console.log('🌊 Dive mode lighting set');
   }
   
   /**
    * Enable survey mode lighting
    */
   enableSurveyMode() {
-    console.log('☀️ Setting survey mode lighting');
     
     // Add overhead light to scene if not already there
     if (this.overheadLight && !this.scene.children.includes(this.overheadLight)) {
@@ -153,7 +149,6 @@ export class DiveLighting {
     this.createSurveyModeLights();
     
     this.currentMode = 'survey';
-    console.log('☀️ Survey mode lighting set');
   }
   
   /**
@@ -164,7 +159,6 @@ export class DiveLighting {
     if (this.overheadLight && this.scene.children.includes(this.overheadLight)) {
       this.scene.remove(this.overheadLight);
     }
-    console.log('🥽 VR dive mode: No ambient light - torch only');
   }
   
   /**
@@ -175,7 +169,6 @@ export class DiveLighting {
     if (this.overheadLight && this.scene.children.includes(this.overheadLight)) {
       this.scene.remove(this.overheadLight);
     }
-    console.log('🖥️ Desktop dive mode: No ambient light - torch only');
   }
   
   /**
@@ -233,7 +226,7 @@ export class DiveLighting {
           if (onComplete) onComplete();
         }
       } catch (error) {
-        console.error('💡 Error in lighting animation:', error);
+        console.error('Error in lighting animation:', error);
         this.pendingAnimations.delete(animationId);
         if (onComplete) onComplete();
       }
@@ -257,7 +250,7 @@ export class DiveLighting {
       try {
         this.scene.remove(object);
       } catch (error) {
-        console.error('💡 Error removing object from scene:', error);
+        console.error('Error removing object from scene:', error);
       }
     }
   }
@@ -280,7 +273,6 @@ export class DiveLighting {
    * Dispose of lighting resources
    */
   dispose() {
-    console.log('💡 Disposing lighting system...');
     
     // Mark as disposed to prevent further operations
     this.isDisposed = true;
@@ -309,9 +301,8 @@ export class DiveLighting {
         // Clear scene reference
         this.scene = null;
         
-        console.log('💡 Lighting system disposed successfully');
       } catch (error) {
-        console.error('💡 Error during lighting system disposal:', error);
+        console.error('Error during lighting system disposal:', error);
       }
     });
   }

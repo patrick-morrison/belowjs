@@ -43,7 +43,6 @@ export class VRTeleport {
   setupTeleportation() {
     // Create the smooth teleport arc system
     this.createTeleportArc();
-    console.log('🎯 Enhanced teleportation system with smooth arc initialized');
   }
   
   // Create the smooth white teleport arc
@@ -126,7 +125,6 @@ export class VRTeleport {
     this.camera.parent.position.copy(targetPosition);
     
     // Optional: Add teleport effect/sound here
-    console.log(`🚀 Teleported to: ${targetPosition.x.toFixed(2)}, ${targetPosition.y.toFixed(2)}, ${targetPosition.z.toFixed(2)}`);
     
     if (this.onTeleport) {
       this.onTeleport(targetPosition);
@@ -176,7 +174,6 @@ export class VRTeleport {
       this.camera.parent.rotation.y = this.normalizeAngle(this.camera.parent.rotation.y);
       
       this.lastSnapTurnTime = now;
-      console.log(`🔄 Snap turn: ${turnDirection > 0 ? 'right' : 'left'} ${snapTurnAngle}°`);
     }
   }
   
@@ -500,7 +497,6 @@ export class VRTeleport {
         this.executeTeleport();
         // Reset floor height so it will be set to user's Y on next aim
         this.teleportFloorHeight = null;
-        console.log(`🚀 Teleported to floor intersection: ${teleportPosition.x.toFixed(2)}, ${(teleportPosition.y).toFixed(2)}, ${teleportPosition.z.toFixed(2)}`);
       } else {
         console.log(`🚫 Invalid teleport distance: ${horizontalDistance.toFixed(2)}m (must be 3-30m)`);
       }
@@ -571,6 +567,5 @@ export class VRTeleport {
   // Reset snap turn state - useful for mid-session mode changes
   resetSnapTurnState() {
     this.lastSnapTurnTime = 0;
-    console.log('🔄 Snap turn state reset (VRTeleport)');
   }
 }

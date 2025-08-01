@@ -15,6 +15,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    cssCodeSplit: false, // Bundle all CSS into one file
     lib: {
       entry: 'src/index.js',
       name: 'BelowJS',
@@ -25,6 +26,12 @@ export default defineConfig({
       output: {
         globals: {
           three: 'THREE'
+        },
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'belowjs.css';
+          }
+          return '[name].[ext]';
         }
       }
     }

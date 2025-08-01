@@ -160,7 +160,6 @@ export class VRControllers {
         // Only treat as controller if NOT a hand (targetRayMode === 'tracked-pointer' and not hand profile)
         const isHand = Array.isArray(profiles) && profiles.some(p => p && p.toLowerCase().includes('hand'));
         if (targetRayMode !== 'tracked-pointer' || isHand) {
-          console.log(`🖐️ ${handedness} hand detected (not a controller)`);
           return; // skip hands
         }
 
@@ -185,14 +184,12 @@ export class VRControllers {
       // WebXR Controller Input Events (essential for Chrome WebXR)
       ctrl.addEventListener('selectstart', (event) => {
         if (ctrl.userData && ctrl.userData.initialised) {
-          console.log(`🎯 ${ctrl.userData.handedness} controller select started`);
           this.onControllerSelectStart(ctrl, event);
         }
       });
 
       ctrl.addEventListener('selectend', (event) => {
         if (ctrl.userData && ctrl.userData.initialised) {
-          console.log(`🎯 ${ctrl.userData.handedness} controller select ended`);
           this.onControllerSelectEnd(ctrl, event);
         }
       });
@@ -230,7 +227,6 @@ export class VRControllers {
   
   onControllerSqueezeStart(controller, event) {
     const handedness = controller.userData.handedness;
-    console.log(`🚀 ${handedness} controller squeeze - boost activated`);
     if (this.onSqueezeStart) {
       this.onSqueezeStart(handedness, controller, event);
     }

@@ -48,7 +48,6 @@ export class VRAudio {
       this.startAmbientSound();
       
       this.soundEnabled = true;
-      console.log('🔊 VR Audio system initialized successfully (Web Audio API)');
     } catch (error) {
       console.warn('🔇 VR Audio initialization failed:', error);
       this.soundEnabled = false;
@@ -87,7 +86,6 @@ export class VRAudio {
       ambienceSource.start();
       this.currentAmbienceSound = ambienceSource;
       
-      console.log('🎵 Ambient underwater sound started');
     } catch (error) {
       console.warn('🔇 Error starting ambient sound:', error);
     }
@@ -100,7 +98,6 @@ export class VRAudio {
         this.currentAmbienceSound.stop();
         this.currentAmbienceSound = null;
         this.ambienceGainNode = null;
-        console.log('🔇 Ambient sound stopped');
       } catch (error) {
         console.warn('🔇 Error stopping ambient sound:', error);
       }
@@ -156,7 +153,6 @@ export class VRAudio {
       boostSource.start();
       this.currentBoostSound = boostSource;
       
-      console.log('🎵 Movement audio system started with smooth ramping');
     } catch (error) {
       console.warn('🔇 Error playing movement sound:', error);
     }

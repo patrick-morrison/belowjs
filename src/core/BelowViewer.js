@@ -167,7 +167,6 @@ export class BelowViewer extends EventSystem {
       this.emit('vr-session-end');
     };
     
-    console.log('✅ VR support initialized');
   }
 
   setupEventListeners() {

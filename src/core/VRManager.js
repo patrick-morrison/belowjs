@@ -1,7 +1,7 @@
 /**
- * VRManager - Main VR Coordinator (Refactored)
+ * VRManager - Main VR Coordinator
  * 
- * This is the new slim VRManager that coordinates all VR modules.
+ * VRManager coordinates all VR modules.
  * Maintains exact functionality while providing clean modular architecture.
  */
 
@@ -237,7 +237,6 @@ export class VRManager {
     // Validate that teleportation system is ready if in teleport mode
     if (settings.locomotionMode === 'teleport') {
       if (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) {
-        console.log('🔧 Teleportation system not ready, reinitializing...');
         this.vrTeleport.setupTeleportation();
       }
     }
@@ -274,7 +273,6 @@ export class VRManager {
    */
   setControls(controls) {
     this._preVRCameraState.controls = controls;
-    console.debug('[VRManager] OrbitControls reference set for camera state preservation');
   }
 
   /**
