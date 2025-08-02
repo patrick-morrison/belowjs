@@ -302,6 +302,14 @@ export class ModelViewer extends EventSystem {
       const modelRoot = this.belowViewer.loadedModels[0].model;
       this.measurementSystem.setRaycastTargets(modelRoot);
     }
+
+    // Reset measurements when models are cleared to keep measurement mode usable
+    this.belowViewer.on('models-cleared', () => {
+      if (this.measurementSystem) {
+        this.measurementSystem.clear();
+        this.measurementSystem.setTarget(null);
+      }
+    });
   }
 
   async _maybeAttachVRComfortGlyph() {

@@ -5,6 +5,11 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2025-01-07
+
+### Fixed
+- Measurement system now clears markers and resets targets when models change, ensuring measurement orbs remain usable after model switches
+
 ## [0.1.3] - 2025-01-01 - NPM Publication Ready
 
 ### Added

@@ -433,6 +433,7 @@ BelowJS includes a comprehensive measurement system for both VR and desktop envi
 - **Real-time Distance Display**: Live measurement updates with metric/imperial units
 - **Visual Feedback**: 3D spheres and lines showing measurement points and distances
 - **Model Integration**: Automatic target filtering to measure only model geometry
+- **Auto-Clear on Model Change**: Measurements reset when models are removed or switched
 - **Theming**: Dark and light theme support to match your application
 
 ### Enabling Measurements
