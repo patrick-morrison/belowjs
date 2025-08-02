@@ -128,7 +128,7 @@ class AnnotationAuthoring {
 - **Primary development environment** for annotation system
 - Dedicated annotation authoring and viewing interface
 - Clean, focused UI for annotation workflow
-- Uses same models as basic-viewer but annotation-focused
+- Uses same models as basic example but annotation-focused
 - Save/load from browser localStorage for persistence
 - Export/import JSON annotation files
 

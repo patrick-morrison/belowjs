@@ -1077,7 +1077,7 @@ Both themes use CSS custom properties that you can override:
 
 ### Basic Viewer Example
 
-Complete example with all features enabled (see `examples/basic-viewer/`):
+Complete example with all features enabled (see `examples/basic/`):
 
 ```html
 <!DOCTYPE html>

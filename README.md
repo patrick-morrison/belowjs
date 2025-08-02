@@ -102,13 +102,13 @@ Examples use production builds, so rebuild after source changes.
 
 ## Examples
 
-- [Basic Viewer](examples/basic-viewer/) - Full-featured viewer implementation
-- [Dark Minimal](examples/dark-minimal/) - Minimal interface with dive/VR mode switch and drag-and-drop model loading
-- [Light Measurement](examples/light-measurement/) - Measurement-focused interface
+- [Basic](examples/basic/) - Full-featured viewer implementation with model selector and all systems
+- [Drag & Drop](examples/dragdrop/) - File-focused interface with drag & drop, measurement tools, and mode toggle
+- [Embed](examples/embed/) - Embeddable measurement viewer with URL parameter support
 
 ### URL Parameter Integration
 
-The Light Measurement example includes URL parameter support for easy website integration:
+The Embed example includes URL parameter support for easy website integration:
 
 ```html
 <iframe src="viewer.html?model=path/to/model.glb&name=Model%20Name&credit=Attribution"></iframe>

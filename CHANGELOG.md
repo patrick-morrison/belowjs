@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Measurement and VR comfort controls position absolutely inside the container for reliable embedding
 
 ### Fixed
-- Audio routing properly configured in basic-viewer example
+- Audio routing properly configured in basic example
 - VRManager debug logging removed
 - Measurement system debug output cleaned up
 - VR audio initialization feedback made silent

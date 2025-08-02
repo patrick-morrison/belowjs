@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Drag & Drop Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+    
+    <!-- BelowJS Production Build -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0f172a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Drag and drop overlay styling */
+        .drag-drop-overlay {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #e2e8f0;
+            padding: 20px;
+            border: 2px dashed #475569;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .drag-drop-overlay.visible {
+            opacity: 1;
+        }
+        
+        .drag-drop-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            pointer-events: none;
+            animation: fadeInOut 4s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Empty state styling */
+        .empty-state {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #e2e8f0;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .empty-state h2 {
+            font-size: 2.5em;
+            margin: 0 0 16px 0;
+            font-weight: 300;
+        }
+        
+        .empty-state p {
+            font-size: 1.2em;
+            margin: 8px 0;
+            opacity: 0.8;
+        }
+        
+        .file-select-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 0.3s ease;
+        }
+        
+        .file-select-button:hover {
+            background: rgba(59, 130, 246, 1);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        /* Loaded state hint */
+        .loaded-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loaded-hint.visible {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    Drag & Drop Viewer Interface Elements:
+    - Drag & drop overlay (shows when dragging files)
+    - Persistent hint at bottom
+    - Standalone mode toggle (Survey/Dive)
+    -->
+    
+    <!-- Drag and drop overlay (hidden by default) -->
+    <div class="drag-drop-overlay" id="dragOverlay">
+        <div>📁 Drop your GLB model here to load it</div>
+        <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">Supported format: .glb files</div>
+    </div>
+    
+    <!-- Empty state when no model loaded -->
+    <div class="empty-state" id="emptyState">
+        <h2>🌊</h2>
+        <p>Drag & Drop a GLB File</p>
+        <p style="font-size: 1em;">or</p>
+        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">
+            Choose File
+        </button>
+        <input type="file" id="fileInput" accept=".glb" />
+        <p style="font-size: 0.9em; margin-top: 16px;">Supports GLB 3D model files</p>
+    </div>
+    
+    <!-- Survey/Dive Mode Toggle -->
+    <div id="modeToggleContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
+        <div class="semantic-toggle">
+            <input type="checkbox" id="modeToggleSwitch">
+            <div class="toggle-slider-bg"></div>
+            <div class="toggle-option left">
+                <div class="toggle-icon">🔍</div>
+                <div class="toggle-text">Survey</div>
+            </div>
+            <div class="toggle-option right">
+                <div class="toggle-icon">🌊</div>
+                <div class="toggle-text">Dive</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loaded state hint (hidden by default) -->
+    <div class="loaded-hint" id="loadedHint">
+        💡 Drag & drop another .glb file to replace current model
+    </div>
+
+    <script type="module">
+        import { ModelViewer } from '/dist/belowjs.es.js';
+
+        /**
+         * Drag & Drop Viewer Example
+         * 
+         * Features:
+         * - Dark theme with no initial model (empty state)
+         * - Standalone Survey/Dive mode toggle (top-right)
+         * - Enhanced drag & drop GLB file loading with visual feedback
+         * - File select button for alternative to drag & drop
+         * - Measurement tools enabled
+         * - VR support without audio
+         * - Minimal interface focused on file loading and measurement
+         */
+
+        // No initial models - starts empty
+        const models = {};
+
+        // Create fullscreen viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        // Move mode toggle into viewer container for proper layering and fullscreen support
+        const modeToggle = document.getElementById('modeToggleContainer');
+        if (modeToggle) {
+            viewerContainer.appendChild(modeToggle);
+        }
+
+        // Configure minimal viewer with dark theme and standalone mode toggle (no initial model)
+        const viewer = new ModelViewer(viewerContainer, {
+          models: models,
+          enableDiveSystem: true,
+          enableVR: true,
+          enableVRAudio: false,
+          enableFullscreen: false,
+          enableInfo: false,
+          enableMeasurement: true,
+          showStatus: false,
+          showLoadingIndicator: false,
+          // No initial model - starts empty
+          viewerConfig: {
+            scene: {
+              background: { type: 'color', value: '#0f172a' }
+            }
+          }
+        });
+
+        /**
+         * File Loading (Drag & Drop + File Select)
+         * 
+         * Allows users to drag .glb files onto the viewer or use file select button.
+         * Includes visual feedback with overlay and validation.
+         */
+        const dragOverlay = document.getElementById('dragOverlay');
+        const emptyState = document.getElementById('emptyState');
+        const loadedHint = document.getElementById('loadedHint');
+        const fileInput = document.getElementById('fileInput');
+        let dragCounter = 0;
+        let hasModel = false;
+
+        // Handle file input selection
+        fileInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            await loadModelFile(file);
+          }
+        });
+
+        // Function to load a model file and update UI state
+        async function loadModelFile(file) {
+          if (!file.name.toLowerCase().endsWith('.glb')) {
+            alert('Please select a .glb file');
+            return;
+          }
+
+          const url = URL.createObjectURL(file);
+          try {
+            // Clear any existing models and load the new one
+            if (hasModel) {
+              viewer.belowViewer.clearModels();
+            }
+            await viewer.belowViewer.loadModel(url, { autoFrame: true });
+            
+            // Hide empty state and show loaded hint when model loads successfully
+            emptyState.style.display = 'none';
+            loadedHint.classList.add('visible');
+            hasModel = true;
+            
+            console.log('Successfully loaded:', file.name);
+          } catch (err) {
+            console.error('Failed to load model:', err);
+            alert('Failed to load the model. Please check the console for details.');
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }
+
+        // Show overlay when dragging files over the page
+        window.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          dragCounter++;
+          dragOverlay.classList.add('visible');
+        });
+
+        window.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+
+        // Hide overlay when dragging away
+        window.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dragCounter--;
+          if (dragCounter === 0) {
+            dragOverlay.classList.remove('visible');
+          }
+        });
+
+        // Handle file drop with validation and error handling
+        window.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          dragCounter = 0;
+          dragOverlay.classList.remove('visible');
+          
+          const file = e.dataTransfer.files[0];
+          if (!file) return;
+          
+          await loadModelFile(file);
+        });
+    </script>
+</body>
+</html>

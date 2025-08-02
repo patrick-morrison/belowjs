@@ -18,7 +18,7 @@ BelowJS is a production-ready 3D model viewer library with VR support and underw
 ## Key Files
 - **Main entry**: `src/index.js` (imports CSS for bundling)
 - **CSS bundle**: `src/styles/index.css` (imports all stylesheets)
-- **Examples**: All three examples use production bundles
+- **Examples**: All examples (basic, dragdrop, embed) use production bundles
 - **Build output**: `dist/belowjs.css`, `dist/belowjs.umd.js`, `dist/belowjs.es.js`
 
 ## Testing Notes
@@ -35,14 +35,14 @@ BelowJS is a production-ready 3D model viewer library with VR support and underw
 npm run dev
 ```
 - Starts Vite dev server on `http://localhost:5173`
-- Auto-opens `examples/basic-viewer/` 
+- Auto-opens `examples/basic/` 
 - Full-featured viewer with all systems enabled
 
 ### Alternative Examples
 ```bash
-npm run dev:basic        # Same as npm run dev
-npm run dev:minimal      # Dark minimal theme example
-npm run dev:measurement  # Light theme measurement-focused example
+npm run dev:basic        # Same as npm run dev - full-featured viewer
+npm run dev:dragdrop     # Dark theme with drag & drop focus, mode toggle, and measurement
+npm run dev:embed        # Light theme embeddable measurement viewer
 ```
 
 ### Complete Development Workflow

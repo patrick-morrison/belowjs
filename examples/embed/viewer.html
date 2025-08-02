@@ -30,7 +30,7 @@
 
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const modelUrl = urlParams.get('model') || '../basic-viewer/models/unknown.glb';
+        const modelUrl = urlParams.get('model') || '../basic/models/unknown.glb';
         const modelName = urlParams.get('name') || 'Unknown Wreck';
         const cameraX = parseFloat(urlParams.get('cx')) || 34.226;
         const cameraY = parseFloat(urlParams.get('cy')) || 10.354;

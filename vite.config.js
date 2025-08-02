@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: '.',  // Serve from project root instead of examples/basic-viewer
+  root: '.',  // Serve from project root instead of examples/basic
   publicDir: 'public',
   server: {
     port: 5173,
-    open: 'examples/basic-viewer/',  // Open the basic-viewer example by default
+    open: 'examples/basic/',  // Open the basic example by default
     cors: true
   },
   resolve: {
