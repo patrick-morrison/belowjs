@@ -6892,24 +6892,17 @@ class vn {
     }
   }
   /**
+   * Reset ghost sphere positions to correct local coordinates
+   * Useful when VR coordinate systems get corrupted (e.g., returning from Quest browser)
+   */
+  resetGhostSpherePositions() {
+    this.isVR && this.ghostSpheres && (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.parent === this.controller1 && (this.ghostSpheres.left.position.set(0, 0, -0.05), this.ghostSpheres.left.rotation.set(0, 0, 0), this.ghostSpheres.left.scale.set(1, 1, 1)), this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.parent === this.controller2 && (this.ghostSpheres.right.position.set(0, 0, -0.05), this.ghostSpheres.right.rotation.set(0, 0, 0), this.ghostSpheres.right.scale.set(1, 1, 1)));
+  }
+  /**
    * Update method called each frame by the render loop
    */
   update() {
-    if (this.isVR && this.ghostSpheres) {
-      if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.visible) {
-        const e = new u.Vector3();
-        this.controller1.getWorldPosition(e);
-        const t = new u.Vector3(0, 0, -0.05);
-        t.applyQuaternion(this.controller1.quaternion), e.add(t), this.ghostSpheres.left.position.copy(e);
-      }
-      if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.visible) {
-        const e = new u.Vector3();
-        this.controller2.getWorldPosition(e);
-        const t = new u.Vector3(0, 0, -0.05);
-        t.applyQuaternion(this.controller2.quaternion), e.add(t), this.ghostSpheres.right.position.copy(e);
-      }
-    }
-    if (this.measurementSprite) {
+    if (this.isVR && this.ghostSpheres && (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.visible && this.ghostSpheres.left.position.length() > 1 && this.resetGhostSpherePositions(), this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.visible && this.ghostSpheres.right.position.length() > 1 && this.resetGhostSpherePositions()), this.measurementSprite) {
       const e = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting, t = this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length === 2;
       this.measurementSprite.visible = e && t;
     }
@@ -6937,7 +6930,7 @@ class vn {
   createMeasurementPanel() {
     const e = document.createElement("div");
     e.id = "measurementPanel", e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
-      this.renderer && this.renderer.xr && this.renderer.xr.isPresenting ? (this.measurementSystemEnabled = !this.measurementSystemEnabled, this.measurementSystemEnabled ? (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0)) : (this.clearUnifiedMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1)), this.updateMeasurementPanel()) : (this.desktopMeasurementMode = !this.desktopMeasurementMode, this.desktopMeasurementMode || this.clearUnifiedMeasurement(), this.updateMeasurementPanel());
+      this.renderer && this.renderer.xr && this.renderer.xr.isPresenting ? (this.measurementSystemEnabled = !this.measurementSystemEnabled, this.measurementSystemEnabled ? (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0), this.resetGhostSpherePositions()) : (this.clearUnifiedMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1)), this.updateMeasurementPanel()) : (this.desktopMeasurementMode = !this.desktopMeasurementMode, this.desktopMeasurementMode || this.clearUnifiedMeasurement(), this.updateMeasurementPanel());
     }), (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement || document.body).appendChild(e), this.measurementPanel = e;
   }
   updateMeasurementPanel() {
@@ -8143,17 +8136,17 @@ class kn extends Qt {
   }
   // VR event handlers
   onVRSessionStart() {
-    var e;
-    if (this.ui.info && (this.ui.info.style.display = "none"), this.ui.selector && (this.ui.selector.style.pointerEvents = "none", this.ui.selector.style.opacity = "0.5"), this.measurementSystem && typeof this.measurementSystem.attachVR == "function") {
-      const t = (e = this.belowViewer) == null ? void 0 : e.renderer;
-      if (t && t.xr && typeof t.xr.getController == "function") {
-        const i = t.xr.getController(0), s = t.xr.getController(1), o = t.xr.getControllerGrip ? t.xr.getControllerGrip(0) : void 0, n = t.xr.getControllerGrip ? t.xr.getControllerGrip(1) : void 0;
-        this.measurementSystem.attachVR({ controller1: i, controller2: s, controllerGrip1: o, controllerGrip2: n });
+    this.ui.info && (this.ui.info.style.display = "none"), this.ui.selector && (this.ui.selector.style.pointerEvents = "none", this.ui.selector.style.opacity = "0.5"), this.measurementSystem && typeof this.measurementSystem.attachVR == "function" && setTimeout(() => {
+      var t;
+      const e = (t = this.belowViewer) == null ? void 0 : t.renderer;
+      if (e && e.xr && typeof e.xr.getController == "function") {
+        const i = e.xr.getController(0), s = e.xr.getController(1), o = e.xr.getControllerGrip ? e.xr.getControllerGrip(0) : void 0, n = e.xr.getControllerGrip ? e.xr.getControllerGrip(1) : void 0;
+        this.measurementSystem.attachVR({ controller1: i, controller2: s, controllerGrip1: o, controllerGrip2: n }), this.measurementSystem.resetGhostSpherePositions();
       }
-    }
+    }, 100);
   }
   onVRSessionEnd() {
-    this.ui.info && this.options.showInfo && (this.ui.info.style.display = "block"), this.ui.selector && (this.ui.selector.style.pointerEvents = "auto", this.ui.selector.style.opacity = "1");
+    this.ui.info && this.options.showInfo && (this.ui.info.style.display = "block"), this.ui.selector && (this.ui.selector.style.pointerEvents = "auto", this.ui.selector.style.opacity = "1"), this.measurementSystem && (this.measurementSystem.controller1 = null, this.measurementSystem.controller2 = null, this.measurementSystem.controllerGrip1 = null, this.measurementSystem.controllerGrip2 = null, this.measurementSystem.isVR = !1, this.measurementSystem.ghostSpheres && (this.measurementSystem.ghostSpheres.left && (this.measurementSystem.ghostSpheres.left.visible = !1), this.measurementSystem.ghostSpheres.right && (this.measurementSystem.ghostSpheres.right.visible = !1)));
   }
   onVRModeToggle() {
   }
@@ -8184,28 +8177,28 @@ class kn extends Qt {
     };
   }
   focusOnPoint(e) {
-    const t = {
-      x: e.clientX / window.innerWidth * 2 - 1,
-      y: -(e.clientY / window.innerHeight) * 2 + 1
-    }, i = new u.Raycaster(), s = this.belowViewer.cameraManager.getCamera();
-    i.setFromCamera(t, s);
-    let o = [];
+    const i = this.belowViewer.renderer.domElement.getBoundingClientRect(), s = {
+      x: (e.clientX - i.left) / i.width * 2 - 1,
+      y: -((e.clientY - i.top) / i.height) * 2 + 1
+    }, o = new u.Raycaster(), n = this.belowViewer.cameraManager.getCamera();
+    o.setFromCamera(s, n);
+    let r = [];
     if (this.measurementSystem && this.measurementSystem._raycastTargets && this.measurementSystem._raycastTargets.length > 0)
-      o = this.measurementSystem._raycastTargets;
+      r = this.measurementSystem._raycastTargets;
     else {
-      const r = this.belowViewer.sceneManager.getScene();
-      o = [], r.traverse((a) => {
-        a.isMesh && a.geometry && !this.isMeasurementHelper(a) && o.push(a);
+      const A = this.belowViewer.sceneManager.getScene();
+      r = [], A.traverse((l) => {
+        l.isMesh && l.geometry && !this.isMeasurementHelper(l) && r.push(l);
       });
     }
-    if (o.length === 0) {
+    if (r.length === 0) {
       console.debug("[ModelViewer] No valid raycast targets found for focusing");
       return;
     }
-    const n = i.intersectObjects(o, !0);
-    if (n.length > 0) {
-      const r = n[0].point;
-      this.belowViewer.cameraManager.focusOn(r), this.emit("focus", { point: r, intersect: n[0] });
+    const a = o.intersectObjects(r, !0);
+    if (a.length > 0) {
+      const A = a[0].point;
+      this.belowViewer.cameraManager.focusOn(A), this.emit("focus", { point: A, intersect: a[0] });
     } else
       console.debug("[ModelViewer] No intersections found with valid targets");
   }
@@ -8309,7 +8302,7 @@ class kn extends Qt {
     }
     this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading(`Loading ${t.name || e}...`), document.title = `BelowJS – ${t.name || e}`;
     try {
-      this.belowViewer.clearModels(), await new Promise((s) => setTimeout(s, 50));
+      this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), await new Promise((s) => setTimeout(s, 50));
       const i = await this.belowViewer.loadModel(t.url, {
         autoFrame: !1,
         // We'll handle positioning manually
@@ -8318,7 +8311,7 @@ class kn extends Qt {
       });
       i && (this.applyInitialPositions(t, i), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets(i), this.emit("model-switched", { modelKey: e, model: i, config: t }));
     } catch (i) {
-      i.message !== "Loading cancelled" && (console.error("Failed to load model:", i), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`));
+      i.message !== "Loading cancelled" && (console.error("Failed to load model:", i), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets([]));
     }
   }
   applyInitialPositions(e, t) {

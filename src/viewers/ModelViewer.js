@@ -515,15 +515,21 @@ export class ModelViewer extends EventSystem {
 
     // --- Ensure VR measurement system is attached ---
     if (this.measurementSystem && typeof this.measurementSystem.attachVR === 'function') {
-      // Try to get controllers from renderer.xr if available
-      const renderer = this.belowViewer?.renderer;
-      if (renderer && renderer.xr && typeof renderer.xr.getController === 'function') {
-        const controller1 = renderer.xr.getController(0);
-        const controller2 = renderer.xr.getController(1);
-        const controllerGrip1 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(0) : undefined;
-        const controllerGrip2 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(1) : undefined;
-        this.measurementSystem.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
-      }
+      // Small delay to ensure controllers are fully initialized
+      setTimeout(() => {
+        // Try to get controllers from renderer.xr if available
+        const renderer = this.belowViewer?.renderer;
+        if (renderer && renderer.xr && typeof renderer.xr.getController === 'function') {
+          const controller1 = renderer.xr.getController(0);
+          const controller2 = renderer.xr.getController(1);
+          const controllerGrip1 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(0) : undefined;
+          const controllerGrip2 = renderer.xr.getControllerGrip ? renderer.xr.getControllerGrip(1) : undefined;
+          // Force re-attachment to ensure ghost spheres are properly parented to controllers
+          this.measurementSystem.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
+          // Reset ghost sphere positions to prevent corruption from browser/session switches
+          this.measurementSystem.resetGhostSpherePositions();
+        }
+      }, 100); // 100ms delay to ensure controllers are ready
     }
 
   }
@@ -538,6 +544,25 @@ export class ModelViewer extends EventSystem {
       this.ui.selector.style.opacity = '1';
     }
     
+    // Clean up measurement system VR state to prevent orphaned ghost spheres
+    if (this.measurementSystem) {
+      // Clear VR references to prevent ghost spheres from remaining attached to disposed controllers
+      this.measurementSystem.controller1 = null;
+      this.measurementSystem.controller2 = null;
+      this.measurementSystem.controllerGrip1 = null;
+      this.measurementSystem.controllerGrip2 = null;
+      this.measurementSystem.isVR = false;
+      
+      // Hide ghost spheres when exiting VR
+      if (this.measurementSystem.ghostSpheres) {
+        if (this.measurementSystem.ghostSpheres.left) {
+          this.measurementSystem.ghostSpheres.left.visible = false;
+        }
+        if (this.measurementSystem.ghostSpheres.right) {
+          this.measurementSystem.ghostSpheres.right.visible = false;
+        }
+      }
+    }
   }
 
   onVRModeToggle() {
@@ -605,10 +630,12 @@ export class ModelViewer extends EventSystem {
     };
   }
    focusOnPoint(event) {
-    // Calculate mouse position - use same method as original
+    // Calculate mouse position using renderer dimensions for accurate fullscreen support
+    const canvas = this.belowViewer.renderer.domElement;
+    const rect = canvas.getBoundingClientRect();
     const mouse = {
-      x: (event.clientX / window.innerWidth) * 2 - 1,
-      y: -(event.clientY / window.innerHeight) * 2 + 1
+      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((event.clientY - rect.top) / rect.height) * 2 + 1
     };
 
     // Create raycaster
@@ -888,6 +915,12 @@ export class ModelViewer extends EventSystem {
     // Update page title
     document.title = `BelowJS – ${modelConfig.name || modelKey}`;
     try {
+      // Clear existing measurements before changing models
+      if (this.measurementSystem) {
+        this.measurementSystem.clearUnifiedMeasurement();
+        this.measurementSystem.clearLegacyVRMeasurement();
+        this.measurementSystem.clearLegacyDesktopMeasurement();
+      }
       // Clear existing models
       this.belowViewer.clearModels();
       // Small delay to ensure cleanup completes
@@ -914,6 +947,11 @@ export class ModelViewer extends EventSystem {
         console.error('Failed to load model:', error);
         this.hideLoading();
         this.updateStatus(`Error loading ${modelConfig.name || modelKey}`);
+        
+        // Clear measurement raycast targets on model loading failure to prevent corruption
+        if (this.measurementSystem) {
+          this.measurementSystem.setRaycastTargets([]);
+        }
       }
     }
   }

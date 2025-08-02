@@ -5,7 +5,36 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2025-01-01 - NPM Publication Ready
+## [0.1.5] - 2025-08-02 - Measurement System Stability
+
+### Fixed
+- **Critical**: Measurement orbs no longer disappear when switching between models
+- **Critical**: VR ghost spheres now stay attached to controllers when re-entering VR after Quest browser visits
+- **Critical**: Added proper measurement system cleanup during VR session transitions
+- **Critical**: Fixed ghost sphere positioning corruption that caused orbs to drift far from controllers
+- **Bug**: Corrected fullscreen mode mouse coordinate mapping for accurate focus interactions
+- **Bug**: Added automatic raycast target cleanup when model loading fails to prevent corruption
+- **Bug**: Improved VR controller attachment timing with 100ms delay for reliable ghost sphere positioning
+
+### Added
+- **New**: `resetGhostSpherePositions()` method to restore correct controller-relative positioning
+- **New**: Automatic position validation and correction in measurement system update loop
+- **New**: Enhanced VR session end cleanup to prevent orphaned measurement objects
+- **New**: Robust error handling for model loading failures affecting measurement state
+
+### Changed
+- **Improvement**: Measurement system now uses local coordinates for ghost spheres instead of world coordinates
+- **Improvement**: Enhanced VR re-entry logic ensures measurements work consistently across session changes
+- **Improvement**: Mouse coordinate calculation now uses canvas dimensions for accurate fullscreen support
+- **Performance**: Reduced coordinate transformation overhead in measurement update loop
+
+### Technical Details
+- Ghost spheres are now properly parented to controllers and automatically inherit transforms
+- Measurement clearing is atomic during model switches to prevent race conditions
+- VR controller attachment includes automatic position reset for Quest browser compatibility
+- Enhanced coordinate system validation prevents measurement drift in various viewport states
+
+## [0.1.4] - 2025-01-01 - NPM Publication Ready
 
 ### Added
 - **NPM Publication Ready**: Complete package configuration for public NPM distribution

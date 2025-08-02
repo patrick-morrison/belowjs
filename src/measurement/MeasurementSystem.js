@@ -970,31 +970,44 @@ export class MeasurementSystem {
  }
 
   /**
+   * Reset ghost sphere positions to correct local coordinates
+   * Useful when VR coordinate systems get corrupted (e.g., returning from Quest browser)
+   */
+  resetGhostSpherePositions() {
+    if (this.isVR && this.ghostSpheres) {
+      // Reset to local controller coordinates, not world coordinates
+      if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.parent === this.controller1) {
+        this.ghostSpheres.left.position.set(0, 0, -0.05);
+        this.ghostSpheres.left.rotation.set(0, 0, 0);
+        this.ghostSpheres.left.scale.set(1, 1, 1);
+      }
+      if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.parent === this.controller2) {
+        this.ghostSpheres.right.position.set(0, 0, -0.05);
+        this.ghostSpheres.right.rotation.set(0, 0, 0);
+        this.ghostSpheres.right.scale.set(1, 1, 1);
+      }
+    }
+  }
+
+  /**
    * Update method called each frame by the render loop
    */
   update() {
-    // Update ghost sphere positions to follow VR controllers
+    // No need to update ghost sphere positions if they're parented to controllers
+    // They automatically inherit controller transforms
+    // Only reset if they seem to be in wrong position (basic validation)
     if (this.isVR && this.ghostSpheres) {
-      // Update left ghost sphere position
       if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.visible) {
-        // Position at controller tip
-        const controllerPos = new THREE.Vector3();
-        this.controller1.getWorldPosition(controllerPos);
-        const forward = new THREE.Vector3(0, 0, -0.05);
-        forward.applyQuaternion(this.controller1.quaternion);
-        controllerPos.add(forward);
-        this.ghostSpheres.left.position.copy(controllerPos);
+        // Check if position is unreasonably far from origin (indicates corruption)
+        if (this.ghostSpheres.left.position.length() > 1.0) {
+          this.resetGhostSpherePositions();
+        }
       }
-      
-      // Update right ghost sphere position
       if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.visible) {
-        // Position at controller tip
-        const controllerPos = new THREE.Vector3();
-        this.controller2.getWorldPosition(controllerPos);
-        const forward = new THREE.Vector3(0, 0, -0.05);
-        forward.applyQuaternion(this.controller2.quaternion);
-        controllerPos.add(forward);
-        this.ghostSpheres.right.position.copy(controllerPos);
+        // Check if position is unreasonably far from origin (indicates corruption)
+        if (this.ghostSpheres.right.position.length() > 1.0) {
+          this.resetGhostSpherePositions();
+        }
       }
     }
     
@@ -1097,6 +1110,8 @@ export class MeasurementSystem {
           // Re-enable ghost spheres when enabling VR
           if (this.ghostSpheres.left) this.ghostSpheres.left.visible = true;
           if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
+          // Reset positions to ensure they're at controller tips, not corrupted
+          this.resetGhostSpherePositions();
         }
         this.updateMeasurementPanel();
       }
