@@ -103,7 +103,7 @@ Examples use production builds, so rebuild after source changes.
 ## Examples
 
 - [Basic Viewer](examples/basic-viewer/) - Full-featured viewer implementation
-- [Dark Minimal](examples/dark-minimal/) - Minimal interface configuration
+- [Dark Minimal](examples/dark-minimal/) - Minimal interface with dive/VR mode switch and drag-and-drop model loading
 - [Light Measurement](examples/light-measurement/) - Measurement-focused interface
 
 ### URL Parameter Integration

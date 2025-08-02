@@ -176,6 +176,8 @@ export class ModelViewer extends EventSystem {
       ...options
     };
     this.currentModelKey = null;
+    // Low-level BelowViewer instance exposed for advanced use cases
+    // (e.g., manual model loading via drag-and-drop)
     this.belowViewer = null;
     this.ui = {};
     this.measurementSystem = null;
