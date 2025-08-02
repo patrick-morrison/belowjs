@@ -7,20 +7,83 @@ import * as THREE from 'three';
 import { Line2, LineMaterial, LineGeometry } from './ThickLine.js';
 
 /**
- * MeasurementSystem
- * Encapsulates measurement UI and logic for both VR and desktop.
- *
- * Usage:
- *   const ms = new MeasurementSystem({ scene, camera, renderer, controls, dolly, config });
- *   ms.enable();
- *   // ...
- *   ms.dispose();
+ * @typedef {Object} MeasurementSystemConfig
+ * @property {THREE.Scene} scene - Three.js scene for measurement objects
+ * @property {THREE.PerspectiveCamera} camera - Three.js camera
+ * @property {THREE.WebGLRenderer} renderer - Three.js renderer
+ * @property {Object} [controls] - Orbit controls for desktop mode
+ * @property {THREE.Group} [dolly] - VR dolly for VR mode positioning
+ * @property {Object} [config={}] - Additional configuration options
+ * @property {string} [theme='dark'] - UI theme ('dark' or 'light')
+ */
+
+/**
+ * MeasurementSystem - Distance measurement tools for VR and desktop
+ * 
+ * Provides precise distance measurement capabilities in both VR and desktop modes.
+ * Features click-to-measure for desktop and controller-based measurement for VR,
+ * with visual measurement lines, distance labels, and measurement management UI.
+ * 
+ * @class MeasurementSystem
+ * 
+ * @param {MeasurementSystemConfig} config - Configuration object
+ * 
+ * @fires MeasurementSystem#measurement-added - When a new measurement is created
+ * @fires MeasurementSystem#measurement-cleared - When measurements are cleared
+ * @fires MeasurementSystem#measurement-enabled - When measurement mode is enabled
+ * @fires MeasurementSystem#measurement-disabled - When measurement mode is disabled
+ * 
+ * @example
+ * // Basic usage with desktop support
+ * const measurementSystem = new MeasurementSystem({
+ *   scene: scene,
+ *   camera: camera,
+ *   renderer: renderer,
+ *   controls: orbitControls,
+ *   theme: 'dark'
+ * });
+ * 
+ * // Enable measurement mode
+ * measurementSystem.enable();
+ * 
+ * // Set targets for raycasting (usually your 3D models)
+ * measurementSystem.setRaycastTargets([model1, model2]);
+ * 
+ * @example
+ * // VR mode with dolly
+ * const measurementSystem = new MeasurementSystem({
+ *   scene: scene,
+ *   camera: camera,
+ *   renderer: renderer,
+ *   dolly: vrDolly,
+ *   theme: 'light'
+ * });
+ * 
+ * // Attach VR controllers
+ * measurementSystem.attachVR(renderer);
+ * 
+ * @since 1.0.0
  */
 export class MeasurementSystem {
   /**
-   * Set the objects to use for raycasting (e.g. model meshes only)
-   * Accepts meshes, groups, or arrays; will traverse and filter for meshes with geometry.
-   * @param {THREE.Object3D|THREE.Object3D[]} targets
+   * Set the objects to use for raycasting during measurement
+   * 
+   * Defines which 3D objects can be measured. Accepts meshes, groups, or arrays
+   * and will traverse to find all meshes with geometry, excluding measurement helpers.
+   * 
+   * @method setRaycastTargets
+   * @param {THREE.Object3D|THREE.Object3D[]} targets - Target objects for measurement
+   * @returns {void}
+   * 
+   * @example
+   * // Set a single model as measurement target
+   * measurementSystem.setRaycastTargets(loadedModel);
+   * 
+   * @example
+   * // Set multiple models as targets
+   * measurementSystem.setRaycastTargets([model1, model2, model3]);
+   * 
+   * @since 1.0.0
    */
   setRaycastTargets(targets) {
     const meshTargets = [];
@@ -86,6 +149,11 @@ export class MeasurementSystem {
    * @param {Object} opts.controls - OrbitControls or similar
    * @param {THREE.Group} [opts.dolly] - VR dolly/group (optional)
    * @param {Object} [opts.config] - UI/behavior config (optional)
+   */
+  /**
+   * Creates a new MeasurementSystem instance
+   * 
+   * @param {MeasurementSystemConfig} config - Configuration object
    */
   constructor({ scene, camera, renderer, controls, dolly, config = {}, theme = 'dark' }) {
     // Always initialize ghostSpheres to avoid undefined and allow debug visibility
@@ -283,13 +351,45 @@ export class MeasurementSystem {
   // --- VR/Shared Logic (Stub for now, will be filled in) ---
   // These methods will be filled in with the full VR and shared logic ported from Adrasan.
 
-  // Enable measurement system
+  /**
+   * Enable measurement mode
+   * 
+   * Activates the measurement system, showing the measurement panel and
+   * enabling click-to-measure functionality for desktop mode.
+   * 
+   * @method enable
+   * @returns {void}
+   * 
+   * @fires MeasurementSystem#measurement-enabled
+   * 
+   * @example
+   * // Enable measurement mode
+   * measurementSystem.enable();
+   * 
+   * @since 1.0.0
+   */
   enable() {
     this.desktopMeasurementMode = true;
     this.updateMeasurementPanel();
   }
 
-  // Disable measurement system
+  /**
+   * Disable measurement mode
+   * 
+   * Deactivates the measurement system, hiding the measurement panel and
+   * clearing any active desktop measurements.
+   * 
+   * @method disable
+   * @returns {void}
+   * 
+   * @fires MeasurementSystem#measurement-disabled
+   * 
+   * @example
+   * // Disable measurement mode
+   * measurementSystem.disable();
+   * 
+   * @since 1.0.0
+   */
   disable() {
     this.desktopMeasurementMode = false;
     this.updateMeasurementPanel();
@@ -576,6 +676,31 @@ export class MeasurementSystem {
 
   // --- VR Logic ---
   // Call this after VR controllers are available and renderer.xr is enabled
+  /**
+   * Attach VR controllers for VR measurement mode
+   * 
+   * Sets up VR controller support for measurement functionality, including
+   * ghost spheres for controller position indication and trigger-based measurement.
+   * 
+   * @method attachVR
+   * @param {Object} controllers - VR controller objects
+   * @param {THREE.Object3D} controllers.controller1 - First VR controller
+   * @param {THREE.Object3D} controllers.controller2 - Second VR controller  
+   * @param {THREE.Object3D} controllers.controllerGrip1 - First controller grip
+   * @param {THREE.Object3D} controllers.controllerGrip2 - Second controller grip
+   * @returns {void}
+   * 
+   * @example
+   * // Attach VR controllers from VRManager
+   * measurementSystem.attachVR({
+   *   controller1: vrManager.controller1,
+   *   controller2: vrManager.controller2,
+   *   controllerGrip1: vrManager.controllerGrip1,
+   *   controllerGrip2: vrManager.controllerGrip2
+   * });
+   * 
+   * @since 1.0.0
+   */
   attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 }) {
     
     this.controller1 = controller1;
@@ -882,6 +1007,21 @@ export class MeasurementSystem {
   }
 
   // Dispose/cleanup
+  /**
+   * Clean up and dispose of measurement system resources
+   * 
+   * Removes the measurement panel, clears all measurements, disposes of
+   * materials and geometries, and removes event listeners.
+   * 
+   * @method dispose
+   * @returns {void}
+   * 
+   * @example
+   * // Clean up measurement system
+   * measurementSystem.dispose();
+   * 
+   * @since 1.0.0
+   */
   dispose() {
     // Remove panel
     if (this.measurementPanel && this.measurementPanel.parentNode) {

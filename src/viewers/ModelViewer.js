@@ -6,10 +6,152 @@ import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 import { DiveSystem } from '../dive/DiveSystem.js';
 
 /**
- * ModelViewer - A high-level viewer for managing multiple models with dropdown selection
- * This handles the common pattern of a model selector dropdown with automatic UI management
+ * @typedef {Object} ModelConfig
+ * @property {string} url - Path to the GLB model file
+ * @property {string} name - Display name for the model
+ * @property {string} [credit] - Attribution text for the model
+ * @property {Object} [initialPositions] - Camera and target positions for this model
+ * @property {Object} [initialPositions.desktop] - Desktop viewing positions
+ * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
+ * @property {Object} [initialPositions.desktop.target] - Camera target {x, y, z}
+ * @property {Object} [initialPositions.vr] - VR viewing positions
+ * @property {Object} [initialPositions.vr.dolly] - VR dolly position {x, y, z}
+ * @property {Object} [initialPositions.vr.rotation] - VR rotation {x, y, z}
+ */
+
+/**
+ * @typedef {Object} VRComfortSettings
+ * @property {boolean} [enableComfort=true] - Enable VR comfort features for motion sickness reduction
+ * @property {number} [comfortRadius=0.3] - Radius of the comfort zone in meters
+ * @property {number} [fadeDistance=0.1] - Distance over which comfort fade effect is applied
+ * @property {number} [maxSpeed=2.0] - Maximum movement speed in VR
+ * @property {boolean} [enableTeleport=true] - Enable teleportation locomotion
+ * @property {boolean} [enableSmootTurn=false] - Enable smooth turning (can cause motion sickness)
+ */
+
+/**
+ * @typedef {Object} SceneConfig
+ * @property {Object} [background] - Scene background configuration
+ * @property {string} [background.type='color'] - Background type ('color', 'texture', 'gradient')
+ * @property {string} [background.value='#001122'] - Background color or texture path
+ * @property {Object} [fog] - Fog settings for depth perception
+ * @property {boolean} [fog.enabled=false] - Enable scene fog
+ * @property {string} [fog.color='#001122'] - Fog color
+ * @property {number} [fog.near=10] - Fog near distance
+ * @property {number} [fog.far=100] - Fog far distance
+ */
+
+/**
+ * @typedef {Object} CameraConfig
+ * @property {number} [fov=65] - Field of view in degrees
+ * @property {number} [near=0.05] - Near clipping plane distance
+ * @property {number} [far=2000] - Far clipping plane distance
+ * @property {Object} [position] - Initial camera position
+ * @property {number} [position.x=0] - X coordinate
+ * @property {number} [position.y=5] - Y coordinate
+ * @property {number} [position.z=10] - Z coordinate
+ * @property {Object} [desktop] - Desktop-specific camera controls
+ * @property {boolean} [desktop.enableDamping=true] - Enable camera damping
+ * @property {number} [desktop.dampingFactor=0.08] - Damping factor (0-1)
+ * @property {number} [desktop.maxDistance=100] - Maximum zoom distance
+ * @property {number} [desktop.minDistance=0.5] - Minimum zoom distance
+ */
+
+/**
+ * @typedef {Object} ModelViewerOptions
+ * @property {Object.<string, ModelConfig>} [models={}] - Object mapping model keys to configurations
+ * @property {boolean} [autoLoadFirst=true] - Automatically load the first model
+ * @property {boolean} [showLoadingIndicator=true] - Show loading spinner
+ * @property {boolean} [showStatus=true] - Show status messages
+ * @property {boolean} [showInfo=false] - Show info panel
+ * @property {boolean} [enableVR=false] - Enable VR support
+ * @property {boolean} [enableMeasurement=false] - Enable measurement system
+ * @property {string} [measurementTheme='dark'] - Measurement panel theme ('dark' or 'light')
+ * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
+ * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
+ * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
+ * @property {boolean} [enableVRAudio=true] - Enable VR audio system (requires audio files)
+ * @property {string} [audioPath='./sound/'] - Path to VR audio files
+ * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
+ * @property {SceneConfig} [viewerConfig.scene] - Scene configuration
+ * @property {CameraConfig} [viewerConfig.camera] - Camera configuration
+ * @property {Object} [viewerConfig.renderer] - Renderer configuration
+ * @property {string} [initialModel] - Key of model to load initially
+ * @property {Object} [initialPositions] - Override initial positions for loaded model
+ */
+
+/**
+ * ModelViewer - High-level 3D model viewer with automatic UI management
+ * 
+ * A complete 3D model viewer that handles multiple models with dropdown selection,
+ * VR support, measurement tools, and underwater exploration features. This class
+ * provides a simple API for creating production-ready 3D viewers with minimal setup.
+ * 
+ * @class ModelViewer
+ * @extends EventSystem
+ * 
+ * @param {HTMLElement|string} container - DOM element or CSS selector for the viewer container
+ * @param {ModelViewerOptions} [options={}] - Configuration options
+ * 
+ * @fires ModelViewer#model-loaded - Fired when a model is successfully loaded
+ * @fires ModelViewer#model-load-error - Fired when model loading fails
+ * @fires ModelViewer#focus - Fired when camera focuses on a point
+ * @fires ModelViewer#camera-reset - Fired when camera is reset to initial position
+ * @fires ModelViewer#vr-session-start - Fired when VR session begins
+ * @fires ModelViewer#vr-session-end - Fired when VR session ends
+ * 
+ * @example
+ * // Basic usage with single model
+ * const viewer = new ModelViewer('#viewer-container', {
+ *   models: {
+ *     'wreck': {
+ *       url: 'models/shipwreck.glb',
+ *       name: 'Historic Shipwreck',
+ *       credit: 'Maritime Museum'
+ *     }
+ *   },
+ *   enableVR: true,
+ *   enableMeasurement: true
+ * });
+ * 
+ * @example
+ * // Multiple models with custom positions
+ * const viewer = new ModelViewer(document.getElementById('viewer'), {
+ *   models: {
+ *     'model1': {
+ *       url: 'path/to/model1.glb',
+ *       name: 'Model 1',
+ *       initialPositions: {
+ *         desktop: {
+ *           camera: { x: 10, y: 5, z: 15 },
+ *           target: { x: 0, y: 0, z: 0 }
+ *         },
+ *         vr: {
+ *           dolly: { x: 0, y: 2, z: 10 },
+ *           rotation: { x: 0, y: 0, z: 0 }
+ *         }
+ *       }
+ *     },
+ *     'model2': {
+ *       url: 'path/to/model2.glb',
+ *       name: 'Model 2'
+ *     }
+ *   },
+ *   enableVR: true,
+ *   enableMeasurement: true,
+ *   enableDiveSystem: true,
+ *   measurementTheme: 'light'
+ * });
+ * 
+ * @since 1.0.0
  */
 export class ModelViewer extends EventSystem {
+  /**
+   * Creates a new ModelViewer instance
+   * 
+   * @param {HTMLElement|string} container - DOM element or CSS selector for the viewer container
+   * @param {ModelViewerOptions} [options={}] - Configuration options
+   */
   constructor(container, options = {}) {
     super();
     if (typeof container === 'string') {
@@ -713,6 +855,23 @@ export class ModelViewer extends EventSystem {
     });
   }
   
+  /**
+   * Load a model by its key
+   * 
+   * @async
+   * @method loadModel
+   * @param {string} modelKey - The key of the model to load (must exist in options.models)
+   * @returns {Promise<void>} Promise that resolves when model loading is complete
+   * 
+   * @fires ModelViewer#model-loaded - When model loads successfully
+   * @fires ModelViewer#model-load-error - When model loading fails
+   * 
+   * @example
+   * // Load a specific model
+   * await viewer.loadModel('shipwreck');
+   * 
+   * @since 1.0.0
+   */
   async loadModel(modelKey) {
     const modelConfig = this.options.models[modelKey];
     if (!modelConfig) {
@@ -846,22 +1005,80 @@ export class ModelViewer extends EventSystem {
   }
   
   // Public API methods
+  /**
+   * Get the currently loaded model object
+   * 
+   * @method getCurrentModel
+   * @returns {THREE.Object3D|null} The current Three.js model object or null if none loaded
+   * 
+   * @example
+   * // Get current model and inspect it
+   * const model = viewer.getCurrentModel();
+   * if (model) {
+   *   console.log('Model has', model.children.length, 'children');
+   * }
+   * 
+   * @since 1.0.0
+   */
   getCurrentModel() {
     return this.belowViewer ? this.belowViewer.getCurrentModel() : null;
   }
   
+  /**
+   * Get the Three.js camera instance
+   * 
+   * @method getCamera
+   * @returns {THREE.PerspectiveCamera|null} The Three.js camera or null if not initialized
+   * 
+   * @example
+   * // Access camera properties
+   * const camera = viewer.getCamera();
+   * if (camera) {
+   *   console.log('Camera position:', camera.position);
+   * }
+   * 
+   * @since 1.0.0
+   */
   getCamera() {
     return this.belowViewer ? this.belowViewer.getCamera() : null;
   }
   
+  /**
+   * Get the Three.js scene instance
+   * 
+   * @method getScene
+   * @returns {THREE.Scene|null} The Three.js scene or null if not initialized
+   * 
+   * @example
+   * // Add custom objects to the scene
+   * const scene = viewer.getScene();
+   * if (scene) {
+   *   scene.add(myCustomObject);
+   * }
+   * 
+   * @since 1.0.0
+   */
   getScene() {
     return this.belowViewer ? this.belowViewer.sceneManager.scene : null;
   }
   
   /**
-   * Focus the camera on a specific point in 3D space
-   * @param {THREE.Vector3} point - The point to focus on
-   * @param {number} distance - Optional distance from the point
+   * Focus the camera on a specific 3D point
+   * 
+   * @method focusOn
+   * @param {Object} point - 3D point to focus on
+   * @param {number} point.x - X coordinate
+   * @param {number} point.y - Y coordinate  
+   * @param {number} point.z - Z coordinate
+   * @param {number} [distance=null] - Distance from the point (uses default if null)
+   * 
+   * @fires ModelViewer#focus - When camera focus changes
+   * 
+   * @example
+   * // Focus on a specific point
+   * viewer.focusOn({ x: 10, y: 5, z: 0 }, 15);
+   * 
+   * @since 1.0.0
    */
   focusOn(point, distance = null) {
     if (this.belowViewer?.cameraManager) {
@@ -871,7 +1088,18 @@ export class ModelViewer extends EventSystem {
   }
   
   /**
-   * Reset camera to the model's initial position
+   * Reset camera to the initial position for the current model
+   * 
+   * @method resetCamera
+   * @returns {void}
+   * 
+   * @fires ModelViewer#camera-reset - When camera is reset
+   * 
+   * @example
+   * // Reset camera to initial view
+   * viewer.resetCamera();
+   * 
+   * @since 1.0.0
    */
   resetCamera() {
     if (this.currentModelKey && this.belowViewer) {
@@ -896,6 +1124,26 @@ export class ModelViewer extends EventSystem {
   }
   
   // VR Comfort Settings API
+  /**
+   * Set VR comfort settings for motion sickness reduction
+   * 
+   * @method setVRComfortSettings
+   * @param {Object} settings - VR comfort configuration
+   * @param {boolean} [settings.enableComfort=true] - Enable comfort features
+   * @param {number} [settings.comfortRadius=0.3] - Radius of comfort zone
+   * @param {number} [settings.fadeDistance=0.1] - Distance for fade effect
+   * @returns {void}
+   * 
+   * @example
+   * // Configure VR comfort settings
+   * viewer.setVRComfortSettings({
+   *   enableComfort: true,
+   *   comfortRadius: 0.4,
+   *   fadeDistance: 0.15
+   * });
+   * 
+   * @since 1.0.0
+   */
   setVRComfortSettings(settings) {
     if (this.belowViewer && this.belowViewer.setVRComfortSettings) {
       return this.belowViewer.setVRComfortSettings(settings);
@@ -908,6 +1156,19 @@ export class ModelViewer extends EventSystem {
     }
   }
   
+  /**
+   * Get current VR comfort settings
+   * 
+   * @method getVRComfortSettings
+   * @returns {Object|null} Current VR comfort settings or null if not available
+   * 
+   * @example
+   * // Get current comfort settings
+   * const settings = viewer.getVRComfortSettings();
+   * console.log('Comfort enabled:', settings?.enableComfort);
+   * 
+   * @since 1.0.0
+   */
   getVRComfortSettings() {
     if (this.belowViewer && this.belowViewer.getVRComfortSettings) {
       return this.belowViewer.getVRComfortSettings();
@@ -915,6 +1176,21 @@ export class ModelViewer extends EventSystem {
     return null;
   }
   
+  /**
+   * Clean up and dispose of all resources
+   * 
+   * Call this method when you're done with the ModelViewer to free up memory
+   * and remove event listeners. The viewer will not be usable after disposal.
+   * 
+   * @method dispose
+   * @returns {void}
+   * 
+   * @example
+   * // Clean up when done
+   * viewer.dispose();
+   * 
+   * @since 1.0.0
+   */
   dispose() {
     // Clean up global reference
     if (typeof window !== 'undefined' && window.modelViewer === this) {

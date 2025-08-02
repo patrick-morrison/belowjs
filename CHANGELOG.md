@@ -5,9 +5,13 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-08-01
+## [0.1.3] - 2025-01-01 - NPM Publication Ready
 
 ### Added
+- **NPM Publication Ready**: Complete package configuration for public NPM distribution
+- **GPL License Headers**: All source files now include proper GPL-3.0-or-later copyright headers
+- **Security Fixes**: Updated to Three.js 0.179.0 and Vite 6.0.0 to resolve security vulnerabilities
+- **NPM Configuration**: Added `files`, `publishConfig`, `engines`, and `prepublishOnly` fields
 - Professional logging system with reduced console output
 - Comprehensive code cleanup removing development artifacts
 - Audio path configuration now properly supported via `audioPath` option
@@ -40,6 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Console debugging experience significantly improved
 - Professional codebase suitable for enterprise environments
 - All functionality preserved while removing development noise
+
+### Dependencies & Security
+- **Updated**: three@0.179.0 (latest stable, MIT license compatible with GPL)
+- **Updated**: vite@6.0.0 (fixes esbuild security vulnerability)
+- **Confirmed**: Three.js MIT license is fully compatible with GPL-3.0-or-later
+- **Zero vulnerabilities**: `npm audit` now reports clean security status
 
 ### API Compatibility
 - **BREAKING**: UI elements attach to the provided container, so custom CSS may need updates when upgrading

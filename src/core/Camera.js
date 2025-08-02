@@ -3,9 +3,44 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EventSystem } from '../utils/EventSystem.js';
 
 /**
- * Camera management class
+ * Camera - 3D camera management with controls and animation
+ * 
+ * Manages Three.js PerspectiveCamera with OrbitControls, provides smooth
+ * focus animations, and handles camera positioning and framing operations.
+ * 
+ * @class Camera
+ * @extends EventSystem
+ * 
+ * @param {Object} [config={}] - Camera configuration
+ * @param {number} [config.fov=65] - Field of view in degrees
+ * @param {number} [config.near=0.05] - Near clipping plane
+ * @param {number} [config.far=2000] - Far clipping plane
+ * @param {Object} [config.position] - Initial camera position {x, y, z}
+ * @param {Object} [config.desktop] - Desktop-specific control settings
+ * 
+ * @fires Camera#focus-start - When focus animation begins
+ * @fires Camera#focus-complete - When focus animation completes
+ * @fires Camera#controls-change - When camera position changes via controls
+ * 
+ * @example
+ * // Create camera with custom settings
+ * const camera = new Camera({
+ *   fov: 75,
+ *   position: { x: 10, y: 5, z: 15 },
+ *   desktop: {
+ *     enableDamping: true,
+ *     dampingFactor: 0.1
+ *   }
+ * });
+ * 
+ * @since 1.0.0
  */
 export class Camera extends EventSystem {
+  /**
+   * Creates a new Camera instance
+   * 
+   * @param {Object} [config={}] - Camera configuration
+   */
   constructor(config = {}) {
     super();
     this.config = config;
@@ -65,6 +100,23 @@ export class Camera extends EventSystem {
     return this.controls;
   }
 
+  /**
+   * Frame an object by positioning the camera to view it optimally
+   * 
+   * @method frameObject
+   * @param {THREE.Vector3} center - Center point of the object
+   * @param {number} size - Size/radius of the object
+   * @returns {void}
+   * 
+   * @example
+   * // Frame a model based on its bounding box
+   * const box = new THREE.Box3().setFromObject(model);
+   * const center = box.getCenter(new THREE.Vector3());
+   * const size = box.getSize(new THREE.Vector3()).length();
+   * camera.frameObject(center, size);
+   * 
+   * @since 1.0.0
+   */
   frameObject(center, size) {
     // Calculate distance to frame the object nicely
     const distance = size * 1.5; // Adjust multiplier for desired framing
@@ -83,6 +135,29 @@ export class Camera extends EventSystem {
     }
   }
 
+  /**
+   * Smoothly focus the camera on a target point
+   * 
+   * @method focusOn
+   * @param {THREE.Vector3|Object} target - Target position to focus on
+   * @param {number} target.x - X coordinate
+   * @param {number} target.y - Y coordinate  
+   * @param {number} target.z - Z coordinate
+   * @param {number} [distance=null] - Distance from target (auto-calculated if null)
+   * @returns {void}
+   * 
+   * @fires Camera#focus-start - When animation begins
+   * @fires Camera#focus-complete - When animation completes
+   * 
+   * @example
+   * // Focus on a specific point
+   * camera.focusOn({ x: 10, y: 5, z: 0 });
+   * 
+   * // Focus with custom distance
+   * camera.focusOn(targetPoint, 15);
+   * 
+   * @since 1.0.0
+   */
   focusOn(target, distance = null) {
     if (!this.controls) return;
     
@@ -137,6 +212,21 @@ export class Camera extends EventSystem {
     this.emit('focus-start', { target, startPosition, newPosition });
   }
 
+  /**
+   * Clean up and dispose of camera resources
+   * 
+   * Cancels any ongoing animations, disposes of controls, and cleans up
+   * event listeners. Call this when done with the camera.
+   * 
+   * @method dispose
+   * @returns {void}
+   * 
+   * @example
+   * // Clean up camera
+   * camera.dispose();
+   * 
+   * @since 1.0.0
+   */
   dispose() {
     // Cancel any ongoing focus animation
     if (this.focusAnimation) {

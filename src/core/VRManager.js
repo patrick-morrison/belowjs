@@ -1,8 +1,29 @@
 /**
  * VRManager - Main VR Coordinator
  * 
- * VRManager coordinates all VR modules.
- * Maintains exact functionality while providing clean modular architecture.
+ * Coordinates all VR modules including controllers, locomotion, comfort settings,
+ * and audio systems. Provides a unified interface for VR functionality while
+ * maintaining modular architecture for easy customization and extension.
+ * 
+ * @class VRManager
+ * 
+ * @param {THREE.WebGLRenderer} renderer - Three.js WebGL renderer with XR enabled
+ * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
+ * @param {THREE.Scene} scene - Three.js scene for VR objects
+ * @param {string} [audioPath='./sound/'] - Path to VR audio files
+ * @param {boolean} [enableAudio=true] - Enable VR audio system
+ * 
+ * @example
+ * // Create VR manager with audio
+ * const vrManager = new VRManager(renderer, camera, scene, './sounds/', true);
+ * 
+ * // Configure comfort settings
+ * vrManager.setComfortSettings({
+ *   enableComfort: true,
+ *   comfortRadius: 0.3
+ * });
+ * 
+ * @since 1.0.0
  */
 
 import * as THREE from 'three';
@@ -14,6 +35,15 @@ import { VRComfort } from '../vr/locomotion/VRComfort.js';
 import { VRAudio } from '../vr/audio/VRAudio.js';
 
 export class VRManager {
+  /**
+   * Creates a new VRManager instance
+   * 
+   * @param {THREE.WebGLRenderer} renderer - Three.js WebGL renderer with XR enabled
+   * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
+   * @param {THREE.Scene} scene - Three.js scene for VR objects
+   * @param {string} [audioPath='./sound/'] - Path to VR audio files
+   * @param {boolean} [enableAudio=true] - Enable VR audio system
+   */
   constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = true) {
     this.renderer = renderer;
     this.camera = camera;
@@ -227,14 +257,62 @@ export class VRManager {
   }
   
   // Comfort settings methods (maintain original API)
+  /**
+   * Set VR comfort settings for motion sickness reduction
+   * 
+   * @method setComfortSettings
+   * @param {Object} settings - Comfort configuration object
+   * @param {boolean} [settings.enableComfort] - Enable comfort features
+   * @param {number} [settings.comfortRadius] - Radius of comfort zone
+   * @param {number} [settings.fadeDistance] - Distance for fade effect
+   * @param {number} [settings.maxSpeed] - Maximum movement speed
+   * @returns {void}
+   * 
+   * @example
+   * // Configure comfort settings
+   * vrManager.setComfortSettings({
+   *   enableComfort: true,
+   *   comfortRadius: 0.4,
+   *   fadeDistance: 0.15,
+   *   maxSpeed: 2.0
+   * });
+   * 
+   * @since 1.0.0
+   */
   setComfortSettings(settings) {
     this.vrComfort.setSettings(settings);
   }
   
+  /**
+   * Get current VR comfort settings
+   * 
+   * @method getComfortSettings
+   * @returns {Object} Current comfort settings object
+   * 
+   * @example
+   * // Check current settings
+   * const settings = vrManager.getComfortSettings();
+   * console.log('Comfort enabled:', settings.enableComfort);
+   * 
+   * @since 1.0.0
+   */
   getComfortSettings() {
     return this.vrComfort.getSettings();
   }
   
+  /**
+   * Apply a predefined comfort preset
+   * 
+   * @method setComfortPreset
+   * @param {string} preset - Preset name ('conservative', 'moderate', 'advanced')
+   * @returns {void}
+   * 
+   * @example
+   * // Use conservative comfort settings for sensitive users
+   * vrManager.setComfortPreset('conservative');
+   * 
+   * @since 1.0.0
+   */
   setComfortPreset(preset) {
     this.vrComfort.setPreset(preset);
   }
@@ -393,6 +471,21 @@ export class VRManager {
   }
   
   // Dispose of all VR systems
+  /**
+   * Clean up and dispose of all VR resources
+   * 
+   * Properly disposes of all VR modules, controllers, audio systems, and
+   * clears event callbacks. Call this when done with VR functionality.
+   * 
+   * @method dispose
+   * @returns {void}
+   * 
+   * @example
+   * // Clean up VR system
+   * vrManager.dispose();
+   * 
+   * @since 1.0.0
+   */
   dispose() {
     // Dispose all modules
     this.vrCore.dispose();

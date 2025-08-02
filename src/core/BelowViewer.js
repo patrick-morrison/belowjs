@@ -6,7 +6,84 @@ import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
 import { VRManager } from './VRManager.js';
 
+/**
+ * @typedef {Object} BelowViewerConfig
+ * @property {Object} [scene] - Scene configuration
+ * @property {Object} [scene.background] - Background settings
+ * @property {string} [scene.background.type='color'] - Background type ('color', 'texture', 'gradient')
+ * @property {string} [scene.background.value='#001122'] - Background color value
+ * @property {Object} [scene.fog] - Fog settings
+ * @property {boolean} [scene.fog.enabled=false] - Enable fog
+ * @property {string} [scene.fog.color='#001122'] - Fog color
+ * @property {number} [scene.fog.near=10] - Fog near distance
+ * @property {number} [scene.fog.far=100] - Fog far distance
+ * @property {Object} [camera] - Camera configuration
+ * @property {number} [camera.fov=65] - Field of view in degrees
+ * @property {number} [camera.near=0.05] - Near clipping plane
+ * @property {number} [camera.far=2000] - Far clipping plane
+ * @property {Object} [camera.position] - Initial camera position
+ * @property {Object} [camera.desktop] - Desktop-specific camera settings
+ * @property {Object} [renderer] - Renderer configuration
+ * @property {boolean} [renderer.antialias=true] - Enable antialiasing
+ * @property {boolean} [renderer.alpha=false] - Enable transparency
+ * @property {string} [renderer.powerPreference='high-performance'] - GPU preference
+ * @property {Object} [vr] - VR configuration
+ * @property {boolean} [vr.enabled=true] - Enable VR support
+ */
+
+/**
+ * BelowViewer - Core 3D rendering engine for BelowJS
+ * 
+ * The low-level viewer that provides direct access to Three.js scene, camera, 
+ * and renderer with VR capabilities and model loading. This is the foundation
+ * class that powers ModelViewer and can be used directly for custom implementations.
+ * 
+ * @class BelowViewer
+ * @extends EventSystem
+ * 
+ * @param {HTMLElement} container - DOM element to render into
+ * @param {BelowViewerConfig} [config={}] - Configuration options
+ * 
+ * @fires BelowViewer#initialized - Fired when viewer is fully initialized
+ * @fires BelowViewer#model-loaded - Fired when a model is loaded successfully
+ * @fires BelowViewer#model-load-progress - Fired during model loading
+ * @fires BelowViewer#model-load-error - Fired when model loading fails
+ * @fires BelowViewer#vr-session-start - Fired when VR session begins
+ * @fires BelowViewer#vr-session-end - Fired when VR session ends
+ * @fires BelowViewer#camera-change - Fired when camera position changes
+ * 
+ * @example
+ * // Basic usage
+ * const viewer = new BelowViewer(document.getElementById('container'), {
+ *   scene: {
+ *     background: { type: 'color', value: '#041729' }
+ *   },
+ *   camera: {
+ *     fov: 65,
+ *     position: { x: 0, y: 5, z: 10 }
+ *   },
+ *   vr: {
+ *     enabled: true
+ *   }
+ * });
+ * 
+ * // Load a model
+ * viewer.loadModel('path/to/model.glb');
+ * 
+ * // Access Three.js objects directly
+ * const scene = viewer.sceneManager.scene;
+ * const camera = viewer.cameraManager.camera;
+ * const renderer = viewer.renderer;
+ * 
+ * @since 1.0.0
+ */
 export class BelowViewer extends EventSystem {
+  /**
+   * Creates a new BelowViewer instance
+   * 
+   * @param {HTMLElement} container - DOM element to render into
+   * @param {BelowViewerConfig} [config={}] - Configuration options
+   */
   constructor(container, config = {}) {
     super();
     
@@ -194,6 +271,37 @@ export class BelowViewer extends EventSystem {
     this.emit('resize', { width, height });
   }
 
+  /**
+   * Load a 3D model from a URL
+   * 
+   * @async
+   * @method loadModel
+   * @param {string} url - Path to the GLB model file
+   * @param {Object} [options={}] - Loading options
+   * @param {AbortSignal} [options.signal] - AbortSignal for cancelling the load
+   * @param {Function} [options.onProgress] - Progress callback function
+   * @param {Object} [options.initialPositions] - Camera positions for this model
+   * @returns {Promise<THREE.Object3D>} Promise that resolves to the loaded model
+   * 
+   * @fires BelowViewer#model-loaded - When model loads successfully
+   * @fires BelowViewer#model-load-progress - During loading progress
+   * @fires BelowViewer#model-load-error - When loading fails
+   * 
+   * @example
+   * // Load a model with progress tracking
+   * try {
+   *   const model = await viewer.loadModel('model.glb', {
+   *     onProgress: (progress) => {
+   *       console.log('Loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+   *     }
+   *   });
+   *   console.log('Model loaded:', model);
+   * } catch (error) {      
+   *   console.error('Failed to load model:', error);
+   * }
+   * 
+   * @since 1.0.0
+   */
   async loadModel(url, options = {}) {
     // Cancel any existing loading operation
     if (this.currentAbortController) {
@@ -345,18 +453,76 @@ export class BelowViewer extends EventSystem {
     return this.sceneManager?.scene;
   }
 
+  /**
+   * Get the Three.js camera instance
+   * 
+   * @method getCamera
+   * @returns {THREE.PerspectiveCamera|null} The Three.js camera or null if not initialized
+   * 
+   * @example
+   * // Access camera directly
+   * const camera = viewer.getCamera();
+   * if (camera) {
+   *   camera.position.set(10, 5, 15);
+   * }
+   * 
+   * @since 1.0.0
+   */
   getCamera() {
     return this.cameraManager?.camera;
   }
 
+  /**
+   * Get the Three.js WebGL renderer instance
+   * 
+   * @method getRenderer
+   * @returns {THREE.WebGLRenderer|null} The Three.js renderer or null if not initialized
+   * 
+   * @example
+   * // Configure renderer directly
+   * const renderer = viewer.getRenderer();
+   * if (renderer) {
+   *   renderer.shadowMap.enabled = true;
+   * }
+   * 
+   * @since 1.0.0
+   */
   getRenderer() {
     return this.renderer;
   }
 
+  /**
+   * Get all loaded models
+   * 
+   * @method getLoadedModels
+   * @returns {Array<Object>} Array of loaded model objects with metadata
+   * 
+   * @example
+   * // List all loaded models
+   * const models = viewer.getLoadedModels();
+   * console.log('Loaded models:', models.length);
+   * 
+   * @since 1.0.0
+   */
   getLoadedModels() {
     return this.loadedModels;
   }
 
+  /**
+   * Get the most recently loaded model
+   * 
+   * @method getCurrentModel
+   * @returns {THREE.Object3D|null} The current model object or null if none loaded
+   * 
+   * @example
+   * // Get current model and modify it
+   * const model = viewer.getCurrentModel();
+   * if (model) {
+   *   model.visible = false;
+   * }
+   * 
+   * @since 1.0.0
+   */
   getCurrentModel() {
     return this.loadedModels.length > 0 ? this.loadedModels[this.loadedModels.length - 1] : null;
   }
@@ -405,6 +571,21 @@ export class BelowViewer extends EventSystem {
     this.emit('models-cleared');
   }
 
+  /**
+   * Clean up and dispose of all resources
+   * 
+   * Properly disposes of the renderer, scene, models, and all associated resources.
+   * Call this when you're done with the viewer to prevent memory leaks.
+   * 
+   * @method dispose
+   * @returns {void}
+   * 
+   * @example
+   * // Clean up when done
+   * viewer.dispose();
+   * 
+   * @since 1.0.0
+   */
   dispose() {
     // Cancel any pending model loads
     if (this.currentAbortController) {
@@ -518,16 +699,61 @@ export class BelowViewer extends EventSystem {
   }
 
   // VR Comfort Settings API
+  /**
+   * Set VR comfort settings for motion sickness reduction
+   * 
+   * @method setVRComfortSettings
+   * @param {Object} settings - VR comfort configuration
+   * @param {boolean} [settings.enableComfort] - Enable comfort features
+   * @param {number} [settings.comfortRadius] - Radius of comfort zone
+   * @param {number} [settings.fadeDistance] - Distance for fade effect
+   * @returns {void}
+   * 
+   * @example
+   * // Configure VR comfort
+   * viewer.setVRComfortSettings({
+   *   enableComfort: true,
+   *   comfortRadius: 0.4
+   * });
+   * 
+   * @since 1.0.0
+   */
   setVRComfortSettings(settings) {
     if (this.vrManager) {
       this.vrManager.setComfortSettings(settings);
     }
   }
   
+  /**
+   * Get current VR comfort settings
+   * 
+   * @method getVRComfortSettings
+   * @returns {Object|null} Current VR comfort settings or null if VR not enabled
+   * 
+   * @example
+   * // Check current settings
+   * const settings = viewer.getVRComfortSettings();
+   * console.log('Comfort enabled:', settings?.enableComfort);
+   * 
+   * @since 1.0.0
+   */
   getVRComfortSettings() {
     return this.vrManager ? this.vrManager.getComfortSettings() : null;
   }
   
+  /**
+   * Apply a predefined VR comfort preset
+   * 
+   * @method setVRComfortPreset
+   * @param {string} preset - Preset name ('conservative', 'moderate', 'advanced')
+   * @returns {void}
+   * 
+   * @example
+   * // Use conservative comfort settings
+   * viewer.setVRComfortPreset('conservative');
+   * 
+   * @since 1.0.0
+   */
   setVRComfortPreset(preset) {
     if (this.vrManager) {
       this.vrManager.setComfortPreset(preset);
