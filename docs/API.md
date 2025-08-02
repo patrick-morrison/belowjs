@@ -873,6 +873,24 @@ Get all available model configurations.
 const models = viewer.getModels();
 ```
 
+#### `clearModels()`
+Remove all currently loaded models. Useful when loading a model from an arbitrary source.
+
+```javascript
+viewer.belowViewer.clearModels();
+```
+
+#### Loading a GLB at runtime
+You can load a user-provided GLB file by clearing existing models and
+calling the lower-level `BelowViewer` instance:
+
+```javascript
+const url = URL.createObjectURL(file);
+viewer.belowViewer.clearModels();
+await viewer.belowViewer.loadModel(url, { autoFrame: true });
+URL.revokeObjectURL(url);
+```
+
 ### Scene Control
 
 #### `focusModel()`

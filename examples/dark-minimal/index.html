@@ -24,57 +24,15 @@
     <script type="module">
         import { ModelViewer } from '/dist/belowjs.es.js';
 
-        // Model configuration
+        // Single default model
         const models = {
-          'key_biscayne': { 
-            url: '../basic-viewer/models/key_biscayne.glb', 
-            name: 'Key Biscayne',
-            initialPositions: {
-              desktop: {
-                camera: { x: 33.494, y: 36.42, z: -83.442 },
-                target: { x: -3.602, y: -6.611, z: -23.97 }
-              },
-              vr: {
-                dolly: { x: 0, y: 2, z: 15 },
-                rotation: { x: 0, y: 0, z: 0 }
-              }
-            }
-          },
-          'kxi': { 
-            url: '../basic-viewer/models/kxi.glb', 
-            name: 'HNLMS K XI (1946)',
-            initialPositions: {
-              desktop: {
-                camera: { x: -6.391, y: 12.461, z: -42.105 },
-                target: { x: 1.529, y: 0.088, z: -14.334 }
-              },
-              vr: {
-                dolly: { x: 0, y: 2, z: 15 },
-                rotation: { x: 0, y: 0, z: 0 }
-              }
-            }
-          },
-          'sesa': { 
-            url: '../basic-viewer/models/sesa.glb', 
+          'sesa': {
+            url: '../basic-viewer/models/sesa.glb',
             name: 'Sesa',
             initialPositions: {
               desktop: {
                 camera: { x: 18.93, y: 11.572, z: 52.508 },
                 target: { x: -1.613, y: -8.088, z: 4.822 }
-              },
-              vr: {
-                dolly: { x: 0, y: 2, z: 15 },
-                rotation: { x: 0, y: 0, z: 0 }
-              }
-            }
-          },
-          'unknown': { 
-            url: '../basic-viewer/models/unknown.glb', 
-            name: 'Unknown Wreck',
-            initialPositions: {
-              desktop: {
-                camera: { x: 34.226, y: 10.354, z: 2.12 },
-                target: { x: 10.959, y: -1.07, z: 2.247 }
               },
               vr: {
                 dolly: { x: 0, y: 2, z: 15 },
@@ -91,13 +49,14 @@
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
 
-        // Dark minimal viewer: just models, dive mode, and VR
+        // Dark minimal viewer: only mode switch and VR toggle
+        // Shows the Sesa model by default and supports drag-and-drop GLB loading
         const viewer = new ModelViewer(viewerContainer, {
           models: models,
           enableDiveSystem: true,
-          enableVR: true,  // Enable VR to show VR button
-          enableVRAudio: false,  // Disable VR audio for minimal viewer
-          enableFullscreen: true,
+          enableVR: true,
+          enableVRAudio: false,
+          enableFullscreen: false,
           showInfo: false,
           showStatus: false,
           showLoadingIndicator: false,
@@ -105,6 +64,27 @@
             scene: {
               background: { type: 'color', value: '#0f172a' }
             }
+          }
+        });
+
+        // Allow users to drag and drop a GLB file onto the viewer
+        window.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+
+        window.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (!file) return;
+          const url = URL.createObjectURL(file);
+          try {
+            // Replace the default model with the dropped one
+            viewer.belowViewer.clearModels();
+            await viewer.belowViewer.loadModel(url, { autoFrame: true });
+          } catch (err) {
+            console.error('Failed to load dropped model:', err);
+          } finally {
+            URL.revokeObjectURL(url);
           }
         });
     </script>
