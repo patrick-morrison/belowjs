@@ -15,6 +15,7 @@
 @import './vr.css';
 @import './dive.css';
 @import './measurement.css';
+@import './annotations.css';
 
 /* VR UI components */
 @import '../vr/ui/vrui.css';

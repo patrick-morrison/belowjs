@@ -44,15 +44,16 @@ export class VRManager {
    * @param {string} [audioPath='./sound/'] - Path to VR audio files
    * @param {boolean} [enableAudio=true] - Enable VR audio system
    */
-  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = true) {
+  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = true, container = null) {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
     this.audioPath = audioPath;
     this.enableAudio = enableAudio;
+    this.container = container;
     
     // Core VR modules
-    this.vrCore = new VRCore(renderer, camera, scene);
+    this.vrCore = new VRCore(renderer, camera, scene, container);
     this.vrControllers = new VRControllers(renderer, camera);
     this.vrTeleport = new VRTeleport(scene, camera);
     this.vrLocomotion = new VRLocomotion(camera, renderer);

@@ -65,3 +65,7 @@ export { Camera } from './core/Camera.js';
 export { ModelLoader } from './models/ModelLoader.js';
 export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
+
+// Export annotation system
+export { AnnotationSystem } from './annotations/AnnotationSystem.js';
+export { AnnotationManager } from './annotations/AnnotationManager.js';

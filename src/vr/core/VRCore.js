@@ -9,10 +9,11 @@ import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 export class VRCore {
-  constructor(renderer, camera, scene) {
+  constructor(renderer, camera, scene, container = null) {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
+    this.container = container || document.body;
     
     // VR State
     this.isVRSupported = false;
@@ -127,7 +128,7 @@ export class VRCore {
           pointer-events: auto !important;
           cursor: pointer !important;
         `;
-        document.body.appendChild(this.vrButton);
+        this.container.appendChild(this.vrButton);
         this.styleVRButton();
       });
     } catch (error) {
@@ -246,13 +247,13 @@ export class VRCore {
         const testElement = document.createElement('div');
         testElement.className = 'vr-mode-active';
         testElement.style.display = 'none';
-        document.body.appendChild(testElement);
+        this.container.appendChild(testElement);
         
         const computed = window.getComputedStyle(testElement);
         const hasVRCSS = computed.getPropertyValue('--vr-css-loaded') === 'true' ||
                          computed.opacity === '0.999'; // Our CSS marker
         
-        document.body.removeChild(testElement);
+        this.container.removeChild(testElement);
         
         if (hasVRCSS) {
           resolve();

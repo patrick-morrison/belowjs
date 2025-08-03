@@ -5,6 +5,7 @@ import { Scene } from './Scene.js';
 import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
 import { VRManager } from './VRManager.js';
+import { DebugCommands } from './DebugCommands.js';
 
 /**
  * @typedef {Object} BelowViewerConfig
@@ -134,6 +135,12 @@ export class BelowViewer extends EventSystem {
       this.startRenderLoop();
       
       this.isInitialized = true;
+      
+      // Initialize debug commands
+      if (typeof window !== 'undefined') {
+        DebugCommands.init(this);
+      }
+      
       this.emit('initialized');
       
     } catch (error) {
@@ -179,15 +186,11 @@ export class BelowViewer extends EventSystem {
     // Initialize VR manager with original patterns
     const audioPath = this.config.audioPath || './sound/';
     const enableAudio = this.config.enableVRAudio !== false; // Default to true unless explicitly disabled
-    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio);
+    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container);
     
     // Set controls reference for camera state preservation
     this.vrManager.setControls(this.cameraManager.controls);
     
-    // Make BelowViewer globally accessible for VR-measurement coordination
-    if (typeof window !== 'undefined') {
-      window.belowViewer = this;
-    }
     
     // Setup VR callbacks
     this.vrManager.onModeToggle = () => {
@@ -592,9 +595,9 @@ export class BelowViewer extends EventSystem {
       this.currentAbortController.abort();
     }
     
-    // Clean up global reference
-    if (typeof window !== 'undefined' && window.belowViewer === this) {
-      window.belowViewer = undefined;
+    // Clean up debug commands
+    if (typeof window !== 'undefined') {
+      DebugCommands.cleanup();
     }
     
     // Dispose VR manager

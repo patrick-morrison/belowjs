@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Annotation Studio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📍</text></svg>">
+    
+    <!-- BelowJS Production Build -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer, AnnotationManager } from '/dist/belowjs.es.js';
+
+        // Simple model configuration
+        const models = {
+          'kxi': { 
+            url: '../basic/models/kxi.glb', 
+            name: 'HNLMS K XI (1946)',
+            initialPositions: {
+              desktop: {
+                camera: { x: -6.391, y: 12.461, z: -42.105 },
+                target: { x: 1.529, y: 0.088, z: -14.334 }
+              }
+            }
+          }
+        };
+
+        // Create viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        // Initialize ModelViewer
+        const viewer = new ModelViewer(viewerContainer, {
+          enableVR: true,
+          enableControls: true,
+          enableInfo: false,
+          showStats: false,
+          showStatus: false,
+          autoRotate: false,
+          models: models,
+          enableMeasurement: false,
+          enableVRComfortGlyph: false,
+          enableDiveSystem: true, // Keep for lighting
+          enableVRAudio: false, // Disable audio
+          enableFullscreen: true,
+          enableAnnotations: true,
+          viewerConfig: {
+            scene: {
+              backgroundColor: '#f0f0f0'
+            }
+          },
+          initialModel: 'kxi',
+          initialPositions: models['kxi'].initialPositions
+        });
+
+        let annotationManager = null;
+
+        function initAnnotationManager() {
+            if (!viewer.annotationSystem) {
+                console.warn('Annotation system not available');
+                return;
+            }
+            
+            // Create annotation manager (annotation system will auto-load from storage after model loads)
+            annotationManager = new AnnotationManager(viewer.annotationSystem, {
+                theme: 'dark',
+                position: 'left'
+            });
+            
+            // Load sample annotations for this example
+            fetch('./kxi_annotations.json')
+                .then(response => response.json())
+                .then(data => {
+                    viewer.annotationSystem.loadAnnotations(data);
+                    console.log('Sample annotations loaded:', data.annotations.length);
+                })
+                .catch(error => {
+                    console.log('No sample annotations found, using default behavior');
+                });
+        }
+
+        // Initialize once model is loaded
+        viewer.on('modelLoaded', initAnnotationManager);
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (annotationManager) {
+                annotationManager.dispose();
+            }
+        });
+    </script>
+</body>
+</html>

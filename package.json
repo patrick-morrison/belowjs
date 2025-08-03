@@ -11,6 +11,7 @@
     "dev:basic": "vite serve --open examples/basic/",
     "dev:dragdrop": "vite serve --open examples/dragdrop/",
     "dev:embed": "vite serve --open examples/embed/",
+    "dev:annotations": "vite serve --open examples/annotations/",
     "build": "vite build",
     "preview": "vite preview",
     "prepublishOnly": "npm run build",
