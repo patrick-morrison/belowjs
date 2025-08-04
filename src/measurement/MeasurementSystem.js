@@ -15,6 +15,7 @@ import { Line2, LineMaterial, LineGeometry } from './ThickLine.js';
  * @property {THREE.Group} [dolly] - VR dolly for VR mode positioning
  * @property {Object} [config={}] - Additional configuration options
  * @property {string} [theme='dark'] - UI theme ('dark' or 'light')
+ * @property {boolean} [showMeasurementLabels=false] - Whether to show measurement labels in desktop mode (always shown in VR)
  */
 
 /**
@@ -155,7 +156,7 @@ export class MeasurementSystem {
    * 
    * @param {MeasurementSystemConfig} config - Configuration object
    */
-  constructor({ scene, camera, renderer, controls, dolly, config = {}, theme = 'dark' }) {
+  constructor({ scene, camera, renderer, controls, dolly, config = {}, theme = 'dark', showMeasurementLabels = false }) {
     // Always initialize ghostSpheres to avoid undefined and allow debug visibility
     this.ghostSpheres = {
       left: null,
@@ -189,6 +190,7 @@ export class MeasurementSystem {
     this.dolly = dolly;
     this.config = config;
     this.theme = theme; // 'dark' or 'light'
+    this.showMeasurementLabels = showMeasurementLabels;
 
     // By default, raycast against all scene children
     this._raycastTargets = (scene && scene.children) ? scene.children : [];
@@ -959,7 +961,7 @@ export class MeasurementSystem {
         
         // Ensure sprite visibility is set correctly right away
         const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
-        this.measurementSprite.visible = inVR;
+        this.measurementSprite.visible = inVR || this.showMeasurementLabels;
       }
       
       // Auto-enable desktop measurement mode so measurements persist
@@ -1015,7 +1017,7 @@ export class MeasurementSystem {
     if (this.measurementSprite) {
       const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
       const hasUnifiedMeasurement = this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length === 2;
-      this.measurementSprite.visible = inVR && hasUnifiedMeasurement;
+      this.measurementSprite.visible = hasUnifiedMeasurement && (inVR || this.showMeasurementLabels);
     }
   }
 
@@ -1373,8 +1375,9 @@ export class MeasurementSystem {
           this.scene.add(this.measurementSprite);
         }
         
-        // Force visibility in VR
-        this.measurementSprite.visible = true;
+        // Force visibility in VR (always), or in desktop if labels are enabled
+        const inVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+        this.measurementSprite.visible = inVR || this.showMeasurementLabels;
       }
     }
   }

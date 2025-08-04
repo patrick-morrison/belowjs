@@ -106,11 +106,11 @@ export class DiveParticles {
       // Vary particle sizes - most small, some medium, few large
       const rand = Math.random();
       if (rand < 0.7) {
-        particleSizes[i] = 0.03 + Math.random() * 0.02; // Small particles (0.03-0.05)
+        particleSizes[i] = 0.015 + Math.random() * 0.01; // Small particles (0.015-0.025)
       } else if (rand < 0.9) {
-        particleSizes[i] = 0.05 + Math.random() * 0.03; // Medium particles (0.05-0.08)
+        particleSizes[i] = 0.025 + Math.random() * 0.015; // Medium particles (0.025-0.04)
       } else {
-        particleSizes[i] = 0.08 + Math.random() * 0.04; // Large particles (0.08-0.12)
+        particleSizes[i] = 0.04 + Math.random() * 0.02; // Large particles (0.04-0.06)
       }
     }
   }

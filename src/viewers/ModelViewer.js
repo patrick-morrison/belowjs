@@ -68,6 +68,7 @@ import { AnnotationSystem } from '../annotations/AnnotationSystem.js';
  * @property {boolean} [enableVR=false] - Enable VR support
  * @property {boolean} [enableMeasurement=false] - Enable measurement system
  * @property {string} [measurementTheme='dark'] - Measurement panel theme ('dark' or 'light')
+ * @property {boolean} [showMeasurementLabels=false] - Show measurement labels in desktop mode (always shown in VR)
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
  * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
@@ -171,6 +172,7 @@ export class ModelViewer extends EventSystem {
       enableVR: false, // Enable VR support
       enableMeasurement: false, // Auto-attach measurement system
       measurementTheme: 'dark', // 'dark' or 'light' theme for measurement panel
+      showMeasurementLabels: false, // Show measurement labels in desktop mode (always shown in VR)
       enableVRComfortGlyph: false, // Auto-attach VR comfort glyph
       enableDiveSystem: false, // Auto-attach dive system
       enableFullscreen: false, // Show fullscreen toggle button
@@ -291,7 +293,8 @@ export class ModelViewer extends EventSystem {
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
       controls: this.belowViewer.cameraManager.controls,
-      theme: this.options.measurementTheme
+      theme: this.options.measurementTheme,
+      showMeasurementLabels: this.options.showMeasurementLabels
     });
     // Note: Measurement system starts disabled by default - user must click to enable
     // Attach update to render loop
