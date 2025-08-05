@@ -6,6 +6,7 @@ A modular Three.js library for creating 3D model viewers with WebXR support and 
 
 - **VR Support**: WebXR implementation with Quest device optimizations and locomotion systems
 - **VR Audio System**: Optional immersive audio with movement sounds (can be disabled)
+- **Cylindrical Stereo Display**: Experimental support for stereoscopic cylindrical screens
 - **Measurement System**: Distance measurement tools for both VR and desktop environments
 - **Dive/Survey Modes**: Configurable lighting and particle systems for underwater simulation
 - **VR Comfort**: Motion sickness mitigation through teleportation and comfort settings
@@ -103,6 +104,7 @@ Examples use production builds, so rebuild after source changes.
 ## Examples
 
 - [Basic](examples/basic/) - Full-featured viewer implementation with model selector and all systems
+- [Cylinder Display](examples/cylinder/) - Stereoscopic cylindrical panorama with measurement tools and model selector
 - [Drag & Drop](examples/dragdrop/) - File-focused interface with drag & drop, measurement tools, and mode toggle
 - [Embed](examples/embed/) - Embeddable measurement viewer with URL parameter support
 
@@ -161,6 +163,38 @@ const viewer = new ModelViewer(container, {
 - `vrambience.ogg` - Background ambience
 
 **Default behavior:** VR audio is enabled by default when VR is enabled.
+
+### Cylindrical Stereo Display
+
+BelowJS includes an experimental `CylindricalStereoRenderer` for driving stereoscopic cylindrical screens. It captures a cube map for each eye and unwraps it to a side-by-side cylindrical panorama.
+
+```javascript
+import { CylindricalStereoRenderer } from 'belowjs';
+
+const renderer = new THREE.WebGLRenderer();
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera();
+
+const cylinder = new CylindricalStereoRenderer(renderer, scene);
+function animate() {
+  cylinder.render(camera);
+  requestAnimationFrame(animate);
+}
+animate();
+```
+
+This output can be sent directly to a cylindrical display that expects left and right eye images.
+
+#### Displaying on Hardware
+
+1. **Connect the display** – attach your stereoscopic cylinder screen as a secondary monitor.
+2. **Match the resolution** – set the renderer or browser window size to the pixel resolution of the display (`renderer.setSize(width, height)`).
+3. **Open the cylinder example** – run `npm run dev` and navigate to [`/examples/cylinder/`](examples/cylinder/).
+4. **Move to the cylinder display** – drag the browser window to the cylinder screen and press `F11` to enter full screen.
+5. **Feed each eye** – the left half of the canvas is the left eye and the right half is the right eye. Configure your display or projector setup to map each half to the corresponding eye.
+6. **Center the viewer** – position the audience at the center of the cylinder for correct stereo alignment.
+
+These steps output a live side-by-side cylindrical panorama that can be used directly on compatible hardware.
 
 ## Development
 

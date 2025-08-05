@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BelowJS - Cylindrical Display Example</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>'" />
+  <link rel="stylesheet" href="/dist/belowjs.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import * as THREE from 'three';
+    import { ModelViewer, CylindricalStereoRenderer } from '/dist/belowjs.es.js';
+
+    const models = {
+      'key_biscayne': {
+        url: '../basic/models/key_biscayne.glb',
+        name: 'Key Biscayne',
+        credit: 'WreckSploration',
+        initialPositions: {
+          desktop: {
+            camera: { x: 33.494, y: 36.42, z: -83.442 },
+            target: { x: -3.602, y: -6.611, z: -23.97 }
+          }
+        }
+      },
+      'kxi': {
+        url: '../basic/models/kxi.glb',
+        name: 'HNLMS K XI (1946)',
+        credit: 'WreckSploration',
+        initialPositions: {
+          desktop: {
+            camera: { x: -6.391, y: 12.461, z: -42.105 },
+            target: { x: 1.529, y: 0.088, z: -14.334 }
+          }
+        }
+      },
+      'sesa': {
+        url: '../basic/models/sesa.glb',
+        name: 'Sesa',
+        credit: 'WreckSploration',
+        initialPositions: {
+          desktop: {
+            camera: { x: 18.93, y: 11.572, z: 52.508 },
+            target: { x: -1.613, y: -8.088, z: 4.822 }
+          }
+        }
+      },
+      'unknown': {
+        url: '../basic/models/unknown.glb',
+        name: 'Unknown Wreck',
+        credit: 'WreckSploration',
+        initialPositions: {
+          desktop: {
+            camera: { x: 34.226, y: 10.354, z: 2.12 },
+            target: { x: 10.959, y: -1.07, z: 2.247 }
+          }
+        }
+      }
+    };
+
+    const currentModel = 'key_biscayne';
+    const viewerContainer = document.createElement('div');
+    viewerContainer.style.position = 'fixed';
+    viewerContainer.style.inset = '0';
+    document.body.appendChild(viewerContainer);
+
+    const viewer = new ModelViewer(viewerContainer, {
+      enableControls: true,
+      enableMeasurement: true,
+      models,
+      showStats: false,
+      showStatus: false,
+      autoRotate: false,
+      viewerConfig: {
+        scene: { backgroundColor: '#ffffff' }
+      },
+      initialModel: currentModel,
+      initialPositions: models[currentModel].initialPositions
+    });
+
+    // Add studio lighting when scene is ready
+    viewer.belowViewer.on('initialized', () => {
+      const scene = viewer.belowViewer.getScene();
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+      dir.position.set(5, 10, 7.5);
+      scene.add(hemi);
+      scene.add(dir);
+    });
+
+    // Cylindrical stereo rendering
+    const bv = viewer.belowViewer;
+    const renderer = bv.getRenderer();
+    const scene = bv.getScene();
+    const camera = bv.getCamera();
+    const cylinder = new CylindricalStereoRenderer(renderer, scene);
+
+    let lastTime = 0;
+    renderer.setAnimationLoop((time) => {
+      const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
+
+      if (bv.vrManager) bv.vrManager.update(deltaTime);
+      if (bv.cameraManager) bv.cameraManager.update();
+      bv.emit('before-render', deltaTime);
+
+      cylinder.render(camera);
+    });
+
+    // Model selection dropdown
+    const dropdown = document.getElementById('modelDropdown');
+    dropdown.addEventListener('change', (event) => {
+      viewer.loadModel(event.target.value);
+    });
+  </script>
+</body>
+</html>
