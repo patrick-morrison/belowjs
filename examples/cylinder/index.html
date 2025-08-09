@@ -14,6 +14,19 @@
       background: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
+    
+    /* Hide VR button completely */
+    #VRButton,
+    button[id*="VR"],
+    div[id*="VR"] button,
+    .vr-button-glass {
+      display: none !important;
+    }
+    
+    /* Hide model selector completely */
+    #modelSelector {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -22,17 +35,6 @@
     import { ModelViewer, CylindricalStereoRenderer } from '/dist/belowjs.es.js';
 
     const models = {
-      'key_biscayne': {
-        url: '../basic/models/key_biscayne.glb',
-        name: 'Key Biscayne',
-        credit: 'WreckSploration',
-        initialPositions: {
-          desktop: {
-            camera: { x: 33.494, y: 36.42, z: -83.442 },
-            target: { x: -3.602, y: -6.611, z: -23.97 }
-          }
-        }
-      },
       'kxi': {
         url: '../basic/models/kxi.glb',
         name: 'HNLMS K XI (1946)',
@@ -43,32 +45,10 @@
             target: { x: 1.529, y: 0.088, z: -14.334 }
           }
         }
-      },
-      'sesa': {
-        url: '../basic/models/sesa.glb',
-        name: 'Sesa',
-        credit: 'WreckSploration',
-        initialPositions: {
-          desktop: {
-            camera: { x: 18.93, y: 11.572, z: 52.508 },
-            target: { x: -1.613, y: -8.088, z: 4.822 }
-          }
-        }
-      },
-      'unknown': {
-        url: '../basic/models/unknown.glb',
-        name: 'Unknown Wreck',
-        credit: 'WreckSploration',
-        initialPositions: {
-          desktop: {
-            camera: { x: 34.226, y: 10.354, z: 2.12 },
-            target: { x: 10.959, y: -1.07, z: 2.247 }
-          }
-        }
       }
     };
 
-    const currentModel = 'key_biscayne';
+    const currentModel = 'kxi';
     const viewerContainer = document.createElement('div');
     viewerContainer.style.position = 'fixed';
     viewerContainer.style.inset = '0';
@@ -76,27 +56,25 @@
 
     const viewer = new ModelViewer(viewerContainer, {
       enableControls: true,
-      enableMeasurement: true,
+      enableMeasurement: false,
+      enableVRAudio: false,
+      enableFullscreen: true,
+      enableVR: false,
+      enableDiveSystem: true,
       models,
       showStats: false,
       showStatus: false,
       autoRotate: false,
       viewerConfig: {
-        scene: { backgroundColor: '#ffffff' }
+        scene: { 
+          backgroundColor: '#ffffff'
+        }
       },
       initialModel: currentModel,
       initialPositions: models[currentModel].initialPositions
     });
 
-    // Add studio lighting when scene is ready
-    viewer.belowViewer.on('initialized', () => {
-      const scene = viewer.belowViewer.getScene();
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-      dir.position.set(5, 10, 7.5);
-      scene.add(hemi);
-      scene.add(dir);
-    });
+    // Survey lighting enabled via enableDiveSystem: true
 
     // Cylindrical stereo rendering
     const bv = viewer.belowViewer;
@@ -117,11 +95,7 @@
       cylinder.render(camera);
     });
 
-    // Model selection dropdown
-    const dropdown = document.getElementById('modelDropdown');
-    dropdown.addEventListener('change', (event) => {
-      viewer.loadModel(event.target.value);
-    });
+    // No model selector - fixed to K XI model
   </script>
 </body>
 </html>
