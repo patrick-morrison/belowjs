@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BelowJS - Basic Model Viewer (Refactored)</title>
+    <title>BelowJS - Basic Model Viewer</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
     
     <!-- BelowJS Production Build -->
@@ -25,12 +25,10 @@
     </style>
 </head>
 <body>
-
-
     <script type="module">
         import { ModelViewer } from '/dist/belowjs.es.js';
 
-        // Model configuration
+        // Model configurations
         const models = {
           'key_biscayne': { 
             url: './models/key_biscayne.glb', 
@@ -94,8 +92,8 @@
           }
         };
 
-        // Minimal ModelViewer usage with all systems enabled
-        const currentModel = 'key_biscayne';
+        // Initialize viewer
+        let currentModel = 'key_biscayne';
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.inset = '0';
@@ -106,15 +104,12 @@
           enableVR: true,
           enableControls: true,
           enableInfo: true,
-          showStats: false,
-          showStatus: false,
-          autoRotate: false,
           models: models,
           enableMeasurement: true,
           enableVRComfortGlyph: true,
-          enableDiveSystem: true, // Enable dive system integration
+          enableDiveSystem: true,
           enableFullscreen: true,
-          audioPath: './sound/', // Audio files for VR experience
+          audioPath: './sound/',
           viewerConfig: {
             scene: {
               backgroundColor: '#001122'
@@ -124,17 +119,16 @@
           initialPositions: models[currentModel].initialPositions
         });
         
-        // Handle model selection changes - the ModelViewer will populate the dropdown
+        // Handle model selection changes
         const dropdown = document.getElementById('modelDropdown');
         dropdown.addEventListener('change', (event) => {
           const selectedModelKey = event.target.value;
           if (selectedModelKey !== currentModel) {
             console.log('Loading new model:', selectedModelKey);
+            currentModel = selectedModelKey;
             viewer.loadModel(selectedModelKey);
           }
         });
-        
-        // Optionally, you can listen to events on viewer for further customization
     </script>
 </body>
 </html>

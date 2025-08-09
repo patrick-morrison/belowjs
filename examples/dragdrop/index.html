@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BelowJS - Drag & Drop Viewer</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
-    
-    <!-- BelowJS Production Build -->
+  <title>BelowJS - Drag & Drop Viewer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
     <link rel="stylesheet" href="/dist/belowjs.css">
     
     <style>
@@ -18,49 +16,37 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
-        /* Drag and drop overlay styling */
-        .drag-drop-overlay {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            color: #e2e8f0;
-            padding: 20px;
-            border: 2px dashed #475569;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 500;
-            z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+  /* Drag and drop overlay */
+    .drag-drop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+  z-index: 2000;
+  pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
         
         .drag-drop-overlay.visible {
             opacity: 1;
         }
+
+    .drag-drop-overlay .panel {
+      border: 2px dashed #475569;
+      border-radius: 16px;
+      padding: 28px 32px;
+      text-align: center;
+      background: rgba(2, 6, 23, 0.35);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+      width: min(720px, calc(100% - 80px));
+    }
         
-        .drag-drop-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.8);
-            color: #94a3b8;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 1000;
-            pointer-events: none;
-            animation: fadeInOut 4s ease-in-out infinite;
-        }
-        
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
+  /* (removed unused drag-drop-hint and animation) */
         
         /* Empty state styling */
         .empty-state {
@@ -128,70 +114,159 @@
         .loaded-hint.visible {
             opacity: 0.7;
         }
+
+  /* Camera snippet */
+    .camera-snippet {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            width: 336px;
+      pointer-events: auto;
+    }
+  .camera-snippet .copy-btn {
+      background: rgba(59, 130, 246, 0.9);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px; /* smaller button */
+      padding: 4px 8px; /* smaller padding */
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .camera-snippet .copy-btn:hover {
+      background: rgba(59, 130, 246, 1);
+    }
+    /* Compact ghost-style copy button inside card (bottom-right) */
+    .camera-snippet .copy-fab {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: rgba(30, 41, 59, 0.7);
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1;
+      padding: 6px 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      cursor: pointer;
+      backdrop-filter: saturate(1.2) blur(1px);
+    }
+    .camera-snippet .copy-fab:hover {
+      background: rgba(59, 130, 246, 0.9);
+      border-color: #1d4ed8;
+      color: #ffffff;
+    }
+  .camera-snippet pre {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #e2e8f0;
+            white-space: pre;
+    overflow-x: auto;
+  font-variant-numeric: tabular-nums;
+    }
+
+  /* Model stats */
+    .model-stats {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      min-width: 220px;
+      max-width: 280px;
+    }
+    .model-stats .row {
+      position: relative;
+      display: grid;
+  grid-template-columns: auto 1fr;
+      align-items: center;
+      column-gap: 12px;
+      font-size: 12px;
+      padding: 3px 0;
+      padding-right: 20px;
+    }
+    .model-stats .label { color: #94a3b8; }
+  .model-stats .value { color: #e2e8f0; font-variant-numeric: tabular-nums; justify-self: end; }
+  .model-stats .value.warn { color: #f59e0b; }
+  /* Warning icon shown via inline span */
+  .model-stats .value .warn-icon { display: none; margin-right: 6px; }
+  .model-stats .value.warn .warn-icon { display: inline; }
     </style>
 </head>
 <body>
-    <!-- 
-    Drag & Drop Viewer Interface Elements:
-    - Drag & drop overlay (shows when dragging files)
-    - Persistent hint at bottom
-    - Standalone mode toggle (Survey/Dive)
-    -->
+  <!-- Drag & Drop viewer -->
     
     <!-- Drag and drop overlay (hidden by default) -->
-    <div class="drag-drop-overlay" id="dragOverlay">
-        <div>📁 Drop your GLB model here to load it</div>
-        <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">Supported format: .glb files</div>
+  <div class="drag-drop-overlay" id="dragOverlay">
+    <div class="panel">
+      <div class="dd-title">Drop a .glb file to load</div>
+      <div class="dd-sub">Or click Choose file</div>
     </div>
+  </div>
     
     <!-- Empty state when no model loaded -->
-    <div class="empty-state" id="emptyState">
-        <h2>BelowJS</h2>
-        <p>Drag & Drop a GLB File</p>
-        <p style="font-size: 1em;">or</p>
-        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">
-            Choose File
-        </button>
-        <input type="file" id="fileInput" accept=".glb" />
-        <p style="font-size: 0.9em; margin-top: 16px;">Supports GLB 3D model files</p>
-    </div>
+  <div class="empty-state" id="emptyState">
+    <h2>BelowJS</h2>
+    <p>Drag & drop a .glb file</p>
+    <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose file</button>
+    <input type="file" id="fileInput" accept=".glb" />
+  </div>
     
-    <!-- Survey/Dive Mode Toggle with Custom Emojis-->
+  <!-- Survey/Dive toggle -->
     <div id="modeToggleContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
         <div class="semantic-toggle">
             <input type="checkbox" id="modeToggleSwitch">
             <div class="toggle-slider-bg"></div>
-            <div class="toggle-option left">
-                <div class="toggle-icon">🔍</div>
-                <div class="toggle-text">Survey</div>
+      <div class="toggle-option left">
+        <div class="toggle-icon">🔍</div>
+        <div class="toggle-text">Survey</div>
             </div>
             <div class="toggle-option right">
-                <div class="toggle-icon">🔦</div>
-                <div class="toggle-text">Dive</div>
+        <div class="toggle-icon">🔦</div>
+        <div class="toggle-text">Dive</div>
             </div>
         </div>
     </div>
     
     <!-- Loaded state hint (hidden by default) -->
-    <div class="loaded-hint" id="loadedHint">
-        💡 Drag & drop another .glb file to replace current model
-    </div>
+  <div class="loaded-hint" id="loadedHint">Drop another .glb to replace</div>
+
+  <!-- Model stats panel -->
+  <div class="model-stats" id="modelStats" aria-live="polite">
+  <div class="row"><span class="label">triangles</span><span class="value" id="statTris"><span class="warn-icon">⚠</span>—</span></div>
+  <div class="row"><span class="label">disk</span><span class="value" id="statDisk"><span class="warn-icon">⚠</span>—</span></div>
+  <div class="row"><span class="label">vram</span><span class="value" id="statVram"><span class="warn-icon">⚠</span>—</span></div>
+  <div class="row"><span class="label">draws</span><span class="value" id="statDraws">—</span></div>
+  </div>
+
+  <!-- Camera preset snippet (lower-right) -->
+  <div class="camera-snippet" id="cameraSnippet" aria-live="polite">
+  <pre id="camCode">desktop: {
+  camera: { x: 0, y: 5, z: 10 },
+  target: { x: 0, y: 0, z: 0 }
+},</pre>
+  <button id="copyCamBtn" class="copy-fab" aria-label="Copy snippet" title="Copy">⧉ Copy</button>
+  </div>
 
     <script type="module">
         import { ModelViewer } from '/dist/belowjs.es.js';
 
-        /**
-         * Drag & Drop Viewer Example
-         * 
-         * Features:
-         * - Dark theme with no initial model (empty state)
-         * - Standalone Survey/Dive mode toggle (top-right)
-         * - Enhanced drag & drop GLB file loading with visual feedback
-         * - File select button for alternative to drag & drop
-         * - Measurement tools enabled
-         * - VR support without audio
-         * - Minimal interface focused on file loading and measurement
-         */
+  // Drag & Drop viewer
 
         // No initial models - starts empty
         const models = {};
@@ -209,7 +284,7 @@
             viewerContainer.appendChild(modeToggle);
         }
 
-        // Configure minimal viewer with dark theme and standalone mode toggle (no initial model)
+  // Configure viewer with dark theme and standalone mode toggle
         const viewer = new ModelViewer(viewerContainer, {
           models: models,
           enableDiveSystem: true,
@@ -228,18 +303,192 @@
           }
         });
 
-        /**
-         * File Loading (Drag & Drop + File Select)
-         * 
-         * Allows users to drag .glb files onto the viewer or use file select button.
-         * Includes visual feedback with overlay and validation.
-         */
         const dragOverlay = document.getElementById('dragOverlay');
         const emptyState = document.getElementById('emptyState');
         const loadedHint = document.getElementById('loadedHint');
         const fileInput = document.getElementById('fileInput');
+        const cameraSnippet = document.getElementById('cameraSnippet');
+        const camCode = document.getElementById('camCode');
+        const copyCamBtn = document.getElementById('copyCamBtn');
+  const statTris = document.getElementById('statTris');
+  const statDisk = document.getElementById('statDisk');
+  const statVram = document.getElementById('statVram');
+  const statDraws = document.getElementById('statDraws');
         let dragCounter = 0;
         let hasModel = false;
+        let lastBlobSize = null; // bytes
+
+  // Format a number to 2 decimals, keep trailing zeros to avoid width changes
+  const fmt = (n) => Number(n).toFixed(2);
+        const fmtInt = (n) => new Intl.NumberFormat().format(n|0);
+        const fmtBytes = (bytes) => {
+          if (bytes == null) return '—';
+          const units = ['B','KB','MB','GB'];
+          let i = 0; let v = bytes;
+          while (v >= 1000 && i < units.length-1) { v /= 1000; i++; }
+          return `${v.toFixed(1)} ${units[i]}`;
+        };
+
+        function vramForTexture(tex) {
+          // Exact path for KTX2 compressed textures loaded via KTX2Loader
+          const img = tex?.image;
+          // three.js KTX2 loader uses CompressedTexture with mipmaps on the texture
+          if ((tex?.isCompressedTexture || Array.isArray(tex?.mipmaps)) && tex.mipmaps && tex.mipmaps.length > 0) {
+            let bytes = 0;
+            for (const level of tex.mipmaps) {
+              if (level?.data?.byteLength) bytes += level.data.byteLength;
+            }
+            return { bytes, exact: true };
+          }
+          // Non-compressed textures: estimate
+          try {
+            const w = img?.width || tex.source?.data?.width || img?.videoWidth || 0;
+            const h = img?.height || tex.source?.data?.height || img?.videoHeight || 0;
+            if (!w || !h) return { bytes: 0, exact: false };
+            const base = w * h * 4;
+            const mipOverhead = 1.33;
+            return { bytes: Math.round(base * mipOverhead), exact: false };
+          } catch { return { bytes: 0, exact: false }; }
+        }
+
+        function collectModelStats(root) {
+          let tris = 0;
+          let meshes = 0;
+          let textures = new Set();
+          let vramGeom = 0;
+          let vramTex = 0;
+          let texExactCount = 0;
+          let draws = 0;
+
+          root.traverse((obj) => {
+            if (obj.isMesh) {
+              meshes++;
+              const geom = obj.geometry;
+              if (geom) {
+                // Triangle count
+                const index = geom.index;
+                if (index) {
+                  tris += index.count / 3;
+                } else if (geom.attributes?.position) {
+                  tris += geom.attributes.position.count / 3;
+                }
+                // VRAM for geometry: sum unique underlying arrays (avoid double counting interleaved/shared buffers)
+                const seenArrays = new Set();
+                const addArray = (arr) => {
+                  if (!arr) return;
+                  if (!seenArrays.has(arr)) {
+                    seenArrays.add(arr);
+                    vramGeom += arr.byteLength || 0;
+                  }
+                };
+                for (const key in geom.attributes) {
+                  const attr = geom.attributes[key];
+                  if (!attr) continue;
+                  // InterleavedBufferAttribute stores data on attr.data.array
+                  if (attr.isInterleavedBufferAttribute) {
+                    addArray(attr.data && attr.data.array);
+                  } else {
+                    addArray(attr.array);
+                  }
+                }
+                if (geom.index) {
+                  addArray(geom.index.array);
+                }
+              }
+              // Materials -> textures
+              const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+              mats.forEach((m) => {
+                if (!m) return;
+                for (const prop in m) {
+                  const val = m[prop];
+                  if (val && val.isTexture) textures.add(val);
+                }
+              });
+              // Draw calls: for non-instanced meshes, one draw per geometry group (or 1 if none)
+              const groupCount = (geom && geom.groups && geom.groups.length) ? geom.groups.length : 1;
+              draws += groupCount;
+            }
+          });
+
+          // VRAM for textures (exact for compressed KTX2)
+          textures.forEach((t) => {
+            const { bytes, exact } = vramForTexture(t);
+            vramTex += bytes;
+            if (exact) texExactCount++;
+          });
+
+          return { tris: Math.round(tris), meshes, textures: textures.size, vramGeom, vramTex, texExactCount, draws };
+        }
+
+        function updateStatsDisplay({ tris, vramGeom, vramTex, draws }) {
+          const totalVRAM = vramGeom + vramTex;
+          statVram.textContent = fmtBytes(totalVRAM);
+          statDisk.textContent = lastBlobSize != null ? fmtBytes(lastBlobSize) : '—';
+          statDraws.textContent = fmtInt(draws);
+          statTris.textContent = fmtInt(tris);
+
+          // Thresholds
+          const TRI_LIMIT = 1_500_000;
+          const DISK_LIMIT = 100 * 1000 * 1000; // 100 MB (decimal)
+          const VRAM_LIMIT = 400 * 1000 * 1000; // 400 MB (decimal)
+
+          // Helpers to set warning state
+          const setWarn = (elValue, isWarn) => {
+            if (isWarn) elValue.classList.add('warn');
+            else elValue.classList.remove('warn');
+          };
+
+          setWarn(statTris, tris > TRI_LIMIT);
+          setWarn(statDisk, (lastBlobSize ?? 0) > DISK_LIMIT);
+          setWarn(statVram, totalVRAM > VRAM_LIMIT);
+        }
+
+        // Build the desktop camera/target snippet string
+        function buildDesktopSnippet() {
+          const camera = viewer?.belowViewer?.cameraManager?.getCamera?.();
+          const controls = viewer?.belowViewer?.cameraManager?.getControls?.();
+          if (!camera || !controls) return `desktop: {\n  camera: { x: 0, y: 5, z: 10 },\n  target: { x: 0, y: 0, z: 0 }\n},`;
+          const cx = fmt(camera.position.x);
+          const cy = fmt(camera.position.y);
+          const cz = fmt(camera.position.z);
+          const tx = fmt(controls.target.x);
+          const ty = fmt(controls.target.y);
+          const tz = fmt(controls.target.z);
+          return `desktop: {\n  camera: { x: ${cx}, y: ${cy}, z: ${cz} },\n  target: { x: ${tx}, y: ${ty}, z: ${tz} }\n},`;
+        }
+
+        // Update the UI with current camera values
+        function updateCameraSnippet() {
+          camCode.textContent = buildDesktopSnippet();
+        }
+
+        // Copy to clipboard handler
+        async function doCopy(text) {
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch (e) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+          // Feedback
+          cameraSnippet.style.boxShadow = '0 0 0 2px rgba(59,130,246,0.45), 0 8px 24px rgba(0,0,0,0.35)';
+          const prev = copyCamBtn.textContent;
+          copyCamBtn.textContent = 'Copied';
+          setTimeout(() => {
+            copyCamBtn.textContent = prev;
+            cameraSnippet.style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)';
+          }, 900);
+        }
+
+        copyCamBtn.addEventListener('click', async () => {
+          await doCopy(camCode.textContent);
+        });
+
+  // Copy is handled via the button
 
         // Handle file input selection
         fileInput.addEventListener('change', async (e) => {
@@ -257,6 +506,7 @@
           }
 
           const url = URL.createObjectURL(file);
+          lastBlobSize = file.size;
           try {
             // Clear any existing models and load the new one
             if (hasModel) {
@@ -269,10 +519,14 @@
             loadedHint.classList.add('visible');
             hasModel = true;
             
-            console.log('Successfully loaded:', file.name);
+            updateCameraSnippet();
+
+            // Compute and show stats
+            const modelRoot = viewer.belowViewer.loadedModels?.[0]?.model || viewer.belowViewer.sceneManager.scene;
+            const stats = collectModelStats(modelRoot);
+            updateStatsDisplay(stats);
           } catch (err) {
-            console.error('Failed to load model:', err);
-            alert('Failed to load the model. Please check the console for details.');
+            alert('Failed to load the model.');
           } finally {
             URL.revokeObjectURL(url);
           }
@@ -309,6 +563,22 @@
           
           await loadModelFile(file);
         });
+
+        // Subscribe to camera changes to keep snippet live-updated
+        if (viewer?.belowViewer?.on) {
+          viewer.belowViewer.on('camera-change', updateCameraSnippet);
+        }
+
+        // Initial update
+        updateCameraSnippet();
+
+        // Periodically refresh stats (in case textures finish loading later)
+        setInterval(() => {
+          if (!hasModel) return;
+          const modelRoot = viewer.belowViewer.loadedModels?.[0]?.model || viewer.belowViewer.sceneManager.scene;
+          const stats = collectModelStats(modelRoot);
+          updateStatsDisplay(stats);
+        }, 2000);
     </script>
 </body>
 </html>

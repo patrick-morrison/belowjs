@@ -5,6 +5,14 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - Pre-Release Audit
+
+### Development Notes
+- **Audit**: Comprehensive codebase audit completed in preparation for public release (August 9, 2025)
+- **Documentation**: Added `docs/DEVELOPMENT.md` with audit findings and development guidelines
+- **Issues Identified**: Debug code, console statements, and alert/confirm usage need cleanup before publication
+- **Action Required**: Remove development artifacts and implement proper error handling for production release
+
 ## [0.1.5] - 2025-08-02 - Measurement System Stability
 
 ### Fixed

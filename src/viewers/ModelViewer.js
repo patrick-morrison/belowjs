@@ -4,7 +4,6 @@ import { EventSystem } from '../utils/EventSystem.js';
 import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
 import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 import { DiveSystem } from '../dive/DiveSystem.js';
-import { AnnotationSystem } from '../annotations/AnnotationSystem.js';
 
 /**
  * @typedef {Object} ModelConfig
@@ -176,8 +175,6 @@ export class ModelViewer extends EventSystem {
       enableVRComfortGlyph: false, // Auto-attach VR comfort glyph
       enableDiveSystem: false, // Auto-attach dive system
       enableFullscreen: false, // Show fullscreen toggle button
-      enableAnnotations: false, // Auto-attach annotation system (default disabled)
-      annotationOptions: {}, // Options to pass to AnnotationSystem
       ...options
     };
     this.currentModelKey = null;
@@ -189,7 +186,6 @@ export class ModelViewer extends EventSystem {
     this.comfortGlyph = null;
     this.diveSystem = null;
     this.fullscreenButton = null;
-    this.annotationSystem = null;
     this.lastComfortMode = null;
     
     // Make this instance globally accessible for measurement system auto-centering
@@ -259,7 +255,6 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
-      this._maybeAttachAnnotationSystem();
       this._maybeAttachFullscreenButton();
     });
 
@@ -269,7 +264,6 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
-      this._maybeAttachAnnotationSystem();
       this._maybeAttachFullscreenButton();
     }
 
@@ -413,32 +407,6 @@ export class ModelViewer extends EventSystem {
 
   }
 
-  async _maybeAttachAnnotationSystem() {
-    if (!this.options.enableAnnotations || this.annotationSystem) return;
-    
-    this.annotationSystem = new AnnotationSystem({
-      viewer: this.belowViewer,
-      scene: this.belowViewer.sceneManager.scene,
-      camera: this.belowViewer.cameraManager.camera,
-      renderer: this.belowViewer.renderer,
-      controls: this.belowViewer.cameraManager.controls,
-      canvas: this.belowViewer.renderer.domElement,
-      container: this.container,
-      ...this.options.annotationOptions
-    });
-
-    // If model is already loaded, initialize annotation system immediately
-    if (this.modelReady && this.currentModelKey && this.belowViewer.loadedModels?.length > 0) {
-      const model = this.belowViewer.loadedModels[0].model;
-      this.annotationSystem.setRaycastTargets(model);
-      this.annotationSystem.onModelLoaded();
-    }
-
-    // Make annotation system globally accessible for debugging
-    if (typeof window !== 'undefined') {
-      window.annotationSystem = this.annotationSystem;
-    }
-  }
 
   _maybeAttachFullscreenButton() {
     if (!this.options.enableFullscreen || this.fullscreenButton) return;
@@ -979,11 +947,6 @@ export class ModelViewer extends EventSystem {
         if (this.measurementSystem) {
           this.measurementSystem.setRaycastTargets(model);
         }
-        // Set annotation raycast targets if enabled
-        if (this.annotationSystem) {
-          this.annotationSystem.setRaycastTargets(model);
-          this.annotationSystem.onModelLoaded();
-        }
         
         // Mark that model is ready for any late-initializing systems
         this.modelReady = true;
@@ -999,10 +962,6 @@ export class ModelViewer extends EventSystem {
         // Clear measurement raycast targets on model loading failure to prevent corruption
         if (this.measurementSystem) {
           this.measurementSystem.setRaycastTargets([]);
-        }
-        // Clear annotation raycast targets on model loading failure
-        if (this.annotationSystem) {
-          this.annotationSystem.setRaycastTargets([]);
         }
       }
     }
@@ -1086,11 +1045,6 @@ export class ModelViewer extends EventSystem {
     // Update measurement system with the loaded model
     if (this.measurementSystem) {
       this.measurementSystem.setRaycastTargets(model);
-    }
-    // Update annotation system with the loaded model
-    if (this.annotationSystem) {
-      this.annotationSystem.setRaycastTargets(model);
-      this.annotationSystem.onModelLoaded();
     }
   }
   
@@ -1315,14 +1269,6 @@ export class ModelViewer extends EventSystem {
       // Clean up global reference
       if (typeof window !== 'undefined' && window.diveSystem === this.diveSystem) {
         window.diveSystem = null;
-      }
-    }
-    if (this.annotationSystem) {
-      this.annotationSystem.dispose();
-      this.annotationSystem = null;
-      // Clean up global reference
-      if (typeof window !== 'undefined' && window.annotationSystem === this.annotationSystem) {
-        window.annotationSystem = null;
       }
     }
     if (this.fullscreenButton) {

@@ -66,9 +66,6 @@ export { ModelLoader } from './models/ModelLoader.js';
 export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
 
-// Export annotation system
-export { AnnotationSystem } from './annotations/AnnotationSystem.js';
-export { AnnotationManager } from './annotations/AnnotationManager.js';
 
 // Export thick line classes for measurement and advanced usage
 export { Line2, LineMaterial, LineGeometry } from './measurement/ThickLine.js';
