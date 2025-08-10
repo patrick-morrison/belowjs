@@ -1,6 +1,6 @@
 {
   "name": "belowjs",
-  "version": "0.9.9",
+  "version": "1.0.0-rc.1",
   "description": "A modular Three.js library for creating immersive underwater/dive model viewers with VR support",
   "main": "dist/belowjs.js",
   "module": "dist/belowjs.js",
@@ -48,9 +48,9 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "three": "^0.179.1"
+    "three": "0.179.1"
   },
   "devDependencies": {
-    "vite": "^7.1.1"
+    "vite": "7.1.1"
   }
 }

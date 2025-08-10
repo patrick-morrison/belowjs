@@ -1,5 +1,7 @@
 # BelowJS
 
+> **Note:** This is a pre-release version (`1.0.0-rc.1`). The API is stable, but please be aware that minor changes may occur before the final 1.0.0 release.
+
 **Dive Shipwrecks in Virtual Reality**
 
 Setup virtual dives in minutes. Full control over your underwater photogrammetry models. Web and virtual reality as first class technologies.
