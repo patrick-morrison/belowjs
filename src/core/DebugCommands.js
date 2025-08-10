@@ -233,8 +233,6 @@ ame: model.name || 'Unnamed',
       console.log('Global objects:');
       console.log('  belowViewer - Direct access to BelowViewer instance');
     };
-    
-    console.log('🔧 BelowJS debug commands loaded! Type debugHelp() for available commands.');
   }
   
   /**

@@ -414,10 +414,10 @@ export class VRComfortGlyph {
     if (this.vrManager) {
       if (this.isComfortMode) {
 
-        this.vrManager.setComfortPreset('max-comfort');
+  this.vrManager.setComfortPreset('comfort');
       } else {
 
-        this.vrManager.setComfortPreset('performance');
+  this.vrManager.setComfortPreset('free');
       }
     }
     
@@ -427,7 +427,7 @@ export class VRComfortGlyph {
     const event = new CustomEvent('vrcomfortchange', {
       detail: {
         isComfortMode: this.isComfortMode,
-        preset: this.isComfortMode ? 'max-comfort' : 'performance'
+  preset: this.isComfortMode ? 'comfort' : 'free'
       }
     });
     this.element.dispatchEvent(event);

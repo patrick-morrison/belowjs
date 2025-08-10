@@ -355,37 +355,43 @@ export class VRLocomotion {
   }
   
   setComfortPreset(preset) {
-
-    const presets = {
-      'max-comfort': {
+    if (preset === 'comfort') {
+      this.setComfortSettings({
         locomotionMode: 'teleport',
         turningMode: 'snap',
         snapTurnAngle: 30,
         reducedMotion: true,
         showTeleportArc: true,
         comfortSpeed: 0.3
-      },
-      'balanced': {
-        locomotionMode: 'smooth',
-        turningMode: 'smooth',
-        reducedMotion: true,
-        showTeleportArc: true,
-        comfortSpeed: 0.7
-      },
-      'performance': {
+      });
+      return true;
+    } else if (preset === 'free') {
+      this.setComfortSettings({
         locomotionMode: 'smooth',
         turningMode: 'smooth',
         reducedMotion: false,
         showTeleportArc: false,
         comfortSpeed: 1.0
-      }
-    };
-    
-    if (presets[preset]) {
-      this.setComfortSettings(presets[preset]);
+      });
+      return true;
     } else {
       console.warn(`Unknown comfort preset: ${preset}`);
+      return false;
     }
+  }
+
+  toggleLocomotionMode() {
+    const newMode = this.comfortSettings.locomotionMode === 'smooth' ? 'teleport' : 'smooth';
+    return this.setComfortSettings({ locomotionMode: newMode });
+  }
+
+  toggleTurningMode() {
+    const newMode = this.comfortSettings.turningMode === 'smooth' ? 'snap' : 'smooth';
+    return this.setComfortSettings({ turningMode: newMode });
+  }
+
+  toggleReducedMotion() {
+    return this.setComfortSettings({ reducedMotion: !this.comfortSettings.reducedMotion });
   }
   
   setupLocomotion() {

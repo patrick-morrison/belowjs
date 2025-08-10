@@ -4762,7 +4762,48 @@ class mn {
         comfortSpeed: 1
       }
     };
-    t[e] ? this.setComfortSettings(t[e]) : console.warn(`Unknown comfort preset: ${e}`);
+    return t[e] ? (this.setComfortSettings(t[e]), !0) : (console.warn(`Unknown comfort preset: ${e}`), !1);
+  }
+  getComfortPresets() {
+    return ["max-comfort", "balanced", "performance"];
+  }
+  getComfortPreset(e) {
+    const t = {
+      "max-comfort": {
+        locomotionMode: "teleport",
+        turningMode: "snap",
+        snapTurnAngle: 30,
+        reducedMotion: !0,
+        showTeleportArc: !0,
+        comfortSpeed: 0.3
+      },
+      balanced: {
+        locomotionMode: "smooth",
+        turningMode: "smooth",
+        reducedMotion: !0,
+        showTeleportArc: !0,
+        comfortSpeed: 0.7
+      },
+      performance: {
+        locomotionMode: "smooth",
+        turningMode: "smooth",
+        reducedMotion: !1,
+        showTeleportArc: !1,
+        comfortSpeed: 1
+      }
+    };
+    return t[e] ? { ...t[e] } : null;
+  }
+  toggleLocomotionMode() {
+    const e = this.comfortSettings.locomotionMode === "smooth" ? "teleport" : "smooth";
+    return this.setComfortSettings({ locomotionMode: e });
+  }
+  toggleTurningMode() {
+    const e = this.comfortSettings.turningMode === "smooth" ? "snap" : "smooth";
+    return this.setComfortSettings({ turningMode: e });
+  }
+  toggleReducedMotion() {
+    return this.setComfortSettings({ reducedMotion: !this.comfortSettings.reducedMotion });
   }
   setupLocomotion() {
   }
@@ -5355,7 +5396,7 @@ class Wt {
       return console.log("🌊 Particle information:"), console.table(i), i;
     }, window.debugHelp = () => {
       console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()    - Get current camera position data"), console.log("  scene()     - Get scene information and object counts"), console.log("  models()    - Get loaded models information"), console.log("  particles() - Get particle system information"), console.log("  vr()        - Get VR state and settings"), console.log("  debugHelp() - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
-    }, console.log("🔧 BelowJS debug commands loaded! Type debugHelp() for available commands."));
+    });
   }
   /**
    * Clean up debug commands when viewer is disposed

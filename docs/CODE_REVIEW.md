@@ -39,6 +39,14 @@ These issues affect code quality, developer experience, and bundle size.
 
 ### 1. Inconsistent CSS Naming and Structure
 
+-   **Status**: In Progress
+-   **Plan**: Refactor UI components one by one to use BEM class names instead of IDs.
+    -   [ ] Info Panel (`#info` -> `.info-panel`)
+    -   [ ] Model Selector (`#modelSelector` -> `.model-selector`)
+    -   [ ] Loading Indicator (`#loading` -> `.loading-indicator`)
+    -   [ ] Measurement Panel (`#measurement-panel` -> `.measurement-panel`)
+    -   [ ] Consolidate theme files. (Skipped for now)
+
 -   **Problem**: The CSS files in `src/styles/` use a mix of ID selectors (`#measurement-panel`), generic class names (`.vr-button-glass`), and multiple theme files (`theme.css`, `theme-light.css`). This makes the CSS hard to scale and maintain.
 -   **Files**: All files in `src/styles/`
 -   **Solution**:
@@ -62,7 +70,7 @@ These issues affect code quality, developer experience, and bundle size.
         }
         ```
 
-### 2. Lack of Central `index.js` for Components
+### 2. Lack of Central `index.js` for Components (Skipped)
 
 -   **Problem**: Modules are imported using their full file paths (e.g., `import { VRManager } from '../vr/core/VRManager.js'`). This is verbose and exposes the internal file structure unnecessarily.
 -   **Files**: All subdirectories in `src/`
