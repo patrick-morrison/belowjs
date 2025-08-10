@@ -6,7 +6,7 @@ export class VRAudio {
   constructor() {
     this.soundEnabled = false;
     this.audioContext = null;
-  this._basePath = './sound/';
+    this._basePath = './sound/';
     this.dpvSound = null;
     this.dpvHighSound = null;
     this.ambienceSound = null;
@@ -35,10 +35,10 @@ export class VRAudio {
         this.loadAudioBuffer(this._basePath + 'vrambience.ogg')
       ]);
       
-  this.dpvSound = dpvBuffer;
-  this.dpvHighSound = dpvHighBuffer;
-  this.ambienceSound = ambienceBuffer;
-  // Do not auto-start ambience here; VRManager will start/stop based on VR session state
+      this.dpvSound = dpvBuffer;
+      this.dpvHighSound = dpvHighBuffer;
+      this.ambienceSound = ambienceBuffer;
+      // Do not auto-start ambience here; VRManager will start/stop based on VR session state
       
       this.soundEnabled = true;
     } catch (error) {

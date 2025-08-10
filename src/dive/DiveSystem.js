@@ -28,7 +28,6 @@ export class DiveSystem {
    * Toggle between dive and survey modes
    */
   toggleDiveMode() {
-    const previousMode = this.isDiveModeEnabled;
     this.isDiveModeEnabled = !this.isDiveModeEnabled;
     
     const toggleSwitch = document.querySelector('.mode-toggle__switch');
@@ -231,14 +230,12 @@ export class DiveSystem {
    * This uses the VRManager's synced controller properties for consistency
    */
   updateTorchFromVRManager(vrManager) {
-    if (!vrManager || !vrManager.isVRPresenting || !this.isDiveModeEnabled) {
-      if (!vrManager) {
-        console.warn('updateTorchFromVRManager: vrManager is null');
-      } else if (!vrManager.isVRPresenting) {
-
-      } else if (!this.isDiveModeEnabled) {
-
-      }
+    if (!vrManager) {
+      console.warn('updateTorchFromVRManager: vrManager is null');
+      return;
+    }
+    
+    if (!vrManager.isVRPresenting || !this.isDiveModeEnabled) {
       return;
     }
     
@@ -259,13 +256,9 @@ export class DiveSystem {
   /**
    * Update system (call in animation loop)
    */
-  update(time, deltaTime) {
+  update(time, _deltaTime) {
 
     this.particles.update(time);
-    
-
-    this.torch.update(deltaTime);
-    
 
     if (this.renderer) {
       this.checkVRControllerButtons(this.renderer);
@@ -333,13 +326,13 @@ export class DiveSystem {
     if (!session) return;
 
 
-    for (let inputSource of session.inputSources) {
+    for (const inputSource of session.inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
         
 
-        let modeToggleButtons = [4, 5]; // X/A buttons or Y/B buttons
+        const modeToggleButtons = [4, 5]; // X/A buttons or Y/B buttons
         
         modeToggleButtons.forEach(index => {
           if (gamepad.buttons[index]) {

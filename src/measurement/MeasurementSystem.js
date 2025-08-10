@@ -176,7 +176,8 @@ export class MeasurementSystem {
     this.raycaster = new THREE.Raycaster();
 
     const tryAttachMeasurementVR = () => {
-      let controller1 = null, controller2 = null, controllerGrip1 = null, controllerGrip2 = null;
+      let controller1 = null, controller2 = null;
+      const controllerGrip1 = null, controllerGrip2 = null;
       if (scene && scene.children) {
         scene.children.forEach(obj => {
           if (obj && obj.inputSource && obj.inputSource.handedness) {
@@ -189,7 +190,9 @@ export class MeasurementSystem {
         try {
           controller1 = controller1 || renderer.xr.getController(0);
           controller2 = controller2 || renderer.xr.getController(1);
-        } catch (e) {}
+        } catch {
+          // Controller access failed, ignore
+        }
       }
       if (controller1 && controller2) {
         this.attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 });
@@ -473,9 +476,9 @@ export class MeasurementSystem {
             clampedPos = intersects[0].point;
           }
         }
-  const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
+        const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
 
-  newSphere.position.copy(clampedPos);
+        newSphere.position.copy(clampedPos);
         this.scene.add(newSphere);
         this.desktopMeasurementPoints.push(newSphere);
       }
@@ -843,7 +846,7 @@ export class MeasurementSystem {
         this.desktopMeasurementMode = true;
       }
     }
- }
+  }
 
   /**
    * Reset ghost sphere positions to correct local coordinates
@@ -960,7 +963,7 @@ export class MeasurementSystem {
 
   createMeasurementPanel() {
     const panel = document.createElement('div');
-  // panel.id removed for BEM compliance
+    // panel.id removed for BEM compliance
     panel.className = `measurement-panel${this.theme === 'light' ? ' light-theme' : ''}`;
     
     panel.addEventListener('click', () => {
@@ -1053,7 +1056,7 @@ export class MeasurementSystem {
       }
     }
   }
-  onMouseUp(event) {
+  onMouseUp(_event) {
     setTimeout(() => {
       this.isDragging = false;
     }, 10);
@@ -1087,7 +1090,7 @@ export class MeasurementSystem {
       const xrCamera = this.renderer.xr.getCamera();
       if (xrCamera) {
         camera = xrCamera;
-          }
+      }
     }
 
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) {
@@ -1095,7 +1098,7 @@ export class MeasurementSystem {
         for (const obj of this.scene.children) {
           if (obj.isCamera) {
             camera = obj;
-                    break;
+            break;
           }
         }
       }
@@ -1104,18 +1107,18 @@ export class MeasurementSystem {
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) {
       if (typeof window !== 'undefined' && window.camera && (window.camera.isPerspectiveCamera || window.camera.isOrthographicCamera)) {
         camera = window.camera;
-          }
+      }
     }
 
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera && camera.type !== 'ArrayCamera')) {
-        return;
+      return;
     }
 
     this.raycaster.setFromCamera(this.mouse, camera);
 
     const raycastTargets = (this._raycastTargets && this._raycastTargets.length > 0) ? this._raycastTargets : [];
     if (raycastTargets.length === 0) {
-        return;
+      return;
     }
     const intersects = this.raycaster.intersectObjects(raycastTargets, true);
 
@@ -1132,14 +1135,13 @@ export class MeasurementSystem {
     });
     if (validIntersects.length > 0) {
       if (isDoubleClick) {
-            this.focusOnPoint(validIntersects[0].point);
+        this.focusOnPoint(validIntersects[0].point);
       } else {
 
         const intersectionPoint = validIntersects[0].point;
         this.placeUnifiedMeasurementPoint(intersectionPoint, 'desktop');
       }
-    } else {
-      }
+    }
   }
 
   focusOnPoint(point) {

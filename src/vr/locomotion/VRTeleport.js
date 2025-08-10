@@ -50,9 +50,9 @@ export class VRTeleport {
 
     const points = [
 
-  new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 0, 0),
 
-  new THREE.Vector3(0, 1, -5)
+      new THREE.Vector3(0, 1, -5)
     ];
     const curve = new THREE.CatmullRomCurve3(points);
     const geometry = new THREE.TubeGeometry(curve, 20, 0.03, 8, false);
@@ -332,7 +332,7 @@ export class VRTeleport {
     let previousY = controllerPos.y;
     let peakTime = 0;
     
-    let arcBendLimit = 8.0; // Max vertical difference allowed for arc (prevents weird bends)
+    const arcBendLimit = 8.0; // Max vertical difference allowed for arc (prevents weird bends)
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * maxTime; // Time in seconds
 

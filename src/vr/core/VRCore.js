@@ -5,7 +5,6 @@
  * device detection, and basic WebXR initialization.
  */
 
-import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 export class VRCore {
@@ -115,8 +114,8 @@ export class VRCore {
           ]
         };
         this.vrButton = VRButton.createButton(this.renderer, sessionInit);
-        this.vrButton.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
-  this.vrButton.className = 'vr-button--glass vr-button-available';
+        this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR';
+        this.vrButton.className = 'vr-button--glass vr-button-available';
         this.vrButton.disabled = false;
         this.vrButton.style.cssText = `
           position: fixed !important;
@@ -142,7 +141,7 @@ export class VRCore {
 
 
     const applyStyles = () => {
-  const vrBtn = document.querySelector('button.vr-button--glass') || 
+      const vrBtn = document.querySelector('button.vr-button--glass') || 
                    document.querySelector('button') || 
                    this.vrButton;
       if (!vrBtn) return false;
@@ -153,7 +152,7 @@ export class VRCore {
       vrBtn.style.opacity = '1';
       
 
-      vrBtn.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
+      vrBtn.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR';
       
 
       if (!vrBtn.classList.contains('vr-button--glass')) {
@@ -290,8 +289,8 @@ export class VRCore {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-    const vrButtons = node.querySelectorAll ? 
-      node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
+            const vrButtons = node.querySelectorAll ? 
+              node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
             if (vrButtons.length > 0 || 
                 (node.tagName === 'BUTTON' && node.classList.contains('legacy-vr-button'))) {
               const buttonToHide = vrButtons.length > 0 ? vrButtons[0] : node;

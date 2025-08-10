@@ -7,6 +7,7 @@ tests/
 
 # Build tools
 vite.config.js
+eslint.config.js
 .vite/
 node_modules/
 

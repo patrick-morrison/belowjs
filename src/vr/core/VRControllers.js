@@ -54,7 +54,7 @@ export class VRControllers {
     const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
     if (!session) return;
     let handsFound = false;
-    for (let inputSource of session.inputSources) {
+    for (const inputSource of session.inputSources) {
       if (inputSource.hand) {
         handsFound = true;
       }
@@ -65,7 +65,7 @@ export class VRControllers {
   updateHandGestures() {
     const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
     if (!session) return;
-    for (let inputSource of session.inputSources) {
+    for (const inputSource of session.inputSources) {
       if (inputSource.hand && inputSource.handedness) {
         const hand = inputSource.handedness;
         const thumbTip = inputSource.hand.get('thumb-tip');
@@ -82,7 +82,7 @@ export class VRControllers {
         const palm = inputSource.hand.get('wrist');
         if (palm && palm.transform) {
           const palmPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(palm.transform.matrix));
-          for (let tipName of ['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip']) {
+          for (const tipName of ['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip']) {
             const tip = inputSource.hand.get(tipName);
             if (!tip || !tip.transform) {
               fist = false;
@@ -204,7 +204,7 @@ export class VRControllers {
     const session = this.renderer.xr.getSession();
     if (!session) return;
     
-    for (let inputSource of session.inputSources) {
+    for (const inputSource of session.inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
@@ -248,7 +248,7 @@ export class VRControllers {
     let movementInput = null;
     let teleportInput = null;
     
-    for (let inputSource of session.inputSources) {
+    for (const inputSource of session.inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;

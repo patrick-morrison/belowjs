@@ -1,5 +1,9 @@
 # BelowJS
 
+[![npm version](https://badge.fury.io/js/belowjs.svg)](https://www.npmjs.com/package/belowjs)
+[![npm downloads](https://img.shields.io/npm/dm/belowjs.svg)](https://www.npmjs.com/package/belowjs)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 > **Note:** This is a pre-release version (`1.0.0-rc.1`). The API is stable, but please be aware that minor changes may occur before the final 1.0.0 release.
 
 **Dive Shipwrecks in Virtual Reality**
@@ -20,6 +24,29 @@ The code is yours, as long as you share what you do with it.
 
 ## Quick Start
 
+### With npm
+
+```bash
+npm install belowjs three
+```
+
+```javascript
+import { ModelViewer } from 'belowjs';
+import 'belowjs/dist/belowjs.css';
+
+const config = {
+    models: {
+        'kxi': {
+            url: 'shipwreck.glb'
+        }
+    }
+};
+
+const viewer = new ModelViewer('body', config);
+```
+
+### With CDN
+
 This gives you a complete VR-ready 3D viewer with dive lighting, measurement tools, and mode switching enabled by default.
 
 ```html
@@ -30,11 +57,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
         }
     }
     </script>
-    <link rel="stylesheet" href="./belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>
@@ -89,11 +116,9 @@ npm install && npm run build
 
 ## Installation
 
-BelowJS can be installed via npm or by cloning the repository.
-
-### NPM
+### npm
 ```bash
-npm install belowjs
+npm install belowjs three
 ```
 
 ### Manual Installation
@@ -106,10 +131,8 @@ npm run build
 ```
 
 This builds the necessary files into the `/dist` directory:
-- `belowjs.js` (~420 KB) — ES modules version  
-- `belowjs.css` (~21 KB) — Complete stylesheet
-
-Note: Three.js is a peer dependency and must be installed separately. For ES modules, import Three.js in your application. For the UMD build, ensure `THREE` is available globally by including it via a `<script>` tag.
+- `belowjs.js` (~419 KB) — ES modules version  
+- `belowjs.css` (~20 KB) — Complete stylesheet
 
 ## Deployment
 
@@ -174,10 +197,6 @@ The embed example supports URL parameters for dynamic configuration:
   width="800" height="600">
 </iframe>
 ```
-
-## Documentation
-
-See [docs/API.md](docs/API.md) for complete API documentation and configuration options, including enabling optional VR audio.
 
 ## Development
 

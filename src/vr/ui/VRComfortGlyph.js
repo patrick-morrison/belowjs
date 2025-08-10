@@ -9,13 +9,13 @@ export class VRComfortGlyph {
   constructor(vrManager, options = {}) {
     this.vrManager = vrManager;
     this.isComfortMode = false;
-  this._iconRendered = false;
+    this._iconRendered = false;
     
 
     this.options = {
-  containerId: options.containerId || 'modelSelector',
-  useInlineLayout: options.useInlineLayout !== false,
-  position: options.position || 'bottom-right',
+      containerId: options.containerId || 'modelSelector',
+      useInlineLayout: options.useInlineLayout !== false,
+      position: options.position || 'bottom-right',
       offsetX: options.offsetX || 20,
       offsetY: options.offsetY || 120,
       ...options
@@ -44,16 +44,16 @@ export class VRComfortGlyph {
 
     const modeToggleContainer = document.getElementById('modeToggleContainer');
     if (!modeToggleContainer) {
-  console.warn('VRComfortGlyph: modeToggleContainer not found, falling back to floating mode');
-  this.createFloatingElement();
-  return;
+      console.warn('VRComfortGlyph: modeToggleContainer not found, falling back to floating mode');
+      this.createFloatingElement();
+      return;
     }
     
 
-  this.element = document.createElement('div');
-  this.element.id = 'vrComfortGlyph';
-  this.element.className = 'vr-comfort-circle comfort-off';
-  this.renderIcon();
+    this.element = document.createElement('div');
+    this.element.id = 'vrComfortGlyph';
+    this.element.className = 'vr-comfort-circle comfort-off';
+    this.renderIcon();
     this.element.tabIndex = 0;
     this.element.role = 'button';
     this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
@@ -73,9 +73,9 @@ export class VRComfortGlyph {
   createFloatingElement() {
 
     this.element = document.createElement('div');
-  this.element.id = 'vrComfortGlyph';
-  this.element.className = 'vr-comfort-glyph comfort-off';
-  this.renderIcon();
+    this.element.id = 'vrComfortGlyph';
+    this.element.className = 'vr-comfort-glyph comfort-off';
+    this.renderIcon();
     this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
     this.element.tabIndex = 0;
     this.element.role = 'button';
@@ -95,7 +95,7 @@ export class VRComfortGlyph {
   }
   
   attachStyles() {
-      this.renderIcon();
+    this.renderIcon();
     if (document.getElementById('vr-comfort-glyph-styles')) {
       return;
     }
@@ -404,7 +404,7 @@ export class VRComfortGlyph {
       this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
     }
-  this.renderIcon();
+    this.renderIcon();
     
   }
   
@@ -414,10 +414,10 @@ export class VRComfortGlyph {
     if (this.vrManager) {
       if (this.isComfortMode) {
 
-  this.vrManager.setComfortPreset('comfort');
+        this.vrManager.setComfortPreset('comfort');
       } else {
 
-  this.vrManager.setComfortPreset('free');
+        this.vrManager.setComfortPreset('free');
       }
     }
     
@@ -427,7 +427,7 @@ export class VRComfortGlyph {
     const event = new CustomEvent('vrcomfortchange', {
       detail: {
         isComfortMode: this.isComfortMode,
-  preset: this.isComfortMode ? 'comfort' : 'free'
+        preset: this.isComfortMode ? 'comfort' : 'free'
       }
     });
     this.element.dispatchEvent(event);
@@ -476,9 +476,9 @@ export class VRComfortGlyph {
   
   dispose() {
     if (this.element) {
-  if (this._onClick) this.element.removeEventListener('click', this._onClick);
-  if (this._onKeydown) this.element.removeEventListener('keydown', this._onKeydown);
-  if (this._onPointerDown) this.element.removeEventListener('pointerdown', this._onPointerDown);
+      if (this._onClick) this.element.removeEventListener('click', this._onClick);
+      if (this._onKeydown) this.element.removeEventListener('keydown', this._onKeydown);
+      if (this._onPointerDown) this.element.removeEventListener('pointerdown', this._onPointerDown);
       
 
       if (this.element.parentNode) {

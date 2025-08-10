@@ -216,7 +216,7 @@ export class ModelViewer extends EventSystem {
       ...this.config.viewerConfig,
       ...(this.config.enableVR && { vr: { enabled: true } }),
       ...(this.config.audioPath && { audioPath: this.config.audioPath }),
-      ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio }),
+      ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio })
     };
     
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
@@ -539,14 +539,14 @@ export class ModelViewer extends EventSystem {
   onVRModeToggle() {
 
   }
-   setupFocusInteraction() {
+  setupFocusInteraction() {
     const domElement = this.belowViewer.renderer.domElement;
 
 
     const DOUBLE_CLICK_TIME = 300;
     let lastClickTime = 0;
     let isDragging = false;
-    let dragStartPosition = { x: 0, y: 0 };
+    const dragStartPosition = { x: 0, y: 0 };
     const DRAG_THRESHOLD = 5;
 
     const onMouseDown = (event) => {
@@ -596,7 +596,7 @@ export class ModelViewer extends EventSystem {
       onMouseClick
     };
   }
-   focusOnPoint(event) {
+  focusOnPoint(event) {
     const canvas = this.belowViewer.renderer.domElement;
     const rect = canvas.getBoundingClientRect();
     const mouse = {
@@ -832,7 +832,7 @@ export class ModelViewer extends EventSystem {
   
   createLoadingIndicator() {
     const loading = document.createElement('div');
-  loading.className = 'loading-indicator below-loading';
+    loading.className = 'loading-indicator below-loading';
     loading.textContent = 'Loading...';
     loading.style.display = 'none';
     this.container.appendChild(loading);
@@ -968,7 +968,7 @@ export class ModelViewer extends EventSystem {
     }
   }
   
-  applyInitialPositions(modelConfig, model) {
+  applyInitialPositions(modelConfig, _model) {
     const positions = modelConfig.initialPositions;
     if (!positions) return;
 

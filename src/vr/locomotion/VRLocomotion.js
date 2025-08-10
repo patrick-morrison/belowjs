@@ -60,7 +60,7 @@ export class VRLocomotion {
   }
   
 
-  startMovement(type = 'forward') {
+  startMovement(_type = 'forward') {
     this.isMoving = true;
     this.targetSpeed = this.MOVE_SPEED;
     
@@ -96,7 +96,7 @@ export class VRLocomotion {
       controllers.updateHandGestures();
 
       let handUsed = null;
-      let moveDir = new THREE.Vector3();
+      const moveDir = new THREE.Vector3();
       let boost = false;
       for (const hand of ['left', 'right']) {
         if (controllers.handStates[hand].pinch) {

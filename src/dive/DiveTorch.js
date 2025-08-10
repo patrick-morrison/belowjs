@@ -201,14 +201,6 @@ export class DiveTorch {
   }
   
   /**
-   * Update torch system (call in animation loop)
-   */
-  update(deltaTime) {
-
-
-  }
-  
-  /**
    * Dispose of torch resources
    */
   dispose() {

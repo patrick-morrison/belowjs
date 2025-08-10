@@ -91,7 +91,7 @@ export class DebugCommands {
           type: scene.fog.constructor.name,
           color: scene.fog.color.getHexString(),
 
-ear: scene.fog.near,
+          ear: scene.fog.near,
           far: scene.fog.far
         } : null
       };
@@ -119,7 +119,7 @@ ear: scene.fog.near,
           index,
           url: modelData.url,
 
-ame: model.name || 'Unnamed',
+          ame: model.name || 'Unnamed',
           position: {
             x: parseFloat(model.position.x.toFixed(3)),
             y: parseFloat(model.position.y.toFixed(3)),

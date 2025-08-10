@@ -26,7 +26,6 @@
  * @since 1.0.0
  */
 
-import * as THREE from 'three';
 import { VRCore } from '../vr/core/VRCore.js';
 import { VRControllers } from '../vr/core/VRControllers.js';
 import { VRTeleport } from '../vr/locomotion/VRTeleport.js';
@@ -51,11 +50,11 @@ export class VRManager {
     this.enableAudio = enableAudio;
     this.container = container;
     
-  this.vrCore = new VRCore(renderer, camera, scene, container);
-  this.vrControllers = new VRControllers(renderer, camera);
-  this.vrTeleport = new VRTeleport(scene, camera);
-  this.vrLocomotion = new VRLocomotion(camera, renderer);
-  this.vrAudio = this.enableAudio ? new VRAudio() : null;
+    this.vrCore = new VRCore(renderer, camera, scene, container);
+    this.vrControllers = new VRControllers(renderer, camera);
+    this.vrTeleport = new VRTeleport(scene, camera);
+    this.vrLocomotion = new VRLocomotion(camera, renderer);
+    this.vrAudio = this.enableAudio ? new VRAudio() : null;
     
     this.isVRSupported = false;
     this.isVRPresenting = false;
@@ -127,24 +126,8 @@ export class VRManager {
       }, 100);
     };
 
-    // Controller events
-    this.vrControllers.onSelectStart = (handedness, controller, event) => {
-      // no-op for audio
-    };
-
-    this.vrControllers.onSelectEnd = (handedness, controller, event) => {
-      // no-op for audio
-    };
-
-    this.vrControllers.onSqueezeStart = (handedness, controller, event) => {
-      this.vrLocomotion.currentBoostLevel = 1.0;
-      this.vrLocomotion.targetBoostLevel = 1.0;
-    };
-
-    this.vrControllers.onSqueezeEnd = (handedness, controller, event) => {
-      this.vrLocomotion.currentBoostLevel = 0;
-      this.vrLocomotion.targetBoostLevel = 0;
-    };
+    // VRController event callbacks are not needed by VRManager
+    // Individual systems (teleport, locomotion, etc.) handle their own controller events
 
     this.vrControllers.onModeToggle = () => {
       if (this.onModeToggle) {
@@ -261,7 +244,7 @@ export class VRManager {
    * @since 1.0.0
    */
   setComfortSettings(settings) {
-  this.vrLocomotion.setComfortSettings(settings);
+    this.vrLocomotion.setComfortSettings(settings);
   }
   
   /**
@@ -278,7 +261,7 @@ export class VRManager {
    * @since 1.0.0
    */
   getComfortSettings() {
-  return this.vrLocomotion.getComfortSettings();
+    return this.vrLocomotion.getComfortSettings();
   }
   
   /**
@@ -295,7 +278,7 @@ export class VRManager {
    * @since 1.0.0
    */
   setComfortPreset(preset) {
-  this.vrLocomotion.setComfortPreset(preset);
+    this.vrLocomotion.setComfortPreset(preset);
   }
   
 

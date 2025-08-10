@@ -152,7 +152,7 @@ export class Camera extends EventSystem {
    * 
    * @since 1.0.0
    */
-  focusOn(target, distance = null) {
+  focusOn(target, _distance = null) {
     if (!this.controls) return;
     
     if (this.focusAnimation) {
