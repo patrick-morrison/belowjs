@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { BelowViewer } from '../core/BelowViewer.js';
 import { EventSystem } from '../utils/EventSystem.js';
 import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
@@ -162,21 +163,37 @@ export class ModelViewer extends EventSystem {
     if (window.getComputedStyle(this.container).position === 'static') {
       this.container.style.position = 'relative';
     }
-    this.options = {
-      models: {},
-      autoLoadFirst: true,
-      showLoadingIndicator: true,
-      showStatus: true,
-      showInfo: false,
-      enableVR: false,
-      enableMeasurement: false,
-      measurementTheme: 'dark',
-      showMeasurementLabels: false,
-      enableVRComfortGlyph: false,
-      enableDiveSystem: false,
-      enableFullscreen: false,
-      ...options
+
+    const schema = {
+      models: { type: 'object', default: {} },
+      autoLoadFirst: { type: 'boolean', default: true },
+      showLoadingIndicator: { type: 'boolean', default: true },
+      showStatus: { type: 'boolean', default: true },
+      showInfo: { type: 'boolean', default: false },
+      enableVR: { type: 'boolean', default: false },
+      enableMeasurement: { type: 'boolean', default: false },
+      measurementTheme: { type: 'string', default: 'dark' },
+      showMeasurementLabels: { type: 'boolean', default: false },
+      enableVRComfortGlyph: { type: 'boolean', default: false },
+      enableDiveSystem: { type: 'boolean', default: false },
+      enableFullscreen: { type: 'boolean', default: false },
+      enableVRAudio: { type: 'boolean', default: false },
+      audioPath: { type: 'string', default: './sound/' },
+      viewerConfig: {
+        type: 'object',
+        default: {
+          scene: {
+            background: { type: 'color', value: '#041729' }
+          }
+        }
+      },
+      initialModel: { type: 'string', default: null },
+      initialPositions: { type: 'object', default: null }
     };
+
+    this.config = new ConfigValidator(schema).validate(options);
+    this.options = this.config; // for backward compatibility if something is missed
+    
     this.currentModelKey = null;
     this.belowViewer = null;
     this.ui = {};
@@ -194,47 +211,11 @@ export class ModelViewer extends EventSystem {
   }
   
   init() {
-    const defaultConfig = {
-      scene: {
-        background: { type: 'color', value: '#041729' },
-        fog: { 
-          enabled: false, 
-          color: '#041729', 
-
-ear: 10, 
-          far: 100 
-        }
-      },
-      camera: {
-        fov: 65,
-
-ear: 0.05,
-        far: 2000,
-        position: { x: 0, y: 5, z: 10 },
-        desktop: {
-          enableDamping: true,
-          dampingFactor: 0.08,
-          maxDistance: 100,
-          minDistance: 0.5
-        }
-      },
-      renderer: {
-        antialias: true,
-        alpha: false,
-        powerPreference: 'high-performance'
-      }
-    };
-
     const viewerConfig = {
-      ...defaultConfig,
-      ...this.options.viewerConfig,
-      ...(this.options.enableVR && { vr: { enabled: true } }),
-      ...(this.options.audioPath && { audioPath: this.options.audioPath }),
-      ...(typeof this.options.enableVRAudio !== 'undefined' && { enableVRAudio: this.options.enableVRAudio }),
-      ...(this.options.scene && { scene: { ...defaultConfig.scene, ...this.options.scene } }),
-      ...(this.options.camera && { camera: { ...defaultConfig.camera, ...this.options.camera } }),
-      ...(this.options.renderer && { renderer: { ...defaultConfig.renderer, ...this.options.renderer } }),
-      ...(this.options.vr && { vr: { ...this.options.vr } })
+      ...this.config.viewerConfig,
+      ...(this.config.enableVR && { vr: { enabled: true } }),
+      ...(this.config.audioPath && { audioPath: this.config.audioPath }),
+      ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio }),
     };
     
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
@@ -259,27 +240,27 @@ ear: 0.05,
       this._maybeAttachFullscreenButton();
     }
 
-    if (Object.keys(this.options.models).length > 0) {
+    if (Object.keys(this.config.models).length > 0) {
       this.createUI();
       this.populateDropdown();
 
 
-      if (this.options.autoLoadFirst) {
-        const firstModelKey = Object.keys(this.options.models)[0];
+      if (this.config.autoLoadFirst) {
+        const firstModelKey = Object.keys(this.config.models)[0];
         setTimeout(() => this.loadModel(firstModelKey), 100);
       }
     }
   }
 
   _maybeAttachMeasurementSystem() {
-    if (!this.options.enableMeasurement || this.measurementSystem) return;
+    if (!this.config.enableMeasurement || this.measurementSystem) return;
     this.measurementSystem = new MeasurementSystem({
       scene: this.belowViewer.sceneManager.scene,
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
       controls: this.belowViewer.cameraManager.controls,
-      theme: this.options.measurementTheme,
-      showMeasurementLabels: this.options.showMeasurementLabels
+      theme: this.config.measurementTheme,
+      showMeasurementLabels: this.config.showMeasurementLabels
     });
     const update = () => this.measurementSystem && this.measurementSystem.update();
     if (this.belowViewer.onAfterRender) {
@@ -297,7 +278,7 @@ ear: 0.05,
   }
 
   async _maybeAttachVRComfortGlyph() {
-    if (!this.options.enableVRComfortGlyph || this.comfortGlyph) return;
+    if (!this.config.enableVRComfortGlyph || this.comfortGlyph) return;
     if (!this.belowViewer.vrManager) return;
     if (!this.belowViewer.vrManager.vrCore) return;
     
@@ -342,7 +323,7 @@ ear: 0.05,
   }
 
   _maybeAttachDiveSystem() {
-    if (!this.options.enableDiveSystem || this.diveSystem) return;
+    if (!this.config.enableDiveSystem || this.diveSystem) return;
     
     this.diveSystem = new DiveSystem(
       this.belowViewer.sceneManager.scene,
@@ -392,15 +373,15 @@ ear: 0.05,
 
 
   _maybeAttachFullscreenButton() {
-    if (!this.options.enableFullscreen || this.fullscreenButton) return;
+    if (!this.config.enableFullscreen || this.fullscreenButton) return;
 
     const button = document.createElement('div');
     button.id = 'fullscreenButton';
     button.className = 'fullscreen-button';
-    if (this.options.measurementTheme === 'light') {
+    if (this.config.measurementTheme === 'light') {
       button.classList.add('light-theme');
     }
-    if (!this.options.enableMeasurement) {
+    if (!this.config.enableMeasurement) {
       button.classList.add('no-measurement');
     }
     button.textContent = '\u26F6';
@@ -525,7 +506,7 @@ ear: 0.05,
 
   onVRSessionEnd() {
 
-    if (this.ui.info && this.options.showInfo) {
+    if (this.ui.info && this.config.showInfo) {
       this.ui.info.style.display = 'block';
     }
     if (this.ui.selector) {
@@ -697,23 +678,23 @@ ear: 0.05,
     }
 
 
-    const modelCount = Object.keys(this.options.models).length;
+    const modelCount = Object.keys(this.config.models).length;
     if (modelCount > 1 && !this.ui.dropdown) {
       this.createModelSelector();
     }
 
 
-    if (this.options.showInfo && !this.ui.info) {
+    if (this.config.showInfo && !this.ui.info) {
       this.createInfoPanel();
     }
 
 
-    if (this.options.showLoadingIndicator && !this.ui.loading) {
+    if (this.config.showLoadingIndicator && !this.ui.loading) {
       this.createLoadingIndicator();
     }
 
 
-    if (this.options.showStatus && !this.ui.status) {
+    if (this.config.showStatus && !this.ui.status) {
       this.createStatusIndicator();
     }
     
@@ -745,7 +726,7 @@ ear: 0.05,
     dropdown.id = 'modelDropdown';
     selectorContainer.appendChild(dropdown);
 
-    if (this.options.enableDiveSystem) {
+    if (this.config.enableDiveSystem) {
       const toggleContainer = document.createElement('div');
       toggleContainer.id = 'modeToggleContainer';
 
@@ -846,7 +827,7 @@ ear: 0.05,
     defaultOption.selected = true;
     this.ui.dropdown.appendChild(defaultOption);
     
-    Object.entries(this.options.models).forEach(([key, model]) => {
+    Object.entries(this.config.models).forEach(([key, model]) => {
       const option = document.createElement('option');
       option.value = key;
       option.textContent = model.name || key;
@@ -859,7 +840,7 @@ ear: 0.05,
    * 
    * @async
    * @method loadModel
-   * @param {string} modelKey - The key of the model to load (must exist in options.models)
+   * @param {string} modelKey - The key of the model to load (must exist in config.models)
    * @returns {Promise<void>} Promise that resolves when model loading is complete
    * 
    * @fires ModelViewer#model-loaded - When model loads successfully
@@ -872,7 +853,7 @@ ear: 0.05,
    * @since 1.0.0
    */
   async loadModel(modelKey) {
-    const modelConfig = this.options.models[modelKey];
+    const modelConfig = this.config.models[modelKey];
     if (!modelConfig) {
       console.error('Model not found:', modelKey);
       return;
@@ -995,7 +976,7 @@ ear: 0.05,
   
   updateLoadingProgress({ progress }) {
     if (progress.lengthComputable && this.currentModelKey) {
-      const modelConfig = this.options.models[this.currentModelKey];
+      const modelConfig = this.config.models[this.currentModelKey];
       const percent = Math.round((progress.loaded / progress.total) * 100);
       this.showLoading(`Loading ${modelConfig?.name || 'model'}: ${percent}%`);
     }
@@ -1108,7 +1089,7 @@ ear: 0.05,
    */
   resetCamera() {
     if (this.currentModelKey && this.belowViewer) {
-      const modelConfig = this.options.models[this.currentModelKey];
+      const modelConfig = this.config.models[this.currentModelKey];
       const initialPos = modelConfig?.initialPositions?.desktop;
       
       if (initialPos) {

@@ -8,11 +8,11 @@ export class Scene {
   }
 
   init() {
-    let backgroundColor = 0x0a1a2a;
+    let backgroundColor = '#001122'; // Default color
     if (this.config.background) {
       if (typeof this.config.background === 'object' && this.config.background.value) {
         backgroundColor = this.config.background.value;
-      } else {
+      } else if (typeof this.config.background === 'string') {
         backgroundColor = this.config.background;
       }
     }

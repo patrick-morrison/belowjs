@@ -89,7 +89,66 @@ export class BelowViewer extends EventSystem {
     super();
     
     this.container = container;
-    this.config = ConfigValidator.validate(config);
+
+    const schema = {
+      scene: {
+        type: 'object',
+        default: {
+          background: { type: 'color', value: '#001122' },
+          fog: { enabled: false, color: '#001122', near: 10, far: 100 }
+        },
+        schema: {
+          background: { type: ['object', 'string'], default: { type: 'color', value: '#001122' } },
+          fog: { type: 'object', default: {} }
+        }
+      },
+      camera: {
+        type: 'object',
+        default: {
+          fov: 65,
+          near: 0.05,
+          far: 2000,
+          position: { x: 0, y: 5, z: 10 },
+          desktop: {
+            enableDamping: true,
+            dampingFactor: 0.08,
+            maxDistance: 100,
+            minDistance: 0.5
+          }
+        },
+        schema: {
+          fov: { type: 'number', default: 65 },
+          near: { type: 'number', default: 0.05 },
+          far: { type: 'number', default: 2000 },
+          position: { type: 'object', default: {} },
+          desktop: { type: 'object', default: {} }
+        }
+      },
+      renderer: {
+        type: 'object',
+        default: {
+          antialias: true,
+          alpha: false,
+          powerPreference: 'high-performance'
+        },
+        schema: {
+          antialias: { type: 'boolean', default: true },
+          alpha: { type: 'boolean', default: false },
+          powerPreference: { type: 'string', default: 'high-performance' }
+        }
+      },
+      vr: {
+        type: 'object',
+        default: { enabled: true },
+        schema: {
+          enabled: { type: 'boolean', default: true }
+        }
+      },
+      audioPath: { type: 'string', default: './sound/' },
+      enableVRAudio: { type: 'boolean', default: false }
+    };
+    
+    this.config = new ConfigValidator(schema).validate(config);
     
     this.renderer = null;
     this.sceneManager = null;

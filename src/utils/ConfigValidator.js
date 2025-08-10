@@ -1,119 +1,77 @@
 /**
- * Configuration validation and merging utilities
+ * Validates a configuration object against a schema, applying defaults.
  */
-
-export const defaultConfig = {
-  container: '#viewer-container',
-  
-
-  models: {},
-  
-
-  scene: {
-    background: 0x0a1a2a // Deep ocean blue
-  },
-  
-
-  camera: {
-    fov: 65,
-
-ear: 0.05,
-    far: 2000,
-    position: { x: 0, y: 5, z: 10 }
-  },
-  
-
-  renderer: {
-    antialias: true,
-    powerPreference: 'high-performance',
-    pixelRatio: Math.min(window.devicePixelRatio, 2.0),
-    outputColorSpace: 'srgb',
-    toneMapping: 'none',
-    toneMappingExposure: 1.0
-  },
-  
-
-  controls: {
-    desktop: {
-      enableDamping: true,
-      dampingFactor: 0.08,
-      maxDistance: 100,
-      minDistance: 0.5,
-      enableFocus: true
+export class ConfigValidator {
+    /**
+     * @param {object} schema - Defines validation rules for each configuration key.
+     */
+    constructor(schema) {
+        if (!schema || typeof schema !== 'object') {
+            throw new Error('A valid schema object is required.');
+        }
+        this.schema = schema;
     }
-  },
-  
 
-  vr: {
-    enabled: true,
-    
+    /**
+     * Validates an options object against the schema.
+     * @param {object} options - The raw options object to validate.
+     * @returns {object} A validated configuration object with defaults applied.
+     */
+    validate(options) {
+        const config = {};
+        const rawOptions = options || {};
 
-    movement: {
-      moveSpeed: 2.0,    // m/s base movement speed
-      turnSpeed: 1.5,    // rad/s turn speed
-      flySpeed: 1.0      // m/s vertical movement
-    },
-    
+        for (const key in this.schema) {
+            const rule = this.schema[key];
+            const value = rawOptions[key];
 
-    ramping: {
-      speedRampRate: 3.0,
-      boostRampRate: 6.0
-    },
-    
+            if (rule.type === 'object' && rule.schema) {
+                const objectToValidate = (value === undefined || value === null) ? rule.default : value;
+                config[key] = new ConfigValidator(rule.schema).validate(objectToValidate || {});
+            } else if (value === undefined || value === null) {
+                config[key] = rule.default;
+            } else if (this.isTypeValid(value, rule.type)) {
+                config[key] = value;
+            } else {
+                const expectedType = Array.isArray(rule.type) ? rule.type.join(' or ') : rule.type;
+                console.warn(
+                    `ConfigValidator: Invalid type for option '${key}'. ` +
+                    `Expected '${expectedType}', but received '${typeof value}'. ` +
+                    `Using default value: ${JSON.stringify(rule.default)}.`
+                );
+                config[key] = rule.default;
+            }
+        }
 
-    controllers: {
-      leftHand: {
-        movement: true,        // horizontal movement
-        modeToggleButtons: [4, 5]  // X, Y buttons
-      },
-      rightHand: {
-        turning: true,         // horizontal turning
-        verticalMovement: true, // vertical movement
-        modeToggleButtons: [4, 5]  // A, B buttons
-      },
-      gripBoostMultiplier: 3.0  // Original speed boost multiplier
-    },
-    
+        for (const key in rawOptions) {
+            if (!this.schema.hasOwnProperty(key)) {
+                console.warn(`ConfigValidator: Unknown option '${key}' will be ignored.`);
+            }
+        }
 
-    optimization: {
-      quest2RenderDistance: 20,  // Limit for Quest 2
-      autoDetectDevice: true
+        return config;
     }
-  }
-};
 
-export function validateConfig(userConfig = {}) {
+    /**
+     * Checks if a value conforms to the specified type or types.
+     * @param {*} value The value to check.
+     * @param {string|string[]} type The expected type or an array of allowed types.
+     * @returns {boolean}
+     */
+    isTypeValid(value, type) {
+        const check = (val, t) => {
+            if (t === 'array') {
+                return Array.isArray(val);
+            }
+            if (t === 'object') {
+                return val !== null && typeof val === 'object' && !Array.isArray(val);
+            }
+            return typeof val === t;
+        };
 
-  const config = mergeDeep(defaultConfig, userConfig);
-  
-
-  if (userConfig.container && typeof userConfig.container !== 'string') {
-    throw new Error('Container must be a string selector or element ID');
-  }
-  
-  return config;
-}
-
-export function mergeConfig(userConfig) {
-  return mergeDeep(defaultConfig, userConfig || {});
-}
-
-export const ConfigValidator = {
-  validate: validateConfig,
-  mergeConfig,
-  defaultConfig
-};
-
-function mergeDeep(target, source) {
-  const result = { ...target };
-  
-  for (const key in source) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = mergeDeep(target[key] || {}, source[key]);
-    } else {
-      result[key] = source[key];
+        if (Array.isArray(type)) {
+            return type.some(t => check(value, t));
+        }
+        return check(value, type);
     }
-  }
-  
-  return result;
 }

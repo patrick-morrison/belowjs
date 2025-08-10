@@ -43,8 +43,15 @@ npm install && npm run build
 
 ## Installation
 
-Currently available via git clone:
+BelowJS can be installed via npm or by cloning the repository.
 
+### NPM
+```bash
+npm install belowjs
+```
+
+### Manual Installation
+If you prefer to install manually, clone the repository and build the distribution files:
 ```bash
 git clone https://github.com/patrick-morrison/belowjs
 cd belowjs
@@ -52,20 +59,19 @@ npm install
 npm run build
 ```
 
-This builds the distribution files:
+This builds the necessary files into the `/dist` directory:
 - `belowjs.css` (~21 KB) — Complete stylesheet
 - `belowjs.es.js` (~420 KB) — ES modules version  
 - `belowjs.umd.js` (~318 KB) — Universal module format
 
-Note: Three.js is externalized in the bundles. For ES modules, import Three in your app as usual. For the UMD build, include Three.js first so `THREE` is available globally.
-
-NPM package will be available once the API is finalized.
+Note: Three.js is a peer dependency and must be installed separately. For ES modules, import Three.js in your application. For the UMD build, ensure `THREE` is available globally by including it via a `<script>` tag.
 
 ## Usage
 
 ### Basic Setup
 ```javascript
-import { ModelViewer } from '/dist/belowjs.es.js';
+import { ModelViewer } from 'belowjs';
+import 'belowjs/dist/belowjs.css';
 
 new ModelViewer('#container', {
   models: { 'ship': { url: 'model.glb', name: 'Historic Ship' } }
