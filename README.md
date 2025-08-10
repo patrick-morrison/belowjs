@@ -11,7 +11,7 @@ A Three.js-based library for viewing 3D models with WebXR support and measuremen
     models: { 'wreck': { url: 'model.glb', name: 'Historic Wreck' } },
     enableVR: true,
     enableMeasurement: true,
-    autoLoadFirst: true
+    enableDiveSystem: true
   });
 </script>
 ```
@@ -102,7 +102,6 @@ new ModelViewer(document.body, {
   enableDiveSystem: true
 });
 ```
-```
 
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:
@@ -132,5 +131,7 @@ The examples load from `/dist/`. Run `npm run build` once before first testing t
 GPL-3.0-or-later — See [LICENSE](LICENSE) file.
 
 ---
+
+Created by [Patrick Morrison](https://padmorrison.com).
 
 Built for underwater archaeology. Models courtesy of [WreckSploration](https://wrecksploration.com).

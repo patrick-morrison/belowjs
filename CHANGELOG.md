@@ -5,17 +5,21 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - Pre-Release Audit
+## [1.0.0] - 2025-08-10 - Public Release
 
-### Development Notes
-- **Audit**: Comprehensive codebase audit completed in preparation for public release (August 9, 2025)
-- **Documentation**: Added `docs/DEVELOPMENT.md` with audit findings and development guidelines
-- **Issues Identified**: Debug code, console statements, and alert/confirm usage need cleanup before publication
-- **Action Required**: Remove development artifacts and implement proper error handling for production release
+### Added
+- **Public Release**: First stable public release of the BelowJS library.
+- **Code Review**: Completed a full code review and audit for public release. See `docs/CODE_REVIEW.md` for details.
 
 ### Changed
-- API: VR audio is now disabled by default; enable with `enableVRAudio: true`.
-- Behavior: When enabled, audio plays only during an active VR session (no desktop playback).
+- **Dependencies**: Updated dependencies to their latest stable versions for security and performance.
+  - `three`: `^0.179.1`
+  - `vite`: `^7.1.1`
+- **API**: VR audio is now disabled by default; enable with `enableVRAudio: true`.
+- **Behavior**: When enabled, audio plays only during an active VR session (no desktop playback).
+
+### Fixed
+- Cleaned up development artifacts, console logs, and debug code from the codebase.
 
 ## [0.1.5] - 2025-08-02 - Measurement System Stability
 

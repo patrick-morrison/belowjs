@@ -214,11 +214,19 @@ export class BelowViewer extends EventSystem {
     
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     
-    if (this.config.renderer.toneMapping === 'aces-filmic') {
-      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    } else if (this.config.renderer.toneMapping === 'none') {
-      this.renderer.toneMapping = THREE.NoToneMapping;
+    // More flexible tone mapping from config
+    const toneMappingMap = {
+      'none': THREE.NoToneMapping,
+      'linear': THREE.LinearToneMapping,
+      'reinhard': THREE.ReinhardToneMapping,
+      'cineon': THREE.CineonToneMapping,
+      'aces-filmic': THREE.ACESFilmicToneMapping
+    };
+    
+    if (this.config.renderer.toneMapping && toneMappingMap[this.config.renderer.toneMapping]) {
+      this.renderer.toneMapping = toneMappingMap[this.config.renderer.toneMapping];
     }
+    
     this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure;
     
     this.container.appendChild(this.renderer.domElement);
@@ -384,7 +392,7 @@ export class BelowViewer extends EventSystem {
       }
       
 
-      const originalCenter = this.centerModel(model);
+      const originalCenter = this.centerModelAndRecalculateBounds(model);
       
       this.sceneManager.add(model);
       this.loadedModels.push({ model, url, options, originalCenter });
@@ -432,7 +440,14 @@ export class BelowViewer extends EventSystem {
     this.cameraManager.frameObject(center, size);
   }
 
-  centerModel(model) {
+  /**
+   * Centers the model at the origin and recalculates its bounding box.
+   * Note: This method modifies the model's position as a side effect.
+   * 
+   * @param {THREE.Object3D} model - The model to center.
+   * @returns {THREE.Vector3} The original center offset for reference.
+   */
+  centerModelAndRecalculateBounds(model) {
     if (!model.userData.boundingBox) {
       const box = new THREE.Box3().setFromObject(model);
       model.userData.boundingBox = box;

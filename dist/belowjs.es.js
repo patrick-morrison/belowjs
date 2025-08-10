@@ -5130,8 +5130,7 @@ class Wt {
    */
   static init(e) {
     typeof window > "u" || (window.belowViewer = e, window.camera = () => {
-      var n, r;
-      if (!((n = e.cameraManager) != null && n.camera) || !((r = e.cameraManager) != null && r.controls))
+      if (!e.cameraManager?.camera || !e.cameraManager?.controls)
         return console.warn("Camera not initialized"), null;
       const t = e.cameraManager.camera.position, i = e.cameraManager.controls.target, s = e.dolly ? {
         dolly: {
@@ -5164,14 +5163,13 @@ class Wt {
       };
       return console.log("🎥 Current camera positions:"), console.log("📋 Copy this for initialPositions config:"), console.log(JSON.stringify(o, null, 2)), o;
     }, window.scene = () => {
-      var s;
-      if (!((s = e.sceneManager) != null && s.scene))
+      if (!e.sceneManager?.scene)
         return console.warn("Scene not initialized"), null;
       const t = e.sceneManager.scene, i = {
         children: t.children.length,
-        lights: t.children.filter((o) => o.isLight).length,
-        meshes: t.children.filter((o) => o.isMesh).length,
-        groups: t.children.filter((o) => o.isGroup).length,
+        lights: t.children.filter((s) => s.isLight).length,
+        meshes: t.children.filter((s) => s.isMesh).length,
+        groups: t.children.filter((s) => s.isGroup).length,
         background: t.background,
         fog: t.fog ? {
           type: t.fog.constructor.name,
@@ -5238,9 +5236,8 @@ class Wt {
       };
       return console.log("🥽 VR information:"), console.table(t), t;
     }, window.particles = () => {
-      var s, o, n, r;
       let t = null;
-      if ((s = e.diveSystem) != null && s.particles ? t = e.diveSystem.particles : typeof window < "u" && ((o = window.diveSystem) != null && o.particles) ? t = window.diveSystem.particles : (r = (n = e.belowViewer) == null ? void 0 : n.diveSystem) != null && r.particles && (t = e.belowViewer.diveSystem.particles), !t)
+      if (e.diveSystem?.particles ? t = e.diveSystem.particles : typeof window < "u" && window.diveSystem?.particles ? t = window.diveSystem.particles : e.belowViewer?.diveSystem?.particles && (t = e.belowViewer.diveSystem.particles), !t)
         return console.log("🌊 Particles not initialized"), null;
       const i = {
         count: t.particleCount,
@@ -5278,7 +5275,6 @@ class In extends yt {
    * @param {BelowViewerConfig} [config={}] - Configuration options
    */
   constructor(e, t = {}) {
-    var s;
     super(), this.container = e;
     const i = {
       scene: {
@@ -5337,7 +5333,7 @@ class In extends yt {
       audioPath: { type: "string", default: "./sound/" },
       enableVRAudio: { type: "boolean", default: !1 }
     };
-    this.config = new qe(i).validate(t), this.renderer = null, this.sceneManager = null, this.cameraManager = null, this.modelLoader = null, this.vrManager = null, this.isVREnabled = ((s = this.config.vr) == null ? void 0 : s.enabled) !== !1, this.dolly = null, this.isInitialized = !1, this.loadedModels = [], this.currentAbortController = null, this.init();
+    this.config = new qe(i).validate(t), this.renderer = null, this.sceneManager = null, this.cameraManager = null, this.modelLoader = null, this.vrManager = null, this.isVREnabled = this.config.vr?.enabled !== !1, this.dolly = null, this.isInitialized = !1, this.loadedModels = [], this.currentAbortController = null, this.init();
   }
   init() {
     try {
@@ -5351,7 +5347,15 @@ class In extends yt {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference
-    }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = u.PCFSoftShadowMap, this.renderer.outputColorSpace = u.SRGBColorSpace, this.config.renderer.toneMapping === "aces-filmic" ? this.renderer.toneMapping = u.ACESFilmicToneMapping : this.config.renderer.toneMapping === "none" && (this.renderer.toneMapping = u.NoToneMapping), this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure, this.container.appendChild(this.renderer.domElement);
+    }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = u.PCFSoftShadowMap, this.renderer.outputColorSpace = u.SRGBColorSpace;
+    const e = {
+      none: u.NoToneMapping,
+      linear: u.LinearToneMapping,
+      reinhard: u.ReinhardToneMapping,
+      cineon: u.CineonToneMapping,
+      "aces-filmic": u.ACESFilmicToneMapping
+    };
+    this.config.renderer.toneMapping && e[this.config.renderer.toneMapping] && (this.renderer.toneMapping = e[this.config.renderer.toneMapping]), this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure, this.container.appendChild(this.renderer.domElement);
   }
   initVR() {
     this.dolly = new u.Group(), this.dolly.add(this.cameraManager.camera), this.sceneManager.scene.add(this.dolly);
@@ -5431,7 +5435,7 @@ class In extends yt {
       if (i.aborted)
         return null;
       t.position && o.position.fromArray(t.position), t.rotation && o.rotation.fromArray(t.rotation), t.scale && (typeof t.scale == "number" ? o.scale.setScalar(t.scale) : o.scale.fromArray(t.scale));
-      const n = this.centerModel(o);
+      const n = this.centerModelAndRecalculateBounds(o);
       return this.sceneManager.add(o), this.loadedModels.push({ model: o, url: e, options: t, originalCenter: n }), this.loadedModels.length === 1 && t.autoFrame !== !1 && this.frameModel(o), this.currentAbortController && this.currentAbortController.signal === i && (this.currentAbortController = null), this.emit("model-loaded", { model: o, url: e }), o;
     } catch (s) {
       if (this.currentAbortController && this.currentAbortController.signal === i && (this.currentAbortController = null), !i.aborted && s.message !== "Loading cancelled")
@@ -5449,7 +5453,14 @@ class In extends yt {
     const t = e.userData.boundingBox, i = t.getSize(new u.Vector3()).length(), s = t.getCenter(new u.Vector3());
     this.cameraManager.frameObject(s, i);
   }
-  centerModel(e) {
+  /**
+   * Centers the model at the origin and recalculates its bounding box.
+   * Note: This method modifies the model's position as a side effect.
+   * 
+   * @param {THREE.Object3D} model - The model to center.
+   * @returns {THREE.Vector3} The original center offset for reference.
+   */
+  centerModelAndRecalculateBounds(e) {
     if (!e.userData.boundingBox) {
       const s = new u.Box3().setFromObject(e);
       e.userData.boundingBox = s;
@@ -5466,8 +5477,7 @@ class In extends yt {
     this.renderer.setAnimationLoop(t);
   }
   getScene() {
-    var e;
-    return (e = this.sceneManager) == null ? void 0 : e.scene;
+    return this.sceneManager?.scene;
   }
   /**
    * Get the Three.js camera instance
@@ -5485,8 +5495,7 @@ class In extends yt {
    * @since 1.0.0
    */
   getCamera() {
-    var e;
-    return (e = this.cameraManager) == null ? void 0 : e.camera;
+    return this.cameraManager?.camera;
   }
   /**
    * Get the Three.js WebGL renderer instance
@@ -8002,11 +8011,10 @@ class Dn extends yt {
   }
   onVRSessionStart() {
     this.ui.info && (this.ui.info.style.display = "none"), this.ui.selector && (this.ui.selector.style.pointerEvents = "none", this.ui.selector.style.opacity = "0.5"), this.measurementSystem && typeof this.measurementSystem.attachVR == "function" && setTimeout(() => {
-      var t;
-      const e = (t = this.belowViewer) == null ? void 0 : t.renderer;
+      const e = this.belowViewer?.renderer;
       if (e && e.xr && typeof e.xr.getController == "function") {
-        const i = e.xr.getController(0), s = e.xr.getController(1), o = e.xr.getControllerGrip ? e.xr.getControllerGrip(0) : void 0, n = e.xr.getControllerGrip ? e.xr.getControllerGrip(1) : void 0;
-        this.measurementSystem.attachVR({ controller1: i, controller2: s, controllerGrip1: o, controllerGrip2: n }), this.measurementSystem.resetGhostSpherePositions();
+        const t = e.xr.getController(0), i = e.xr.getController(1), s = e.xr.getControllerGrip ? e.xr.getControllerGrip(0) : void 0, o = e.xr.getControllerGrip ? e.xr.getControllerGrip(1) : void 0;
+        this.measurementSystem.attachVR({ controller1: t, controller2: i, controllerGrip1: s, controllerGrip2: o }), this.measurementSystem.resetGhostSpherePositions();
       }
     }, 100);
   }
@@ -8030,9 +8038,8 @@ class Dn extends yt {
         s = !1;
       }, 10);
     }, c = (h) => {
-      var p;
       const d = Date.now(), g = d - i < t;
-      i = d, !((p = this.belowViewer.renderer.xr) != null && p.isPresenting || s) && g && this.focusOnPoint(h);
+      i = d, !(this.belowViewer.renderer.xr?.isPresenting || s) && g && this.focusOnPoint(h);
     };
     e.addEventListener("mousedown", r), e.addEventListener("mousemove", a), e.addEventListener("mouseup", A), e.addEventListener("click", c), this.focusEventHandlers = {
       onMouseDown: r,
@@ -8215,7 +8222,7 @@ class Dn extends yt {
   updateLoadingProgress({ progress: e }) {
     if (e.lengthComputable && this.currentModelKey) {
       const t = this.config.models[this.currentModelKey], i = Math.round(e.loaded / e.total * 100);
-      this.showLoading(`Loading ${(t == null ? void 0 : t.name) || "model"}: ${i}%`);
+      this.showLoading(`Loading ${t?.name || "model"}: ${i}%`);
     }
   }
   onModelLoaded({ model: e }) {
@@ -8295,8 +8302,7 @@ class Dn extends yt {
    * @since 1.0.0
    */
   focusOn(e, t = null) {
-    var i;
-    (i = this.belowViewer) != null && i.cameraManager && (this.belowViewer.cameraManager.focusOn(e, t), this.emit("focus", { point: e, distance: t }));
+    this.belowViewer?.cameraManager && (this.belowViewer.cameraManager.focusOn(e, t), this.emit("focus", { point: e, distance: t }));
   }
   /**
    * Reset camera to the initial position for the current model
@@ -8313,12 +8319,11 @@ class Dn extends yt {
    * @since 1.0.0
    */
   resetCamera() {
-    var e;
     if (this.currentModelKey && this.belowViewer) {
-      const t = this.config.models[this.currentModelKey], i = (e = t == null ? void 0 : t.initialPositions) == null ? void 0 : e.desktop;
-      if (i) {
-        const s = this.belowViewer.cameraManager.getCamera(), o = this.belowViewer.cameraManager.getControls();
-        i.camera && s.position.set(i.camera.x, i.camera.y, i.camera.z), i.target && o && (o.target.set(i.target.x, i.target.y, i.target.z), o.update()), this.emit("camera-reset", { modelKey: this.currentModelKey, position: i });
+      const t = this.config.models[this.currentModelKey]?.initialPositions?.desktop;
+      if (t) {
+        const i = this.belowViewer.cameraManager.getCamera(), s = this.belowViewer.cameraManager.getControls();
+        t.camera && i.position.set(t.camera.x, t.camera.y, t.camera.z), t.target && s && (s.target.set(t.target.x, t.target.y, t.target.z), s.update()), this.emit("camera-reset", { modelKey: this.currentModelKey, position: t });
       }
     }
   }
@@ -8381,10 +8386,9 @@ class Dn extends yt {
    * @since 1.0.0
    */
   dispose() {
-    var e, t;
-    if (typeof window < "u" && window.modelViewer === this && (window.modelViewer = null), this.focusEventHandlers && ((t = (e = this.belowViewer) == null ? void 0 : e.renderer) != null && t.domElement)) {
-      const i = this.belowViewer.renderer.domElement;
-      i.removeEventListener("mousedown", this.focusEventHandlers.onMouseDown), i.removeEventListener("mousemove", this.focusEventHandlers.onMouseMove), i.removeEventListener("mouseup", this.focusEventHandlers.onMouseUp), i.removeEventListener("click", this.focusEventHandlers.onMouseClick), this.focusEventHandlers = null;
+    if (typeof window < "u" && window.modelViewer === this && (window.modelViewer = null), this.focusEventHandlers && this.belowViewer?.renderer?.domElement) {
+      const e = this.belowViewer.renderer.domElement;
+      e.removeEventListener("mousedown", this.focusEventHandlers.onMouseDown), e.removeEventListener("mousemove", this.focusEventHandlers.onMouseMove), e.removeEventListener("mouseup", this.focusEventHandlers.onMouseUp), e.removeEventListener("click", this.focusEventHandlers.onMouseClick), this.focusEventHandlers = null;
     }
     this.measurementSystem && (this.measurementSystem.dispose(), this.measurementSystem = null), this.comfortGlyph && (this.comfortGlyph.dispose(), this.comfortGlyph = null), this.diveSystem && (this.diveSystem.dispose(), this.diveSystem = null, typeof window < "u" && window.diveSystem === this.diveSystem && (window.diveSystem = null)), this.fullscreenButton && (this.fullscreenButton.remove(), this.fullscreenButton = null, document.removeEventListener("fullscreenchange", this._onFullscreenChange)), this.belowViewer && this.belowViewer.dispose(), this.removeAllListeners();
   }

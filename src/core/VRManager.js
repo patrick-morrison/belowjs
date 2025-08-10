@@ -55,7 +55,6 @@ export class VRManager {
   this.vrControllers = new VRControllers(renderer, camera);
   this.vrTeleport = new VRTeleport(scene, camera);
   this.vrLocomotion = new VRLocomotion(camera, renderer);
-  // this.vrComfort = new VRComfort();
   this.vrAudio = this.enableAudio ? new VRAudio() : null;
     
     this.isVRSupported = false;
@@ -183,10 +182,6 @@ export class VRManager {
         this.onMovementUpdate(movementState);
       }
     };
-
-    // this.vrComfort.onSettingsChange = (settings) => {
-    //   this.vrLocomotion.setComfortSettings(settings);
-    // };
 
     this.vrLocomotion.setTeleportSystem(this.vrTeleport);
 
