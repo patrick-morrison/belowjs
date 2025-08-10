@@ -112,7 +112,6 @@ npm install && npm run build
 - [Basic Viewer](https://patrick-morrison.github.io/belowjs/examples/basic/) — Full-featured multi-model viewer
 - [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — File loader with custom UI
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
-- [CDN Test](https://patrick-morrison.github.io/belowjs/examples/cdn-test/) — Minimal CDN implementation
 
 ## Installation
 

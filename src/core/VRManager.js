@@ -126,9 +126,6 @@ export class VRManager {
       }, 100);
     };
 
-    // VRController event callbacks are not needed by VRManager
-    // Individual systems (teleport, locomotion, etc.) handle their own controller events
-
     this.vrControllers.onModeToggle = () => {
       if (this.onModeToggle) {
         this.onModeToggle();
