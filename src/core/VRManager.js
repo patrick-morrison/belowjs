@@ -31,7 +31,6 @@ import { VRCore } from '../vr/core/VRCore.js';
 import { VRControllers } from '../vr/core/VRControllers.js';
 import { VRTeleport } from '../vr/locomotion/VRTeleport.js';
 import { VRLocomotion } from '../vr/locomotion/VRLocomotion.js';
-import { VRComfort } from '../vr/locomotion/VRComfort.js';
 import { VRAudio } from '../vr/audio/VRAudio.js';
 
 export class VRManager {
@@ -52,12 +51,12 @@ export class VRManager {
     this.enableAudio = enableAudio;
     this.container = container;
     
-    this.vrCore = new VRCore(renderer, camera, scene, container);
-    this.vrControllers = new VRControllers(renderer, camera);
-    this.vrTeleport = new VRTeleport(scene, camera);
-    this.vrLocomotion = new VRLocomotion(camera, renderer);
-    this.vrComfort = new VRComfort();
-    this.vrAudio = this.enableAudio ? new VRAudio() : null;
+  this.vrCore = new VRCore(renderer, camera, scene, container);
+  this.vrControllers = new VRControllers(renderer, camera);
+  this.vrTeleport = new VRTeleport(scene, camera);
+  this.vrLocomotion = new VRLocomotion(camera, renderer);
+  // this.vrComfort = new VRComfort();
+  this.vrAudio = this.enableAudio ? new VRAudio() : null;
     
     this.isVRSupported = false;
     this.isVRPresenting = false;
@@ -185,14 +184,14 @@ export class VRManager {
       }
     };
 
-    this.vrComfort.onSettingsChange = (settings) => {
-      this.vrLocomotion.setComfortSettings(settings);
-    };
+    // this.vrComfort.onSettingsChange = (settings) => {
+    //   this.vrLocomotion.setComfortSettings(settings);
+    // };
 
     this.vrLocomotion.setTeleportSystem(this.vrTeleport);
 
     if (typeof this._comfortSettingsInitialized === 'undefined') {
-      this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings());
+      // Default comfort settings can be set here if needed
       this._comfortSettingsInitialized = true;
     }
   }
@@ -267,7 +266,7 @@ export class VRManager {
    * @since 1.0.0
    */
   setComfortSettings(settings) {
-    this.vrComfort.setSettings(settings);
+  this.vrLocomotion.setComfortSettings(settings);
   }
   
   /**
@@ -284,7 +283,7 @@ export class VRManager {
    * @since 1.0.0
    */
   getComfortSettings() {
-    return this.vrComfort.getSettings();
+  return this.vrLocomotion.getComfortSettings();
   }
   
   /**
@@ -301,23 +300,18 @@ export class VRManager {
    * @since 1.0.0
    */
   setComfortPreset(preset) {
-    this.vrComfort.setPreset(preset);
+  this.vrLocomotion.setComfortPreset(preset);
   }
   
 
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
-    
-    const settings = this.vrComfort.getSettings();
-    
-
+    const settings = this.vrLocomotion.getComfortSettings();
     if (settings.locomotionMode === 'teleport') {
       if (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) {
         this.vrTeleport.setupTeleportation();
       }
     }
-    
-
     if (!this.lastComfortLog || Date.now() - this.lastComfortLog > 10000) {
       this.lastComfortLog = Date.now();
     }
@@ -409,8 +403,7 @@ export class VRManager {
     const coreStatus = this.vrCore.getVRStatus();
     const audioStatus = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: false };
     const movementState = this.vrLocomotion.getMovementState();
-    const comfortSettings = this.vrComfort.getSettings();
-    
+    const comfortSettings = this.vrLocomotion.getComfortSettings();
     return {
       ...coreStatus,
       audio: audioStatus,

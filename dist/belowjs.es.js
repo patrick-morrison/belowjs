@@ -4738,61 +4738,20 @@ class mn {
     return { ...this.comfortSettings };
   }
   setComfortPreset(e) {
-    const t = {
-      "max-comfort": {
-        locomotionMode: "teleport",
-        turningMode: "snap",
-        snapTurnAngle: 30,
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.3
-      },
-      balanced: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.7
-      },
-      performance: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !1,
-        showTeleportArc: !1,
-        comfortSpeed: 1
-      }
-    };
-    return t[e] ? (this.setComfortSettings(t[e]), !0) : (console.warn(`Unknown comfort preset: ${e}`), !1);
-  }
-  getComfortPresets() {
-    return ["max-comfort", "balanced", "performance"];
-  }
-  getComfortPreset(e) {
-    const t = {
-      "max-comfort": {
-        locomotionMode: "teleport",
-        turningMode: "snap",
-        snapTurnAngle: 30,
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.3
-      },
-      balanced: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.7
-      },
-      performance: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !1,
-        showTeleportArc: !1,
-        comfortSpeed: 1
-      }
-    };
-    return t[e] ? { ...t[e] } : null;
+    return e === "comfort" ? (this.setComfortSettings({
+      locomotionMode: "teleport",
+      turningMode: "snap",
+      snapTurnAngle: 30,
+      reducedMotion: !0,
+      showTeleportArc: !0,
+      comfortSpeed: 0.3
+    }), !0) : e === "free" ? (this.setComfortSettings({
+      locomotionMode: "smooth",
+      turningMode: "smooth",
+      reducedMotion: !1,
+      showTeleportArc: !1,
+      comfortSpeed: 1
+    }), !0) : (console.warn(`Unknown comfort preset: ${e}`), !1);
   }
   toggleLocomotionMode() {
     const e = this.comfortSettings.locomotionMode === "smooth" ? "teleport" : "smooth";
@@ -4820,98 +4779,6 @@ class mn {
   }
 }
 class bn {
-  constructor() {
-    this.settings = {
-      locomotionMode: "smooth",
-      // 'smooth', 'teleport'
-      turningMode: "smooth",
-      // 'smooth', 'snap'
-      snapTurnAngle: 30,
-      // degrees per snap
-      reducedMotion: !1,
-      // slower, gentler movements
-      showTeleportArc: !0,
-      // visual feedback for teleportation
-      comfortSpeed: 0.5
-      // speed multiplier when reduced motion is on
-    }, this.presets = {
-      "max-comfort": {
-        locomotionMode: "teleport",
-        turningMode: "snap",
-        snapTurnAngle: 30,
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.3
-      },
-      balanced: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !0,
-        showTeleportArc: !0,
-        comfortSpeed: 0.7
-      },
-      performance: {
-        locomotionMode: "smooth",
-        turningMode: "smooth",
-        reducedMotion: !1,
-        showTeleportArc: !1,
-        comfortSpeed: 1
-      }
-    }, this.onSettingsChange = null;
-  }
-  setSettings(e) {
-    const t = ["smooth", "teleport"], i = ["smooth", "snap"];
-    let s = !1;
-    return e.locomotionMode && t.includes(e.locomotionMode) && this.settings.locomotionMode !== e.locomotionMode && (this.settings.locomotionMode = e.locomotionMode, s = !0), e.turningMode && i.includes(e.turningMode) && this.settings.turningMode !== e.turningMode && (this.settings.turningMode = e.turningMode, s = !0), typeof e.snapTurnAngle == "number" && e.snapTurnAngle > 0 && e.snapTurnAngle <= 90 && this.settings.snapTurnAngle !== e.snapTurnAngle && (this.settings.snapTurnAngle = e.snapTurnAngle, s = !0), typeof e.reducedMotion == "boolean" && this.settings.reducedMotion !== e.reducedMotion && (this.settings.reducedMotion = e.reducedMotion, s = !0), typeof e.showTeleportArc == "boolean" && this.settings.showTeleportArc !== e.showTeleportArc && (this.settings.showTeleportArc = e.showTeleportArc, s = !0), typeof e.comfortSpeed == "number" && e.comfortSpeed > 0 && e.comfortSpeed <= 2 && this.settings.comfortSpeed !== e.comfortSpeed && (this.settings.comfortSpeed = e.comfortSpeed, s = !0), s && this.onSettingsChange && this.onSettingsChange(this.settings), s;
-  }
-  getSettings() {
-    return { ...this.settings };
-  }
-  setPreset(e) {
-    return this.presets[e] ? (this.setSettings(this.presets[e]), !0) : (console.warn(`Unknown comfort preset: ${e}`), !1);
-  }
-  getPresets() {
-    return Object.keys(this.presets);
-  }
-  getPreset(e) {
-    return this.presets[e] ? { ...this.presets[e] } : null;
-  }
-  addCustomPreset(e, t) {
-    const i = {};
-    return t.locomotionMode && ["smooth", "teleport"].includes(t.locomotionMode) && (i.locomotionMode = t.locomotionMode), t.turningMode && ["smooth", "snap"].includes(t.turningMode) && (i.turningMode = t.turningMode), typeof t.snapTurnAngle == "number" && t.snapTurnAngle > 0 && t.snapTurnAngle <= 90 && (i.snapTurnAngle = t.snapTurnAngle), typeof t.reducedMotion == "boolean" && (i.reducedMotion = t.reducedMotion), typeof t.showTeleportArc == "boolean" && (i.showTeleportArc = t.showTeleportArc), typeof t.comfortSpeed == "number" && t.comfortSpeed > 0 && t.comfortSpeed <= 2 && (i.comfortSpeed = t.comfortSpeed), Object.keys(i).length > 0 ? (this.presets[e] = i, !0) : (console.warn("Invalid settings for custom preset"), !1);
-  }
-  toggleLocomotionMode() {
-    const e = this.settings.locomotionMode === "smooth" ? "teleport" : "smooth";
-    return this.setSettings({ locomotionMode: e });
-  }
-  toggleTurningMode() {
-    const e = this.settings.turningMode === "smooth" ? "snap" : "smooth";
-    return this.setSettings({ turningMode: e });
-  }
-  toggleReducedMotion() {
-    return this.setSettings({ reducedMotion: !this.settings.reducedMotion });
-  }
-  getComfortLevel() {
-    let e = 0;
-    return this.settings.locomotionMode === "teleport" ? e += 40 : this.settings.locomotionMode === "smooth" && (e += 20), this.settings.turningMode === "snap" ? e += 30 : this.settings.turningMode === "smooth" && (e += 15), this.settings.reducedMotion && (e += 20), this.settings.comfortSpeed <= 0.5 ? e += 10 : this.settings.comfortSpeed <= 0.8 && (e += 5), Math.min(100, e);
-  }
-  getRecommendations() {
-    const e = [];
-    return this.settings.locomotionMode === "smooth" && e.push("Consider teleportation for maximum comfort"), this.settings.turningMode === "smooth" && e.push("Try snap turning to reduce motion sickness"), this.settings.reducedMotion || e.push("Enable reduced motion for gentler movement"), this.settings.comfortSpeed > 0.8 && e.push("Lower movement speed for increased comfort"), e;
-  }
-  exportSettings() {
-    return JSON.stringify(this.settings, null, 2);
-  }
-  importSettings(e) {
-    try {
-      const t = JSON.parse(e);
-      return this.setSettings(t);
-    } catch (t) {
-      return console.error("Failed to import settings:", t), !1;
-    }
-  }
-}
-class Cn {
   constructor() {
     this.soundEnabled = !1, this.audioContext = null, this._basePath = "./sound/", this.dpvSound = null, this.dpvHighSound = null, this.ambienceSound = null, this.currentMovementSound = null, this.currentBoostSound = null, this.currentAmbienceSound = null, this.baseGainNode = null, this.boostGainNode = null, this.ambienceGainNode = null, this.baseVolumeMultiplier = 1.52, this.boostVolumeMultiplier = 1.01, this.ambienceVolume = 0.1;
   }
@@ -5039,7 +4906,7 @@ class Cn {
     this.dpvSound = null, this.dpvHighSound = null, this.ambienceSound = null, this.currentMovementSound = null, this.currentBoostSound = null, this.currentAmbienceSound = null, this.baseGainNode = null, this.boostGainNode = null, this.ambienceGainNode = null, this.soundEnabled = !1;
   }
 }
-class In {
+class Cn {
   /**
    * Creates a new VRManager instance
    * 
@@ -5050,7 +4917,7 @@ class In {
   * @param {boolean} [enableAudio=false] - Enable VR audio system
    */
   constructor(e, t, i, s = "./sound/", o = !1, n = null) {
-    this.renderer = e, this.camera = t, this.scene = i, this.audioPath = s, this.enableAudio = o, this.container = n, this.vrCore = new tn(e, t, i, n), this.vrControllers = new pn(e, t), this.vrTeleport = new fn(i, t), this.vrLocomotion = new mn(t, e), this.vrComfort = new bn(), this.vrAudio = this.enableAudio ? new Cn() : null, this.isVRSupported = !1, this.isVRPresenting = !1, this.controller1 = null, this.controller2 = null, this.controllerGrip1 = null, this.controllerGrip2 = null, this.controllers = [], this.controllerGrips = [], this._preVRCameraState = {
+    this.renderer = e, this.camera = t, this.scene = i, this.audioPath = s, this.enableAudio = o, this.container = n, this.vrCore = new tn(e, t, i, n), this.vrControllers = new pn(e, t), this.vrTeleport = new fn(i, t), this.vrLocomotion = new mn(t, e), this.vrAudio = this.enableAudio ? new bn() : null, this.isVRSupported = !1, this.isVRPresenting = !1, this.controller1 = null, this.controller2 = null, this.controllerGrip1 = null, this.controllerGrip2 = null, this.controllers = [], this.controllerGrips = [], this._preVRCameraState = {
       target: null,
       position: null,
       zoom: null,
@@ -5094,9 +4961,7 @@ class In {
         e.currentSpeed,
         e.currentBoostLevel
       ), this.onMovementUpdate && this.onMovementUpdate(e);
-    }, this.vrComfort.onSettingsChange = (e) => {
-      this.vrLocomotion.setComfortSettings(e);
-    }, this.vrLocomotion.setTeleportSystem(this.vrTeleport), typeof this._comfortSettingsInitialized > "u" && (this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings()), this._comfortSettingsInitialized = !0);
+    }, this.vrLocomotion.setTeleportSystem(this.vrTeleport), typeof this._comfortSettingsInitialized > "u" && (this._comfortSettingsInitialized = !0);
   }
   startMovement(e = "forward") {
     this.vrLocomotion.startMovement(e);
@@ -5143,7 +5008,7 @@ class In {
    * @since 1.0.0
    */
   setComfortSettings(e) {
-    this.vrComfort.setSettings(e);
+    this.vrLocomotion.setComfortSettings(e);
   }
   /**
    * Get current VR comfort settings
@@ -5159,7 +5024,7 @@ class In {
    * @since 1.0.0
    */
   getComfortSettings() {
-    return this.vrComfort.getSettings();
+    return this.vrLocomotion.getComfortSettings();
   }
   /**
    * Apply a predefined comfort preset
@@ -5175,11 +5040,11 @@ class In {
    * @since 1.0.0
    */
   setComfortPreset(e) {
-    this.vrComfort.setPreset(e);
+    this.vrLocomotion.setComfortPreset(e);
   }
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
-    this.vrComfort.getSettings().locomotionMode === "teleport" && (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) && this.vrTeleport.setupTeleportation(), (!this.lastComfortLog || Date.now() - this.lastComfortLog > 1e4) && (this.lastComfortLog = Date.now());
+    this.vrLocomotion.getComfortSettings().locomotionMode === "teleport" && (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) && this.vrTeleport.setupTeleportation(), (!this.lastComfortLog || Date.now() - this.lastComfortLog > 1e4) && (this.lastComfortLog = Date.now());
   }
   applyVRPositions(e) {
     if (!(!this.isVRPresenting || !e))
@@ -5215,7 +5080,7 @@ class In {
     this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed, e.update();
   }
   getVRStatus() {
-    const e = this.vrCore.getVRStatus(), t = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: !1 }, i = this.vrLocomotion.getMovementState(), s = this.vrComfort.getSettings();
+    const e = this.vrCore.getVRStatus(), t = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: !1 }, i = this.vrLocomotion.getMovementState(), s = this.vrLocomotion.getComfortSettings();
     return {
       ...e,
       audio: t,
@@ -5405,7 +5270,7 @@ class Wt {
     typeof window > "u" || (delete window.camera, delete window.scene, delete window.models, delete window.particles, delete window.vr, delete window.debugHelp, delete window.belowViewer);
   }
 }
-class En extends yt {
+class In extends yt {
   /**
    * Creates a new BelowViewer instance
    * 
@@ -5491,7 +5356,7 @@ class En extends yt {
   initVR() {
     this.dolly = new u.Group(), this.dolly.add(this.cameraManager.camera), this.sceneManager.scene.add(this.dolly);
     const e = this.config.audioPath || "./sound/", t = this.config.enableVRAudio === !0;
-    this.vrManager = new In(this.renderer, this.cameraManager.camera, this.sceneManager.scene, e, t, this.container), this.vrManager.setControls(this.cameraManager.controls), this.vrManager.onModeToggle = () => {
+    this.vrManager = new Cn(this.renderer, this.cameraManager.camera, this.sceneManager.scene, e, t, this.container), this.vrManager.setControls(this.cameraManager.controls), this.vrManager.onModeToggle = () => {
       this.emit("vr-mode-toggle");
     }, this.vrManager.onMovementStart = () => {
       this.emit("vr-movement-start");
@@ -6451,7 +6316,7 @@ let $, ce;
 function ti(l, e, t) {
   return Z.set(0, 0, -e, 1).applyMatrix4(l.projectionMatrix), Z.multiplyScalar(1 / Z.w), Z.x = ce / t.width, Z.y = ce / t.height, Z.applyMatrix4(l.projectionMatrixInverse), Z.multiplyScalar(1 / Z.w), Math.abs(Math.max(Z.x, Z.y));
 }
-function Bn(l, e) {
+function En(l, e) {
   const t = l.matrixWorld, i = l.geometry, s = i.attributes.instanceStart, o = i.attributes.instanceEnd, n = Math.min(i.instanceCount, s.count);
   for (let r = 0, a = n; r < a; r++) {
     P.start.fromBufferAttribute(s, r), P.end.fromBufferAttribute(o, r), P.applyMatrix4(t);
@@ -6468,7 +6333,7 @@ function Bn(l, e) {
     });
   }
 }
-function Qn(l, e, t) {
+function Bn(l, e, t) {
   const i = e.projectionMatrix, o = l.material.resolution, n = l.matrixWorld, r = l.geometry, a = r.attributes.instanceStart, A = r.attributes.instanceEnd, c = Math.min(r.instanceCount, a.count), h = -e.near;
   $.at(1, X), X.w = 1, X.applyMatrix4(e.matrixWorldInverse), X.applyMatrix4(i), X.multiplyScalar(1 / X.w), X.x *= o.x / 2, X.y *= o.y / 2, X.z = 0, rt.copy(X), at.multiplyMatrices(e.matrixWorldInverse, n);
   for (let d = 0, g = c; d < g; d++) {
@@ -6501,7 +6366,7 @@ function Qn(l, e, t) {
     }
   }
 }
-class yn extends Bt {
+class Qn extends Bt {
   /**
    * Constructs a new wide line.
    *
@@ -6555,7 +6420,7 @@ class yn extends Bt {
       const h = Math.max(s.near, ke.distanceToPoint($.origin));
       c = ti(s, h, a.resolution);
     }
-    ke.expandByScalar(c), $.intersectsBox(ke) !== !1 && (i ? Bn(this, t) : Qn(this, s, t));
+    ke.expandByScalar(c), $.intersectsBox(ke) !== !1 && (i ? En(this, t) : Bn(this, s, t));
   }
   onBeforeRender(e) {
     const t = this.material.uniforms;
@@ -6616,7 +6481,7 @@ class bt extends Li {
     return this.setPositions(t.attributes.position.array), this;
   }
 }
-class ii extends yn {
+class ii extends Qn {
   /**
    * Constructs a new wide line.
    *
@@ -6627,7 +6492,7 @@ class ii extends yn {
     super(e, t), this.isLine2 = !0, this.type = "Line2";
   }
 }
-class wn {
+class yn {
   /**
    * Set the objects to use for raycasting during measurement
    * 
@@ -7395,11 +7260,11 @@ class Mt {
     this.element && (this.updatePosition(), this.element.classList.remove("comfort-off", "comfort-on"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement")), this.renderIcon());
   }
   toggle() {
-    this.isComfortMode = !this.isComfortMode, this.vrManager && (this.isComfortMode ? this.vrManager.setComfortPreset("max-comfort") : this.vrManager.setComfortPreset("performance")), this.updateVisualState();
+    this.isComfortMode = !this.isComfortMode, this.vrManager && (this.isComfortMode ? this.vrManager.setComfortPreset("comfort") : this.vrManager.setComfortPreset("free")), this.updateVisualState();
     const e = new CustomEvent("vrcomfortchange", {
       detail: {
         isComfortMode: this.isComfortMode,
-        preset: this.isComfortMode ? "max-comfort" : "performance"
+        preset: this.isComfortMode ? "comfort" : "free"
       }
     });
     this.element.dispatchEvent(e);
@@ -7430,7 +7295,7 @@ class Mt {
     return new Mt(e, t);
   }
 }
-class Sn {
+class wn {
   constructor(e) {
     this.scene = e, this.particleBounds = {
       min: new u.Vector3(-50, -25, -50),
@@ -7621,7 +7486,7 @@ class Sn {
     this.particles && (this.scene.remove(this.particles), this.particles.geometry && this.particles.geometry.dispose(), this.particles.material && this.particles.material.dispose(), this.particles = null);
   }
 }
-class Mn {
+class Sn {
   constructor(e) {
     this.scene = e, this.controllerSpotlight = null, this.spotlightTarget = null, this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.createSpotlight();
   }
@@ -7733,7 +7598,7 @@ class Mn {
     this.controllerSpotlight && (this.scene.remove(this.controllerSpotlight), this.controllerSpotlight = null), this.spotlightTarget && (this.scene.remove(this.spotlightTarget), this.spotlightTarget = null);
   }
 }
-class xn {
+class Mn {
   constructor(e) {
     this.scene = e, this.overheadLight = null, this.clearModeDirectionalLight = null, this.clearModeHemisphereLight = null, this.isTransitioning = !1, this.currentMode = "survey", this.pendingAnimations = /* @__PURE__ */ new Set(), this.isDisposed = !1, this.initializeLighting();
   }
@@ -7823,9 +7688,9 @@ class xn {
     });
   }
 }
-class vn {
+class xn {
   constructor(e, t, i) {
-    this.scene = e, this.renderer = t, this.camera = i, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new xn(e), this.particles = new Sn(e), this.torch = new Mn(e), this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.applyModeSettings();
+    this.scene = e, this.renderer = t, this.camera = i, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new Mn(e), this.particles = new wn(e), this.torch = new Sn(e), this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.applyModeSettings();
   }
   /**
    * Toggle between dive and survey modes
@@ -7984,7 +7849,7 @@ class vn {
     this.lighting.dispose(), this.particles.dispose(), this.torch.dispose();
   }
 }
-class Rn extends yt {
+class Dn extends yt {
   /**
    * Creates a new ModelViewer instance
    * 
@@ -8028,7 +7893,7 @@ class Rn extends yt {
       ...this.config.audioPath && { audioPath: this.config.audioPath },
       ...typeof this.config.enableVRAudio < "u" && { enableVRAudio: this.config.enableVRAudio }
     };
-    if (this.belowViewer = new En(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
+    if (this.belowViewer = new In(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
       this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachFullscreenButton();
     }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachFullscreenButton()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
@@ -8037,7 +7902,7 @@ class Rn extends yt {
   }
   _maybeAttachMeasurementSystem() {
     if (!this.config.enableMeasurement || this.measurementSystem) return;
-    this.measurementSystem = new wn({
+    this.measurementSystem = new yn({
       scene: this.belowViewer.sceneManager.scene,
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
@@ -8078,7 +7943,7 @@ class Rn extends yt {
   }
   _maybeAttachDiveSystem() {
     if (!this.config.enableDiveSystem || this.diveSystem) return;
-    this.diveSystem = new vn(
+    this.diveSystem = new xn(
       this.belowViewer.sceneManager.scene,
       this.belowViewer.renderer,
       this.belowViewer.cameraManager.camera
@@ -8525,7 +8390,7 @@ class Rn extends yt {
   }
 }
 export {
-  En as BelowViewer,
+  In as BelowViewer,
   qs as Camera,
   qe as ConfigValidator,
   yt as EventSystem,
@@ -8533,7 +8398,7 @@ export {
   bt as LineGeometry,
   He as LineMaterial,
   V as ModelLoader,
-  Rn as ModelViewer,
+  Dn as ModelViewer,
   vs as Scene,
-  In as VRManager
+  Cn as VRManager
 };
