@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BelowJS - Drag & Drop Viewer</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+    
+    <!-- Import map for CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
+        }
+    }
+    </script>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
     <!-- For local testing: <link rel="stylesheet" href="/dist/belowjs.css"> -->
     
@@ -265,17 +276,7 @@
   </div>
 
     <script type="module">
-        // Import from CDN
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js';
-        import { ModelViewer } from 'https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js';
-        
-        // For local testing:
-        // import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js';
-        // import { ModelViewer } from '/dist/belowjs.js';
-        // window.THREE = THREE;
-        
-        // Make THREE available globally for BelowJS
-        window.THREE = THREE;
+        import { ModelViewer } from 'belowjs';
 
   // Drag & Drop viewer
 
