@@ -7706,7 +7706,7 @@ class xn {
    */
   toggleDiveMode() {
     this.isDiveModeEnabled, this.isDiveModeEnabled = !this.isDiveModeEnabled;
-    const e = document.getElementById("modeToggleSwitch");
+    const e = document.querySelector(".mode-toggle__switch");
     e && (e.checked = this.isDiveModeEnabled), this.applyModeSettings();
   }
   setDiveMode(e) {
@@ -7813,7 +7813,7 @@ class xn {
     this.particles.update(e), this.torch.update(t), this.renderer && this.checkVRControllerButtons(this.renderer), this.applyModeSpecificSettings();
   }
   initializeToggleSwitch() {
-    const e = document.getElementById("modeToggleSwitch");
+    const e = document.querySelector(".mode-toggle__switch");
     e ? (e.checked = !1, this.isDiveModeEnabled = !1, this.disableDiveMode(), e.addEventListener("change", () => {
       this.toggleDiveMode();
     })) : this.disableDiveMode(), document.querySelectorAll(".toggle-option").forEach((i) => {
@@ -8099,7 +8099,7 @@ class Dn extends yt {
       const n = document.createElement("div");
       n.className = "semantic-toggle";
       const r = document.createElement("input");
-      r.type = "checkbox", r.id = "modeToggleSwitch", n.appendChild(r);
+      r.type = "checkbox", r.id = "modeToggleSwitch", r.className = "mode-toggle__switch", n.appendChild(r);
       const a = document.createElement("div");
       a.className = "toggle-slider-bg", n.appendChild(a);
       const A = document.createElement("div");

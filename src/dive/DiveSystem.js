@@ -31,7 +31,7 @@ export class DiveSystem {
     const previousMode = this.isDiveModeEnabled;
     this.isDiveModeEnabled = !this.isDiveModeEnabled;
     
-    const toggleSwitch = document.getElementById('modeToggleSwitch');
+    const toggleSwitch = document.querySelector('.mode-toggle__switch');
     if (toggleSwitch) {
       toggleSwitch.checked = this.isDiveModeEnabled;
     }
@@ -275,7 +275,7 @@ export class DiveSystem {
   }
   
   initializeToggleSwitch() {
-    const modeToggleSwitch = document.getElementById('modeToggleSwitch');
+    const modeToggleSwitch = document.querySelector('.mode-toggle__switch');
     
     if (modeToggleSwitch) {
       modeToggleSwitch.checked = false;

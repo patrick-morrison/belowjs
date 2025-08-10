@@ -78,7 +78,7 @@ new ModelViewer('#container', {
 });
 ```
 
-### With Camera Positioning
+### With Camera Positioning and All Features
 ```javascript
 new ModelViewer(document.body, {
   models: {

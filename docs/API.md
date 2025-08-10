@@ -431,7 +431,7 @@ const measurementSystem = viewer.measurementSystem;
 measurementSystem.enable();
 measurementSystem.disable();
 
-// Clear all measurements (clears unified system and legacy systems)
+// Clear all measurements (clears unified, legacy VR, and legacy desktop measurements)
 measurementSystem.clear();
 
 // Set raycast targets (automatically done when models load)
@@ -540,31 +540,32 @@ const viewer = new ModelViewer(container, {
 - Look for the floating comfort glyph in your peripheral vision
 - Point and click with controller to toggle
 
-### Comfort States
+### VR Comfort Presets
 
-**Comfort Mode OFF (Default):**
-- Smooth movement and turning
-- Full VR navigation freedom
-- Best for experienced VR users
+BelowJS uses comfort presets to manage VR locomotion settings. These can be toggled via the VR Comfort Glyph or set programmatically.
 
-**Comfort Mode ON:**
-- Teleportation-based movement
-- Snap turning
-- Reduced motion effects
-- Best for motion-sensitive users
+**`'free'` (Default / Comfort Off):**
+- **Movement**: Smooth, continuous movement using the thumbstick.
+- **Turning**: Smooth, continuous turning using the thumbstick.
+- **Best for**: Experienced VR users who are not prone to motion sickness.
+
+**`'comfort'` (Comfort On):**
+- **Movement**: Teleportation-based movement. Point with the controller and release the thumbstick to teleport.
+- **Turning**: Snap turning, which rotates the view in discrete increments.
+- **Best for**: Users who are new to VR or are sensitive to motion sickness.
 
 ### VR Comfort API
 
 ```javascript
-// Access the comfort glyph
+// Access the comfort glyph instance from the ModelViewer
 const comfortGlyph = viewer.comfortGlyph;
 
 // Toggle comfort mode programmatically
 comfortGlyph.toggle();
 
 // Set comfort mode directly
-comfortGlyph.setComfortMode(true);   // Enable comfort mode
-comfortGlyph.setComfortMode(false);  // Disable comfort mode
+comfortGlyph.setComfortMode(true);   // Enable comfort mode ('comfort' preset)
+comfortGlyph.setComfortMode(false);  // Disable comfort mode ('free' preset)
 
 // Check current state
 const isComfortMode = comfortGlyph.isComfortMode;
@@ -593,50 +594,40 @@ Press the button or hit `Esc` to exit fullscreen.
 
 ## Configuration Options
 
-### Top-Level Options
+### ModelViewer Options
+
+The `ModelViewer` constructor accepts a single `options` object with the following properties:
 
 ```javascript
 {
   // Model configuration
-  models: {},                    // Object defining available models
-  autoLoadFirst: true,           // Auto-load first model on init
+  models: {},                    // Required. Object defining available models.
+  autoLoadFirst: true,           // Auto-load first model on init.
+  initialModel: 'model-key',     // Key of model to load initially, overrides autoLoadFirst.
   
   // UI visibility options
-  showLoadingIndicator: true,    // Show loading spinner
-  showStatus: true,             // Show status text
-  showInfo: false,              // Show info panel (optional)
+  showLoadingIndicator: true,    // Show loading spinner.
+  showStatus: true,              // Show status text.
+  showInfo: false,               // Show info panel (optional).
   
   // Feature enablement
-  enableVR: false,              // Enable VR support
-  enableVRAudio: true,          // Enable VR audio system (requires audio files)
-  enableMeasurement: false,     // Enable measurement system
-  measurementTheme: 'dark',     // Measurement UI theme ('dark' or 'light')
-  showMeasurementLabels: false, // Show measurement labels in desktop mode (always shown in VR)
-  enableVRComfortGlyph: false,  // Enable VR comfort toggle UI
-  enableDiveSystem: false,      // Enable dive/survey mode system
-  enableFullscreen: false,     // Show fullscreen button
-  audioPath: './sound/',       // VR audio file path
+  enableVR: false,               // Enable VR support.
+  enableVRAudio: false,          // Enable VR audio system (requires audio files).
+  enableMeasurement: false,      // Enable measurement system.
+  enableDiveSystem: false,       // Enable dive/survey mode system.
+  enableFullscreen: false,       // Show fullscreen button.
+  enableVRComfortGlyph: false,   // Enable VR comfort toggle UI.
   
-  // Model loading and positioning  
-  initialModel: 'model-key',    // Key of model to load initially
-  initialPositions: {},         // Initial camera positions for first model
+  // Feature configuration
+  measurementTheme: 'dark',      // Measurement UI theme ('dark' or 'light').
+  showMeasurementLabels: false,  // Show measurement labels in desktop mode (always shown in VR).
+  audioPath: './sound/',         // Path to VR audio files.
   
-  // Scene configuration (for themes)
-  scene: {
-    background: { type: 'color', value: '#ffffff' },
-    fog: { enabled: false }
-  },
-  
-  // Camera configuration
-  camera: {
-    fov: 65,
-    position: { x: 0, y: 5, z: 10 }
-  },
-  
-  // Advanced configuration
-  viewerConfig: {               // Direct BelowViewer configuration
+  // Low-level viewer configuration
+  viewerConfig: {                // Optional. Direct configuration for the underlying BelowViewer.
     scene: {
-      background: { type: 'color', value: '#ffffff' }
+      background: { type: 'color', value: '#041729' },
+      fog: { enabled: false }
     },
     camera: {
       fov: 65,

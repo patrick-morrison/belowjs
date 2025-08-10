@@ -735,6 +735,7 @@ export class ModelViewer extends EventSystem {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.id = 'modeToggleSwitch';
+      checkbox.className = 'mode-toggle__switch';
       toggle.appendChild(checkbox);
 
       const slider = document.createElement('div');
