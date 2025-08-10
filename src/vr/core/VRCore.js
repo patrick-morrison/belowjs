@@ -61,7 +61,7 @@ export class VRCore {
 
     if ('xr' in navigator) {
 
-avigator.xr.isSessionSupported('immersive-vr')
+      navigator.xr.isSessionSupported('immersive-vr')
         .then(supported => {
           if (!supported) {
             this.startVRButtonMonitoring();
@@ -80,7 +80,7 @@ avigator.xr.isSessionSupported('immersive-vr')
       try {
         if ('xr' in navigator) {
 
-avigator.xr.isSessionSupported('immersive-vr')
+          navigator.xr.isSessionSupported('immersive-vr')
             .then(supported => {
               this.isVRSupported = supported;
               resolve();
@@ -290,9 +290,8 @@ avigator.xr.isSessionSupported('immersive-vr')
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            const vrButtons = node.querySelectorAll ? 
-
-ode.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
+    const vrButtons = node.querySelectorAll ? 
+      node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
             if (vrButtons.length > 0 || 
                 (node.tagName === 'BUTTON' && node.classList.contains('legacy-vr-button'))) {
               const buttonToHide = vrButtons.length > 0 ? vrButtons[0] : node;

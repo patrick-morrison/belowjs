@@ -71,7 +71,7 @@ import { DiveSystem } from '../dive/DiveSystem.js';
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
  * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
- * @property {boolean} [enableVRAudio=true] - Enable VR audio system (requires audio files)
+ * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
  * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
  * @property {SceneConfig} [viewerConfig.scene] - Scene configuration

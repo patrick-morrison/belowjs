@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Issues Identified**: Debug code, console statements, and alert/confirm usage need cleanup before publication
 - **Action Required**: Remove development artifacts and implement proper error handling for production release
 
+### Changed
+- API: VR audio is now disabled by default; enable with `enableVRAudio: true`.
+- Behavior: When enabled, audio plays only during an active VR session (no desktop playback).
+
 ## [0.1.5] - 2025-08-02 - Measurement System Stability
 
 ### Fixed

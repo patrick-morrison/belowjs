@@ -6,6 +6,7 @@ export class VRAudio {
   constructor() {
     this.soundEnabled = false;
     this.audioContext = null;
+  this._basePath = './sound/';
     this.dpvSound = null;
     this.dpvHighSound = null;
     this.ambienceSound = null;
@@ -23,19 +24,21 @@ export class VRAudio {
   
   async init(soundBasePath = './sound/') {
     try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this._basePath = soundBasePath || this._basePath;
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
       
       const [dpvBuffer, dpvHighBuffer, ambienceBuffer] = await Promise.all([
-        this.loadAudioBuffer(soundBasePath + 'dpv.ogg'),
-        this.loadAudioBuffer(soundBasePath + 'dpvhigh.ogg'),
-        this.loadAudioBuffer(soundBasePath + 'vrambience.ogg')
+        this.loadAudioBuffer(this._basePath + 'dpv.ogg'),
+        this.loadAudioBuffer(this._basePath + 'dpvhigh.ogg'),
+        this.loadAudioBuffer(this._basePath + 'vrambience.ogg')
       ]);
       
-      this.dpvSound = dpvBuffer;
-      this.dpvHighSound = dpvHighBuffer;
-      this.ambienceSound = ambienceBuffer;
-      
-      this.startAmbientSound();
+  this.dpvSound = dpvBuffer;
+  this.dpvHighSound = dpvHighBuffer;
+  this.ambienceSound = ambienceBuffer;
+  // Do not auto-start ambience here; VRManager will start/stop based on VR session state
       
       this.soundEnabled = true;
     } catch (error) {
@@ -50,9 +53,18 @@ export class VRAudio {
     return await this.audioContext.decodeAudioData(arrayBuffer);
   }
   
-  initAudioOnInteraction() {
-    if (this.audioContext && this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+  initAudioOnInteraction(basePath) {
+    // Call this in response to a user gesture (pointer/touch/key/VR button)
+    try {
+      if (!this.audioContext) {
+        // Create and fully initialize on first user gesture
+        return this.init(basePath || this._basePath);
+      }
+      if (this.audioContext.state === 'suspended') {
+        return this.audioContext.resume();
+      }
+    } catch (e) {
+      console.warn('🔇 Audio unlock failed:', e);
     }
   }
   

@@ -170,8 +170,9 @@ export class BelowViewer extends EventSystem {
     this.dolly.add(this.cameraManager.camera);
     this.sceneManager.scene.add(this.dolly);
     
-    const audioPath = this.config.audioPath || './sound/';
-    const enableAudio = this.config.enableVRAudio !== false;
+  const audioPath = this.config.audioPath || './sound/';
+  // API change: audio disabled by default; must be explicitly enabled
+  const enableAudio = this.config.enableVRAudio === true;
     this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container);
     
 

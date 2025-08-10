@@ -192,8 +192,8 @@ const viewer = new ModelViewer(container, {
     'model': { url: 'model.glb', name: 'Model' }
   },
   enableVR: true,              // Enable VR support
-  enableVRAudio: true,         // Enable VR movement audio (optional)
-  audioPath: './sound/'        // Path to VR audio files
+  enableVRAudio: true,         // Enable VR movement/ambience audio (optional; default is disabled)
+  audioPath: './sound/'        // Path to VR audio files (dpv.ogg, dpvhigh.ogg, vrambience.ogg)
 });
 ```
 
@@ -296,9 +296,9 @@ BelowJS includes a restyled VR button:
 }
 ```
 
-### VR Audio System
+### VR Audio System (VR-only, disabled by default)
 
-BelowJS includes an optional VR audio system that provides immersive sound effects during VR movement:
+BelowJS includes an optional audio system for movement and ambience that plays only while a VR session is active:
 
 ```javascript
 const container = document.body; // Or your container element  
@@ -307,8 +307,8 @@ const models = { 'model': { url: 'model.glb', name: 'Model' } };
 const viewer = new ModelViewer(container, {
   models: models,
   enableVR: true,
-  enableVRAudio: true,        // Enable VR audio (default: true)
-  audioPath: './sound/'      // Path to VR audio files
+  enableVRAudio: true,        // Enable VR audio (default: false)
+  audioPath: './sound/'       // Path to VR audio files
 });
 ```
 
@@ -317,8 +317,13 @@ const viewer = new ModelViewer(container, {
 - `dpvhigh.ogg` - High-speed movement sound  
 - `vrambience.ogg` - Background ambience
 
+Behavior:
+- Audio initializes and starts only on VR session start; it stops on session end.
+- No audio is played on desktop, even if enabled.
+- Complies with browser autoplay policies via the VR button gesture.
+
 **Disabling VR Audio:**
-Set `enableVRAudio: false` to disable audio loading entirely, preventing 404 errors when audio files are not available:
+Keep `enableVRAudio` unset or set it to `false` to disable audio loading entirely, preventing 404 errors when audio files are not available:
 
 ```javascript
 const container = document.body; // Or your container element
@@ -327,7 +332,7 @@ const models = { 'model': { url: 'model.glb', name: 'Model' } };
 const viewer = new ModelViewer(container, {
   models: models,
   enableVR: true,
-  enableVRAudio: false        // Disable VR audio system
+  enableVRAudio: false        // Audio remains disabled (default)
 });
 ```
 

@@ -9,12 +9,13 @@ export class VRComfortGlyph {
   constructor(vrManager, options = {}) {
     this.vrManager = vrManager;
     this.isComfortMode = false;
+  this._iconRendered = false;
     
 
     this.options = {
-      containerId: options.containerId || 'modelSelector', // Default to model selector
-      useInlineLayout: options.useInlineLayout !== false, // Default to true for inline layout
-      position: options.position || 'bottom-right', // Fallback for floating mode
+  containerId: options.containerId || 'modelSelector',
+  useInlineLayout: options.useInlineLayout !== false,
+  position: options.position || 'bottom-right',
       offsetX: options.offsetX || 20,
       offsetY: options.offsetY || 120,
       ...options
@@ -43,16 +44,16 @@ export class VRComfortGlyph {
 
     const modeToggleContainer = document.getElementById('modeToggleContainer');
     if (!modeToggleContainer) {
-      console.warn('VRComfortGlyph: modeToggleContainer not found, falling back to floating mode');
-      this.createFloatingElement();
-      return;
+  console.warn('VRComfortGlyph: modeToggleContainer not found, falling back to floating mode');
+  this.createFloatingElement();
+  return;
     }
     
 
-    this.element = document.createElement('div');
-    this.element.id = 'vrComfortGlyph';
-    this.element.className = 'vr-comfort-circle comfort-off';
-    this.element.textContent = '🛡️';
+  this.element = document.createElement('div');
+  this.element.id = 'vrComfortGlyph';
+  this.element.className = 'vr-comfort-circle comfort-off';
+  this.renderIcon();
     this.element.tabIndex = 0;
     this.element.role = 'button';
     this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
@@ -72,9 +73,9 @@ export class VRComfortGlyph {
   createFloatingElement() {
 
     this.element = document.createElement('div');
-    this.element.id = 'vrComfortGlyph';
-    this.element.className = 'vr-comfort-glyph comfort-off';
-    this.element.textContent = '🛡️'; // Always show shield
+  this.element.id = 'vrComfortGlyph';
+  this.element.className = 'vr-comfort-glyph comfort-off';
+  this.renderIcon();
     this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
     this.element.tabIndex = 0;
     this.element.role = 'button';
@@ -94,7 +95,7 @@ export class VRComfortGlyph {
   }
   
   attachStyles() {
-
+      this.renderIcon();
     if (document.getElementById('vr-comfort-glyph-styles')) {
       return;
     }
@@ -102,11 +103,10 @@ export class VRComfortGlyph {
     const styleSheet = document.createElement('style');
     styleSheet.id = 'vr-comfort-glyph-styles';
     styleSheet.textContent = `
-      /* VR Comfort Glyph Styles */
       .vr-comfort-glyph {
         position: absolute;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.6);
         border: 2px solid #666;
@@ -114,19 +114,19 @@ export class VRComfortGlyph {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 20px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
+        font-size: 18px;
         z-index: 10000;
         backdrop-filter: blur(10px);
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       
-      /* Inline Comfort Circle Styles - matches Survey/Dive toggle design */
       .vr-comfort-circle {
         width: 60px;
         height: 60px;
@@ -138,14 +138,15 @@ export class VRComfortGlyph {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 20px;
-        margin-left: 15px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
+        font-size: 18px;
+        margin-left: 12px;
         position: relative;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
         overflow: hidden;
         flex-shrink: 0;
@@ -154,16 +155,16 @@ export class VRComfortGlyph {
       .vr-comfort-circle:hover {
         background: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 0.2);
-        transform: scale(1.02);
       }
       
-      .vr-comfort-circle:focus {
-        outline: 2px solid #4ade80;
+  .vr-comfort-circle:focus-visible {
+        outline: 2px solid transparent;
         outline-offset: 2px;
       }
+  .vr-comfort-circle.comfort-on:focus-visible { outline-color: #4ade80; }
+  .vr-comfort-circle.comfort-off:focus-visible { outline-color: rgba(255,255,255,0.4); }
       
       .vr-comfort-circle:active {
-        transform: scale(0.98);
       }
       
       .vr-comfort-circle.comfort-off {
@@ -193,7 +194,6 @@ export class VRComfortGlyph {
         box-shadow: 0 0 30px rgba(74, 222, 128, 0.15) !important;
       }
       
-      /* Update modeToggleContainer to flex layout */
       #modeToggleContainer {
         display: flex !important;
         flex-direction: row !important;
@@ -202,21 +202,20 @@ export class VRComfortGlyph {
         gap: 0 !important;
       }
       
-      /* Ensure semantic toggle doesn't take full width */
       .semantic-toggle {
         flex-shrink: 0 !important;
       }
       
-      /* Original floating glyph styles */
       .vr-comfort-glyph:hover {
-        transform: scale(1.1);
         background: rgba(0, 0, 0, 0.8);
       }
       
-      .vr-comfort-glyph:focus {
-        outline: 3px solid #4ade80;
+  .vr-comfort-glyph:focus-visible {
+        outline: 3px solid transparent;
         outline-offset: 2px;
       }
+  .vr-comfort-glyph.comfort-on:focus-visible { outline-color: #4ade80; }
+  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: #666; }
       
       .vr-comfort-glyph.comfort-off {
         color: #666;
@@ -233,8 +232,20 @@ export class VRComfortGlyph {
         box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
         filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
       }
+
       
-      /* Position variants for floating mode */
+      .vr-comfort-emoji {
+        display: block;
+        font-size: 18px;
+        line-height: 1;
+        transform: translateY(0.5px);
+        transition: transform 120ms ease;
+      }
+      .vr-comfort-circle:active .vr-comfort-emoji,
+      .vr-comfort-glyph:active .vr-comfort-emoji {
+        transform: translateY(0.5px) scale(0.98);
+      }
+      
       .vr-comfort-glyph.position-bottom-right {
         bottom: var(--vr-comfort-offset-y, 120px);
         right: var(--vr-comfort-offset-x, 20px);
@@ -255,7 +266,6 @@ export class VRComfortGlyph {
         left: var(--vr-comfort-offset-x, 20px);
       }
       
-      /* Mobile responsive */
       @media (max-width: 768px) {
         .vr-comfort-circle {
           width: 50px;
@@ -299,20 +309,34 @@ export class VRComfortGlyph {
   
   attachEvents() {
     if (!this.element) return;
-    
-    const toggleComfort = () => {
+    this._onClick = (e) => {
       this.toggle();
+      if (this.element && !(e instanceof KeyboardEvent)) {
+        this.element.blur();
+      }
     };
-    
-    this.element.addEventListener('click', toggleComfort);
-    
-
-    this.element.addEventListener('keydown', (event) => {
+    this._onKeydown = (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        toggleComfort();
+        this.toggle();
       }
-    });
+    };
+    this._onPointerDown = () => {
+      if (this.element) this.element.blur();
+    };
+
+    this.element.addEventListener('click', this._onClick);
+    this.element.addEventListener('keydown', this._onKeydown);
+    this.element.addEventListener('pointerdown', this._onPointerDown);
+  }
+
+  renderIcon() {
+    if (!this.element) return;
+    if (!this._iconRendered) {
+      const emoji = '🛋️';
+      this.element.innerHTML = `<span class="vr-comfort-emoji" aria-hidden="true">${emoji}</span>`;
+      this._iconRendered = true;
+    }
   }
   
   updatePosition() {
@@ -345,11 +369,6 @@ export class VRComfortGlyph {
     this.element.style.removeProperty('color');
     this.element.style.removeProperty('box-shadow');
     
-
-    this.element.textContent = '🛡️';
-    
-
-    this.element.offsetHeight;
     
     if (this.isComfortMode) {
 
@@ -363,12 +382,6 @@ export class VRComfortGlyph {
       this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable');
     }
     
-
-    setTimeout(() => {
-      if (this.element) {
-        this.element.offsetHeight;
-      }
-    }, 0);
   }
   
   updateFloatingVisualState() {
@@ -376,9 +389,6 @@ export class VRComfortGlyph {
     
 
     this.updatePosition();
-    
-
-    this.element.textContent = '🛡️';
     
 
     this.element.classList.remove('comfort-off', 'comfort-on');
@@ -394,11 +404,8 @@ export class VRComfortGlyph {
       this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
     }
+  this.renderIcon();
     
-
-    this.element.style.display = 'none';
-    this.element.offsetHeight; // Trigger reflow
-    this.element.style.display = 'flex';
   }
   
   toggle() {
@@ -469,9 +476,9 @@ export class VRComfortGlyph {
   
   dispose() {
     if (this.element) {
-
-      this.element.removeEventListener('click', this.toggle);
-      this.element.removeEventListener('keydown', this.toggle);
+  if (this._onClick) this.element.removeEventListener('click', this._onClick);
+  if (this._onKeydown) this.element.removeEventListener('keydown', this._onKeydown);
+  if (this._onPointerDown) this.element.removeEventListener('pointerdown', this._onPointerDown);
       
 
       if (this.element.parentNode) {

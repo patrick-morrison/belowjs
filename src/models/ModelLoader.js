@@ -137,44 +137,42 @@ export class ModelLoader {
 
           if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
             const newMaterial = new THREE.MeshLambertMaterial({
-              map: material.map,
+              // Only include common, safe params; set specialized textures conditionally below
               color: material.color || new THREE.Color(0xffffff),
-              transparent: material.transparent,
-              opacity: material.opacity !== undefined ? material.opacity : 1.0,
-              alphaMap: material.alphaMap,
               side: material.side !== undefined ? material.side : THREE.FrontSide,
               wireframe: material.wireframe || false,
               vertexColors: material.vertexColors || false,
               fog: material.fog !== undefined ? material.fog : true,
-              aoMap: material.aoMap,
-              aoMapIntensity: material.aoMapIntensity || 1.0,
-              envMap: material.envMap,
-              reflectivity: material.reflectivity || 1.0,
-              refractionRatio: material.refractionRatio || 0.98,
-              combine: material.combine || THREE.MultiplyOperation,
-
-ormalMap: material.normalMap,
-
-ormalScale: material.normalScale || new THREE.Vector2(1, 1),
               flatShading: false
             });
+
+            // Conditionally copy supported maps/props to avoid undefined warnings
+            if (material.map) newMaterial.map = material.map;
+            if (material.alphaMap) newMaterial.alphaMap = material.alphaMap;
+            if (material.aoMap) newMaterial.aoMap = material.aoMap;
+            if (typeof material.aoMapIntensity === 'number') newMaterial.aoMapIntensity = material.aoMapIntensity;
+            if (material.envMap) newMaterial.envMap = material.envMap;
+            if (typeof material.reflectivity === 'number') newMaterial.reflectivity = material.reflectivity;
+            if (typeof material.refractionRatio === 'number') newMaterial.refractionRatio = material.refractionRatio;
+            if (material.combine !== undefined) newMaterial.combine = material.combine;
+            if (material.transparent !== undefined) newMaterial.transparent = material.transparent;
+            if (typeof material.opacity === 'number') newMaterial.opacity = material.opacity;
+            if (material.normalMap) {
+              newMaterial.normalMap = material.normalMap;
+              newMaterial.normalScale = material.normalScale || new THREE.Vector2(1, 1);
+            }
             
 
             if (newMaterial.map) {
-
-ewMaterial.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-
-ewMaterial.map.needsUpdate = true;
+              newMaterial.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+              newMaterial.map.needsUpdate = true;
             }
             if (newMaterial.normalMap) {
-
-ewMaterial.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-
-ewMaterial.normalMap.needsUpdate = true;
+              newMaterial.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+              newMaterial.normalMap.needsUpdate = true;
             }
             
-
-ewMaterial.needsUpdate = true;
+            newMaterial.needsUpdate = true;
             if (Array.isArray(obj.material)) {
               obj.material[idx] = newMaterial;
             } else {
@@ -195,8 +193,8 @@ ewMaterial.needsUpdate = true;
           obj.geometry.normalizeNormals();
           
 
-          const hasMormalMaps = materials.some(mat => mat.normalMap);
-          if (hasMormalMaps) {
+          const hasNormalMaps = materials.some(mat => mat.normalMap);
+          if (hasNormalMaps) {
             obj.geometry.computeTangents();
           }
         }

@@ -98,21 +98,17 @@ class Qt {
 }
 const wt = {
   container: "#viewer-container",
-  // Model configuration
   models: {},
-  // Scene configuration
   scene: {
     background: 662058
     // Deep ocean blue
   },
-  // Camera configuration
   camera: {
     fov: 65,
-    near: 0.05,
+    ear: 0.05,
     far: 2e3,
     position: { x: 0, y: 5, z: 10 }
   },
-  // Renderer configuration
   renderer: {
     antialias: !0,
     powerPreference: "high-performance",
@@ -121,7 +117,6 @@ const wt = {
     toneMapping: "none",
     toneMappingExposure: 1
   },
-  // Controls configuration
   controls: {
     desktop: {
       enableDamping: !0,
@@ -131,10 +126,8 @@ const wt = {
       enableFocus: !0
     }
   },
-  // VR configuration - preserving original patterns
   vr: {
     enabled: !0,
-    // Original movement speeds from index.html
     movement: {
       moveSpeed: 2,
       // m/s base movement speed
@@ -143,12 +136,10 @@ const wt = {
       flySpeed: 1
       // m/s vertical movement
     },
-    // Original ramping speeds for smooth movement
     ramping: {
       speedRampRate: 3,
       boostRampRate: 6
     },
-    // Original controller mappings
     controllers: {
       leftHand: {
         movement: !0,
@@ -167,7 +158,6 @@ const wt = {
       gripBoostMultiplier: 3
       // Original speed boost multiplier
     },
-    // Original Quest optimizations
     optimization: {
       quest2RenderDistance: 20,
       // Limit for Quest 2
@@ -3730,26 +3720,15 @@ class V {
         o.forEach((n, r) => {
           if (n.emissive && n.emissive.setHex(0), n.emissiveIntensity !== void 0 && (n.emissiveIntensity = 0), n.emissiveMap && (n.emissiveMap = null), n.lightMap && (n.lightMap = null), n.lightMapIntensity !== void 0 && (n.lightMapIntensity = 0), n.type === "MeshBasicMaterial" || n.type === "MeshPhongMaterial") {
             const A = new u.MeshLambertMaterial({
-              map: n.map,
+              // Only include common, safe params; set specialized textures conditionally below
               color: n.color || new u.Color(16777215),
-              transparent: n.transparent,
-              opacity: n.opacity !== void 0 ? n.opacity : 1,
-              alphaMap: n.alphaMap,
               side: n.side !== void 0 ? n.side : u.FrontSide,
               wireframe: n.wireframe || !1,
               vertexColors: n.vertexColors || !1,
               fog: n.fog !== void 0 ? n.fog : !0,
-              aoMap: n.aoMap,
-              aoMapIntensity: n.aoMapIntensity || 1,
-              envMap: n.envMap,
-              reflectivity: n.reflectivity || 1,
-              refractionRatio: n.refractionRatio || 0.98,
-              combine: n.combine || u.MultiplyOperation,
-              normalMap: n.normalMap,
-              normalScale: n.normalScale || new u.Vector2(1, 1),
               flatShading: !1
             });
-            A.map && (A.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.map.needsUpdate = !0), A.normalMap && (A.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.normalMap.needsUpdate = !0), A.needsUpdate = !0, Array.isArray(s.material) ? s.material[r] = A : s.material = A;
+            n.map && (A.map = n.map), n.alphaMap && (A.alphaMap = n.alphaMap), n.aoMap && (A.aoMap = n.aoMap), typeof n.aoMapIntensity == "number" && (A.aoMapIntensity = n.aoMapIntensity), n.envMap && (A.envMap = n.envMap), typeof n.reflectivity == "number" && (A.reflectivity = n.reflectivity), typeof n.refractionRatio == "number" && (A.refractionRatio = n.refractionRatio), n.combine !== void 0 && (A.combine = n.combine), n.transparent !== void 0 && (A.transparent = n.transparent), typeof n.opacity == "number" && (A.opacity = n.opacity), n.normalMap && (A.normalMap = n.normalMap, A.normalScale = n.normalScale || new u.Vector2(1, 1)), A.map && (A.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.map.needsUpdate = !0), A.normalMap && (A.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.normalMap.needsUpdate = !0), A.needsUpdate = !0, Array.isArray(s.material) ? s.material[r] = A : s.material = A;
           } else (n.type === "MeshStandardMaterial" || n.type === "MeshPhysicalMaterial") && (n.needsUpdate = !0);
           const a = Array.isArray(s.material) ? s.material[r] : s.material;
           a && a.needsUpdate !== void 0 && (a.needsUpdate = !0);
@@ -4477,11 +4456,9 @@ class In {
   init() {
     this.setupTeleportation();
   }
-  // Initialize smooth teleportation system with arc
   setupTeleportation() {
     this.createTeleportArc();
   }
-  // Create the smooth white teleport arc
   createTeleportArc() {
     const e = [
       new u.Vector3(0, 0, 0),
@@ -4521,13 +4498,11 @@ class In {
       this.teleportFloor = new u.Mesh(o, n), this.teleportFloor.rotation.x = -Math.PI / 2, this.teleportFloor.visible = !1, this.scene.add(this.teleportFloor);
     }
   }
-  // Execute the teleport to the calculated position
   executeTeleport() {
     if (!this.validTeleportPosition) return;
     const e = this.validTeleportPosition.clone();
     this.camera.parent.position.copy(e), this.onTeleport && this.onTeleport(e), this.validTeleportPosition = null;
   }
-  // Smooth dash movement (comfort alternative to instant teleport)
   dashToPosition(e) {
     const t = this.camera.parent.position.clone(), i = t.distanceTo(e), s = Math.min(i * 0.2, 1);
     let o = 0;
@@ -4538,7 +4513,6 @@ class In {
     };
     n();
   }
-  // Snap turning implementation (comfort feature)
   processSnapTurn(e, t = 30) {
     this.lastSnapTurnTime || (this.lastSnapTurnTime = 0);
     const i = Date.now();
@@ -4547,13 +4521,11 @@ class In {
       this.camera.parent.rotation.y -= o * s, this.camera.parent.rotation.y = this.normalizeAngle(this.camera.parent.rotation.y), this.lastSnapTurnTime = i;
     }
   }
-  // Normalize angle to [-PI, PI]
   normalizeAngle(e) {
     for (; e > Math.PI; ) e -= 2 * Math.PI;
     for (; e < -Math.PI; ) e += 2 * Math.PI;
     return e;
   }
-  // Lightweight teleportation processing
   processTeleportation(e, t, i) {
     const s = Math.sqrt(t * t + i * i), o = e && e.inputSource && e.inputSource.handedness === "right", n = i;
     if (s > this.teleportThreshold && !this.teleportPressed)
@@ -4566,15 +4538,12 @@ class In {
       this.updateTeleportArc(), s < this.teleportReleaseThreshold && (this.calculateAndExecuteTeleport(), this.hideTeleportArc(), this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportController = null, this.onTeleportEnd && this.onTeleportEnd());
     }
   }
-  // Show the smooth white teleport arc
   showTeleportArc() {
     this.teleportCurve || this.createTeleportArc(), this.teleportCurve.visible = !0, this.teleportMarker && (this.teleportMarker.visible = !0, this.teleportMarker.children && this.teleportMarker.children.length > 0 && this.teleportMarker.children.forEach((e) => e.visible = !0)), this.updateTeleportFloor();
   }
-  // Hide the teleport arc
   hideTeleportArc() {
     this.teleportCurve && (this.teleportCurve.visible = !1), this.teleportMarker && (this.teleportMarker.visible = !1, this.teleportMarker.children && this.teleportMarker.children.length > 0 && this.teleportMarker.children.forEach((e) => e.visible = !1)), this.teleportFloor && (this.teleportFloor.visible = !1);
   }
-  // Update arc in real-time while aiming (natural physics arc with floor intersection)
   updateTeleportArc() {
     if (!this.teleportController || !this.teleportCurve) return;
     const e = new u.Vector3();
@@ -4627,15 +4596,12 @@ class In {
     }
     this.teleportMarker && B && (this.teleportMarker.position.copy(B), this.teleportMarker.visible = !0, this.teleportFloorHeight < -0.5 ? this.teleportMarker.material.color.setHex(8965375) : this.teleportFloorHeight > 0.5 ? this.teleportMarker.material.color.setHex(16777096) : this.teleportMarker.material.color.setHex(16777215));
   }
-  // Update virtual floor position and make it slightly visible during adjustment
   updateTeleportFloor() {
     this.teleportFloor && this.teleportFloorHeight !== null && (this.teleportFloor.position.y = this.teleportFloorHeight, this.teleportFloor.visible = !0, this.teleportFloor.material.visible = !0, this.teleportFloor.material.opacity = 0.15, this.teleportFloorHeight < -0.5 ? this.teleportFloor.material.color.setHex(4491519) : this.teleportFloorHeight > 0.5 ? this.teleportFloor.material.color.setHex(16777028) : this.teleportFloor.material.color.setHex(4521864), this.updateTeleportArc());
   }
-  // Update teleport marker height when adjusting with right joystick
   updateTeleportArcHeight() {
     this.updateTeleportFloor();
   }
-  // Calculate teleport arc and landing (only lands on downward arc intersection)
   calculateAndExecuteTeleport() {
     if (!(!this.teleportController || this.teleportMaxMagnitude < this.teleportThreshold) && this.teleportMarker && this.teleportMarker.visible) {
       const e = this.teleportMarker.position.clone(), t = this.camera.parent.position, i = Math.sqrt(
@@ -4647,7 +4613,6 @@ class In {
       }
     }
   }
-  // Floor height adjustment methods
   adjustFloorHeight(e) {
     this.teleportFloorHeight = Math.max(
       this.teleportFloorMin,
@@ -4666,7 +4631,6 @@ class In {
   dispose() {
     this.teleportCurve && (this.teleportCurve.geometry && this.teleportCurve.geometry.dispose(), this.teleportCurve.material && this.teleportCurve.material.dispose(), this.scene.remove(this.teleportCurve)), this.teleportMarker && (this.teleportMarker.geometry && this.teleportMarker.geometry.dispose(), this.teleportMarker.material && this.teleportMarker.material.dispose(), this.scene.remove(this.teleportMarker)), this.teleportFloor && (this.teleportFloor.geometry && this.teleportFloor.geometry.dispose(), this.teleportFloor.material && this.teleportFloor.material.dispose(), this.scene.remove(this.teleportFloor)), this.resetTeleportState();
   }
-  // Reset snap turn state - useful for mid-session mode changes
   resetSnapTurnState() {
     this.lastSnapTurnTime = 0;
   }
@@ -4691,7 +4655,6 @@ class En {
   init() {
     this.setupLocomotion();
   }
-  // Movement control methods
   startMovement(e = "forward") {
     this.isMoving = !0, this.targetSpeed = this.MOVE_SPEED, this.onMovementStart && this.onMovementStart();
   }
@@ -4792,13 +4755,11 @@ class En {
       currentBoostLevel: this.currentBoostLevel
     });
   }
-  // Normalize angle to [-PI, PI]
   normalizeAngle(e) {
     for (; e > Math.PI; ) e -= 2 * Math.PI;
     for (; e < -Math.PI; ) e += 2 * Math.PI;
     return e;
   }
-  // Correct drift (original pattern)
   correctDrift() {
     const e = this.camera.parent;
     e.rotation.y = this.normalizeAngle(e.rotation.y), e.position.x = Math.round(e.position.x * 1e3) / 1e3, e.position.y = Math.round(e.position.y * 1e3) / 1e3, e.position.z = Math.round(e.position.z * 1e3) / 1e3;
@@ -4953,17 +4914,17 @@ class Bn {
 }
 class Qn {
   constructor() {
-    this.soundEnabled = !1, this.audioContext = null, this.dpvSound = null, this.dpvHighSound = null, this.ambienceSound = null, this.currentMovementSound = null, this.currentBoostSound = null, this.currentAmbienceSound = null, this.baseGainNode = null, this.boostGainNode = null, this.ambienceGainNode = null, this.baseVolumeMultiplier = 1.52, this.boostVolumeMultiplier = 1.01, this.ambienceVolume = 0.1;
+    this.soundEnabled = !1, this.audioContext = null, this._basePath = "./sound/", this.dpvSound = null, this.dpvHighSound = null, this.ambienceSound = null, this.currentMovementSound = null, this.currentBoostSound = null, this.currentAmbienceSound = null, this.baseGainNode = null, this.boostGainNode = null, this.ambienceGainNode = null, this.baseVolumeMultiplier = 1.52, this.boostVolumeMultiplier = 1.01, this.ambienceVolume = 0.1;
   }
   async init(e = "./sound/") {
     try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this._basePath = e || this._basePath, this.audioContext || (this.audioContext = new (window.AudioContext || window.webkitAudioContext)());
       const [t, i, s] = await Promise.all([
-        this.loadAudioBuffer(e + "dpv.ogg"),
-        this.loadAudioBuffer(e + "dpvhigh.ogg"),
-        this.loadAudioBuffer(e + "vrambience.ogg")
+        this.loadAudioBuffer(this._basePath + "dpv.ogg"),
+        this.loadAudioBuffer(this._basePath + "dpvhigh.ogg"),
+        this.loadAudioBuffer(this._basePath + "vrambience.ogg")
       ]);
-      this.dpvSound = t, this.dpvHighSound = i, this.ambienceSound = s, this.startAmbientSound(), this.soundEnabled = !0;
+      this.dpvSound = t, this.dpvHighSound = i, this.ambienceSound = s, this.soundEnabled = !0;
     } catch (t) {
       console.warn("🔇 VR Audio initialization failed:", t), this.soundEnabled = !1;
     }
@@ -4972,8 +4933,15 @@ class Qn {
     const i = await (await fetch(e)).arrayBuffer();
     return await this.audioContext.decodeAudioData(i);
   }
-  initAudioOnInteraction() {
-    this.audioContext && this.audioContext.state === "suspended" && this.audioContext.resume();
+  initAudioOnInteraction(e) {
+    try {
+      if (!this.audioContext)
+        return this.init(e || this._basePath);
+      if (this.audioContext.state === "suspended")
+        return this.audioContext.resume();
+    } catch (t) {
+      console.warn("🔇 Audio unlock failed:", t);
+    }
   }
   startAmbientSound() {
     if (!(!this.audioContext || !this.ambienceSound || this.currentAmbienceSound))
@@ -5080,9 +5048,9 @@ class wn {
    * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
    * @param {THREE.Scene} scene - Three.js scene for VR objects
    * @param {string} [audioPath='./sound/'] - Path to VR audio files
-   * @param {boolean} [enableAudio=true] - Enable VR audio system
+  * @param {boolean} [enableAudio=false] - Enable VR audio system
    */
-  constructor(e, t, i, s = "./sound/", o = !0, n = null) {
+  constructor(e, t, i, s = "./sound/", o = !1, n = null) {
     this.renderer = e, this.camera = t, this.scene = i, this.audioPath = s, this.enableAudio = o, this.container = n, this.vrCore = new rn(e, t, i, n), this.vrControllers = new Cn(e, t), this.vrTeleport = new In(i, t), this.vrLocomotion = new En(t, e), this.vrComfort = new Bn(), this.vrAudio = this.enableAudio ? new Qn() : null, this.isVRSupported = !1, this.isVRPresenting = !1, this.controller1 = null, this.controller2 = null, this.controllerGrip1 = null, this.controllerGrip2 = null, this.controllers = [], this.controllerGrips = [], this._preVRCameraState = {
       target: null,
       position: null,
@@ -5101,15 +5069,13 @@ class wn {
     }, this.lastComfortLog = 0, this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
   }
   init() {
-    this.vrCore.init(), this.vrControllers.init(), this.vrTeleport.init(), this.vrLocomotion.init(), this.setupModuleConnections(), this.vrAudio && this.vrAudio.init(this.audioPath).catch((e) => {
-      console.warn("🔇 Sound system initialization failed:", e);
-    });
+    this.vrCore.init(), this.vrControllers.init(), this.vrTeleport.init(), this.vrLocomotion.init(), this.setupModuleConnections();
   }
   setupModuleConnections() {
     this.vrCore.onSessionStart = () => {
-      this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && this.vrAudio.initAudioOnInteraction();
+      this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && (this.vrAudio.initAudioOnInteraction(this.audioPath), this.vrAudio.startAmbientSound());
     }, this.vrCore.onSessionEnd = () => {
-      this.isVRPresenting = !1, setTimeout(() => {
+      this.isVRPresenting = !1, this.vrAudio && (this.vrAudio.stopMovementSound(), this.vrAudio.stopAmbientSound()), setTimeout(() => {
         this._restoreCameraState();
       }, 100);
     }, this.vrControllers.onSelectStart = (e, t, i) => {
@@ -5121,23 +5087,24 @@ class wn {
     }, this.vrControllers.onModeToggle = () => {
       this.onModeToggle && this.onModeToggle();
     }, this.vrLocomotion.onMovementStart = () => {
-      this.vrAudio && this.vrAudio.startMovementSound(), this.onMovementStart && this.onMovementStart();
+      this.vrAudio && this.isVRPresenting && this.vrAudio.startMovementSound(), this.onMovementStart && this.onMovementStart();
     }, this.vrLocomotion.onMovementStop = () => {
-      this.vrAudio && this.vrAudio.stopMovementSound(), this.onMovementStop && this.onMovementStop();
+      this.vrAudio && this.isVRPresenting && this.vrAudio.stopMovementSound(), this.onMovementStop && this.onMovementStop();
     }, this.vrLocomotion.onMovementUpdate = (e) => {
-      this.vrAudio && this.vrAudio.updateAudioLevels(e.currentSpeed, e.currentBoostLevel), this.onMovementUpdate && this.onMovementUpdate(e);
+      this.vrAudio && this.isVRPresenting && this.vrAudio.updateAudioLevels(
+        e.currentSpeed,
+        e.currentBoostLevel
+      ), this.onMovementUpdate && this.onMovementUpdate(e);
     }, this.vrComfort.onSettingsChange = (e) => {
       this.vrLocomotion.setComfortSettings(e);
     }, this.vrLocomotion.setTeleportSystem(this.vrTeleport), typeof this._comfortSettingsInitialized > "u" && (this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings()), this._comfortSettingsInitialized = !0);
   }
-  // Movement control methods (maintain original API)
   startMovement(e = "forward") {
     this.vrLocomotion.startMovement(e);
   }
   stopMovement() {
     this.vrLocomotion.stopMovement();
   }
-  // Main update loop (original pattern)
   update(e) {
     this.vrControllers.checkControllerButtons();
     const t = {
@@ -5148,14 +5115,12 @@ class wn {
     };
     this.vrLocomotion.updateMovement(e, t), this.syncLegacyProperties(), this.ensureComfortSettingsApplied(), this.vrLocomotion.correctDrift();
   }
-  // Sync properties for legacy compatibility
   syncLegacyProperties() {
     const e = this.vrCore.getVRStatus();
     this.isVRSupported = e.supported, this.isVRPresenting = e.presenting;
     const t = this.vrControllers.getControllers();
     this.controller1 = t.controller1, this.controller2 = t.controller2, this.controllerGrip1 = t.controllerGrip1, this.controllerGrip2 = t.controllerGrip2, this.controllers = t.controllers, this.controllerGrips = t.controllerGrips;
   }
-  // Comfort settings methods (maintain original API)
   /**
    * Set VR comfort settings for motion sickness reduction
    * 
@@ -5213,12 +5178,10 @@ class wn {
   setComfortPreset(e) {
     this.vrComfort.setPreset(e);
   }
-  // Ensure comfort settings are properly applied during VR session
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
     this.vrComfort.getSettings().locomotionMode === "teleport" && (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) && this.vrTeleport.setupTeleportation(), (!this.lastComfortLog || Date.now() - this.lastComfortLog > 1e4) && (this.lastComfortLog = Date.now());
   }
-  // Apply VR positions (maintain original API)
   applyVRPositions(e) {
     if (!(!this.isVRPresenting || !e))
       try {
@@ -5252,7 +5215,6 @@ class wn {
     const e = this._preVRCameraState.controls;
     this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed, e.update();
   }
-  // Get VR system status
   getVRStatus() {
     const e = this.vrCore.getVRStatus(), t = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: !1 }, i = this.vrLocomotion.getMovementState(), s = this.vrComfort.getSettings();
     return {
@@ -5262,18 +5224,15 @@ class wn {
       comfort: s
     };
   }
-  // Audio control methods
   setAudioMuted(e) {
     this.vrAudio && this.vrAudio.setMuted(e);
   }
   setAudioVolumeMultipliers(e, t, i) {
     this.vrAudio && this.vrAudio.setVolumeMultipliers(e, t, i);
   }
-  // Teleportation methods
   resetTeleportState() {
     this.vrTeleport.resetTeleportState();
   }
-  // Dispose of all VR systems
   /**
    * Clean up and dispose of all VR resources
    * 
@@ -5292,7 +5251,6 @@ class wn {
   dispose() {
     this.vrCore.dispose(), this.vrControllers.dispose(), this.vrTeleport.dispose(), this.vrAudio && this.vrAudio.dispose(), this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null;
   }
-  // Legacy method compatibility
   checkVRSupport() {
     return this.vrCore.checkVRSupported();
   }
@@ -5354,7 +5312,7 @@ class Xt {
         fog: t.fog ? {
           type: t.fog.constructor.name,
           color: t.fog.color.getHexString(),
-          near: t.fog.near,
+          ear: t.fog.near,
           far: t.fog.far
         } : null
       };
@@ -5368,7 +5326,7 @@ class Xt {
         return {
           index: o,
           url: s.url,
-          name: n.name || "Unnamed",
+          ame: n.name || "Unnamed",
           position: {
             x: parseFloat(n.position.x.toFixed(3)),
             y: parseFloat(n.position.y.toFixed(3)),
@@ -5475,7 +5433,7 @@ class yn extends Qt {
   }
   initVR() {
     this.dolly = new u.Group(), this.dolly.add(this.cameraManager.camera), this.sceneManager.scene.add(this.dolly);
-    const e = this.config.audioPath || "./sound/", t = this.config.enableVRAudio !== !1;
+    const e = this.config.audioPath || "./sound/", t = this.config.enableVRAudio === !0;
     this.vrManager = new wn(this.renderer, this.cameraManager.camera, this.sceneManager.scene, e, t, this.container), this.vrManager.setControls(this.cameraManager.controls), this.vrManager.onModeToggle = () => {
       this.emit("vr-mode-toggle");
     }, this.vrManager.onMovementStart = () => {
@@ -5585,7 +5543,6 @@ class yn extends Qt {
     };
     this.renderer.setAnimationLoop(t);
   }
-  // Public API methods
   getScene() {
     var e;
     return (e = this.sceneManager) == null ? void 0 : e.scene;
@@ -5713,14 +5670,12 @@ class yn extends Qt {
     };
     t(), setTimeout(t, 50);
   }
-  // VR-specific methods
   isVRPresenting() {
     return this.vrManager ? this.vrManager.isVRPresenting : !1;
   }
   getVRManager() {
     return this.vrManager;
   }
-  // VR Comfort Settings API
   /**
    * Set VR comfort settings for motion sickness reduction
    * 
@@ -5775,7 +5730,6 @@ class yn extends Qt {
   setVRComfortPreset(e) {
     this.vrManager && this.vrManager.setComfortPreset(e);
   }
-  // Apply initial positions based on current mode (VR or desktop)
   applyInitialPositions(e) {
     if (!e) return;
     const t = this.isVRPresenting();
@@ -6988,7 +6942,6 @@ class vn {
       this.measurementSprite.visible = t && (e || this.showMeasurementLabels);
     }
   }
-  // Dispose/cleanup
   /**
    * Clean up and dispose of measurement system resources
    * 
@@ -7007,7 +6960,6 @@ class vn {
   dispose() {
     this.measurementPanel && this.measurementPanel.parentNode && (this.measurementPanel.parentNode.removeChild(this.measurementPanel), this.measurementPanel = null), this.renderer.domElement.removeEventListener("click", this._boundOnMouseClick, !1), this.renderer.domElement.removeEventListener("mousedown", this._boundOnMouseDown, !1), this.renderer.domElement.removeEventListener("mousemove", this._boundOnMouseMove, !1), this.renderer.domElement.removeEventListener("mouseup", this._boundOnMouseUp, !1), this.controller1 && this.controller2 && (this.controller1.removeEventListener("selectstart", this._onVRTriggerDown), this.controller1.removeEventListener("selectend", this._onVRTriggerUp), this.controller2.removeEventListener("selectstart", this._onVRTriggerDown), this.controller2.removeEventListener("selectend", this._onVRTriggerUp), this.controller1.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller1.removeEventListener("ybuttonup", this._onVRYButtonUp), this.controller2.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller2.removeEventListener("ybuttonup", this._onVRYButtonUp)), this.clearLegacyDesktopMeasurement(), this.clearVRMeasurement(), this.ghostSpheres && (this.ghostSpheres.left && this.scene.remove(this.ghostSpheres.left), this.ghostSpheres.right && this.scene.remove(this.ghostSpheres.right), this.ghostSpheres = null), this.measurementSprite && this.scene.children.includes(this.measurementSprite) && (this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.connectionLine && this.scene.children.includes(this.connectionLine) && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSpheres = [], this.isVR = !1, typeof window < "u" && window.measurementSystem === this && (window.measurementSystem = void 0);
   }
-  // --- UI Panel ---
   createMeasurementPanel() {
     const e = document.createElement("div");
     e.id = "measurementPanel", e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
@@ -7038,7 +6990,6 @@ class vn {
       `;
     }
   }
-  // --- Desktop Measurement Events ---
   onMouseDown(e) {
     this.isDragging = !1, this.dragStartPosition.x = e.clientX, this.dragStartPosition.y = e.clientY;
   }
@@ -7129,17 +7080,13 @@ class vn {
       }
     }
   }
-  // Set measurement system state
 }
 class xt {
   constructor(e, t = {}) {
-    this.vrManager = e, this.isComfortMode = !1, this.options = {
+    this.vrManager = e, this.isComfortMode = !1, this._iconRendered = !1, this.options = {
       containerId: t.containerId || "modelSelector",
-      // Default to model selector
       useInlineLayout: t.useInlineLayout !== !1,
-      // Default to true for inline layout
       position: t.position || "bottom-right",
-      // Fallback for floating mode
       offsetX: t.offsetX || 20,
       offsetY: t.offsetY || 120,
       ...t
@@ -7157,25 +7104,24 @@ class xt {
       console.warn("VRComfortGlyph: modeToggleContainer not found, falling back to floating mode"), this.createFloatingElement();
       return;
     }
-    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-circle comfort-off", this.element.textContent = "🛡️", this.element.tabIndex = 0, this.element.role = "button", this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable");
+    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-circle comfort-off", this.renderIcon(), this.element.tabIndex = 0, this.element.role = "button", this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable");
     const t = e.querySelector(".semantic-toggle");
     t ? e.insertBefore(this.element, t.nextSibling) : e.appendChild(this.element), this.updateInlineVisualState();
   }
   createFloatingElement() {
-    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-glyph comfort-off", this.element.textContent = "🛡️", this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.tabIndex = 0, this.element.role = "button", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement");
+    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-glyph comfort-off", this.renderIcon(), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.tabIndex = 0, this.element.role = "button", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement");
     const e = this.options.containerId ? document.getElementById(this.options.containerId) : document.body;
     e ? e.appendChild(this.element) : (console.warn("VRComfortGlyph: Container not found, appending to body"), document.body.appendChild(this.element));
   }
   attachStyles() {
-    if (document.getElementById("vr-comfort-glyph-styles"))
+    if (this.renderIcon(), document.getElementById("vr-comfort-glyph-styles"))
       return;
     const e = document.createElement("style");
     e.id = "vr-comfort-glyph-styles", e.textContent = `
-      /* VR Comfort Glyph Styles */
       .vr-comfort-glyph {
         position: absolute;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.6);
         border: 2px solid #666;
@@ -7183,19 +7129,19 @@ class xt {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 20px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
+        font-size: 18px;
         z-index: 10000;
         backdrop-filter: blur(10px);
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       
-      /* Inline Comfort Circle Styles - matches Survey/Dive toggle design */
       .vr-comfort-circle {
         width: 60px;
         height: 60px;
@@ -7207,14 +7153,15 @@ class xt {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 20px;
-        margin-left: 15px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
+        font-size: 18px;
+        margin-left: 12px;
         position: relative;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
         overflow: hidden;
         flex-shrink: 0;
@@ -7223,16 +7170,16 @@ class xt {
       .vr-comfort-circle:hover {
         background: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 0.2);
-        transform: scale(1.02);
       }
       
-      .vr-comfort-circle:focus {
-        outline: 2px solid #4ade80;
+  .vr-comfort-circle:focus-visible {
+        outline: 2px solid transparent;
         outline-offset: 2px;
       }
+  .vr-comfort-circle.comfort-on:focus-visible { outline-color: #4ade80; }
+  .vr-comfort-circle.comfort-off:focus-visible { outline-color: rgba(255,255,255,0.4); }
       
       .vr-comfort-circle:active {
-        transform: scale(0.98);
       }
       
       .vr-comfort-circle.comfort-off {
@@ -7262,7 +7209,6 @@ class xt {
         box-shadow: 0 0 30px rgba(74, 222, 128, 0.15) !important;
       }
       
-      /* Update modeToggleContainer to flex layout */
       #modeToggleContainer {
         display: flex !important;
         flex-direction: row !important;
@@ -7271,21 +7217,20 @@ class xt {
         gap: 0 !important;
       }
       
-      /* Ensure semantic toggle doesn't take full width */
       .semantic-toggle {
         flex-shrink: 0 !important;
       }
       
-      /* Original floating glyph styles */
       .vr-comfort-glyph:hover {
-        transform: scale(1.1);
         background: rgba(0, 0, 0, 0.8);
       }
       
-      .vr-comfort-glyph:focus {
-        outline: 3px solid #4ade80;
+  .vr-comfort-glyph:focus-visible {
+        outline: 3px solid transparent;
         outline-offset: 2px;
       }
+  .vr-comfort-glyph.comfort-on:focus-visible { outline-color: #4ade80; }
+  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: #666; }
       
       .vr-comfort-glyph.comfort-off {
         color: #666;
@@ -7302,8 +7247,20 @@ class xt {
         box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
         filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
       }
+
       
-      /* Position variants for floating mode */
+      .vr-comfort-emoji {
+        display: block;
+        font-size: 18px;
+        line-height: 1;
+        transform: translateY(0.5px);
+        transition: transform 120ms ease;
+      }
+      .vr-comfort-circle:active .vr-comfort-emoji,
+      .vr-comfort-glyph:active .vr-comfort-emoji {
+        transform: translateY(0.5px) scale(0.98);
+      }
+      
       .vr-comfort-glyph.position-bottom-right {
         bottom: var(--vr-comfort-offset-y, 120px);
         right: var(--vr-comfort-offset-x, 20px);
@@ -7324,7 +7281,6 @@ class xt {
         left: var(--vr-comfort-offset-x, 20px);
       }
       
-      /* Mobile responsive */
       @media (max-width: 768px) {
         .vr-comfort-circle {
           width: 50px;
@@ -7358,13 +7314,16 @@ class xt {
     `, document.head.appendChild(e), document.documentElement.style.setProperty("--vr-comfort-offset-x", this.options.offsetX + "px"), document.documentElement.style.setProperty("--vr-comfort-offset-y", this.options.offsetY + "px"), document.documentElement.style.setProperty("--vr-comfort-offset-x-mobile", this.options.offsetX - 5 + "px"), document.documentElement.style.setProperty("--vr-comfort-offset-y-mobile", this.options.offsetY + 10 + "px");
   }
   attachEvents() {
-    if (!this.element) return;
-    const e = () => {
-      this.toggle();
-    };
-    this.element.addEventListener("click", e), this.element.addEventListener("keydown", (t) => {
-      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), e());
-    });
+    this.element && (this._onClick = (e) => {
+      this.toggle(), this.element && !(e instanceof KeyboardEvent) && this.element.blur();
+    }, this._onKeydown = (e) => {
+      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.toggle());
+    }, this._onPointerDown = () => {
+      this.element && this.element.blur();
+    }, this.element.addEventListener("click", this._onClick), this.element.addEventListener("keydown", this._onKeydown), this.element.addEventListener("pointerdown", this._onPointerDown));
+  }
+  renderIcon() {
+    this.element && (this._iconRendered || (this.element.innerHTML = '<span class="vr-comfort-emoji" aria-hidden="true">🛋️</span>', this._iconRendered = !0));
   }
   updatePosition() {
     this.element && (this.element.classList.remove("position-bottom-right", "position-bottom-left", "position-top-right", "position-top-left"), this.element.classList.add(`position-${this.options.position}`));
@@ -7373,12 +7332,10 @@ class xt {
     this.element && (this.options.useInlineLayout ? this.updateInlineVisualState() : this.updateFloatingVisualState());
   }
   updateInlineVisualState() {
-    this.element && (this.element.classList.remove("comfort-off", "comfort-on"), this.element.style.removeProperty("background"), this.element.style.removeProperty("border-color"), this.element.style.removeProperty("color"), this.element.style.removeProperty("box-shadow"), this.element.textContent = "🛡️", this.element.offsetHeight, this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable")), setTimeout(() => {
-      this.element && this.element.offsetHeight;
-    }, 0));
+    this.element && (this.element.classList.remove("comfort-off", "comfort-on"), this.element.style.removeProperty("background"), this.element.style.removeProperty("border-color"), this.element.style.removeProperty("color"), this.element.style.removeProperty("box-shadow"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable")));
   }
   updateFloatingVisualState() {
-    this.element && (this.updatePosition(), this.element.textContent = "🛡️", this.element.classList.remove("comfort-off", "comfort-on"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement")), this.element.style.display = "none", this.element.offsetHeight, this.element.style.display = "flex");
+    this.element && (this.updatePosition(), this.element.classList.remove("comfort-off", "comfort-on"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement")), this.renderIcon());
   }
   toggle() {
     this.isComfortMode = !this.isComfortMode, this.vrManager && (this.isComfortMode ? this.vrManager.setComfortPreset("max-comfort") : this.vrManager.setComfortPreset("performance")), this.updateVisualState();
@@ -7406,13 +7363,12 @@ class xt {
     this.element && (this.element.style.display = "flex");
   }
   dispose() {
-    if (this.element && (this.element.removeEventListener("click", this.toggle), this.element.removeEventListener("keydown", this.toggle), this.element.parentNode && this.element.parentNode.removeChild(this.element), this.element = null), document.querySelectorAll(".vr-comfort-glyph").length === 0) {
+    if (this.element && (this._onClick && this.element.removeEventListener("click", this._onClick), this._onKeydown && this.element.removeEventListener("keydown", this._onKeydown), this._onPointerDown && this.element.removeEventListener("pointerdown", this._onPointerDown), this.element.parentNode && this.element.parentNode.removeChild(this.element), this.element = null), document.querySelectorAll(".vr-comfort-glyph").length === 0) {
       const t = document.getElementById("vr-comfort-glyph-styles");
       t && t.remove();
     }
     this.vrManager = null;
   }
-  // Static method to create and initialize
   static create(e, t = {}) {
     return new xt(e, t);
   }
@@ -8002,13 +7958,13 @@ class kn extends Qt {
         fog: {
           enabled: !1,
           color: "#041729",
-          near: 10,
+          ear: 10,
           far: 100
         }
       },
       camera: {
         fov: 65,
-        near: 0.05,
+        ear: 0.05,
         far: 2e3,
         position: { x: 0, y: 5, z: 10 },
         desktop: {
@@ -8141,7 +8097,6 @@ class kn extends Qt {
       this.emit("vr-mode-toggle", e), this.onVRModeToggle();
     }), this.belowViewer.on("vr-movement-start", (e) => this.emit("vr-movement-start", e)), this.belowViewer.on("vr-movement-stop", (e) => this.emit("vr-movement-stop", e)), this.belowViewer.on("vr-movement-update", (e) => this.emit("vr-movement-update", e));
   }
-  // VR event handlers
   onVRSessionStart() {
     this.ui.info && (this.ui.info.style.display = "none"), this.ui.selector && (this.ui.selector.style.pointerEvents = "none", this.ui.selector.style.opacity = "0.5"), this.measurementSystem && typeof this.measurementSystem.attachVR == "function" && setTimeout(() => {
       var t;
@@ -8206,7 +8161,6 @@ class kn extends Qt {
       this.belowViewer.cameraManager.focusOn(A), this.emit("focus", { point: A, intersect: a[0] });
     }
   }
-  // Helper method to identify measurement helpers (similar to MeasurementSystem)
   isMeasurementHelper(e) {
     if (!e) return !1;
     if (e.userData.isMeasurementSphere || e.userData.isMeasurementLine || e.type === "Line2" || e.type === "Line") return !0;
@@ -8465,7 +8419,6 @@ class kn extends Qt {
       }
     }
   }
-  // VR Comfort Settings API
   /**
    * Set VR comfort settings for motion sickness reduction
    * 

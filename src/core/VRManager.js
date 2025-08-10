@@ -11,7 +11,7 @@
  * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
  * @param {THREE.Scene} scene - Three.js scene for VR objects
  * @param {string} [audioPath='./sound/'] - Path to VR audio files
- * @param {boolean} [enableAudio=true] - Enable VR audio system
+ * @param {boolean} [enableAudio=false] - Enable VR audio system
  * 
  * @example
  * // Create VR manager with audio
@@ -42,9 +42,9 @@ export class VRManager {
    * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
    * @param {THREE.Scene} scene - Three.js scene for VR objects
    * @param {string} [audioPath='./sound/'] - Path to VR audio files
-   * @param {boolean} [enableAudio=true] - Enable VR audio system
+  * @param {boolean} [enableAudio=false] - Enable VR audio system
    */
-  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = true, container = null) {
+  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = false, container = null) {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
@@ -103,93 +103,94 @@ export class VRManager {
     this.vrLocomotion.init();
     
     this.setupModuleConnections();
-    
-    if (this.vrAudio) {
-      this.vrAudio.init(this.audioPath).catch(error => {
-        console.warn('🔇 Sound system initialization failed:', error);
-      });
-    }
+  // Audio is VR-only: no desktop gesture unlock listeners here
   }
   
   setupModuleConnections() {
+    // VR session lifecycle
     this.vrCore.onSessionStart = () => {
-
       this._saveCameraState();
       this.isVRPresenting = true;
       if (this.vrAudio) {
-        this.vrAudio.initAudioOnInteraction();
+        // VR button click counts as a user gesture; initialize/resume and start ambience
+        this.vrAudio.initAudioOnInteraction(this.audioPath);
+        this.vrAudio.startAmbientSound();
       }
     };
-    
+
     this.vrCore.onSessionEnd = () => {
       this.isVRPresenting = false;
-      
-
+      if (this.vrAudio) {
+        this.vrAudio.stopMovementSound();
+        this.vrAudio.stopAmbientSound();
+      }
       setTimeout(() => {
         this._restoreCameraState();
       }, 100);
     };
-    
 
+    // Controller events
     this.vrControllers.onSelectStart = (handedness, controller, event) => {
-
+      // no-op for audio
     };
 
     this.vrControllers.onSelectEnd = (handedness, controller, event) => {
-
+      // no-op for audio
     };
-    
+
     this.vrControllers.onSqueezeStart = (handedness, controller, event) => {
       this.vrLocomotion.currentBoostLevel = 1.0;
       this.vrLocomotion.targetBoostLevel = 1.0;
     };
-    
+
     this.vrControllers.onSqueezeEnd = (handedness, controller, event) => {
       this.vrLocomotion.currentBoostLevel = 0;
       this.vrLocomotion.targetBoostLevel = 0;
     };
-    
+
     this.vrControllers.onModeToggle = () => {
       if (this.onModeToggle) {
         this.onModeToggle();
       }
     };
-    
+
+    // Locomotion events -> audio
     this.vrLocomotion.onMovementStart = () => {
-      if (this.vrAudio) {
+      if (this.vrAudio && this.isVRPresenting) {
         this.vrAudio.startMovementSound();
       }
       if (this.onMovementStart) {
         this.onMovementStart();
       }
     };
-    
+
     this.vrLocomotion.onMovementStop = () => {
-      if (this.vrAudio) {
+      if (this.vrAudio && this.isVRPresenting) {
         this.vrAudio.stopMovementSound();
       }
       if (this.onMovementStop) {
         this.onMovementStop();
       }
     };
-    
-    this.vrLocomotion.onMovementUpdate = (movementState) => {
 
-      if (this.vrAudio) {
-        this.vrAudio.updateAudioLevels(movementState.currentSpeed, movementState.currentBoostLevel);
+    this.vrLocomotion.onMovementUpdate = (movementState) => {
+      if (this.vrAudio && this.isVRPresenting) {
+        this.vrAudio.updateAudioLevels(
+          movementState.currentSpeed,
+          movementState.currentBoostLevel
+        );
       }
-      
       if (this.onMovementUpdate) {
         this.onMovementUpdate(movementState);
       }
     };
-    
+
     this.vrComfort.onSettingsChange = (settings) => {
       this.vrLocomotion.setComfortSettings(settings);
     };
-    
+
     this.vrLocomotion.setTeleportSystem(this.vrTeleport);
-    
+
     if (typeof this._comfortSettingsInitialized === 'undefined') {
       this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings());
       this._comfortSettingsInitialized = true;
@@ -472,7 +473,7 @@ export class VRManager {
   }
   
 
-ormalizeAngle(angle) {
+  normalizeAngle(angle) {
     return this.vrLocomotion.normalizeAngle(angle);
   }
 }

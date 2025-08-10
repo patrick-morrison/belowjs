@@ -50,9 +50,9 @@ export class VRTeleport {
 
     const points = [
 
-ew THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(0, 0, 0),
 
-ew THREE.Vector3(0, 1, -5)
+  new THREE.Vector3(0, 1, -5)
     ];
     const curve = new THREE.CatmullRomCurve3(points);
     const geometry = new THREE.TubeGeometry(curve, 20, 0.03, 8, false);
@@ -181,7 +181,7 @@ ew THREE.Vector3(0, 1, -5)
   
 
 
-ormalizeAngle(angle) {
+  normalizeAngle(angle) {
     while (angle > Math.PI) angle -= 2 * Math.PI;
     while (angle < -Math.PI) angle += 2 * Math.PI;
     return angle;

@@ -437,7 +437,7 @@ export class MeasurementSystem {
       this.desktopMeasurementPoints.forEach(point => {
         const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
 
-ewSphere.position.copy(point.position);
+        newSphere.position.copy(point.position);
         this.scene.add(newSphere);
         this.measurementSpheres.push(newSphere);
       });
@@ -473,9 +473,9 @@ ewSphere.position.copy(point.position);
             clampedPos = intersects[0].point;
           }
         }
-        const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
+  const newSphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
 
-ewSphere.position.copy(clampedPos);
+  newSphere.position.copy(clampedPos);
         this.scene.add(newSphere);
         this.desktopMeasurementPoints.push(newSphere);
       }

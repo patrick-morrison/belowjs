@@ -69,7 +69,7 @@ export class DiveParticles {
       particleVelocities[i3 + 1] = baseCurrentY + (-Math.random() * 0.00001 - 0.000005);
       particleVelocities[i3 + 2] = baseCurrentZ + (Math.random() - 0.5) * 0.00002;
       
-
+      // Vary particle sizes - most small, some medium, few large
       const rand = Math.random();
       if (rand < 0.7) {
         particleSizes[i] = 0.0075 + Math.random() * 0.005; // Small particles (0.0075-0.0125)
@@ -85,12 +85,12 @@ export class DiveParticles {
    * Create particle material with GPU shaders
    */
   createParticleMaterial() {
-
+    // Create circular texture for particles
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 32;
     const ctx = canvas.getContext('2d');
     
-
+    // Draw a white circle with soft edges
     const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
     gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.8)');
@@ -128,38 +128,38 @@ export class DiveParticles {
         varying float vFogFactor;
         
         void main() {
-
+          // Calculate animated position
           vec3 animatedPosition = position;
           
-
+          // Apply constant velocity drift
           animatedPosition += velocity * time;
           
-
+          // Add gentle wave motion
           float waveX = sin(time * 0.00025 + particleIndex * 0.01) * 0.5;
           float waveY = cos(time * 0.0002 + particleIndex * 0.008) * 0.25;
           float waveZ = sin(time * 0.0003 + particleIndex * 0.012) * 0.5;
           animatedPosition += vec3(waveX, waveY, waveZ);
           
-
+          // Boundary wrapping
           vec3 boundsSize = boundsMax - boundsMin;
           animatedPosition = boundsMin + mod(animatedPosition - boundsMin, boundsSize);
           
-
+          // Size calculation
           float finalSize = originalSize * size;
           
-
+          // Transform to screen space
           vec4 mvPosition = modelViewMatrix * vec4(animatedPosition, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           
-
+          // Size attenuation
           gl_PointSize = finalSize * (300.0 / -mvPosition.z);
           
-
+          // Calculate fog factor for exponential squared fog
           float fogDistance = -mvPosition.z;
           vFogFactor = 1.0 - exp(-fogDistance * fogDistance * 0.0064);
           vFogFactor = clamp(vFogFactor, 0.0, 1.0);
           
-
+          // Simple opacity variation
           vOpacity = 0.8 + sin(particleIndex * 0.1) * 0.2;
         }
       `,
@@ -173,21 +173,21 @@ export class DiveParticles {
         varying float vFogFactor;
         
         void main() {
-
+          // Sample the circular texture
           vec4 textureColor = texture2D(pointTexture, gl_PointCoord);
           
-
+          // Base particle color
           vec3 finalColor = color;
           
-
+          // Apply fog mixing
           finalColor = mix(finalColor, fogColor, vFogFactor);
           
-
+          // Final alpha with fog consideration
           float finalAlpha = textureColor.a * opacity * vOpacity * (1.0 - vFogFactor * 0.8);
           
           gl_FragColor = vec4(finalColor, finalAlpha);
           
-
+          // Alpha test
           if (gl_FragColor.a < 0.01) discard;
         }
       `,
@@ -203,7 +203,7 @@ export class DiveParticles {
    */
   enable() {
     if (this.particles) {
-
+      // Ensure we're using the shader material with time uniform
       this.particles.material = this.originalMaterial;
       this.particles.visible = true;
     }
@@ -222,7 +222,7 @@ export class DiveParticles {
    * Update particle system (call in animation loop)
    */
   update(time) {
-
+    // Update shader uniforms with current time
     if (this.particles && this.particles.material && this.particles.material.uniforms) {
       this.particles.material.uniforms.time.value = time;
     }
@@ -236,14 +236,14 @@ export class DiveParticles {
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-
+    // Expand bounds to 2.5x the model size (like wrecksploration)
     const expansion = 2.5;
     const halfExpandedSize = size.clone().multiplyScalar(expansion * 0.5);
     this.particleBounds.min.copy(center).sub(halfExpandedSize);
     this.particleBounds.max.copy(center).add(halfExpandedSize);
-
+    // Calculate new particle count based on bounds
     const newParticleCount = this.calculateParticleCount(new THREE.Box3(this.particleBounds.min, this.particleBounds.max));
-
+    // If particle count changed significantly, recreate the system
     if (Math.abs(newParticleCount - this.particleCount) > this.particleCount * 0.2) {
       if (this.particles) {
         this.scene.remove(this.particles);
@@ -254,7 +254,7 @@ export class DiveParticles {
       this.particleCount = newParticleCount;
       this.createParticleSystem();
     } else {
-
+      // Redistribute particles within new bounds
       this.redistributeParticles();
     }
   }
@@ -270,16 +270,16 @@ export class DiveParticles {
     for (let i = 0; i < this.particleCount; i++) {
       const i3 = i * 3;
       
-
+      // Random positions within bounds
       positions[i3] = this.particleBounds.min.x + Math.random() * (this.particleBounds.max.x - this.particleBounds.min.x);
       positions[i3 + 1] = this.particleBounds.min.y + Math.random() * (this.particleBounds.max.y - this.particleBounds.min.y);
       positions[i3 + 2] = this.particleBounds.min.z + Math.random() * (this.particleBounds.max.z - this.particleBounds.min.z);
     }
     
-
+    // Mark geometry for update
     this.particles.geometry.attributes.position.needsUpdate = true;
     
-
+    // Update material bounds uniforms
     if (this.particles.material.uniforms) {
       this.particles.material.uniforms.boundsMin.value.copy(this.particleBounds.min);
       this.particles.material.uniforms.boundsMax.value.copy(this.particleBounds.max);

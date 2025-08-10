@@ -53,9 +53,11 @@ npm run build
 ```
 
 This builds the distribution files:
-- `belowjs.css` (21K) — Complete stylesheet
-- `belowjs.es.js` (412K) — ES modules version  
-- `belowjs.umd.js` (310K) — Universal module format
+- `belowjs.css` (~21 KB) — Complete stylesheet
+- `belowjs.es.js` (~420 KB) — ES modules version  
+- `belowjs.umd.js` (~318 KB) — Universal module format
+
+Note: Three.js is externalized in the bundles. For ES modules, import Three in your app as usual. For the UMD build, include Three.js first so `THREE` is available globally.
 
 NPM package will be available once the API is finalized.
 
@@ -94,6 +96,7 @@ new ModelViewer(document.body, {
   enableDiveSystem: true
 });
 ```
+```
 
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:
@@ -107,7 +110,7 @@ The embed example supports URL parameters for dynamic configuration:
 
 ## Documentation
 
-See [docs/API.md](docs/API.md) for complete API documentation and configuration options.
+See [docs/API.md](docs/API.md) for complete API documentation and configuration options, including enabling optional VR audio.
 
 ## Development
 
@@ -116,7 +119,7 @@ npm run build    # Build distribution files
 npm run dev      # Start development server
 ```
 
-The examples use production builds from `/dist/`, so you need to build before testing changes.
+The examples load from `/dist/`. Run `npm run build` once before first testing to generate `/dist/`. During `npm run dev`, source edits will auto-rebuild the library.
 
 ## License
 
