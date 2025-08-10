@@ -4,7 +4,7 @@
 BelowJS is a production-ready 3D model viewer library with VR support and underwater exploration features.
 
 ## Build System
-- **Production bundles**: All examples use `/dist/belowjs.css` and `/dist/belowjs.umd.js`
+- **Production bundles**: All examples use `/dist/belowjs.css` and `/dist/belowjs.js`
 - **Build command**: `npm run build` creates optimized bundles
 - **External deps**: Three.js loaded from CDN (not bundled)
 - **Testing**: Examples use production builds, not source files
@@ -19,7 +19,7 @@ BelowJS is a production-ready 3D model viewer library with VR support and underw
 - **Main entry**: `src/index.js` (imports CSS for bundling)
 - **CSS bundle**: `src/styles/index.css` (imports all stylesheets)
 - **Examples**: All examples (basic, dragdrop, embed) use production bundles
-- **Build output**: `dist/belowjs.css`, `dist/belowjs.umd.js`, `dist/belowjs.es.js`
+- **Build output**: `dist/belowjs.css`, `dist/belowjs.js`
 
 ## Testing Notes
 - Examples are production-ready and use built bundles

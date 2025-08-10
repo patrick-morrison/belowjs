@@ -230,7 +230,7 @@
   <!-- Survey/Dive toggle -->
     <div id="modeToggleContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
         <div class="semantic-toggle">
-            <input type="checkbox" id="modeToggleSwitch">
+            <input type="checkbox" id="modeToggleSwitch" class="mode-toggle__switch">
             <div class="toggle-slider-bg"></div>
       <div class="toggle-option left">
         <div class="toggle-icon">🔍</div>
@@ -264,7 +264,7 @@
   </div>
 
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
   // Drag & Drop viewer
 
@@ -287,13 +287,12 @@
   // Configure viewer with dark theme and standalone mode toggle
         const viewer = new ModelViewer(viewerContainer, {
           models: models,
-          enableDiveSystem: true,
+          autoLoadFirst: false,
+          showDiveToggle: false,
           enableVR: true,
           enableVRAudio: false,
           enableFullscreen: false,
           showInfo: false,
-          enableMeasurement: true,
-          showStatus: false,
           showLoadingIndicator: false,
           // No initial model - starts empty
           viewerConfig: {

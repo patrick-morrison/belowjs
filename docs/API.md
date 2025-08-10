@@ -38,7 +38,7 @@ Basic usage with ES modules:
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
         
         const container = document.createElement('div');
         container.style.position = 'fixed';
@@ -62,7 +62,7 @@ Basic usage with ES modules:
 ### Model Configuration
 
 ```javascript
-import { ModelViewer } from '/dist/belowjs.es.js';
+import { ModelViewer } from '/dist/belowjs.js';
 
 // Create viewer container first
 const container = document.createElement('div');
@@ -108,7 +108,7 @@ viewer.on('vr-session-end', () => {
 ### Basic Setup without VR
 
 ```javascript
-import { ModelViewer } from '/dist/belowjs.es.js';
+import { ModelViewer } from '/dist/belowjs.js';
 
 const models = {
   'my-model': {
@@ -1032,7 +1032,7 @@ Complete example with all features enabled (see `examples/basic/`):
     <script src="https://cdn.jsdelivr.net/npm/three@0.177.0/build/three.min.js"></script>
     
     <!-- BelowJS Production Bundle -->
-    <script src="/dist/belowjs.umd.js"></script>
+    <script src="/dist/belowjs.js"></script>
     
     <script>
         const models = {
@@ -1091,16 +1091,16 @@ npm run build
 ```
 
 This creates:
-- `dist/belowjs.umd.js` - UMD bundle for script tags
-- `dist/belowjs.es.js` - ES modules bundle 
+- `dist/belowjs.js` - UMD bundle for script tags
+- `dist/belowjs.js` - ES modules bundle 
 - `dist/belowjs.css` - Complete CSS bundle
 
 ### Package.json Configuration
 
 ```json
 {
-  "main": "dist/belowjs.umd.js",
-  "module": "dist/belowjs.es.js", 
+  "main": "dist/belowjs.js",
+  "module": "dist/belowjs.js", 
   "style": "dist/belowjs.css"
 }
 ```
@@ -1159,7 +1159,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
         const models = {
             'shipwreck': {
@@ -1255,7 +1255,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
         const viewer = new ModelViewer(document.body, {
             models: {
@@ -1289,7 +1289,7 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
         // Parse URL parameters for dynamic configuration
         const urlParams = new URLSearchParams(window.location.search);
@@ -1372,7 +1372,7 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
     </div>
 
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
         const models = {
             'shipwreck': {
@@ -1420,7 +1420,7 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
 ### Multiple Models Example
 
 ```javascript
-import { ModelViewer } from '/dist/belowjs.es.js';
+import { ModelViewer } from '/dist/belowjs.js';
 
 const models = {
     'ship1': {

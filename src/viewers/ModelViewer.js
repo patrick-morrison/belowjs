@@ -168,14 +168,15 @@ export class ModelViewer extends EventSystem {
       models: { type: 'object', default: {} },
       autoLoadFirst: { type: 'boolean', default: true },
       showLoadingIndicator: { type: 'boolean', default: true },
-      showStatus: { type: 'boolean', default: true },
+      showStatus: { type: 'boolean', default: false },
       showInfo: { type: 'boolean', default: false },
       enableVR: { type: 'boolean', default: false },
-      enableMeasurement: { type: 'boolean', default: false },
+      enableMeasurement: { type: 'boolean', default: true },
       measurementTheme: { type: 'string', default: 'dark' },
       showMeasurementLabels: { type: 'boolean', default: false },
       enableVRComfortGlyph: { type: 'boolean', default: false },
-      enableDiveSystem: { type: 'boolean', default: false },
+      enableDiveSystem: { type: 'boolean', default: true },
+      showDiveToggle: { type: 'boolean', default: true },
       enableFullscreen: { type: 'boolean', default: false },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
@@ -683,6 +684,10 @@ export class ModelViewer extends EventSystem {
       this.createModelSelector();
     }
 
+    // Create standalone dive mode toggle if dive system is enabled but no model selector
+    if (this.config.enableDiveSystem && this.config.showDiveToggle && modelCount <= 1 && !this.ui.diveToggle) {
+      this.createDiveModeToggle();
+    }
 
     if (this.config.showInfo && !this.ui.info) {
       this.createInfoPanel();
@@ -772,6 +777,57 @@ export class ModelViewer extends EventSystem {
 
     this.ui.dropdown = dropdown;
     this.ui.selector = selectorContainer;
+  }
+
+  createDiveModeToggle() {
+    const toggleContainer = document.createElement('div');
+    toggleContainer.className = 'dive-mode-toggle-container';
+    toggleContainer.style.position = 'fixed';
+    toggleContainer.style.top = '20px';
+    toggleContainer.style.right = '20px';
+    toggleContainer.style.zIndex = '1000';
+
+    const toggle = document.createElement('div');
+    toggle.className = 'semantic-toggle';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'modeToggleSwitch';
+    checkbox.className = 'mode-toggle__switch';
+    toggle.appendChild(checkbox);
+
+    const slider = document.createElement('div');
+    slider.className = 'toggle-slider-bg';
+    toggle.appendChild(slider);
+
+    const left = document.createElement('div');
+    left.className = 'toggle-option left';
+    const leftIcon = document.createElement('div');
+    leftIcon.className = 'toggle-icon';
+    leftIcon.textContent = '\uD83D\uDCCB';
+    const leftText = document.createElement('div');
+    leftText.className = 'toggle-text';
+    leftText.textContent = 'Survey';
+    left.appendChild(leftIcon);
+    left.appendChild(leftText);
+
+    const right = document.createElement('div');
+    right.className = 'toggle-option right';
+    const rightIcon = document.createElement('div');
+    rightIcon.className = 'toggle-icon';
+    rightIcon.textContent = '\uD83C\uDF0A';
+    const rightText = document.createElement('div');
+    rightText.className = 'toggle-text';
+    rightText.textContent = 'Dive';
+    right.appendChild(rightIcon);
+    right.appendChild(rightText);
+
+    toggle.appendChild(left);
+    toggle.appendChild(right);
+    toggleContainer.appendChild(toggle);
+    this.container.appendChild(toggleContainer);
+
+    this.ui.diveToggle = toggleContainer;
   }
   
   createLoadingIndicator() {

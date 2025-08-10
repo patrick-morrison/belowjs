@@ -64,15 +64,12 @@ export default defineConfig({
     cssCodeSplit: false, // Bundle all CSS into one file
     lib: {
       entry: 'src/index.js',
-      name: 'BelowJS',
-      fileName: (format) => `belowjs.${format}.js`
+      formats: ['es'], // Only build ES modules
+      fileName: () => 'belowjs.js'
     },
     rollupOptions: {
       external: ['three'],
       output: {
-        globals: {
-          three: 'THREE'
-        },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
             return 'belowjs.css';

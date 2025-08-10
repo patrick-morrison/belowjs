@@ -7871,14 +7871,15 @@ class Dn extends yt {
       models: { type: "object", default: {} },
       autoLoadFirst: { type: "boolean", default: !0 },
       showLoadingIndicator: { type: "boolean", default: !0 },
-      showStatus: { type: "boolean", default: !0 },
+      showStatus: { type: "boolean", default: !1 },
       showInfo: { type: "boolean", default: !1 },
       enableVR: { type: "boolean", default: !1 },
-      enableMeasurement: { type: "boolean", default: !1 },
+      enableMeasurement: { type: "boolean", default: !0 },
       measurementTheme: { type: "string", default: "dark" },
       showMeasurementLabels: { type: "boolean", default: !1 },
       enableVRComfortGlyph: { type: "boolean", default: !1 },
-      enableDiveSystem: { type: "boolean", default: !1 },
+      enableDiveSystem: { type: "boolean", default: !0 },
+      showDiveToggle: { type: "boolean", default: !0 },
       enableFullscreen: { type: "boolean", default: !1 },
       enableVRAudio: { type: "boolean", default: !1 },
       audioPath: { type: "string", default: "./sound/" },
@@ -8083,7 +8084,9 @@ class Dn extends yt {
     return !!(typeof e.name == "string" && (e.name.startsWith("MeasurementHelper") || e.name.includes("measurement") || e.name.includes("ghost")));
   }
   createUI() {
-    this.container === document.body ? document.documentElement.classList.add("below-viewer") : this.container.classList.add("below-viewer-container"), Object.keys(this.config.models).length > 1 && !this.ui.dropdown && this.createModelSelector(), this.config.showInfo && !this.ui.info && this.createInfoPanel(), this.config.showLoadingIndicator && !this.ui.loading && this.createLoadingIndicator(), this.config.showStatus && !this.ui.status && this.createStatusIndicator(), this.ui.dropdown && this.ui.dropdown.addEventListener("change", (t) => {
+    this.container === document.body ? document.documentElement.classList.add("below-viewer") : this.container.classList.add("below-viewer-container");
+    const e = Object.keys(this.config.models).length;
+    e > 1 && !this.ui.dropdown && this.createModelSelector(), this.config.enableDiveSystem && this.config.showDiveToggle && e <= 1 && !this.ui.diveToggle && this.createDiveModeToggle(), this.config.showInfo && !this.ui.info && this.createInfoPanel(), this.config.showLoadingIndicator && !this.ui.loading && this.createLoadingIndicator(), this.config.showStatus && !this.ui.status && this.createStatusIndicator(), this.ui.dropdown && this.ui.dropdown.addEventListener("change", (t) => {
       t.target.value && this.loadModel(t.target.value);
     });
   }
@@ -8116,6 +8119,28 @@ class Dn extends yt {
       p.className = "toggle-text", p.textContent = "Dive", d.appendChild(g), d.appendChild(p), n.appendChild(A), n.appendChild(d), o.appendChild(n), i.appendChild(o);
     }
     this.ui.dropdown = s, this.ui.selector = i;
+  }
+  createDiveModeToggle() {
+    const e = document.createElement("div");
+    e.className = "dive-mode-toggle-container", e.style.position = "fixed", e.style.top = "20px", e.style.right = "20px", e.style.zIndex = "1000";
+    const t = document.createElement("div");
+    t.className = "semantic-toggle";
+    const i = document.createElement("input");
+    i.type = "checkbox", i.id = "modeToggleSwitch", i.className = "mode-toggle__switch", t.appendChild(i);
+    const s = document.createElement("div");
+    s.className = "toggle-slider-bg", t.appendChild(s);
+    const o = document.createElement("div");
+    o.className = "toggle-option left";
+    const n = document.createElement("div");
+    n.className = "toggle-icon", n.textContent = "📋";
+    const r = document.createElement("div");
+    r.className = "toggle-text", r.textContent = "Survey", o.appendChild(n), o.appendChild(r);
+    const a = document.createElement("div");
+    a.className = "toggle-option right";
+    const A = document.createElement("div");
+    A.className = "toggle-icon", A.textContent = "🌊";
+    const c = document.createElement("div");
+    c.className = "toggle-text", c.textContent = "Dive", a.appendChild(A), a.appendChild(c), t.appendChild(o), t.appendChild(a), e.appendChild(t), this.container.appendChild(e), this.ui.diveToggle = e;
   }
   createLoadingIndicator() {
     const e = document.createElement("div");

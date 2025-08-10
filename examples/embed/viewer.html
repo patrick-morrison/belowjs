@@ -26,7 +26,7 @@
 </head>
 <body>
     <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
+        import { ModelViewer } from '/dist/belowjs.js';
 
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -66,13 +66,10 @@
         // Light measurement viewer: clean, bright, measurement-focused
         const viewer = new ModelViewer(viewerContainer, {
           models: models,
-          enableMeasurement: true,
           measurementTheme: 'light', // Use light theme for measurement panel
-          enableDiveSystem: true, // Enable dive system for survey lighting
           enableFullscreen: true,
           autoLoadFirst: true,
           showInfo: false,
-          showStatus: false,
           showLoadingIndicator: false,
           enableVRAudio: false, // Disable VR audio to prevent 404 errors
           viewerConfig: {
