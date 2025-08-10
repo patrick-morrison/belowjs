@@ -712,18 +712,17 @@ export class ModelViewer extends EventSystem {
     const parent = this.container;
 
 
-    const existing = parent.querySelector('#modelSelector') || document.getElementById('modelSelector');
+    const existing = parent.querySelector('.model-selector');
     if (existing && existing.parentElement) {
       existing.remove();
     }
 
     const selectorContainer = document.createElement('div');
-    selectorContainer.id = 'modelSelector';
-    selectorContainer.className = 'below-panel';
+    selectorContainer.className = 'model-selector below-panel';
     parent.appendChild(selectorContainer);
 
     const dropdown = document.createElement('select');
-    dropdown.id = 'modelDropdown';
+    dropdown.className = 'model-selector__dropdown';
     selectorContainer.appendChild(dropdown);
 
     if (this.config.enableDiveSystem) {
@@ -776,8 +775,7 @@ export class ModelViewer extends EventSystem {
   
   createLoadingIndicator() {
     const loading = document.createElement('div');
-    loading.id = 'loading';
-    loading.className = 'below-loading';
+  loading.className = 'loading-indicator below-loading';
     loading.textContent = 'Loading...';
     loading.style.display = 'none';
     this.container.appendChild(loading);

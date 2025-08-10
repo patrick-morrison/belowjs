@@ -116,7 +116,7 @@ export class VRCore {
         };
         this.vrButton = VRButton.createButton(this.renderer, sessionInit);
         this.vrButton.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
-        this.vrButton.className = 'vr-button-glass vr-button-available';
+  this.vrButton.className = 'vr-button--glass vr-button-available';
         this.vrButton.disabled = false;
         this.vrButton.style.cssText = `
           position: fixed !important;
@@ -142,7 +142,7 @@ export class VRCore {
 
 
     const applyStyles = () => {
-      const vrBtn = document.querySelector('button.vr-button-glass') || 
+  const vrBtn = document.querySelector('button.vr-button--glass') || 
                    document.querySelector('button') || 
                    this.vrButton;
       if (!vrBtn) return false;
@@ -156,8 +156,8 @@ export class VRCore {
       vrBtn.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
       
 
-      if (!vrBtn.classList.contains('vr-button-glass')) {
-        vrBtn.classList.add('vr-button-glass');
+      if (!vrBtn.classList.contains('vr-button--glass')) {
+        vrBtn.classList.add('vr-button--glass');
       }
       
 

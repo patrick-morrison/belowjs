@@ -3,7 +3,7 @@
  */
 
 /* Info Panel */
-#info {
+ .info-panel {
   position: absolute;
   top: 20px;
   left: 20px;
@@ -18,12 +18,12 @@
   transition: all 0.3s ease;
 }
 
-#info:hover {
+ .info-panel:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-#infoTitle {
+ .info-panel__title {
   color: #ffffff;
   font-size: 22px;
   font-weight: 800;
@@ -37,21 +37,21 @@
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
 
-#infoControls {
+ .info-panel__controls {
   margin-top: 8px;
   font-size: 13px;
   line-height: 1.5;
   color: #b0b0b0;
 }
 
-#infoControls strong {
+ .info-panel__controls strong {
   color: var(--below-text-color);
   font-weight: 600;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  #info {
+  .info-panel {
     top: 10px;
     left: 10px;
     padding: 16px;

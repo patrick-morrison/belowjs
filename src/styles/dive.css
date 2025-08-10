@@ -1,7 +1,8 @@
 /* Dive System UI Styles */
 
 /* Mode Toggle Container */
-#modeToggleContainer {
+/* Mode Toggle Container (BEM) */
+.mode-toggle-container {
   display: flex;
   flex-direction: column;
   gap: 20px;

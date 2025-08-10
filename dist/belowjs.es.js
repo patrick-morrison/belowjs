@@ -3821,7 +3821,7 @@ class tn {
             "layers"
           ]
         };
-        this.vrButton = Ee.createButton(this.renderer, e), this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', this.vrButton.className = "vr-button-glass vr-button-available", this.vrButton.disabled = !1, this.vrButton.style.cssText = `
+        this.vrButton = Ee.createButton(this.renderer, e), this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', this.vrButton.className = "vr-button--glass vr-button-available", this.vrButton.disabled = !1, this.vrButton.style.cssText = `
           position: fixed !important;
           bottom: 80px !important;
           left: 50% !important;
@@ -3840,8 +3840,8 @@ class tn {
   }
   styleVRButton() {
     const e = () => {
-      const t = document.querySelector("button.vr-button-glass") || document.querySelector("button") || this.vrButton;
-      return t ? (t.style.display = "flex", t.style.visibility = "visible", t.style.opacity = "1", t.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', t.classList.contains("vr-button-glass") || t.classList.add("vr-button-glass"), t.disabled = !1, t.classList.remove("vr-generic-disabled"), !0) : !1;
+      const t = document.querySelector("button.vr-button--glass") || document.querySelector("button") || this.vrButton;
+      return t ? (t.style.display = "flex", t.style.visibility = "visible", t.style.opacity = "1", t.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', t.classList.contains("vr-button--glass") || t.classList.add("vr-button--glass"), t.disabled = !1, t.classList.remove("vr-generic-disabled"), !0) : !1;
     };
     e() || (setTimeout(e, 100), setTimeout(e, 300), setTimeout(e, 500));
   }
@@ -6884,7 +6884,7 @@ class yn {
   }
   createMeasurementPanel() {
     const e = document.createElement("div");
-    e.id = "measurementPanel", e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
+    e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
       this.renderer && this.renderer.xr && this.renderer.xr.isPresenting ? (this.measurementSystemEnabled = !this.measurementSystemEnabled, this.measurementSystemEnabled ? (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0), this.resetGhostSpherePositions()) : (this.clearUnifiedMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1)), this.updateMeasurementPanel()) : (this.desktopMeasurementMode = !this.desktopMeasurementMode, this.desktopMeasurementMode || this.clearUnifiedMeasurement(), this.updateMeasurementPanel());
     }), (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement || document.body).appendChild(e), this.measurementPanel = e;
   }
@@ -8081,12 +8081,12 @@ class Dn extends yt {
     });
   }
   createModelSelector() {
-    const e = this.container, t = e.querySelector("#modelSelector") || document.getElementById("modelSelector");
+    const e = this.container, t = e.querySelector(".model-selector");
     t && t.parentElement && t.remove();
     const i = document.createElement("div");
-    i.id = "modelSelector", i.className = "below-panel", e.appendChild(i);
+    i.className = "model-selector below-panel", e.appendChild(i);
     const s = document.createElement("select");
-    if (s.id = "modelDropdown", i.appendChild(s), this.config.enableDiveSystem) {
+    if (s.className = "model-selector__dropdown", i.appendChild(s), this.config.enableDiveSystem) {
       const o = document.createElement("div");
       o.id = "modeToggleContainer";
       const n = document.createElement("div");
@@ -8112,7 +8112,7 @@ class Dn extends yt {
   }
   createLoadingIndicator() {
     const e = document.createElement("div");
-    e.id = "loading", e.className = "below-loading", e.textContent = "Loading...", e.style.display = "none", this.container.appendChild(e), this.ui.loading = e;
+    e.className = "loading-indicator below-loading", e.textContent = "Loading...", e.style.display = "none", this.container.appendChild(e), this.ui.loading = e;
   }
   createStatusIndicator() {
     const e = document.createElement("div");

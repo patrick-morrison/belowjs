@@ -960,7 +960,7 @@ export class MeasurementSystem {
 
   createMeasurementPanel() {
     const panel = document.createElement('div');
-    panel.id = 'measurementPanel';
+  // panel.id removed for BEM compliance
     panel.className = `measurement-panel${this.theme === 'light' ? ' light-theme' : ''}`;
     
     panel.addEventListener('click', () => {

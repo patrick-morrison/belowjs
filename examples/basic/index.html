@@ -121,14 +121,23 @@
         });
         
         // Handle model selection changes
-        const dropdown = document.getElementById('modelDropdown');
-        dropdown.addEventListener('change', (event) => {
-          const selectedModelKey = event.target.value;
-          if (selectedModelKey !== currentModel) {
-            currentModel = selectedModelKey;
-            viewer.loadModel(selectedModelKey);
+        // Use new BEM class for model selector dropdown
+        function attachDropdownListener() {
+          const dropdown = document.querySelector('.model-selector__dropdown');
+          if (dropdown) {
+            dropdown.addEventListener('change', (event) => {
+              const selectedModelKey = event.target.value;
+              if (selectedModelKey !== currentModel) {
+                currentModel = selectedModelKey;
+                viewer.loadModel(selectedModelKey);
+              }
+            });
+          } else {
+            // Retry after a short delay if dropdown not yet in DOM
+            setTimeout(attachDropdownListener, 100);
           }
-        });
+        }
+        attachDropdownListener();
     </script>
 </body>
 </html>
