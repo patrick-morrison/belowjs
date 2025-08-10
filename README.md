@@ -1,184 +1,127 @@
 # BelowJS
 
-A modular Three.js library for creating 3D model viewers with WebXR support and underwater exploration capabilities. Designed for underwater shipwreck exploration applications.
-
-## Features
-
-- **VR Support**: WebXR implementation with Quest device optimizations and locomotion systems
-- **VR Audio System**: Optional immersive audio with movement sounds (can be disabled)
-- **Measurement System**: Distance measurement tools for both VR and desktop environments
-- **Dive/Survey Modes**: Configurable lighting and particle systems for underwater simulation
-- **VR Comfort**: Motion sickness mitigation through teleportation and comfort settings
-- **Modular Architecture**: Composable API with configurable component systems
-- **UI Themes**: Dark and light theme support with customizable interfaces
-- **Interactive Controls**: Camera controls with focus targeting and orbit navigation
-- **Mobile Support**: Touch-optimized controls for mobile devices
-- **Performance Optimized**: Efficient model loading and rendering pipeline
-
-## Installation
-
-### Build Requirements
-Build the production bundles:
-
-```bash
-npm run build
-```
-
-This generates:
-- **CSS Bundle**: `dist/belowjs.css` (19.7 kB) - Complete stylesheet
-- **ES Module**: `dist/belowjs.es.js` (400.9 kB) - Modern browser support  
-- **UMD Bundle**: `dist/belowjs.umd.js` (311.5 kB) - Script tag compatibility
-
-### Future NPM Installation
-```bash
-npm install belowjs  # Not yet published
-```
-
-## Quick Start
-
-### ES Modules with Production CSS
+A Three.js-based library for viewing 3D models with WebXR support and measurement tools. Built specifically for underwater archaeology but works with any GLB/GLTF models.
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>3D Model Viewer</title>
-    <link rel="stylesheet" href="/dist/belowjs.css">
-</head>
-<body>
-    <script type="module">
-        import { ModelViewer } from '/dist/belowjs.es.js';
-
-        const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        document.body.appendChild(container);
-
-        const viewer = new ModelViewer(container, {
-            models: {
-                'model-key': {
-                    url: 'path/to/model.glb',
-                    name: 'Model Name',
-                    initialPositions: {
-                        desktop: {
-                            camera: { x: 10, y: 5, z: 15 },
-                            target: { x: 0, y: 0, z: 0 }
-                        },
-                        vr: {
-                            dolly: { x: 0, y: 2, z: 10 },
-                            rotation: { x: 0, y: 0, z: 0 }
-                        }
-                    }
-                }
-            },
-            autoLoadFirst: true,
-            enableVR: true,
-            enableVRAudio: true,             // Optional VR audio system (default: true)
-            enableMeasurement: true,
-            enableDiveSystem: true,
-            enableVRComfortGlyph: true
-        });
-    </script>
-</body>
-</html>
+<link rel="stylesheet" href="/dist/belowjs.css">
+<script type="module">
+  import { ModelViewer } from '/dist/belowjs.es.js';
+  
+  new ModelViewer(document.body, {
+    models: { 'wreck': { url: 'model.glb', name: 'Historic Wreck' } },
+    enableVR: true,
+    enableMeasurement: true,
+    autoLoadFirst: true
+  });
+</script>
 ```
 
-### Development Workflow
+This gives you a complete 3D viewer with VR support, precision measurements, and underwater lighting effects.
 
-1. Modify source files in `/src/`
-2. Build production bundles: `npm run build`
-3. Test with examples: `npm run dev`
+## What it does
 
-Examples use production builds, so rebuild after source changes.
-
-## Documentation
-
-- [API Reference](docs/API.md) - Complete API documentation
-- [Development Plan](BELOWJS_LIBRARY_PLAN.md) - Architecture and roadmap
-- [Examples](examples/) - Implementation examples
+- Loads and displays GLB/GLTF 3D models in a web browser
+- Works with VR headsets (Quest 2, Quest 3) through WebXR
+- Provides measurement tools for both desktop and VR environments
+- Includes underwater lighting simulation and particle effects
+- Supports multiple models with dropdown switching
+- Can be embedded in iframes with URL parameter configuration
 
 ## Examples
 
-- [Basic](examples/basic/) - Full-featured viewer implementation with model selector and all systems
-- [Drag & Drop](examples/dragdrop/) - File-focused interface with drag & drop, measurement tools, and mode toggle
-- [Embed](examples/embed/) - Embeddable measurement viewer with URL parameter support
+Three different implementations are included:
 
-### URL Parameter Integration
-
-The Embed example includes URL parameter support for easy website integration:
-
-```html
-<iframe src="viewer.html?model=path/to/model.glb&name=Model%20Name&credit=Attribution"></iframe>
+```bash
+git clone https://github.com/patrick-morrison/belowjs
+cd belowjs
+npm install && npm run build
 ```
 
-**Supported Parameters:**
-- `model` - Path to GLB model file
-- `name` - Display name for the model
-- `credit` - Attribution text (optional)
-- `cx`, `cy`, `cz` - Camera position coordinates
-- `tx`, `ty`, `tz` - Camera target coordinates  
-- `bg` - Background color (hex format: `%23ffffff`)
+- `npm run dev` — Full-featured viewer with model selection and all systems enabled
+- `npm run dev:dragdrop` — File loader with drag-and-drop GLB support
+- `npm run dev:embed` — Lightweight viewer designed for iframe embedding
 
-**Example with full configuration:**
-```html
-<iframe 
-    src="viewer.html?model=wreck.glb&name=Historic%20Wreck&credit=Museum&cx=10&cy=5&cz=15&tx=0&ty=0&tz=0&bg=%23f8f9fa"
-    width="100%" 
-    height="500px" 
-    frameborder="0">
-</iframe>
+## Installation
+
+Currently available via git clone:
+
+```bash
+git clone https://github.com/patrick-morrison/belowjs
+cd belowjs
+npm install
+npm run build
 ```
 
-This makes the viewer highly extensible for embedding different models across website pages without code changes.
+This builds the distribution files:
+- `belowjs.css` (21K) — Complete stylesheet
+- `belowjs.es.js` (412K) — ES modules version  
+- `belowjs.umd.js` (310K) — Universal module format
 
-## Configuration Options
+NPM package will be available once the API is finalized.
 
-### VR Audio System
+## Usage
 
-BelowJS includes an optional VR audio system that provides immersive movement sounds. This can be disabled to prevent 404 errors when audio files are not available:
-
+### Basic Setup
 ```javascript
-const viewer = new ModelViewer(container, {
-  models: models,
-  enableVR: true,
-  enableVRAudio: false,        // Disable VR audio system
-  autoLoadFirst: true
+import { ModelViewer } from '/dist/belowjs.es.js';
+
+new ModelViewer('#container', {
+  models: { 'ship': { url: 'model.glb', name: 'Historic Ship' } }
 });
 ```
 
-**When to disable VR audio:**
-- Measurement-focused viewers that don't need audio
-- Embedding scenarios where audio files are not available
-- Custom audio implementations
-- Reducing bundle size and dependencies
+### With Camera Positioning
+```javascript
+new ModelViewer(document.body, {
+  models: {
+    'wreck': {
+      url: 'shipwreck.glb',
+      name: 'Historic Shipwreck',
+      initialPositions: {
+        desktop: {
+          camera: { x: 10, y: 5, z: 15 },
+          target: { x: 0, y: 0, z: 0 }
+        },
+        vr: {
+          dolly: { x: 0, y: 2, z: 10 },
+          rotation: { x: 0, y: 0, z: 0 }
+        }
+      }
+    }
+  },
+  enableVR: true,
+  enableMeasurement: true,
+  enableDiveSystem: true
+});
+```
 
-**Required audio files (when enabled):**
-- `dpv.ogg` - Base movement sound
-- `dpvhigh.ogg` - High-speed movement sound
-- `vrambience.ogg` - Background ambience
+### URL Parameter Integration
+The embed example supports URL parameters for dynamic configuration:
 
-**Default behavior:** VR audio is enabled by default when VR is enabled.
+```html
+<iframe 
+  src="viewer.html?model=wreck.glb&name=Historic%20Wreck&cx=10&cy=5&cz=15"
+  width="800" height="600">
+</iframe>
+```
+
+## Documentation
+
+See [docs/API.md](docs/API.md) for complete API documentation and configuration options.
 
 ## Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+npm run build    # Build distribution files
+npm run dev      # Start development server
 ```
+
+The examples use production builds from `/dist/`, so you need to build before testing changes.
 
 ## License
 
-GPLv3 License - see LICENSE file for details.
+GPL-3.0-or-later — See [LICENSE](LICENSE) file.
 
-## Credits
+---
 
-Developed for underwater shipwreck exploration applications. Models courtesy of WreckSploration.
+Built for underwater archaeology. Models courtesy of [WreckSploration](https://wrecksploration.com).

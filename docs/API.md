@@ -1,8 +1,8 @@
 # BelowJS API Documentation
 
-**A comprehensive guide to the BelowJS 3D model viewer library with VR support and underwater exploration features**
+**API reference for the BelowJS 3D model viewer library**
 
-*Version 0.1.3*
+*Version 0.1.5*
 
 ---
 
@@ -26,9 +26,7 @@
 
 ## Quick Start
 
-### Production Usage (All Examples Use This)
-
-BelowJS examples use ES modules with production CSS for optimal performance:
+Basic usage with ES modules:
 
 ```html
 <!DOCTYPE html>
@@ -36,31 +34,41 @@ BelowJS examples use ES modules with production CSS for optimal performance:
 <head>
     <meta charset="UTF-8">
     <title>My 3D Viewer</title>
-    
-    <!-- BelowJS Production CSS Bundle -->
     <link rel="stylesheet" href="/dist/belowjs.css">
 </head>
 <body>
     <script type="module">
         import { ModelViewer } from '/dist/belowjs.es.js';
         
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.inset = '0';
+        document.body.appendChild(container);
+        
         const viewer = new ModelViewer(container, {
-            models: models,
-            enableVR: true,
-            enableMeasurement: true,
-            enableDiveSystem: true
+            models: {
+                'wreck': {
+                    url: 'model.glb',
+                    name: 'Shipwreck'
+                }
+            },
+            enableVR: true
         });
     </script>
 </body>
 </html>
 ```
 
-### ES Module Import Pattern
-
-This is the recommended approach used by all examples:
+### Model Configuration
 
 ```javascript
-import { ModelViewer } from '/src/index.js';
+import { ModelViewer } from '/dist/belowjs.es.js';
+
+// Create viewer container first
+const container = document.createElement('div');
+container.style.position = 'fixed';
+container.style.inset = '0';
+document.body.appendChild(container);
 
 // Define your models with VR positioning
 const models = {
@@ -81,34 +89,26 @@ const models = {
   }
 };
 
-// Create viewer container
-const viewerContainer = document.createElement('div');
-viewerContainer.style.position = 'fixed';
-viewerContainer.style.inset = '0';
-viewerContainer.style.zIndex = '0';
-document.body.appendChild(viewerContainer);
-
 // Create VR-enabled viewer
-const viewer = new ModelViewer(viewerContainer, {
+const viewer = new ModelViewer(container, {
   models: models,
-  autoLoadFirst: true,
-  enableVR: true // Enable VR support
+  enableVR: true
 });
 
 // VR event handling
 viewer.on('vr-session-start', () => {
-  console.log('VR session started');
+  // Handle VR session start
 });
 
 viewer.on('vr-session-end', () => {
-  console.log('VR session ended');
+  // Handle VR session end
 });
 ```
 
 ### Basic Setup without VR
 
 ```javascript
-import { ModelViewer } from '/src/index.js';
+import { ModelViewer } from '/dist/belowjs.es.js';
 
 const models = {
   'my-model': {
@@ -120,9 +120,7 @@ const models = {
 const viewer = new ModelViewer(document.body, {
   models: models,
   autoLoadFirst: true,
-  viewerConfig: {
-    vr: { enabled: false } // Disable VR support
-  }
+  enableVR: false // Disable VR support
 });
 ```
 
@@ -168,7 +166,6 @@ const viewer = new ModelViewer(viewerContainer, {
       }
     }
   },
-  autoLoadFirst: true,
   showInfo: true
 });
 ```
@@ -177,60 +174,26 @@ const viewer = new ModelViewer(viewerContainer, {
 
 ## VR Support
 
-BelowJS includes comprehensive WebXR support with Quest-optimized controls and immersive VR navigation.
+WebXR support for VR headsets.
 
 ### VR Features
 
-- **WebXR Compatible**: Works with Quest 2, Quest 3, and other WebXR headsets
-- **Smooth Movement**: Thumbstick-based movement with speed ramping
-- **Controller Integration**: Full controller support with haptic feedback
-- **Automatic Optimization**: Device-specific performance optimizations
-- **Mode Toggle**: Switch between Survey and Dive modes in VR
-- **Original Patterns**: Preserves the exact VR feel from the original implementation
+- Works with Quest 2, Quest 3, and other WebXR headsets
+- Thumbstick movement and turning
+- Controller button support
+- Quest 2 performance optimizations
+- Survey/Dive mode switching via controller buttons
 
-### VR Configuration
+### Enabling VR
 
 ```javascript
-const viewer = new ModelViewer(document.body, {
-  models: models,
-  viewerConfig: {
-    vr: {
-      enabled: true,             // Enable VR support
-      
-      // Movement settings (original patterns preserved)
-      movement: {
-        moveSpeed: 2.0,          // m/s base movement speed
-        turnSpeed: 1.5,          // rad/s turn speed
-        flySpeed: 1.0            // m/s vertical movement
-      },
-      
-      // Smooth ramping for organic feel
-      ramping: {
-        speedRampRate: 3.0,      // Speed transition rate
-        boostRampRate: 6.0       // Boost transition rate
-      },
-      
-      // Controller configuration
-      controllers: {
-        leftHand: {
-          movement: true,                // Horizontal movement
-          modeToggleButtons: [4, 5]      // X, Y buttons
-        },
-        rightHand: {
-          turning: true,                 // Horizontal turning
-          verticalMovement: true,        // Vertical movement
-          modeToggleButtons: [4, 5]      // A, B buttons
-        },
-        gripBoostMultiplier: 3.0         // 3x speed when gripping
-      },
-      
-      // Quest optimizations
-      optimization: {
-        quest2RenderDistance: 20,        // Limit for Quest 2
-        autoDetectDevice: true           // Auto-detect and optimize
-      }
-    }
-  }
+const viewer = new ModelViewer(container, {
+  models: {
+    'model': { url: 'model.glb', name: 'Model' }
+  },
+  enableVR: true,              // Enable VR support
+  enableVRAudio: true,         // Enable VR movement audio (optional)
+  audioPath: './sound/'        // Path to VR audio files
 });
 ```
 
@@ -279,52 +242,44 @@ const models = {
 ```javascript
 // VR session management
 viewer.on('vr-session-start', () => {
-  console.log('User entered VR');
   // Hide desktop UI, prepare VR interface
 });
 
 viewer.on('vr-session-end', () => {
-  console.log('User exited VR');
   // Restore desktop UI
 });
 
 // VR mode changes
 viewer.on('vr-mode-toggle', () => {
-  console.log('User toggled dive/survey mode via controller');
   // Handle mode-specific changes
 });
 
 // VR movement tracking
 viewer.on('vr-movement-start', () => {
-  console.log('User started moving in VR');
   // Start movement audio, effects
 });
 
 viewer.on('vr-movement-stop', () => {
-  console.log('User stopped moving in VR');
   // Stop movement audio, effects
 });
 
 viewer.on('vr-movement-update', ({ speed, boostLevel }) => {
-  console.log(`Movement speed: ${speed}, boost: ${boostLevel}`);
   // Update audio volume, visual effects based on speed
+  // Access speed and boostLevel values
 });
 ```
 
 ### VR Button Styling
 
-BelowJS includes a glassmorphism VR button with shimmer effect:
+BelowJS includes a restyled VR button:
 
 ```css
-/* VR button with glassmorphism and shimmer effect */
 .vr-button-glass {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 16px 32px;
-  
-  /* Tasteful shimmer animation */
   position: relative;
   overflow: hidden;
 }
@@ -346,12 +301,14 @@ BelowJS includes a glassmorphism VR button with shimmer effect:
 BelowJS includes an optional VR audio system that provides immersive sound effects during VR movement:
 
 ```javascript
+const container = document.body; // Or your container element  
+const models = { 'model': { url: 'model.glb', name: 'Model' } };
+
 const viewer = new ModelViewer(container, {
   models: models,
   enableVR: true,
   enableVRAudio: true,        // Enable VR audio (default: true)
-  audioPath: './sound/',     // Path to VR audio files
-  autoLoadFirst: true
+  audioPath: './sound/'      // Path to VR audio files
 });
 ```
 
@@ -364,11 +321,13 @@ const viewer = new ModelViewer(container, {
 Set `enableVRAudio: false` to disable audio loading entirely, preventing 404 errors when audio files are not available:
 
 ```javascript
+const container = document.body; // Or your container element
+const models = { 'model': { url: 'model.glb', name: 'Model' } };
+
 const viewer = new ModelViewer(container, {
   models: models,
   enableVR: true,
-  enableVRAudio: false,       // Disable VR audio system
-  autoLoadFirst: true
+  enableVRAudio: false        // Disable VR audio system
 });
 ```
 
@@ -385,13 +344,11 @@ BelowJS automatically detects VR devices and applies optimizations:
 // Quest 2 Detection and Optimization
 if (isQuest2) {
   camera.far = 20;  // Limit render distance for performance
-  console.log('Quest 2 optimizations applied');
 }
 
 // Quest 3 Detection
 if (isQuest3) {
   // Full render distance maintained
-  console.log('Quest 3 detected - full quality mode');
 }
 ```
 
@@ -404,12 +361,12 @@ const vrManager = viewer.getVRManager();
 
 // Check VR state
 if (vrManager.isVRPresenting) {
-  console.log('Currently in VR mode');
+  // Handle VR mode
 }
 
 // Access controllers
 if (vrManager.controller1 && vrManager.controller2) {
-  console.log('Both controllers connected');
+  // Both controllers are connected
 }
 
 // Manual VR positioning
@@ -441,8 +398,7 @@ BelowJS includes a comprehensive measurement system for both VR and desktop envi
 const viewer = new ModelViewer(container, {
   models: models,
   enableMeasurement: true,          // Enable the measurement system
-  measurementTheme: 'dark',         // 'dark' or 'light' theme
-  autoLoadFirst: true
+  measurementTheme: 'dark'          // 'dark' or 'light' theme
 });
 ```
 
@@ -470,14 +426,14 @@ const measurementSystem = viewer.measurementSystem;
 measurementSystem.enable();
 measurementSystem.disable();
 
-// Clear all measurements
-measurementSystem.clearMeasurements();
+// Clear all measurements (clears unified system and legacy systems)
+measurementSystem.clear();
 
 // Set raycast targets (automatically done when models load)
 measurementSystem.setRaycastTargets(model);
 
 // Check if measurement mode is active
-const isActive = measurementSystem.isEnabled();
+const isActive = measurementSystem.desktopMeasurementMode;
 ```
 
 ---
@@ -499,8 +455,7 @@ The Dive System provides immersive underwater exploration with dynamic lighting,
 ```javascript
 const viewer = new ModelViewer(container, {
   models: models,
-  enableDiveSystem: true,           // Enable dive system
-  autoLoadFirst: true
+  enableDiveSystem: true            // Enable dive system
 });
 ```
 
@@ -648,19 +603,16 @@ Press the button or hit `Esc` to exit fullscreen.
   
   // Feature enablement
   enableVR: false,              // Enable VR support
-  enableVRAudio: true,          // Enable VR audio system (default: true)
-  enableControls: true,         // Enable camera controls
-  enableInfo: true,             // Enable info panel display
-  showStats: false,             // Show performance stats
-  autoRotate: false,            // Auto-rotate camera
+  enableVRAudio: true,          // Enable VR audio system (requires audio files)
   enableMeasurement: false,     // Enable measurement system
   measurementTheme: 'dark',     // Measurement UI theme ('dark' or 'light')
+  showMeasurementLabels: false, // Show measurement labels in desktop mode (always shown in VR)
   enableVRComfortGlyph: false,  // Enable VR comfort toggle UI
   enableDiveSystem: false,      // Enable dive/survey mode system
   enableFullscreen: false,     // Show fullscreen button
   audioPath: './sound/',       // VR audio file path
   
-  // Model loading
+  // Model loading and positioning  
   initialModel: 'model-key',    // Key of model to load initially
   initialPositions: {},         // Initial camera positions for first model
   
@@ -679,8 +631,7 @@ Press the button or hit `Esc` to exit fullscreen.
   // Advanced configuration
   viewerConfig: {               // Direct BelowViewer configuration
     scene: {
-      background: { type: 'color', value: '#ffffff' },
-      backgroundColor: '#ffffff' // Alternative syntax
+      background: { type: 'color', value: '#ffffff' }
     },
     camera: {
       fov: 65,
@@ -775,16 +726,16 @@ Fired when the viewer is fully initialized.
 
 ```javascript
 viewer.on('initialized', () => {
-  console.log('Viewer ready!');
+  // Viewer is ready for use
 });
 ```
 
-#### `model-loading`
+#### `model-load-start`
 Fired when a model starts loading.
 
 ```javascript
-viewer.on('model-loading', ({ modelKey, config }) => {
-  console.log(`Loading ${config.name}...`);
+viewer.on('model-load-start', ({ url }) => {
+  // Handle loading start for URL
 });
 ```
 
@@ -793,17 +744,18 @@ Fired when a model finishes loading successfully.
 
 ```javascript
 viewer.on('model-loaded', ({ modelKey, model, config }) => {
-  console.log(`${config.name} loaded successfully`);
-  console.log('Model object:', model);
+  // Handle successful load: config.name
+  // Access loaded model object
+});
 });
 ```
 
-#### `model-error`
+#### `model-load-error`
 Fired when a model fails to load.
 
 ```javascript
-viewer.on('model-error', ({ modelKey, error, config }) => {
-  console.error(`Failed to load ${config.name}:`, error);
+viewer.on('model-load-error', ({ url, error }) => {
+  console.error(`Failed to load ${url}:`, error);
 });
 ```
 
@@ -812,16 +764,17 @@ Fired when switching between models.
 
 ```javascript
 viewer.on('model-switched', ({ modelKey, model, config }) => {
-  console.log(`Switched to ${config.name}`);
+  // Handle model switch: config.name
 });
 ```
 
-#### `progress`
+#### `model-load-progress`
 Fired during model loading to report progress.
 
 ```javascript
-viewer.on('progress', ({ loaded, total, percentage }) => {
-  console.log(`Loading: ${percentage}%`);
+viewer.on('model-load-progress', ({ url, progress }) => {
+  // Update loading UI: progress.loaded, progress.total
+  const percentage = Math.round(progress.loaded / progress.total * 100);
 });
 ```
 
@@ -830,9 +783,11 @@ Fired when the camera focuses on a point (via double-click or programmatic call)
 
 ```javascript
 viewer.on('focus', ({ point, intersect, distance }) => {
-  console.log('Camera focused on:', point);
+  // Handle camera focus: point coordinates
+  // Note: intersect only present for double-click focus
+  // distance only present for programmatic focus
   if (intersect) {
-    console.log('Clicked object:', intersect.object);
+    // Access clicked object: intersect.object
   }
 });
 ```
@@ -842,7 +797,7 @@ Fired when the camera is reset to its initial position.
 
 ```javascript
 viewer.on('camera-reset', ({ modelKey, position }) => {
-  console.log(`Camera reset for ${modelKey}`);
+  // Handle camera reset for modelKey
 });
 ```
 
@@ -866,13 +821,6 @@ Get the currently loaded model key.
 const currentKey = viewer.getCurrentModel();
 ```
 
-#### `getModels()`
-Get all available model configurations.
-
-```javascript
-const models = viewer.getModels();
-```
-
 #### `clearModels()`
 Remove all currently loaded models. Useful when loading a model from an arbitrary source.
 
@@ -892,13 +840,6 @@ URL.revokeObjectURL(url);
 ```
 
 ### Scene Control
-
-#### `focusModel()`
-Focus the camera on the current model.
-
-```javascript
-viewer.focusModel();
-```
 
 #### `resetCamera()`
 Reset camera to initial position.
@@ -925,21 +866,14 @@ viewer.focusOn(point, 15);
 
 ### Interaction
 
-#### Double-click to Focus ✅ COMPLETE
-The ModelViewer provides a **production-ready** double-click to focus system that matches the original BelowJS behavior exactly:
+#### Double-click to Focus
+Double-click any part of a 3D model to focus the camera on that point.
 
-- **Fast Detection**: Uses 300ms custom timing (faster than browser default)
-- **Zoom Preservation**: Maintains exact camera distance from focus point
-- **Smooth Animation**: 1000ms ease-out cubic animation, identical to original
-- **Drag Prevention**: Ignores clicks during camera drag operations
-- **Interruptible**: Animation cancels when user starts dragging/rotating
-- **VR Safe**: Automatically disabled when in VR mode
-
-**Technical Details:**
-- Uses manual click event detection with 300ms double-click threshold
-- Raycasting against scene meshes to find intersection points
-- Maintains camera-to-target offset for consistent zoom level
-- Event capture prevents interference with OrbitControls
+- Uses 300ms double-click detection
+- Maintains current camera distance from the target
+- Smooth camera animation to the new focus point
+- Disabled during camera drag operations
+- Automatically disabled in VR mode
 
 ```javascript
 // Listen for focus events
@@ -951,21 +885,9 @@ viewer.on('focus', ({ point, intersect }) => {
 
 ---
 
-## Focus System ✅ COMPLETE
+## Camera Focus
 
-The BelowJS focus system provides intuitive camera navigation that matches the original implementation exactly.
-
-### User Interaction
-
-**Double-Click Focus:**
-- Double-click any part of the 3D model to smoothly focus on that point
-- Camera maintains current zoom distance while moving to the new target
-- Fast 300ms detection for responsive feel
-- Automatically prevented during drag operations
-
-### Programmatic Control
-
-**Manual Focus:**
+### Programmatic Focus
 ```javascript
 // Focus on a specific point
 const targetPoint = new THREE.Vector3(10, 5, -20);
@@ -989,16 +911,6 @@ viewer.resetCamera();
 ### Events
 
 ```javascript
-// Focus started
-viewer.on('focus-start', ({ target, startPosition, newPosition }) => {
-  console.log('Animation started to:', target);
-});
-
-// Focus completed
-viewer.on('focus-complete', ({ target, position }) => {
-  console.log('Animation completed at:', position);
-});
-
 // Focus point selected
 viewer.on('focus', ({ point, intersect }) => {
   console.log('User focused on:', point);
@@ -1023,7 +935,7 @@ BelowJS supports both dark and light themes with proper background colors.
 ### Dark Theme (Default)
 
 ```html
-<link rel="stylesheet" href="/src/styles/theme.css">
+<link rel="stylesheet" href="/dist/belowjs.css">
 ```
 
 Features:
@@ -1035,7 +947,8 @@ Features:
 ### Light Theme
 
 ```html
-<link rel="stylesheet" href="/src/styles/theme-light.css">
+<link rel="stylesheet" href="/dist/belowjs.css">
+<!-- Note: Theme selection is done via CSS classes or configuration, not separate stylesheets -->
 ```
 
 Features:
@@ -1246,11 +1159,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BelowJS - Full Featured Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme.css">
-    <link rel="stylesheet" href="/src/styles/vr.css">
-    <link rel="stylesheet" href="/src/vr/ui/vrui.css">
-    <link rel="stylesheet" href="/src/styles/measurement.css">
-    <link rel="stylesheet" href="/src/styles/dive.css">
+    <link rel="stylesheet" href="/dist/belowjs.css">
 </head>
 <body>
     <script type="module">
@@ -1346,7 +1255,7 @@ BelowJS automatically creates UI elements, but you can provide custom HTML struc
 <head>
     <meta charset="UTF-8">
     <title>Light Theme Viewer</title>
-    <link rel="stylesheet" href="/src/styles/theme-light.css">
+    <link rel="stylesheet" href="/dist/belowjs.css">
 </head>
 <body>
     <script type="module">
@@ -1433,10 +1342,8 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
 <head>
     <meta charset="UTF-8">
     <title>Dark Minimal Viewer</title>
-    <!-- BelowJS Core Styling -->
-    <link rel="stylesheet" href="/src/styles/theme.css">
-    <link rel="stylesheet" href="/src/styles/vr.css">
-    <link rel="stylesheet" href="/src/styles/dive.css">
+    <!-- BelowJS Production Bundle -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
     
     <style>
         body, html {
@@ -1491,9 +1398,6 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
         // Create viewer container
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
-        viewerContainer.style.top = '0';
-        viewerContainer.style.left = '0';
-        viewerContainer.style.position = 'fixed';
         viewerContainer.style.inset = '0';
         viewerContainer.style.zIndex = '0';
         document.body.appendChild(viewerContainer);
@@ -1520,7 +1424,7 @@ A measurement-focused viewer that can be embedded with URL parameters and disabl
 ### Multiple Models Example
 
 ```javascript
-import { ModelViewer } from '/src/index.js';
+import { ModelViewer } from '/dist/belowjs.es.js';
 
 const models = {
     'ship1': {
@@ -1642,140 +1546,7 @@ viewer.on('progress', ({ loaded, total, percentage }) => {
 });
 ```
 
-### Integration with Other Libraries
 
-```javascript
-// Example: Integration with a UI framework
-import { ModelViewer } from '/src/index.js';
-
-class ViewerComponent {
-    constructor(element, props) {
-        this.element = element;
-        this.props = props;
-        this.viewer = null;
-        this.init();
-    }
-
-    init() {
-        this.viewer = new ModelViewer(this.element, {
-            models: this.props.models,
-            autoLoadFirst: this.props.autoLoad !== false,
-            showInfo: this.props.showInfo !== false
-        });
-
-        this.setupEventHandlers();
-    }
-
-    setupEventHandlers() {
-        this.viewer.on('model-loaded', (data) => {
-            if (this.props.onModelLoaded) {
-                this.props.onModelLoaded(data);
-            }
-        });
-
-        this.viewer.on('model-error', (data) => {
-            if (this.props.onError) {
-                this.props.onError(data);
-            }
-        });
-        
-        this.viewer.on('focus', ({ point }) => {
-            console.log('User focused on point:', point);
-        });
-    }
-
-    loadModel(modelKey) {
-        return this.viewer.loadModel(modelKey);
-    }
-
-    dispose() {
-        if (this.viewer) {
-            this.viewer.dispose();
-            this.viewer = null;
-        }
-    }
-}
-
-// Usage
-const component = new ViewerComponent(document.getElementById('viewer'), {
-    models: myModels,
-    autoLoad: true,
-    showInfo: true,
-    onModelLoaded: (data) => console.log('Component: Model loaded', data),
-    onError: (error) => console.error('Component: Error', error)
-});
-```
-
-### Focus and Camera Control Examples
-
-```javascript
-import { ModelViewer } from '/src/index.js';
-import * as THREE from 'three';
-
-const viewer = new ModelViewer(container, {
-    models: models,
-    autoLoadFirst: true
-});
-
-// Listen for focus events from double-clicking
-viewer.on('focus', ({ point, intersect }) => {
-    console.log('User focused on:', point);
-    
-    // Show a UI marker at the focused point
-    showMarker(point);
-    
-    // Display information about the clicked object
-    if (intersect && intersect.object.userData.name) {
-        showTooltip(intersect.object.userData.name);
-    }
-});
-
-// Programmatically focus on specific points
-viewer.on('model-loaded', ({ model }) => {
-    // Focus on the center of the model after loading
-    setTimeout(() => {
-        const center = new THREE.Vector3(0, 0, 0);
-        viewer.focusOn(center);
-    }, 1000);
-});
-
-// Create interactive hotspots
-const hotspots = [
-    { name: 'Engine Room', position: new THREE.Vector3(10, -5, 0) },
-    { name: 'Bridge', position: new THREE.Vector3(-8, 12, 15) },
-    { name: 'Cargo Hold', position: new THREE.Vector3(0, -10, -20) }
-];
-
-hotspots.forEach(hotspot => {
-    createHotspotButton(hotspot.name, () => {
-        viewer.focusOn(hotspot.position, 20); // Focus with 20 unit distance
-    });
-});
-
-// Reset camera to initial view
-document.getElementById('reset-btn').addEventListener('click', () => {
-    viewer.resetCamera();
-});
-
-function showMarker(point) {
-    // Add a temporary marker at the focused point
-    const marker = document.createElement('div');
-    marker.className = 'focus-marker';
-    marker.style.cssText = `
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: red;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 1000;
-    `;
-    document.body.appendChild(marker);
-    
-    // Remove marker after 2 seconds
-    setTimeout(() => marker.remove(), 2000);
-}
-```
 
 ---
 
@@ -1786,7 +1557,7 @@ function showMarker(point) {
 - **Safari 14+**
 - **Edge 90+**
 
-### WebXR Support (Future)
+### WebXR Support
 - **Quest 2/3**
 - **HTC Vive**
 - **Valve Index**
@@ -1798,46 +1569,12 @@ function showMarker(point) {
 
 1. **Model Optimization**: Use compressed GLTF with Draco compression
 2. **Texture Sizes**: Keep textures under 2048x2048 for mobile compatibility
-3. **Polygon Count**: Aim for under 100k triangles for smooth performance
+3. **Polygon Count**: Aim for under 1 million triangles for smooth performance
 4. **Material Count**: Minimize the number of unique materials
 5. **Auto-loading**: Set `autoLoadFirst: false` for faster initial page load
 
 ---
 
-## Migration from Other Libraries
-
-### From Three.js directly
-
-```javascript
-// Old Three.js code
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-// ... lots of setup code
-
-// BelowJS implementation
-const viewer = new ModelViewer(container, {
-    models: { 'my-model': { url: 'model.glb', name: 'My Model' } },
-    autoLoadFirst: true
-});
-```
-
-### From model-viewer
-
-```html
-<!-- Old model-viewer -->
-<model-viewer src="model.glb" camera-controls></model-viewer>
-
-<!-- BelowJS implementation -->
-<div id="viewer"></div>
-<script type="module">
-    import { ModelViewer } from '/src/index.js';
-    new ModelViewer('#viewer', {
-        models: { 'model': { url: 'model.glb', name: 'Model' } },
-        autoLoadFirst: true
-    });
-</script>
-```
 
 ---
 
@@ -1877,38 +1614,4 @@ viewer.on('model-error', ({ error }) => {
 
 ---
 
-*This documentation covers the current stable API. Features marked as "Future" are planned for upcoming releases.*
 
-## VR Comfort Settings
-
-BelowJS includes VR comfort features to prevent motion sickness:
-
-### Comfort Presets
-```javascript
-// Quick comfort configurations
-viewer.setVRComfortPreset('comfort');    // Best for motion-sensitive users
-viewer.setVRComfortPreset('moderate');   // Balanced experience  
-viewer.setVRComfortPreset('experienced'); // Full freedom of movement
-```
-
-### Custom Comfort Settings
-```javascript
-viewer.setVRComfortSettings({
-  locomotionMode: 'teleport',  // 'smooth', 'teleport', 'dash'
-  turningMode: 'snap',         // 'smooth', 'snap'  
-  snapTurnAngle: 30,           // degrees per snap turn
-  vignetting: true,            // reduces peripheral vision during movement
-  vignetteIntensity: 0.7,      // 0-1 vignette strength
-  reducedMotion: true,         // slower, gentler movements
-  comfortSpeed: 0.5            // speed multiplier for reduced motion
-});
-```
-
-### Locomotion Modes
-- **Smooth**: Traditional joystick movement (can cause motion sickness)
-- **Teleport**: Point and teleport (most comfortable)
-- **Dash**: Smooth movement to target position (moderate comfort)
-
-### Turning Modes  
-- **Smooth**: Continuous rotation with joystick
-- **Snap**: Discrete rotation in fixed increments

@@ -1,14 +1,12 @@
 import { defineConfig } from 'vite';
 import { exec } from 'child_process';
 
-// Plugin to rebuild dist files when source changes
 const autoBuildPlugin = () => {
   let isBuilding = false;
   
   return {
     name: 'auto-build',
     handleHotUpdate(ctx) {
-      // Check if the changed file is in src/ and we're not already building
       if (ctx.file.includes('/src/') && !isBuilding) {
         isBuilding = true;
         console.log('Source file changed:', ctx.file.split('/').pop(), '- rebuilding...');
@@ -27,14 +25,12 @@ const autoBuildPlugin = () => {
           
           console.log('✅ Build completed successfully');
           
-          // Force reload by updating a watched file
           ctx.server.ws.send({
             type: 'full-reload'
           });
         });
       }
       
-      // Don't let Vite handle the hot update for src files since we're rebuilding
       if (ctx.file.includes('/src/')) {
         return [];
       }
@@ -51,12 +47,9 @@ export default defineConfig({
     open: 'examples/basic/',  // Open the basic example by default
     cors: true,
     watch: {
-      // Watch source files and built files
       include: ['src/**/*', 'dist/**/*', 'examples/**/*'],
-      // Ignore node_modules
       ignored: ['**/node_modules/**', '**/.git/**']
     },
-    // Force reload on file changes
     hmr: {
       overlay: false
     }

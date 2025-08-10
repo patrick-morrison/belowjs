@@ -52,7 +52,6 @@ export class VRManager {
     this.enableAudio = enableAudio;
     this.container = container;
     
-    // Core VR modules
     this.vrCore = new VRCore(renderer, camera, scene, container);
     this.vrControllers = new VRControllers(renderer, camera);
     this.vrTeleport = new VRTeleport(scene, camera);
@@ -60,7 +59,6 @@ export class VRManager {
     this.vrComfort = new VRComfort();
     this.vrAudio = this.enableAudio ? new VRAudio() : null;
     
-    // Legacy compatibility properties
     this.isVRSupported = false;
     this.isVRPresenting = false;
     this.controller1 = null;
@@ -70,7 +68,7 @@ export class VRManager {
     this.controllers = [];
     this.controllerGrips = [];
     
-    // Camera state preservation for VR transitions (independent of measurements)
+
     this._preVRCameraState = {
       target: null,
       position: null,
@@ -87,10 +85,9 @@ export class VRManager {
       controls: null // Reference to controls object
     };
     
-    // Comfort tracking
+
     this.lastComfortLog = 0;
     
-    // Callbacks - maintain original API
     this.onModeToggle = null;
     this.onMovementStart = null;
     this.onMovementStop = null;
@@ -100,16 +97,13 @@ export class VRManager {
   }
   
   init() {
-    // Initialize all VR modules
     this.vrCore.init();
     this.vrControllers.init();
     this.vrTeleport.init();
     this.vrLocomotion.init();
     
-    // Connect modules together
     this.setupModuleConnections();
     
-    // Initialize sound system (optional) - async
     if (this.vrAudio) {
       this.vrAudio.init(this.audioPath).catch(error => {
         console.warn('🔇 Sound system initialization failed:', error);
@@ -118,10 +112,8 @@ export class VRManager {
   }
   
   setupModuleConnections() {
-    // Connect VR Core callbacks
     this.vrCore.onSessionStart = () => {
-      // Always save camera state before entering VR
-      console.debug('[VRManager] VR session starting - saving camera state');
+
       this._saveCameraState();
       this.isVRPresenting = true;
       if (this.vrAudio) {
@@ -130,22 +122,21 @@ export class VRManager {
     };
     
     this.vrCore.onSessionEnd = () => {
-      console.debug('[VRManager] VR session ending - will restore camera state');
       this.isVRPresenting = false;
       
-      // Always restore camera state after exiting VR
+
       setTimeout(() => {
         this._restoreCameraState();
       }, 100);
     };
     
-    // Connect Controller callbacks (no movement sound on trigger, joystick only)
+
     this.vrControllers.onSelectStart = (handedness, controller, event) => {
-      // No-op: let joystick movement control movement state and sound
+
     };
 
     this.vrControllers.onSelectEnd = (handedness, controller, event) => {
-      // No-op
+
     };
     
     this.vrControllers.onSqueezeStart = (handedness, controller, event) => {
@@ -164,7 +155,6 @@ export class VRManager {
       }
     };
     
-    // Connect Locomotion callbacks
     this.vrLocomotion.onMovementStart = () => {
       if (this.vrAudio) {
         this.vrAudio.startMovementSound();
@@ -184,7 +174,7 @@ export class VRManager {
     };
     
     this.vrLocomotion.onMovementUpdate = (movementState) => {
-      // Update audio levels with current movement state
+
       if (this.vrAudio) {
         this.vrAudio.updateAudioLevels(movementState.currentSpeed, movementState.currentBoostLevel);
       }
@@ -194,22 +184,19 @@ export class VRManager {
       }
     };
     
-    // Connect Comfort system to Locomotion
     this.vrComfort.onSettingsChange = (settings) => {
       this.vrLocomotion.setComfortSettings(settings);
     };
     
-    // Connect Teleport system to Locomotion
     this.vrLocomotion.setTeleportSystem(this.vrTeleport);
     
-    // Sync initial comfort settings ONLY on first load, not on every session start
     if (typeof this._comfortSettingsInitialized === 'undefined') {
       this.vrLocomotion.setComfortSettings(this.vrComfort.getSettings());
       this._comfortSettingsInitialized = true;
     }
   }
   
-  // Movement control methods (maintain original API)
+
   startMovement(type = 'forward') {
     this.vrLocomotion.startMovement(type);
   }
@@ -218,12 +205,11 @@ export class VRManager {
     this.vrLocomotion.stopMovement();
   }
   
-  // Main update loop (original pattern)
+
   update(deltaTime) {
-    // Update controller button states
     this.vrControllers.checkControllerButtons();
 
-    // Compose controllers object with hand gesture update if available
+
     const controllers = {
       ...this.vrControllers.getControllers(),
       handsActive: this.vrControllers.handsActive,
@@ -231,18 +217,17 @@ export class VRManager {
       updateHandGestures: this.vrControllers.updateHandGestures ? this.vrControllers.updateHandGestures.bind(this.vrControllers) : undefined
     };
     this.vrLocomotion.updateMovement(deltaTime, controllers);
-
-    // Sync legacy properties for compatibility
+    
     this.syncLegacyProperties();
 
-    // Apply comfort settings periodically
+
     this.ensureComfortSettingsApplied();
 
-    // Correct any drift
+
     this.vrLocomotion.correctDrift();
   }
   
-  // Sync properties for legacy compatibility
+
   syncLegacyProperties() {
     const vrStatus = this.vrCore.getVRStatus();
     this.isVRSupported = vrStatus.supported;
@@ -257,7 +242,7 @@ export class VRManager {
     this.controllerGrips = controllers.controllerGrips;
   }
   
-  // Comfort settings methods (maintain original API)
+
   /**
    * Set VR comfort settings for motion sickness reduction
    * 
@@ -293,7 +278,7 @@ export class VRManager {
    * @example
    * // Check current settings
    * const settings = vrManager.getComfortSettings();
-   * console.log('Comfort enabled:', settings.enableComfort);
+   * // Comfort status: settings.enableComfort
    * 
    * @since 1.0.0
    */
@@ -318,26 +303,26 @@ export class VRManager {
     this.vrComfort.setPreset(preset);
   }
   
-  // Ensure comfort settings are properly applied during VR session
+
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
     
     const settings = this.vrComfort.getSettings();
     
-    // Validate that teleportation system is ready if in teleport mode
+
     if (settings.locomotionMode === 'teleport') {
       if (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) {
         this.vrTeleport.setupTeleportation();
       }
     }
     
-    // Only log occasionally to avoid spam
+
     if (!this.lastComfortLog || Date.now() - this.lastComfortLog > 10000) {
       this.lastComfortLog = Date.now();
     }
   }
   
-  // Apply VR positions (maintain original API)
+
   applyVRPositions(positions) {
     if (!this.isVRPresenting || !positions) return;
     
@@ -371,12 +356,10 @@ export class VRManager {
     if (this._preVRCameraState.controls && this._preVRCameraState.controls.target && this.camera) {
       const controls = this._preVRCameraState.controls;
       
-      // Save camera position and target
       this._preVRCameraState.target = controls.target.clone();
       this._preVRCameraState.position = this.camera.position.clone();
       this._preVRCameraState.zoom = this.camera.zoom;
       
-      // Save all OrbitControls properties
       this._preVRCameraState.minDistance = controls.minDistance;
       this._preVRCameraState.maxDistance = controls.maxDistance;
       this._preVRCameraState.enableDamping = controls.enableDamping;
@@ -387,14 +370,6 @@ export class VRManager {
       this._preVRCameraState.autoRotate = controls.autoRotate;
       this._preVRCameraState.autoRotateSpeed = controls.autoRotateSpeed;
       
-      console.debug('[VRManager] Saved complete pre-VR camera state:', {
-        target: this._preVRCameraState.target.toArray(),
-        position: this._preVRCameraState.position.toArray(),
-        zoom: this._preVRCameraState.zoom,
-        minDistance: this._preVRCameraState.minDistance,
-        maxDistance: this._preVRCameraState.maxDistance,
-        enableDamping: this._preVRCameraState.enableDamping
-      });
     }
   }
 
@@ -403,24 +378,16 @@ export class VRManager {
    */
   _restoreCameraState() {
     if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position) {
-      console.debug('[VRManager] No saved camera state to restore');
       return;
     }
     
     const controls = this._preVRCameraState.controls;
     
-    console.debug('[VRManager] Restoring complete camera state from pre-VR:', {
-      target: this._preVRCameraState.target.toArray(),
-      position: this._preVRCameraState.position.toArray(),
-      zoom: this._preVRCameraState.zoom
-    });
     
-    // Restore camera properties
     this.camera.position.copy(this._preVRCameraState.position);
     this.camera.zoom = this._preVRCameraState.zoom || 1;
     this.camera.updateProjectionMatrix();
     
-    // Restore OrbitControls properties
     controls.target.copy(this._preVRCameraState.target);
     controls.minDistance = this._preVRCameraState.minDistance;
     controls.maxDistance = this._preVRCameraState.maxDistance;
@@ -432,13 +399,11 @@ export class VRManager {
     controls.autoRotate = this._preVRCameraState.autoRotate;
     controls.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed;
     
-    // Force controls update to apply all changes
     controls.update();
     
-    console.debug('[VRManager] Camera state restoration complete');
   }
   
-  // Get VR system status
+
   getVRStatus() {
     const coreStatus = this.vrCore.getVRStatus();
     const audioStatus = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: false };
@@ -453,7 +418,7 @@ export class VRManager {
     };
   }
   
-  // Audio control methods
+
   setAudioMuted(muted) {
     if (this.vrAudio) {
       this.vrAudio.setMuted(muted);
@@ -466,12 +431,12 @@ export class VRManager {
     }
   }
   
-  // Teleportation methods
+
   resetTeleportState() {
     this.vrTeleport.resetTeleportState();
   }
   
-  // Dispose of all VR systems
+
   /**
    * Clean up and dispose of all VR resources
    * 
@@ -488,7 +453,6 @@ export class VRManager {
    * @since 1.0.0
    */
   dispose() {
-    // Dispose all modules
     this.vrCore.dispose();
     this.vrControllers.dispose();
     this.vrTeleport.dispose();
@@ -496,19 +460,19 @@ export class VRManager {
       this.vrAudio.dispose();
     }
     
-    // Clear callbacks
     this.onModeToggle = null;
     this.onMovementStart = null;
     this.onMovementStop = null;
     this.onMovementUpdate = null;
   }
   
-  // Legacy method compatibility
+
   checkVRSupport() {
     return this.vrCore.checkVRSupported();
   }
   
-  normalizeAngle(angle) {
+
+ormalizeAngle(angle) {
     return this.vrLocomotion.normalizeAngle(angle);
   }
 }

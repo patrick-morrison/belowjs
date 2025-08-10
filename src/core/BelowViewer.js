@@ -91,18 +91,15 @@ export class BelowViewer extends EventSystem {
     this.container = container;
     this.config = ConfigValidator.validate(config);
     
-    // Core components
     this.renderer = null;
     this.sceneManager = null;
     this.cameraManager = null;
     this.modelLoader = null;
     this.vrManager = null;
     
-    // VR State
-    this.isVREnabled = this.config.vr?.enabled !== false; // Default to enabled
-    this.dolly = null; // VR camera rig
+    this.isVREnabled = this.config.vr?.enabled !== false;
+    this.dolly = null;
     
-    // State
     this.isInitialized = false;
     this.loadedModels = [];
     this.currentAbortController = null;
@@ -112,31 +109,24 @@ export class BelowViewer extends EventSystem {
 
   init() {
     try {
-      // Initialize renderer
       this.initRenderer();
       
-      // Initialize core managers
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
       
-      // Setup VR if enabled
       if (this.isVREnabled) {
         this.initVR();
       }
       
-      // Setup camera controls with the canvas
       this.cameraManager.initControls(this.renderer.domElement);
       
-      // Event listeners
       this.setupEventListeners();
       
-      // Start render loop
       this.startRenderLoop();
       
       this.isInitialized = true;
       
-      // Initialize debug commands
       if (typeof window !== 'undefined') {
         DebugCommands.init(this);
       }
@@ -159,14 +149,12 @@ export class BelowViewer extends EventSystem {
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     
-    // Enable shadows
+
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     
-    // Better color space
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     
-    // Apply tone mapping from config
     if (this.config.renderer.toneMapping === 'aces-filmic') {
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     } else if (this.config.renderer.toneMapping === 'none') {
@@ -178,21 +166,17 @@ export class BelowViewer extends EventSystem {
   }
 
   initVR() {
-    // Create dolly (VR camera rig) following original pattern
     this.dolly = new THREE.Group();
     this.dolly.add(this.cameraManager.camera);
     this.sceneManager.scene.add(this.dolly);
     
-    // Initialize VR manager with original patterns
     const audioPath = this.config.audioPath || './sound/';
-    const enableAudio = this.config.enableVRAudio !== false; // Default to true unless explicitly disabled
+    const enableAudio = this.config.enableVRAudio !== false;
     this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container);
     
-    // Set controls reference for camera state preservation
+
     this.vrManager.setControls(this.cameraManager.controls);
     
-    
-    // Setup VR callbacks
     this.vrManager.onModeToggle = () => {
       this.emit('vr-mode-toggle');
     };
@@ -210,7 +194,6 @@ export class BelowViewer extends EventSystem {
     };
     
     this.vrManager.onSessionStart = () => {
-      // Apply VR positions to current model
       if (this.loadedModels.length > 0) {
         const currentModel = this.loadedModels[this.loadedModels.length - 1];
         if (currentModel.options && currentModel.options.initialPositions) {
@@ -218,7 +201,7 @@ export class BelowViewer extends EventSystem {
         }
       }
       
-      // Disable orbit controls in VR
+
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = false;
       }
@@ -227,17 +210,15 @@ export class BelowViewer extends EventSystem {
     };
     
     this.vrManager.onSessionEnd = () => {
-      // Re-enable orbit controls
+
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = true;
         this.cameraManager.controls.update();
       }
       
-      // Reset dolly to origin
       this.dolly.position.set(0, 0, 0);
       this.dolly.rotation.set(0, 0, 0);
       
-      // Apply desktop positions to current model
       if (this.loadedModels.length > 0) {
         const currentModel = this.loadedModels[this.loadedModels.length - 1];
         if (currentModel.options && currentModel.options.initialPositions && currentModel.options.initialPositions.desktop) {
@@ -251,10 +232,8 @@ export class BelowViewer extends EventSystem {
   }
 
   setupEventListeners() {
-    // Handle window resize
     window.addEventListener('resize', this.onWindowResize.bind(this));
     
-    // Forward camera events
     if (this.cameraManager) {
       this.cameraManager.on('change', () => {
         this.emit('camera-change');
@@ -295,10 +274,11 @@ export class BelowViewer extends EventSystem {
    * try {
    *   const model = await viewer.loadModel('model.glb', {
    *     onProgress: (progress) => {
-   *       console.log('Loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+   *       // Update loading UI with progress percentage
+   *       const percent = Math.round(progress.loaded / progress.total * 100);
    *     }
    *   });
-   *   console.log('Model loaded:', model);
+   *   // Model loaded successfully
    * } catch (error) {      
    *   console.error('Failed to load model:', error);
    * }
@@ -306,12 +286,11 @@ export class BelowViewer extends EventSystem {
    * @since 1.0.0
    */
   async loadModel(url, options = {}) {
-    // Cancel any existing loading operation
+
     if (this.currentAbortController) {
       this.currentAbortController.abort();
     }
     
-    // Create a new abort controller for this operation
     this.currentAbortController = new AbortController();
     const signal = this.currentAbortController.signal;
     
@@ -324,15 +303,12 @@ export class BelowViewer extends EventSystem {
         }
       };
       
-      // Pass the abort signal to the model loader
       const model = await this.modelLoader.load(url, onProgress, signal);
       
-      // Check if this operation was cancelled
       if (signal.aborted) {
         return null;
       }
       
-      // Apply position/rotation/scale from options
       if (options.position) {
         model.position.fromArray(options.position);
       }
@@ -347,19 +323,16 @@ export class BelowViewer extends EventSystem {
         }
       }
       
-      // Always center the model at world origin for consistent positioning
+
       const originalCenter = this.centerModel(model);
       
-      // Add to scene
       this.sceneManager.add(model);
       this.loadedModels.push({ model, url, options, originalCenter });
       
-      // Auto-frame the camera if this is the first model and autoFrame is not disabled
       if (this.loadedModels.length === 1 && options.autoFrame !== false) {
         this.frameModel(model);
       }
       
-      // Clear the abort controller if this operation completed successfully
       if (this.currentAbortController && this.currentAbortController.signal === signal) {
         this.currentAbortController = null;
       }
@@ -368,12 +341,11 @@ export class BelowViewer extends EventSystem {
       return model;
       
     } catch (error) {
-      // Clear the abort controller
       if (this.currentAbortController && this.currentAbortController.signal === signal) {
         this.currentAbortController = null;
       }
       
-      // Don't emit error events for cancelled operations
+
       if (!signal.aborted && error.message !== 'Loading cancelled') {
         console.error('Failed to load model:', error);
         this.emit('model-load-error', { url, error });
@@ -397,12 +369,10 @@ export class BelowViewer extends EventSystem {
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
     
-    // Position camera to view the model nicely
     this.cameraManager.frameObject(center, size);
   }
 
   centerModel(model) {
-    // Calculate the model's bounding box
     if (!model.userData.boundingBox) {
       const box = new THREE.Box3().setFromObject(model);
       model.userData.boundingBox = box;
@@ -411,10 +381,10 @@ export class BelowViewer extends EventSystem {
     const box = model.userData.boundingBox;
     const center = box.getCenter(new THREE.Vector3());
     
-    // Offset the model so its center is at world origin
+
     model.position.sub(center);
     
-    // Recalculate bounding box after centering
+
     model.userData.boundingBox = new THREE.Box3().setFromObject(model);
     
     return center; // Return the original center offset for reference
@@ -424,34 +394,31 @@ export class BelowViewer extends EventSystem {
     let lastTime = 0;
     
     const animate = (time) => {
-      // Calculate delta time
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
       
-      // Update VR if enabled
       if (this.vrManager) {
         this.vrManager.update(deltaTime);
       }
       
-      // Update camera controls (disabled automatically in VR)
+
       if (this.cameraManager) {
         this.cameraManager.update();
       }
       
-      // Emit before-render event for external systems (like DiveSystem)
+
       this.emit('before-render', deltaTime);
       
-      // Render the scene
       if (this.renderer && this.sceneManager && this.cameraManager) {
         this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
       }
     };
     
-    // Use setAnimationLoop for VR compatibility
+
     this.renderer.setAnimationLoop(animate);
   }
 
-  // Public API methods
+
   getScene() {
     return this.sceneManager?.scene;
   }
@@ -503,7 +470,7 @@ export class BelowViewer extends EventSystem {
    * @example
    * // List all loaded models
    * const models = viewer.getLoadedModels();
-   * console.log('Loaded models:', models.length);
+   * // Process models array (length: models.length)
    * 
    * @since 1.0.0
    */
@@ -541,7 +508,7 @@ export class BelowViewer extends EventSystem {
 
   clearModels() {
     this.loadedModels.forEach(({ model }) => {
-      // Properly dispose of materials and geometries
+
       model.traverse((child) => {
         if (child.isMesh) {
           if (child.geometry) {
@@ -590,33 +557,29 @@ export class BelowViewer extends EventSystem {
    * @since 1.0.0
    */
   dispose() {
-    // Cancel any pending model loads
+
     if (this.currentAbortController) {
       this.currentAbortController.abort();
     }
     
-    // Clean up debug commands
     if (typeof window !== 'undefined') {
       DebugCommands.cleanup();
     }
     
-    // Dispose VR manager
     if (this.vrManager) {
       this.vrManager.dispose();
       this.vrManager = null;
     }
     
-    // Stop render loop
     if (this.renderer) {
       this.renderer.setAnimationLoop(null);
     }
     
-    // Clean up loaded models
     this.loadedModels.forEach(({ model }) => {
       if (model.parent) {
         model.parent.remove(model);
       }
-      // Dispose geometries and materials
+
       model.traverse((child) => {
         if (child.geometry) {
           child.geometry.dispose();
@@ -632,13 +595,13 @@ export class BelowViewer extends EventSystem {
     });
     this.loadedModels = [];
     
-    // Dispose camera manager
+
     if (this.cameraManager) {
       this.cameraManager.dispose();
       this.cameraManager = null;
     }
     
-    // Dispose renderer
+
     if (this.renderer) {
       this.renderer.dispose();
       if (this.renderer.domElement && this.renderer.domElement.parentNode) {
@@ -647,10 +610,8 @@ export class BelowViewer extends EventSystem {
       this.renderer = null;
     }
     
-    // Remove event listeners
     window.removeEventListener('resize', this.onWindowResize.bind(this));
     
-    // Clear all event listeners
     this.removeAllListeners();
     
     this.isInitialized = false;
@@ -659,7 +620,7 @@ export class BelowViewer extends EventSystem {
   applyDesktopPositions(positions) {
     if (!positions || !this.cameraManager) return;
     
-    // Apply desktop camera and target positions with proper timing
+
     const applyPositions = () => {
       if (positions.camera) {
         this.cameraManager.camera.position.set(
@@ -676,10 +637,10 @@ export class BelowViewer extends EventSystem {
           positions.target.z
         );
         
-        // Force multiple updates to ensure proper positioning
+
         this.cameraManager.controls.update();
         
-        // Additional update after animation frame
+
         requestAnimationFrame(() => {
           this.cameraManager.controls.update();
         });
@@ -687,12 +648,12 @@ export class BelowViewer extends EventSystem {
       
     };
     
-    // Apply immediately and also after a short delay to handle timing issues
+
     applyPositions();
     setTimeout(applyPositions, 50);
   }
 
-  // VR-specific methods
+
   isVRPresenting() {
     return this.vrManager ? this.vrManager.isVRPresenting : false;
   }
@@ -701,7 +662,7 @@ export class BelowViewer extends EventSystem {
     return this.vrManager;
   }
 
-  // VR Comfort Settings API
+
   /**
    * Set VR comfort settings for motion sickness reduction
    * 
@@ -736,7 +697,7 @@ export class BelowViewer extends EventSystem {
    * @example
    * // Check current settings
    * const settings = viewer.getVRComfortSettings();
-   * console.log('Comfort enabled:', settings?.enableComfort);
+   * // Access comfort settings: settings?.enableComfort
    * 
    * @since 1.0.0
    */
@@ -763,7 +724,7 @@ export class BelowViewer extends EventSystem {
     }
   }
 
-  // Apply initial positions based on current mode (VR or desktop)
+
   applyInitialPositions(positions) {
     if (!positions) return;
     

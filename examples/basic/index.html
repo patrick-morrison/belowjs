@@ -102,17 +102,17 @@
 
         const viewer = new ModelViewer(viewerContainer, {
           enableVR: true,
-          enableControls: true,
           enableInfo: true,
           models: models,
           enableMeasurement: true,
           enableVRComfortGlyph: true,
           enableDiveSystem: true,
           enableFullscreen: true,
+          showStatus: false,
           audioPath: './sound/',
           viewerConfig: {
             scene: {
-              backgroundColor: '#001122'
+              background: '#001122'
             }
           },
           initialModel: currentModel,
@@ -124,7 +124,6 @@
         dropdown.addEventListener('change', (event) => {
           const selectedModelKey = event.target.value;
           if (selectedModelKey !== currentModel) {
-            console.log('Loading new model:', selectedModelKey);
             currentModel = selectedModelKey;
             viewer.loadModel(selectedModelKey);
           }

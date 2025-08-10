@@ -14,7 +14,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "prepublishOnly": "npm run build",
-    "test": "echo 'No test framework configured yet - examples serve as integration tests' && exit 0"
+    "test": "echo 'Integration tests available via examples' && exit 0"
   },
   "keywords": [
     "threejs",

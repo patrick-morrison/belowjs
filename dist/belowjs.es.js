@@ -18,7 +18,7 @@ class Qt {
    * @example
    * // Listen for model loading events
    * viewer.on('model-loaded', (data) => {
-   *   console.log('Loaded:', data.model.name);
+   *   // Process loaded model
    * });
    * 
    * // Chain multiple listeners
@@ -203,7 +203,6 @@ class Fs {
     let e = 662058;
     this.config.background && (typeof this.config.background == "object" && this.config.background.value ? e = this.config.background.value : e = this.config.background), this.scene.background = new u.Color(e);
   }
-  // setupLighting removed: all lighting is managed by DiveLighting
   add(e) {
     this.scene.add(e);
   }
@@ -3746,10 +3745,8 @@ class V {
               reflectivity: n.reflectivity || 1,
               refractionRatio: n.refractionRatio || 0.98,
               combine: n.combine || u.MultiplyOperation,
-              // Enhanced normal map support
               normalMap: n.normalMap,
               normalScale: n.normalScale || new u.Vector2(1, 1),
-              // Explicit smooth shading for non-blocky appearance
               flatShading: !1
             });
             A.map && (A.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.map.needsUpdate = !0), A.normalMap && (A.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy(), A.normalMap.needsUpdate = !0), A.needsUpdate = !0, Array.isArray(s.material) ? s.material[r] = A : s.material = A;
@@ -4328,7 +4325,6 @@ class Cn {
   init() {
     this.initControllers(), this.initHands();
   }
-  // --- Hand tracking/gesture detection scaffold ---
   initHands() {
     const e = this.renderer.xr.getSession && this.renderer.xr.getSession();
     e && (e.addEventListener("inputsourceschange", () => {
@@ -4350,10 +4346,10 @@ class Cn {
         if (t.hand && t.handedness) {
           const i = t.handedness, s = t.hand.get("thumb-tip"), o = t.hand.get("index-finger-tip");
           if (!s || !o || !s.transform || !o.transform)
-            console.warn(`[HandTracking] No joint data for ${i} hand:`, { thumbTip: s, indexTip: o }), this.handStates[i].pinch = !1;
+            this.handStates[i].pinch = !1;
           else {
             const a = new u.Vector3().setFromMatrixPosition(new u.Matrix4().fromArray(s.transform.matrix)), A = new u.Vector3().setFromMatrixPosition(new u.Matrix4().fromArray(o.transform.matrix)), c = a.distanceTo(A);
-            this.handStates[i].pinch = c < 0.025, this.handStates[i].pinch;
+            this.handStates[i].pinch = c < 0.025;
           }
           let n = !0;
           const r = t.hand.get("wrist");
@@ -4362,13 +4358,13 @@ class Cn {
             for (let A of ["index-finger-tip", "middle-finger-tip", "ring-finger-tip", "pinky-finger-tip"]) {
               const c = t.hand.get(A);
               if (!c || !c.transform) {
-                console.warn(`[HandTracking] No joint data for ${A} on ${i} hand.`), n = !1;
+                n = !1;
                 continue;
               }
               new u.Vector3().setFromMatrixPosition(new u.Matrix4().fromArray(c.transform.matrix)).distanceTo(a) > 0.045 && (n = !1);
             }
           } else
-            console.warn(`[HandTracking] No palm joint for ${i} hand.`), n = !1;
+            n = !1;
           if (this.handStates[i].fist = n, o && r && o.transform && r.transform) {
             const a = new u.Vector3().setFromMatrixPosition(new u.Matrix4().fromArray(r.transform.matrix)), A = new u.Vector3().setFromMatrixPosition(new u.Matrix4().fromArray(o.transform.matrix));
             this.handStates[i].direction = new u.Vector3().subVectors(A, a).normalize();
@@ -4401,7 +4397,6 @@ class Cn {
       });
     });
   }
-  // Controller input handlers for Chrome WebXR compatibility
   onControllerSelectStart(e, t) {
     const i = e.userData.handedness;
     this.onSelectStart && this.onSelectStart(i, e, t);
@@ -4960,7 +4955,6 @@ class Qn {
   constructor() {
     this.soundEnabled = !1, this.audioContext = null, this.dpvSound = null, this.dpvHighSound = null, this.ambienceSound = null, this.currentMovementSound = null, this.currentBoostSound = null, this.currentAmbienceSound = null, this.baseGainNode = null, this.boostGainNode = null, this.ambienceGainNode = null, this.baseVolumeMultiplier = 1.52, this.boostVolumeMultiplier = 1.01, this.ambienceVolume = 0.1;
   }
-  // Initialize the VR sound system (optional feature) - EXACT ORIGINAL
   async init(e = "./sound/") {
     try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -4974,16 +4968,13 @@ class Qn {
       console.warn("🔇 VR Audio initialization failed:", t), this.soundEnabled = !1;
     }
   }
-  // Load audio buffer from URL (original)
   async loadAudioBuffer(e) {
     const i = await (await fetch(e)).arrayBuffer();
     return await this.audioContext.decodeAudioData(i);
   }
-  // Initialize audio on user interaction (required for web audio) (original)
   initAudioOnInteraction() {
     this.audioContext && this.audioContext.state === "suspended" && this.audioContext.resume();
   }
-  // Start ambient sound when entering VR (original pattern)
   startAmbientSound() {
     if (!(!this.audioContext || !this.ambienceSound || this.currentAmbienceSound))
       try {
@@ -4993,7 +4984,6 @@ class Qn {
         console.warn("🔇 Error starting ambient sound:", e);
       }
   }
-  // Stop ambient sound when exiting VR (original pattern)
   stopAmbientSound() {
     if (this.currentAmbienceSound && this.ambienceGainNode && this.audioContext)
       try {
@@ -5002,7 +4992,6 @@ class Qn {
         console.warn("🔇 Error stopping ambient sound:", e);
       }
   }
-  // Start movement sound with smooth audio setup (original pattern)
   startMovementSound() {
     if (!(!this.audioContext || !this.dpvSound || !this.dpvHighSound)) {
       this.currentMovementSound && (this.currentMovementSound.stop(), this.currentMovementSound = null), this.currentBoostSound && (this.currentBoostSound.stop(), this.currentBoostSound = null), this.baseGainNode && this.baseGainNode.disconnect(), this.boostGainNode && this.boostGainNode.disconnect();
@@ -5016,7 +5005,6 @@ class Qn {
       }
     }
   }
-  // Stop movement sound with smooth fade (original pattern)
   stopMovementSound() {
     if (this.baseGainNode && this.audioContext)
       try {
@@ -5035,7 +5023,6 @@ class Qn {
         console.warn("🔇 Error stopping boost movement sound:", e);
       }
   }
-  // Update audio volumes based on current speed and boost levels (original)
   updateAudioLevels(e, t) {
     if (!(!this.baseGainNode || !this.boostGainNode || !this.audioContext))
       try {
@@ -5045,11 +5032,9 @@ class Qn {
         console.warn("🔇 Error updating audio levels:", i);
       }
   }
-  // Set audio volume multipliers
   setVolumeMultipliers(e, t, i) {
     typeof e == "number" && e >= 0 && (this.baseVolumeMultiplier = e), typeof t == "number" && t >= 0 && (this.boostVolumeMultiplier = t), typeof i == "number" && i >= 0 && (this.ambienceVolume = i, this.ambienceGainNode && this.ambienceGainNode.gain.setValueAtTime(i, this.audioContext.currentTime));
   }
-  // Get current audio status
   getAudioStatus() {
     return {
       enabled: this.soundEnabled,
@@ -5059,7 +5044,6 @@ class Qn {
       boostPlaying: !!this.currentBoostSound
     };
   }
-  // Mute/unmute audio
   setMuted(e) {
     if (this.audioContext)
       try {
@@ -5078,7 +5062,6 @@ class Qn {
         console.warn("🔇 Error setting mute state:", t);
       }
   }
-  // Dispose of sound system (original pattern)
   dispose() {
     if (this.stopAmbientSound(), this.stopMovementSound(), this.audioContext)
       try {
@@ -5124,9 +5107,9 @@ class wn {
   }
   setupModuleConnections() {
     this.vrCore.onSessionStart = () => {
-      console.debug("[VRManager] VR session starting - saving camera state"), this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && this.vrAudio.initAudioOnInteraction();
+      this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && this.vrAudio.initAudioOnInteraction();
     }, this.vrCore.onSessionEnd = () => {
-      console.debug("[VRManager] VR session ending - will restore camera state"), this.isVRPresenting = !1, setTimeout(() => {
+      this.isVRPresenting = !1, setTimeout(() => {
         this._restoreCameraState();
       }, 100);
     }, this.vrControllers.onSelectStart = (e, t, i) => {
@@ -5207,7 +5190,7 @@ class wn {
    * @example
    * // Check current settings
    * const settings = vrManager.getComfortSettings();
-   * console.log('Comfort enabled:', settings.enableComfort);
+   * // Comfort status: settings.enableComfort
    * 
    * @since 1.0.0
    */
@@ -5257,30 +5240,17 @@ class wn {
   _saveCameraState() {
     if (this._preVRCameraState.controls && this._preVRCameraState.controls.target && this.camera) {
       const e = this._preVRCameraState.controls;
-      this._preVRCameraState.target = e.target.clone(), this._preVRCameraState.position = this.camera.position.clone(), this._preVRCameraState.zoom = this.camera.zoom, this._preVRCameraState.minDistance = e.minDistance, this._preVRCameraState.maxDistance = e.maxDistance, this._preVRCameraState.enableDamping = e.enableDamping, this._preVRCameraState.dampingFactor = e.dampingFactor, this._preVRCameraState.enableZoom = e.enableZoom, this._preVRCameraState.enablePan = e.enablePan, this._preVRCameraState.enableRotate = e.enableRotate, this._preVRCameraState.autoRotate = e.autoRotate, this._preVRCameraState.autoRotateSpeed = e.autoRotateSpeed, console.debug("[VRManager] Saved complete pre-VR camera state:", {
-        target: this._preVRCameraState.target.toArray(),
-        position: this._preVRCameraState.position.toArray(),
-        zoom: this._preVRCameraState.zoom,
-        minDistance: this._preVRCameraState.minDistance,
-        maxDistance: this._preVRCameraState.maxDistance,
-        enableDamping: this._preVRCameraState.enableDamping
-      });
+      this._preVRCameraState.target = e.target.clone(), this._preVRCameraState.position = this.camera.position.clone(), this._preVRCameraState.zoom = this.camera.zoom, this._preVRCameraState.minDistance = e.minDistance, this._preVRCameraState.maxDistance = e.maxDistance, this._preVRCameraState.enableDamping = e.enableDamping, this._preVRCameraState.dampingFactor = e.dampingFactor, this._preVRCameraState.enableZoom = e.enableZoom, this._preVRCameraState.enablePan = e.enablePan, this._preVRCameraState.enableRotate = e.enableRotate, this._preVRCameraState.autoRotate = e.autoRotate, this._preVRCameraState.autoRotateSpeed = e.autoRotateSpeed;
     }
   }
   /**
    * Restore camera state after exiting VR
    */
   _restoreCameraState() {
-    if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position) {
-      console.debug("[VRManager] No saved camera state to restore");
+    if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position)
       return;
-    }
     const e = this._preVRCameraState.controls;
-    console.debug("[VRManager] Restoring complete camera state from pre-VR:", {
-      target: this._preVRCameraState.target.toArray(),
-      position: this._preVRCameraState.position.toArray(),
-      zoom: this._preVRCameraState.zoom
-    }), this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed, e.update(), console.debug("[VRManager] Camera state restoration complete");
+    this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed, e.update();
   }
   // Get VR system status
   getVRStatus() {
@@ -5445,15 +5415,37 @@ class Xt {
         comfortSettings: e.getVRComfortSettings()
       };
       return console.log("🥽 VR information:"), console.table(t), t;
+    }, window.particles = () => {
+      var s, o, n, r;
+      let t = null;
+      if ((s = e.diveSystem) != null && s.particles ? t = e.diveSystem.particles : typeof window < "u" && ((o = window.diveSystem) != null && o.particles) ? t = window.diveSystem.particles : (r = (n = e.belowViewer) == null ? void 0 : n.diveSystem) != null && r.particles && (t = e.belowViewer.diveSystem.particles), !t)
+        return console.log("🌊 Particles not initialized"), null;
+      const i = {
+        count: t.particleCount,
+        visible: t.particles ? t.particles.visible : !1,
+        bounds: {
+          min: {
+            x: parseFloat(t.particleBounds.min.x.toFixed(3)),
+            y: parseFloat(t.particleBounds.min.y.toFixed(3)),
+            z: parseFloat(t.particleBounds.min.z.toFixed(3))
+          },
+          max: {
+            x: parseFloat(t.particleBounds.max.x.toFixed(3)),
+            y: parseFloat(t.particleBounds.max.y.toFixed(3)),
+            z: parseFloat(t.particleBounds.max.z.toFixed(3))
+          }
+        }
+      };
+      return console.log("🌊 Particle information:"), console.table(i), i;
     }, window.debugHelp = () => {
-      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()    - Get current camera position data"), console.log("  scene()     - Get scene information and object counts"), console.log("  models()    - Get loaded models information"), console.log("  vr()        - Get VR state and settings"), console.log("  debugHelp() - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
+      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()    - Get current camera position data"), console.log("  scene()     - Get scene information and object counts"), console.log("  models()    - Get loaded models information"), console.log("  particles() - Get particle system information"), console.log("  vr()        - Get VR state and settings"), console.log("  debugHelp() - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
     }, console.log("🔧 BelowJS debug commands loaded! Type debugHelp() for available commands."));
   }
   /**
    * Clean up debug commands when viewer is disposed
    */
   static cleanup() {
-    typeof window > "u" || (delete window.camera, delete window.scene, delete window.models, delete window.vr, delete window.debugHelp, delete window.belowViewer);
+    typeof window > "u" || (delete window.camera, delete window.scene, delete window.models, delete window.particles, delete window.vr, delete window.debugHelp, delete window.belowViewer);
   }
 }
 class yn extends Qt {
@@ -5537,10 +5529,11 @@ class yn extends Qt {
    * try {
    *   const model = await viewer.loadModel('model.glb', {
    *     onProgress: (progress) => {
-   *       console.log('Loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+   *       // Update loading UI with progress percentage
+   *       const percent = Math.round(progress.loaded / progress.total * 100);
    *     }
    *   });
-   *   console.log('Model loaded:', model);
+   *   // Model loaded successfully
    * } catch (error) {      
    *   console.error('Failed to load model:', error);
    * }
@@ -5643,7 +5636,7 @@ class yn extends Qt {
    * @example
    * // List all loaded models
    * const models = viewer.getLoadedModels();
-   * console.log('Loaded models:', models.length);
+   * // Process models array (length: models.length)
    * 
    * @since 1.0.0
    */
@@ -5759,7 +5752,7 @@ class yn extends Qt {
    * @example
    * // Check current settings
    * const settings = viewer.getVRComfortSettings();
-   * console.log('Comfort enabled:', settings?.enableComfort);
+   * // Access comfort settings: settings?.enableComfort
    * 
    * @since 1.0.0
    */
@@ -6652,33 +6645,15 @@ class vn {
     };
     i(e), this._raycastTargets = t;
   }
-  /**
-   * Returns true if the object is a measurement helper (sphere, line, etc.)
-   * @param {THREE.Object3D} obj
-   */
   isMeasurementHelper(e) {
     if (!e) return !1;
     if (e.geometry === this.sphereGeometry || e.userData.isMeasurementSphere || e.type === "Line2" || e.type === "Line" || e.geometry && e.geometry.type === "LineGeometry") return !0;
     const t = ["RingGeometry", "TubeGeometry", "PlaneGeometry", "CircleGeometry"];
     return !!(e.geometry && t.includes(e.geometry.type) || typeof e.name == "string" && e.name.startsWith("MeasurementHelper"));
   }
-  /**
-   * Set the measurement target (single mesh, group, or array) for convenience.
-   * Accepts a THREE.Object3D, Mesh, or array of meshes/groups.
-   * @param {THREE.Object3D|THREE.Object3D[]} target
-   */
   setTarget(e) {
     e ? this.setRaycastTargets(e) : this.setRaycastTargets([]);
   }
-  /**
-   * @param {Object} opts
-   * @param {THREE.Scene} opts.scene
-   * @param {THREE.Camera} opts.camera
-   * @param {THREE.WebGLRenderer} opts.renderer
-   * @param {Object} opts.controls - OrbitControls or similar
-   * @param {THREE.Group} [opts.dolly] - VR dolly/group (optional)
-   * @param {Object} [opts.config] - UI/behavior config (optional)
-   */
   /**
    * Creates a new MeasurementSystem instance
    * 
@@ -6703,7 +6678,6 @@ class vn {
     if (A(), i && i.xr && i.xr.addEventListener && i.xr.addEventListener("sessionstart", A), this.sphereGeometry = new u.SphereGeometry(0.02, 8, 6), this.placedMaterial = new u.MeshBasicMaterial({ color: 16777215 }), this.vrLineMaterial = new He({
       color: 16777215,
       linewidth: 3,
-      // 3px thick
       transparent: !0,
       opacity: 0.8,
       depthTest: !1,
@@ -6712,7 +6686,6 @@ class vn {
     }), this.desktopLineMaterial = new He({
       color: 16777215,
       linewidth: 3,
-      // 3px thick
       transparent: !0,
       opacity: 1,
       depthTest: !1,
@@ -6739,8 +6712,6 @@ class vn {
       i && i.xr && typeof i.xr.isPresenting == "boolean" && i.xr.isPresenting && !this.isVR && console.warn("[MeasurementSystem] WARNING: attachVR() was never called. VR ghost spheres and VR measurement will not work.");
     }, 5e3);
   }
-  // --- VR/Shared Logic (Stub for now, will be filled in) ---
-  // These methods will be filled in with the full VR and shared logic ported from Adrasan.
   /**
    * Enable measurement mode
    * 
@@ -6779,23 +6750,19 @@ class vn {
    * @since 1.0.0
    */
   disable() {
-    this.desktopMeasurementMode = !1, this.updateMeasurementPanel(), this.clearDesktopMeasurement();
+    this.desktopMeasurementMode = !1, this.updateMeasurementPanel(), this.clearLegacyDesktopMeasurement();
   }
-  // Toggle measurement system
   toggle() {
-    this.desktopMeasurementMode = !this.desktopMeasurementMode, this.updateMeasurementPanel(), this.desktopMeasurementMode || this.clearDesktopMeasurement();
+    this.desktopMeasurementMode = !this.desktopMeasurementMode, this.updateMeasurementPanel(), this.desktopMeasurementMode || this.clearLegacyDesktopMeasurement();
   }
-  // Clear all measurements (desktop and VR)
   clear() {
     this.clearUnifiedMeasurement(), this.clearLegacyDesktopMeasurement(), this.clearLegacyVRMeasurement();
   }
-  // Clear unified measurements
   clearUnifiedMeasurement() {
     this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length > 0 && (this.unifiedMeasurementPoints.forEach((e) => {
       e.sphere && this.scene.children.includes(e.sphere) && this.scene.remove(e.sphere);
     }), this.unifiedMeasurementPoints.length = 0), this.unifiedMeasurementLine && (this.scene.remove(this.unifiedMeasurementLine), this.unifiedMeasurementLine = null), this.measurementSprite && (this.measurementSprite.visible = !1, this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.updateMeasurementPanel();
   }
-  // Clear VR measurements
   clearVRMeasurement() {
     this.measurementSpheres && (this.measurementSpheres.forEach((e) => this.scene.remove(e)), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null), this.placedSpheres && (this.placedSpheres.forEach((e) => this.scene.remove(e)), this.placedSpheres.length = 0), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSprite && (this.measurementSprite.visible = !1), this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
   }
@@ -6807,7 +6774,6 @@ class vn {
       e && this.scene.children.includes(e) && this.scene.remove(e);
     }), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null);
   }
-  // Sync desktop measurements to VR (stub)
   syncToVR() {
     if (this.desktopMeasurementPoints.length === 2) {
       if (this.clearVRMeasurement(), this.desktopMeasurementPoints.forEach((e) => {
@@ -6823,10 +6789,9 @@ class vn {
       this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
     }
   }
-  // Sync VR measurements to desktop (stub)
   syncToDesktop() {
     if (this.measurementSpheres && this.measurementSpheres.length === 2) {
-      this.clearDesktopMeasurement();
+      this.clearLegacyDesktopMeasurement();
       for (let e = 0; e < 2; e++) {
         const t = this.measurementSpheres[e].position.clone();
         let i = t;
@@ -6858,8 +6823,6 @@ class vn {
       this.updateMeasurementPanel();
     }
   }
-  // Update method for render loop (stub)
-  // --- Shared Measurement Display (Sprite/Canvas) ---
   createMeasurementDisplay(e) {
     const t = window.devicePixelRatio || 1, i = 256, s = 64, o = i * t, n = s * t;
     this.measurementCanvas || (this.measurementCanvas = document.createElement("canvas")), (this.measurementCanvas.width !== o || this.measurementCanvas.height !== n) && (this.measurementCanvas.width = o, this.measurementCanvas.height = n);
@@ -6882,8 +6845,6 @@ class vn {
     const B = 0.3 * A, Q = i / s;
     return this.measurementSprite.scale.set(B * Q, B, 1), this.measurementSprite;
   }
-  // --- VR Logic ---
-  // Call this after VR controllers are available and renderer.xr is enabled
   /**
    * Attach VR controllers for VR measurement mode
    * 
@@ -6924,33 +6885,27 @@ class vn {
       right: !1
     }, this._onVRTriggerDown = this._onVRTriggerDown.bind(this), this._onVRTriggerUp = this._onVRTriggerUp.bind(this), this._onVRYButtonDown = this._onVRYButtonDown.bind(this), this._onVRYButtonUp = this._onVRYButtonUp.bind(this), this.controller1 && this.controller2 && (this.controller1.addEventListener("selectstart", this._onVRTriggerDown), this.controller1.addEventListener("selectend", this._onVRTriggerUp), this.controller2.addEventListener("selectstart", this._onVRTriggerDown), this.controller2.addEventListener("selectend", this._onVRTriggerUp), this.controller1.addEventListener("ybuttondown", this._onVRYButtonDown), this.controller1.addEventListener("ybuttonup", this._onVRYButtonUp), this.controller2.addEventListener("ybuttondown", this._onVRYButtonDown), this.controller2.addEventListener("ybuttonup", this._onVRYButtonUp)), this.isVR = !0, this.refreshMeasurementDisplayForVR();
   }
-  // VR controller event handlers (kept for Y button, but trigger logic moved to update loop)
-  _onVRTriggerDown(e) {
-    var i, s;
-    (s = (i = e.target.userData) == null ? void 0 : i.inputSource) != null && s.handedness;
+  _onVRTriggerDown() {
   }
   _onVRTriggerUp(e) {
-    var s, o;
-    const t = e.target;
-    (o = (s = t.userData) == null ? void 0 : s.inputSource) != null && o.handedness;
-    const i = performance.now();
+    const t = e.target, i = performance.now();
     if (!(this.lastTriggerTime && i - this.lastTriggerTime < 200) && (this.lastTriggerTime = i, this.measurementSystemEnabled)) {
-      const n = new u.Vector3();
-      let r = null;
-      if (t === this.controller1 && this.ghostSpheres.left ? r = this.ghostSpheres.left : t === this.controller2 && this.ghostSpheres.right && (r = this.ghostSpheres.right), r)
-        r.getWorldPosition(n);
+      const s = new u.Vector3();
+      let o = null;
+      if (t === this.controller1 && this.ghostSpheres.left ? o = this.ghostSpheres.left : t === this.controller2 && this.ghostSpheres.right && (o = this.ghostSpheres.right), o)
+        o.getWorldPosition(s);
       else {
-        t.getWorldPosition(n);
-        const a = new u.Vector3(0, 0, -0.05);
-        a.applyQuaternion(t.quaternion), n.add(a);
+        t.getWorldPosition(s);
+        const n = new u.Vector3(0, 0, -0.05);
+        n.applyQuaternion(t.quaternion), s.add(n);
       }
-      this._placeVRMeasurementPoint(n);
+      this._placeVRMeasurementPoint(s);
     }
   }
-  _onVRYButtonDown(e) {
+  _onVRYButtonDown() {
     this.clearUnifiedMeasurement();
   }
-  _onVRYButtonUp(e) {
+  _onVRYButtonUp() {
   }
   _getVRControllerIntersection(e) {
     const t = new u.Matrix4();
@@ -7050,7 +7005,7 @@ class vn {
    * @since 1.0.0
    */
   dispose() {
-    this.measurementPanel && this.measurementPanel.parentNode && (this.measurementPanel.parentNode.removeChild(this.measurementPanel), this.measurementPanel = null), this.renderer.domElement.removeEventListener("click", this._boundOnMouseClick, !1), this.renderer.domElement.removeEventListener("mousedown", this._boundOnMouseDown, !1), this.renderer.domElement.removeEventListener("mousemove", this._boundOnMouseMove, !1), this.renderer.domElement.removeEventListener("mouseup", this._boundOnMouseUp, !1), this.controller1 && this.controller2 && (this.controller1.removeEventListener("selectstart", this._onVRTriggerDown), this.controller1.removeEventListener("selectend", this._onVRTriggerUp), this.controller2.removeEventListener("selectstart", this._onVRTriggerDown), this.controller2.removeEventListener("selectend", this._onVRTriggerUp), this.controller1.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller1.removeEventListener("ybuttonup", this._onVRYButtonUp), this.controller2.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller2.removeEventListener("ybuttonup", this._onVRYButtonUp)), this.clearDesktopMeasurement(), this.clearVRMeasurement(), this.ghostSpheres && (this.ghostSpheres.left && this.scene.remove(this.ghostSpheres.left), this.ghostSpheres.right && this.scene.remove(this.ghostSpheres.right), this.ghostSpheres = null), this.measurementSprite && this.scene.children.includes(this.measurementSprite) && (this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.connectionLine && this.scene.children.includes(this.connectionLine) && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSpheres = [], this.isVR = !1, typeof window < "u" && window.measurementSystem === this && (window.measurementSystem = void 0);
+    this.measurementPanel && this.measurementPanel.parentNode && (this.measurementPanel.parentNode.removeChild(this.measurementPanel), this.measurementPanel = null), this.renderer.domElement.removeEventListener("click", this._boundOnMouseClick, !1), this.renderer.domElement.removeEventListener("mousedown", this._boundOnMouseDown, !1), this.renderer.domElement.removeEventListener("mousemove", this._boundOnMouseMove, !1), this.renderer.domElement.removeEventListener("mouseup", this._boundOnMouseUp, !1), this.controller1 && this.controller2 && (this.controller1.removeEventListener("selectstart", this._onVRTriggerDown), this.controller1.removeEventListener("selectend", this._onVRTriggerUp), this.controller2.removeEventListener("selectstart", this._onVRTriggerDown), this.controller2.removeEventListener("selectend", this._onVRTriggerUp), this.controller1.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller1.removeEventListener("ybuttonup", this._onVRYButtonUp), this.controller2.removeEventListener("ybuttondown", this._onVRYButtonDown), this.controller2.removeEventListener("ybuttonup", this._onVRYButtonUp)), this.clearLegacyDesktopMeasurement(), this.clearVRMeasurement(), this.ghostSpheres && (this.ghostSpheres.left && this.scene.remove(this.ghostSpheres.left), this.ghostSpheres.right && this.scene.remove(this.ghostSpheres.right), this.ghostSpheres = null), this.measurementSprite && this.scene.children.includes(this.measurementSprite) && (this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.connectionLine && this.scene.children.includes(this.connectionLine) && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSpheres = [], this.isVR = !1, typeof window < "u" && window.measurementSystem === this && (window.measurementSystem = void 0);
   }
   // --- UI Panel ---
   createMeasurementPanel() {
@@ -7469,22 +7424,12 @@ class Dn {
       max: new u.Vector3(50, 25, 50)
     }, this.particleCount = 1750, this.createParticleSystem();
   }
-  /**
-   * Calculate optimal particle count based on bounds (volume)
-   * Matches WreckSploration logic
-   */
   calculateParticleCount(e) {
     const t = new u.Vector3();
     e.getSize(t);
-    const s = t.clone().multiplyScalar(2.5), o = s.x * s.y * s.z;
-    let n;
-    o < 5e3 ? n = 0.0625 : o < 2e4 ? n = 0.0625 + (o - 5e3) / 15e3 * 1.9375 : n = 3.5;
-    const r = Math.round(o * n);
-    return Math.max(100, Math.min(8e3, r));
+    const s = t.clone().multiplyScalar(2.5), o = s.x * s.y * s.z, n = Math.round(o * 0.01);
+    return Math.max(100, Math.min(16e3, n));
   }
-  /**
-   * Create the complete particle system
-   */
   createParticleSystem() {
     const e = new Float32Array(this.particleCount * 3), t = new Float32Array(this.particleCount * 3), i = new Float32Array(this.particleCount);
     this.initializeParticleData(e, t, i);
@@ -7503,7 +7448,7 @@ class Dn {
       const n = 1e-5, r = -5e-6, a = 5e-6;
       t[o] = n + (Math.random() - 0.5) * 2e-5, t[o + 1] = r + (-Math.random() * 1e-5 - 5e-6), t[o + 2] = a + (Math.random() - 0.5) * 2e-5;
       const A = Math.random();
-      A < 0.7 ? i[s] = 0.015 + Math.random() * 0.01 : A < 0.9 ? i[s] = 0.025 + Math.random() * 0.015 : i[s] = 0.04 + Math.random() * 0.02;
+      A < 0.7 ? i[s] = 75e-4 + Math.random() * 5e-3 : A < 0.9 ? i[s] = 0.0125 + Math.random() * 75e-4 : i[s] = 0.02 + Math.random() * 0.01;
     }
   }
   /**
@@ -7667,9 +7612,6 @@ class Rn {
   constructor(e) {
     this.scene = e, this.controllerSpotlight = null, this.spotlightTarget = null, this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.createSpotlight();
   }
-  /**
-   * Detect Quest device type for optimization
-   */
   detectQuestDevice() {
     try {
       const e = navigator.userAgent.toLowerCase();
@@ -7701,9 +7643,6 @@ class Rn {
     const s = this.isQuest2 ? 512 : 1024;
     this.controllerSpotlight.shadow.mapSize.width = s, this.controllerSpotlight.shadow.mapSize.height = s, this.controllerSpotlight.shadow.camera.near = 0.1, this.controllerSpotlight.shadow.camera.far = i, this.controllerSpotlight.shadow.camera.fov = e, this.controllerSpotlight.shadow.bias = -5e-4, this.controllerSpotlight.shadow.normalBias = 0.02, this.controllerSpotlight.shadow.radius = 4, this.controllerSpotlight.shadow.blurSamples = 10, this.scene.add(this.controllerSpotlight), this.spotlightTarget = new u.Object3D(), this.scene.add(this.spotlightTarget), this.controllerSpotlight.target = this.spotlightTarget;
   }
-  /**
-   * Enable torch for dive mode
-   */
   enableTorch() {
     this.controllerSpotlight ? this.controllerSpotlight.visible = !0 : console.error("Cannot enable torch - controllerSpotlight is null");
   }
@@ -7728,9 +7667,6 @@ class Rn {
     const o = t.clone().add(s.multiplyScalar(2));
     this.spotlightTarget.position.copy(o);
   }
-  /**
-   * Update torch position for non-VR mode (follow camera)
-   */
   updateCameraPosition(e) {
     if (!this.controllerSpotlight || !this.spotlightTarget) return;
     this.controllerSpotlight.position.copy(e.position);
@@ -7788,9 +7724,6 @@ class Tn {
   constructor(e) {
     this.scene = e, this.overheadLight = null, this.clearModeDirectionalLight = null, this.clearModeHemisphereLight = null, this.isTransitioning = !1, this.currentMode = "survey", this.pendingAnimations = /* @__PURE__ */ new Set(), this.isDisposed = !1, this.initializeLighting();
   }
-  /**
-   * Initialize lighting system with minimal setup
-   */
   initializeLighting() {
     if (this.isDisposed || !this.scene) {
       console.warn("Cannot initialize lighting: system disposed or no scene");
@@ -7802,9 +7735,6 @@ class Tn {
       console.error("Failed to initialize lighting system:", e);
     }
   }
-  /**
-   * Create survey mode lights
-   */
   createSurveyModeLights() {
     if (!(this.isDisposed || !this.scene))
       try {
@@ -7813,33 +7743,18 @@ class Tn {
         console.error("Failed to create survey mode lights:", e);
       }
   }
-  /**
-   * Enable dive mode lighting
-   */
   enableDiveMode() {
     this.overheadLight && this.scene.children.includes(this.overheadLight) && this.scene.remove(this.overheadLight), this.clearModeDirectionalLight && (this.scene.remove(this.clearModeDirectionalLight), this.clearModeDirectionalLight = null), this.clearModeHemisphereLight && (this.scene.remove(this.clearModeHemisphereLight), this.clearModeHemisphereLight = null), this.fillLight && (this.scene.remove(this.fillLight), this.fillLight = null), this.bottomLight && (this.scene.remove(this.bottomLight), this.bottomLight = null), this.currentMode = "dive";
   }
-  /**
-   * Enable survey mode lighting
-   */
   enableSurveyMode() {
     this.overheadLight && !this.scene.children.includes(this.overheadLight) && this.scene.add(this.overheadLight), this.overheadLight && (this.overheadLight.intensity = 0.6, this.overheadLight.color.setHex(16777215)), this.createSurveyModeLights(), this.currentMode = "survey";
   }
-  /**
-   * Set VR dive mode lighting
-   */
   setVRDiveMode() {
     this.overheadLight && this.scene.children.includes(this.overheadLight) && this.scene.remove(this.overheadLight);
   }
-  /**
-   * Set desktop dive mode lighting
-   */
   setDesktopDiveMode() {
     this.overheadLight && this.scene.children.includes(this.overheadLight) && this.scene.remove(this.overheadLight);
   }
-  /**
-   * Fade lighting helper function
-   */
   fadeLighting({ target: e, fromIntensity: t, toIntensity: i, fromColor: s, toColor: o, duration: n = 500, onComplete: r }) {
     if (this.isDisposed || !e) {
       r && r();
@@ -7868,15 +7783,9 @@ class Tn {
     };
     requestAnimationFrame(g);
   }
-  /**
-   * Cancel all active animations
-   */
   cancelActiveAnimations() {
     this.pendingAnimations.clear();
   }
-  /**
-   * Safely remove object from scene
-   */
   safeRemoveFromScene(e) {
     if (this.scene && e && this.scene.children.includes(e))
       try {
@@ -7885,21 +7794,12 @@ class Tn {
         console.error("Error removing object from scene:", t);
       }
   }
-  /**
-   * Get current lighting mode
-   */
   getCurrentMode() {
     return this.currentMode;
   }
-  /**
-   * Check if system is transitioning
-   */
   isTransitionInProgress() {
     return this.isTransitioning;
   }
-  /**
-   * Dispose of lighting resources
-   */
   dispose() {
     this.isDisposed = !0, this.cancelActiveAnimations(), requestAnimationFrame(() => {
       try {
@@ -7922,21 +7822,12 @@ class Fn {
     const e = document.getElementById("modeToggleSwitch");
     e && (e.checked = this.isDiveModeEnabled), this.applyModeSettings();
   }
-  /**
-   * Set dive mode directly
-   */
   setDiveMode(e) {
     this.isDiveModeEnabled !== e && this.toggleDiveMode();
   }
-  /**
-   * Get current mode state
-   */
   isDiveMode() {
     return this.isDiveModeEnabled;
   }
-  /**
-   * Detect Quest device type for optimization
-   */
   detectQuestDevice() {
     try {
       const e = navigator.userAgent.toLowerCase();
@@ -8034,9 +7925,6 @@ class Fn {
   update(e, t) {
     this.particles.update(e), this.torch.update(t), this.renderer && this.checkVRControllerButtons(this.renderer), this.applyModeSpecificSettings();
   }
-  /**
-   * Initialize UI toggle switch
-   */
   initializeToggleSwitch() {
     const e = document.getElementById("modeToggleSwitch");
     e ? (e.checked = !1, this.isDiveModeEnabled = !1, this.disableDiveMode(), e.addEventListener("change", () => {
@@ -8097,21 +7985,13 @@ class kn extends Qt {
       showLoadingIndicator: !0,
       showStatus: !0,
       showInfo: !1,
-      // Info panel is optional now
       enableVR: !1,
-      // Enable VR support
       enableMeasurement: !1,
-      // Auto-attach measurement system
       measurementTheme: "dark",
-      // 'dark' or 'light' theme for measurement panel
       showMeasurementLabels: !1,
-      // Show measurement labels in desktop mode (always shown in VR)
       enableVRComfortGlyph: !1,
-      // Auto-attach VR comfort glyph
       enableDiveSystem: !1,
-      // Auto-attach dive system
       enableFullscreen: !1,
-      // Show fullscreen toggle button
       ...t
     }, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.lastComfortMode = null, typeof window < "u" && (window.modelViewer = this), this.init();
   }
@@ -8146,13 +8026,9 @@ class kn extends Qt {
     }, t = {
       ...e,
       ...this.options.viewerConfig,
-      // Enable VR if requested
       ...this.options.enableVR && { vr: { enabled: !0 } },
-      // Pass audioPath if provided
       ...this.options.audioPath && { audioPath: this.options.audioPath },
-      // Pass VR audio enablement option
       ...typeof this.options.enableVRAudio < "u" && { enableVRAudio: this.options.enableVRAudio },
-      // Allow scene config to be passed at top level for convenience
       ...this.options.scene && { scene: { ...e.scene, ...this.options.scene } },
       ...this.options.camera && { camera: { ...e.camera, ...this.options.camera } },
       ...this.options.renderer && { renderer: { ...e.renderer, ...this.options.renderer } },
@@ -8322,16 +8198,13 @@ class kn extends Qt {
         c.isMesh && c.geometry && !this.isMeasurementHelper(c) && r.push(c);
       });
     }
-    if (r.length === 0) {
-      console.debug("[ModelViewer] No valid raycast targets found for focusing");
+    if (r.length === 0)
       return;
-    }
     const a = o.intersectObjects(r, !0);
     if (a.length > 0) {
       const A = a[0].point;
       this.belowViewer.cameraManager.focusOn(A), this.emit("focus", { point: A, intersect: a[0] });
-    } else
-      console.debug("[ModelViewer] No intersections found with valid targets");
+    }
   }
   // Helper method to identify measurement helpers (similar to MeasurementSystem)
   isMeasurementHelper(e) {
@@ -8489,13 +8362,11 @@ class kn extends Qt {
     }
   }
   onModelLoaded({ model: e }) {
-    const t = e.userData.boundingBox;
-    t && t.getSize(new u.Vector3()), this.measurementSystem && this.measurementSystem.setRaycastTargets(e);
+    this.measurementSystem && this.measurementSystem.setRaycastTargets(e);
   }
   onModelLoadError({ error: e }) {
     this.hideLoading(), this.updateStatus(`Failed to load model: ${e.message}`);
   }
-  // Public API methods
   /**
    * Get the currently loaded model object
    * 
@@ -8503,10 +8374,9 @@ class kn extends Qt {
    * @returns {THREE.Object3D|null} The current Three.js model object or null if none loaded
    * 
    * @example
-   * // Get current model and inspect it
    * const model = viewer.getCurrentModel();
    * if (model) {
-   *   console.log('Model has', model.children.length, 'children');
+   *   // Inspect model properties and children
    * }
    * 
    * @since 1.0.0
@@ -8521,10 +8391,9 @@ class kn extends Qt {
    * @returns {THREE.PerspectiveCamera|null} The Three.js camera or null if not initialized
    * 
    * @example
-   * // Access camera properties
    * const camera = viewer.getCamera();
    * if (camera) {
-   *   console.log('Camera position:', camera.position);
+   *   // Access camera.position, camera.rotation, etc.
    * }
    * 
    * @since 1.0.0
@@ -8632,9 +8501,8 @@ class kn extends Qt {
    * @returns {Object|null} Current VR comfort settings or null if not available
    * 
    * @example
-   * // Get current comfort settings
    * const settings = viewer.getVRComfortSettings();
-   * console.log('Comfort enabled:', settings?.enableComfort);
+   * // Check settings?.enableComfort
    * 
    * @since 1.0.0
    */

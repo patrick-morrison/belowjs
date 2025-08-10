@@ -23,10 +23,9 @@ export class DebugCommands {
   static init(viewer) {
     if (typeof window === 'undefined') return;
     
-    // Make viewer globally accessible for debugging
+
     window.belowViewer = viewer;
     
-    // Global camera position debugging function
     window.camera = () => {
       if (!viewer.cameraManager?.camera || !viewer.cameraManager?.controls) {
         console.warn('Camera not initialized');
@@ -36,7 +35,6 @@ export class DebugCommands {
       const cameraPos = viewer.cameraManager.camera.position;
       const targetPos = viewer.cameraManager.controls.target;
       
-      // Get VR dolly position if available
       const vrData = viewer.dolly ? {
         dolly: {
           x: parseFloat(viewer.dolly.position.x.toFixed(3)),
@@ -76,7 +74,6 @@ export class DebugCommands {
       return positionData;
     };
     
-    // Scene debugging function
     window.scene = () => {
       if (!viewer.sceneManager?.scene) {
         console.warn('Scene not initialized');
@@ -93,7 +90,8 @@ export class DebugCommands {
         fog: scene.fog ? {
           type: scene.fog.constructor.name,
           color: scene.fog.color.getHexString(),
-          near: scene.fog.near,
+
+ear: scene.fog.near,
           far: scene.fog.far
         } : null
       };
@@ -105,7 +103,6 @@ export class DebugCommands {
       return { info: sceneInfo, scene };
     };
     
-    // Models debugging function
     window.models = () => {
       const loadedModels = viewer.getLoadedModels();
       
@@ -121,7 +118,8 @@ export class DebugCommands {
         return {
           index,
           url: modelData.url,
-          name: model.name || 'Unnamed',
+
+ame: model.name || 'Unnamed',
           position: {
             x: parseFloat(model.position.x.toFixed(3)),
             y: parseFloat(model.position.y.toFixed(3)),
@@ -160,7 +158,6 @@ export class DebugCommands {
       return { models: modelInfo, rawData: loadedModels };
     };
     
-    // VR debugging function
     window.vr = () => {
       if (!viewer.vrManager) {
         console.log('🥽 VR not enabled');
@@ -184,12 +181,52 @@ export class DebugCommands {
       return vrInfo;
     };
     
-    // Help function to show available commands
+    window.particles = () => {
+      let particles = null;
+      
+      if (viewer.diveSystem?.particles) {
+        particles = viewer.diveSystem.particles;
+      }
+      else if (typeof window !== 'undefined' && window.diveSystem?.particles) {
+        particles = window.diveSystem.particles;
+      }
+      else if (viewer.belowViewer?.diveSystem?.particles) {
+        particles = viewer.belowViewer.diveSystem.particles;
+      }
+      
+      if (!particles) {
+        console.log('🌊 Particles not initialized');
+        return null;
+      }
+      const particleInfo = {
+        count: particles.particleCount,
+        visible: particles.particles ? particles.particles.visible : false,
+        bounds: {
+          min: {
+            x: parseFloat(particles.particleBounds.min.x.toFixed(3)),
+            y: parseFloat(particles.particleBounds.min.y.toFixed(3)),
+            z: parseFloat(particles.particleBounds.min.z.toFixed(3))
+          },
+          max: {
+            x: parseFloat(particles.particleBounds.max.x.toFixed(3)),
+            y: parseFloat(particles.particleBounds.max.y.toFixed(3)),
+            z: parseFloat(particles.particleBounds.max.z.toFixed(3))
+          }
+        }
+      };
+      
+      console.log('🌊 Particle information:');
+      console.table(particleInfo);
+      
+      return particleInfo;
+    };
+    
     window.debugHelp = () => {
       console.log('🔧 BelowJS Debug Commands:');
       console.log('  camera()    - Get current camera position data');
       console.log('  scene()     - Get scene information and object counts');
       console.log('  models()    - Get loaded models information');
+      console.log('  particles() - Get particle system information');
       console.log('  vr()        - Get VR state and settings');
       console.log('  debugHelp() - Show this help message');
       console.log('');
@@ -209,6 +246,7 @@ export class DebugCommands {
     delete window.camera;
     delete window.scene;
     delete window.models;
+    delete window.particles;
     delete window.vr;
     delete window.debugHelp;
     delete window.belowViewer;

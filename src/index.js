@@ -53,10 +53,8 @@
  * @since 1.0.0
  */
 
-// Import CSS styles for bundling
 import './styles/index.css';
 
-// Export main classes
 export { BelowViewer } from './core/BelowViewer.js';
 export { ModelViewer } from './viewers/ModelViewer.js';
 export { VRManager } from './core/VRManager.js';
@@ -67,5 +65,4 @@ export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
 
 
-// Export thick line classes for measurement and advanced usage
 export { Line2, LineMaterial, LineGeometry } from './measurement/ThickLine.js';

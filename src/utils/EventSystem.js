@@ -15,7 +15,6 @@
  *   
  *   loadModel() {
  *     this.emit('loading-start');
- *     // ... loading logic ...
  *     this.emit('model-loaded', { model });
  *   }
  * }
@@ -23,7 +22,7 @@
  * @example
  * // Listen to events
  * viewer.on('model-loaded', (data) => {
- *   console.log('Model loaded:', data.model);
+ *   // Handle loaded model
  * });
  * 
  * // Remove specific listener
@@ -53,7 +52,7 @@ export class EventSystem {
    * @example
    * // Listen for model loading events
    * viewer.on('model-loaded', (data) => {
-   *   console.log('Loaded:', data.model.name);
+   *   // Process loaded model
    * });
    * 
    * // Chain multiple listeners

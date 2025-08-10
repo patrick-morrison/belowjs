@@ -15,33 +15,33 @@ export class VRCore {
     this.scene = scene;
     this.container = container || document.body;
     
-    // VR State
+
     this.isVRSupported = false;
     this.isVRPresenting = false;
     
-    // Device detection (original pattern)
+
     this.isQuest2 = false;
     this.isQuest3 = false;
     
-    // VR UI elements
+
     this.vrButton = null;
     
-    // Session callbacks
+
     this.onSessionStart = null;
     this.onSessionEnd = null;
   }
   
   init() {
-    // Enable WebXR (original pattern)
+
     this.renderer.xr.enabled = true;
     
-    // Check VR support
+
     this.checkVRSupported();
     
-    // Clean up any existing VR buttons first
+
     this.removeExistingVRButtons();
     
-    // Create VR button only if WebXR is supported
+
     this.checkVRSupported().then(() => {
       if (this.isVRSupported) {
         if (document.readyState === 'loading') {
@@ -49,18 +49,19 @@ export class VRCore {
             this.createVRButton();
           });
         } else {
-          // DOM is already loaded, create immediately
+
           this.createVRButton();
         }
       }
     });
     
-    // Setup VR session listeners (original pattern)
+
     this.setupSessionListeners();
     
-    // Only monitor VR buttons if VR is not supported
+
     if ('xr' in navigator) {
-      navigator.xr.isSessionSupported('immersive-vr')
+
+avigator.xr.isSessionSupported('immersive-vr')
         .then(supported => {
           if (!supported) {
             this.startVRButtonMonitoring();
@@ -78,7 +79,8 @@ export class VRCore {
     return new Promise((resolve) => {
       try {
         if ('xr' in navigator) {
-          navigator.xr.isSessionSupported('immersive-vr')
+
+avigator.xr.isSessionSupported('immersive-vr')
             .then(supported => {
               this.isVRSupported = supported;
               resolve();
@@ -102,7 +104,7 @@ export class VRCore {
   
   createVRButton() {
     try {
-      // Wait for VR CSS to load before creating button
+
       this.waitForVRCSS().then(() => {
         const sessionInit = {
           optionalFeatures: [
@@ -137,38 +139,38 @@ export class VRCore {
   }
   
   styleVRButton() {
-    // Apply modern glassmorphism styling with shimmer (original pattern)
-    // Try immediately first, then with timeouts for CSS loading
+
+
     const applyStyles = () => {
       const vrBtn = document.querySelector('button.vr-button-glass') || 
                    document.querySelector('button') || 
                    this.vrButton;
       if (!vrBtn) return false;
       
-      // Ensure button is visible (only call this if button should exist)
+
       vrBtn.style.display = 'flex';
       vrBtn.style.visibility = 'visible';
       vrBtn.style.opacity = '1';
       
-      // Keep the VR available format
+
       vrBtn.innerHTML = `<span class="vr-icon">🥽</span>ENTER VR`;
       
-      // Ensure glassmorphism class is applied
+
       if (!vrBtn.classList.contains('vr-button-glass')) {
         vrBtn.classList.add('vr-button-glass');
       }
       
-      // Normal VR available styling with shimmer
+
       vrBtn.disabled = false;
       vrBtn.classList.remove('vr-generic-disabled');
-      // VR Button styled
+
       
       return true;
     };
     
-    // Try immediately
+
     if (!applyStyles()) {
-      // If CSS might not be loaded, try again with small delays
+
       setTimeout(applyStyles, 100);
       setTimeout(applyStyles, 300);
       setTimeout(applyStyles, 500);
@@ -176,15 +178,15 @@ export class VRCore {
   }
   
   updateVRButton() {
-    // VR button updates handled by THREE.js VRButton automatically
+
   }
   
   setupSessionListeners() {
-    // VR session start (original pattern)
+
     this.renderer.xr.addEventListener('sessionstart', () => {
       this.isVRPresenting = true;
       
-      // Detect Quest device and apply optimizations (original)
+
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
       
@@ -193,7 +195,7 @@ export class VRCore {
       }
     });
     
-    // VR session end (original pattern)
+
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isVRPresenting = false;
       
@@ -204,11 +206,11 @@ export class VRCore {
   }
   
   detectQuestDevice() {
-    // Original Quest device detection
+
     try {
       const userAgent = navigator.userAgent.toLowerCase();
       
-      // Quest 2 detection patterns (original)
+
       if (userAgent.includes('quest 2') || 
           userAgent.includes('oculus quest 2') ||
           (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
@@ -216,7 +218,7 @@ export class VRCore {
         return 'quest2';
       }
       
-      // Quest 3 detection patterns (original)
+
       if (userAgent.includes('quest 3') || 
           userAgent.includes('oculus quest 3') ||
           userAgent.includes('meta quest 3')) {
@@ -232,16 +234,16 @@ export class VRCore {
   }
   
   applyQuestOptimizations(deviceType) {
-    // Original Quest-specific optimizations
+
     if (deviceType === 'quest2') {
-      // Limit render distance to 20m for Quest 2 performance (original)
+
       this.camera.far = 20;
       this.camera.updateProjectionMatrix();
     }
   }
   
   async waitForVRCSS() {
-    // Wait for VR CSS to load (original pattern)
+
     return new Promise((resolve) => {
       const checkCSS = () => {
         const testElement = document.createElement('div');
@@ -262,13 +264,13 @@ export class VRCore {
         }
       };
       
-      // Start checking after a short delay
+
       setTimeout(checkCSS, 100);
     });
   }
   
   removeExistingVRButtons() {
-    // Remove only legacy VR buttons to prevent duplicates, but do NOT remove new VR button (less aggressive)
+
     const existingButtons = document.querySelectorAll('button.legacy-vr-button, a[href="#VR"]');
     existingButtons.forEach(button => {
       try {
@@ -282,14 +284,15 @@ export class VRCore {
   }
   
   startVRButtonMonitoring() {
-    // Monitor for programmatically added VR buttons and handle them
-    // Only hide legacy VR buttons, not the new VR button
+
+
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const vrButtons = node.querySelectorAll ? 
-              node.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
+
+ode.querySelectorAll('button.legacy-vr-button, a[href="#VR"]') : [];
             if (vrButtons.length > 0 || 
                 (node.tagName === 'BUTTON' && node.classList.contains('legacy-vr-button'))) {
               const buttonToHide = vrButtons.length > 0 ? vrButtons[0] : node;
@@ -312,12 +315,12 @@ export class VRCore {
   }
   
   dispose() {
-    // Clean up VR button
+
     if (this.vrButton && this.vrButton.parentNode) {
       this.vrButton.parentNode.removeChild(this.vrButton);
     }
     
-    // Clear device flags
+
     this.isQuest2 = false;
     this.isQuest3 = false;
     this.isVRSupported = false;

@@ -10,7 +10,7 @@ export class VRComfortGlyph {
     this.vrManager = vrManager;
     this.isComfortMode = false;
     
-    // Configuration options
+
     this.options = {
       containerId: options.containerId || 'modelSelector', // Default to model selector
       useInlineLayout: options.useInlineLayout !== false, // Default to true for inline layout
@@ -40,7 +40,7 @@ export class VRComfortGlyph {
   }
   
   createInlineElement() {
-    // Find the existing modeToggleContainer
+
     const modeToggleContainer = document.getElementById('modeToggleContainer');
     if (!modeToggleContainer) {
       console.warn('VRComfortGlyph: modeToggleContainer not found, falling back to floating mode');
@@ -48,7 +48,7 @@ export class VRComfortGlyph {
       return;
     }
     
-    // Create the comfort toggle as a small circle
+
     this.element = document.createElement('div');
     this.element.id = 'vrComfortGlyph';
     this.element.className = 'vr-comfort-circle comfort-off';
@@ -58,7 +58,7 @@ export class VRComfortGlyph {
     this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
     this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable');
     
-    // Insert after the semantic toggle (to the right)
+
     const semanticToggle = modeToggleContainer.querySelector('.semantic-toggle');
     if (semanticToggle) {
       modeToggleContainer.insertBefore(this.element, semanticToggle.nextSibling);
@@ -70,7 +70,7 @@ export class VRComfortGlyph {
   }
   
   createFloatingElement() {
-    // Create the glyph element (original floating version)
+
     this.element = document.createElement('div');
     this.element.id = 'vrComfortGlyph';
     this.element.className = 'vr-comfort-glyph comfort-off';
@@ -80,7 +80,7 @@ export class VRComfortGlyph {
     this.element.role = 'button';
     this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
     
-    // Add to DOM
+
     const container = this.options.containerId ? 
       document.getElementById(this.options.containerId) : 
       document.body;
@@ -94,7 +94,7 @@ export class VRComfortGlyph {
   }
   
   attachStyles() {
-    // Check if styles are already injected
+
     if (document.getElementById('vr-comfort-glyph-styles')) {
       return;
     }
@@ -290,7 +290,7 @@ export class VRComfortGlyph {
     
     document.head.appendChild(styleSheet);
     
-    // Set CSS custom properties for positioning
+
     document.documentElement.style.setProperty('--vr-comfort-offset-x', this.options.offsetX + 'px');
     document.documentElement.style.setProperty('--vr-comfort-offset-y', this.options.offsetY + 'px');
     document.documentElement.style.setProperty('--vr-comfort-offset-x-mobile', (this.options.offsetX - 5) + 'px');
@@ -306,7 +306,7 @@ export class VRComfortGlyph {
     
     this.element.addEventListener('click', toggleComfort);
     
-    // Keyboard support
+
     this.element.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -318,10 +318,10 @@ export class VRComfortGlyph {
   updatePosition() {
     if (!this.element) return;
     
-    // Remove existing position classes
+
     this.element.classList.remove('position-bottom-right', 'position-bottom-left', 'position-top-right', 'position-top-left');
     
-    // Add new position class
+
     this.element.classList.add(`position-${this.options.position}`);
   }
   
@@ -338,32 +338,32 @@ export class VRComfortGlyph {
   updateInlineVisualState() {
     if (!this.element) return;
     
-    // Force clear all existing classes and styles to prevent conflicts
+
     this.element.classList.remove('comfort-off', 'comfort-on');
     this.element.style.removeProperty('background');
     this.element.style.removeProperty('border-color');
     this.element.style.removeProperty('color');
     this.element.style.removeProperty('box-shadow');
     
-    // Always show shield icon
+
     this.element.textContent = '🛡️';
     
-    // Force a reflow to ensure clean state
+
     this.element.offsetHeight;
     
     if (this.isComfortMode) {
-      // Comfort mode ON (teleport + safety)
+
       this.element.classList.add('comfort-on');
       this.element.title = 'Comfort Mode: ON (Teleport Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is ON - Click to disable');
     } else {
-      // Comfort mode OFF (smooth movement)
+
       this.element.classList.add('comfort-off');
       this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable');
     }
     
-    // Force another reflow to ensure styles are applied
+
     setTimeout(() => {
       if (this.element) {
         this.element.offsetHeight;
@@ -374,28 +374,28 @@ export class VRComfortGlyph {
   updateFloatingVisualState() {
     if (!this.element) return;
     
-    // Update position
+
     this.updatePosition();
     
-    // Always show shield glyph
+
     this.element.textContent = '🛡️';
     
-    // Clear all previous state classes to prevent stuck styling
+
     this.element.classList.remove('comfort-off', 'comfort-on');
     
     if (this.isComfortMode) {
-      // Comfort mode ON (teleport + safety)
+
       this.element.classList.add('comfort-on');
       this.element.title = 'Comfort Mode: ON (Teleport Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is ON - Click to disable');
     } else {
-      // Comfort mode OFF (smooth movement)
+
       this.element.classList.add('comfort-off');
       this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
       this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
     }
     
-    // Force style recalculation to prevent stuck green styling
+
     this.element.style.display = 'none';
     this.element.offsetHeight; // Trigger reflow
     this.element.style.display = 'flex';
@@ -406,17 +406,17 @@ export class VRComfortGlyph {
     
     if (this.vrManager) {
       if (this.isComfortMode) {
-        // Enable comfort mode (teleport + snap turn)
+
         this.vrManager.setComfortPreset('max-comfort');
       } else {
-        // Disable comfort mode (smooth movement)
+
         this.vrManager.setComfortPreset('performance');
       }
     }
     
     this.updateVisualState();
     
-    // Trigger custom event
+
     const event = new CustomEvent('vrcomfortchange', {
       detail: {
         isComfortMode: this.isComfortMode,
@@ -439,7 +439,7 @@ export class VRComfortGlyph {
   updateOptions(newOptions) {
     this.options = { ...this.options, ...newOptions };
     
-    // Update CSS custom properties if position offsets changed
+
     if (newOptions.offsetX !== undefined) {
       document.documentElement.style.setProperty('--vr-comfort-offset-x', this.options.offsetX + 'px');
       document.documentElement.style.setProperty('--vr-comfort-offset-x-mobile', (this.options.offsetX - 5) + 'px');
@@ -469,11 +469,11 @@ export class VRComfortGlyph {
   
   dispose() {
     if (this.element) {
-      // Remove event listeners
+
       this.element.removeEventListener('click', this.toggle);
       this.element.removeEventListener('keydown', this.toggle);
       
-      // Remove from DOM
+
       if (this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
       }
@@ -481,7 +481,7 @@ export class VRComfortGlyph {
       this.element = null;
     }
     
-    // Remove styles if no other instances exist
+
     const existingGlyphs = document.querySelectorAll('.vr-comfort-glyph');
     if (existingGlyphs.length === 0) {
       const styleSheet = document.getElementById('vr-comfort-glyph-styles');
@@ -493,7 +493,7 @@ export class VRComfortGlyph {
     this.vrManager = null;
   }
   
-  // Static method to create and initialize
+
   static create(vrManager, options = {}) {
     return new VRComfortGlyph(vrManager, options);
   }

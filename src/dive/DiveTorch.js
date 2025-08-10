@@ -1,34 +1,24 @@
 import * as THREE from 'three';
 
-/**
- * DiveTorch - Manages the VR controller spotlight/torch system
- */
 export class DiveTorch {
   constructor(scene) {
     this.scene = scene;
     
-    // Torch/spotlight references
     this.controllerSpotlight = null;
     this.spotlightTarget = null;
     
-    // Device detection for optimization
     this.isQuest2 = false;
     this.isQuest3 = false;
     this.detectQuestDevice();
     
-    // Initialize torch system
     this.createSpotlight();
     
   }
   
-  /**
-   * Detect Quest device type for optimization
-   */
   detectQuestDevice() {
     try {
       const userAgent = navigator.userAgent.toLowerCase();
       
-      // Quest 2 detection patterns
       if (userAgent.includes('quest 2') || 
           userAgent.includes('oculus quest 2') ||
           (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
@@ -36,7 +26,6 @@ export class DiveTorch {
         return 'quest2';
       }
       
-      // Quest 3 detection patterns
       if (userAgent.includes('quest 3') || 
           userAgent.includes('oculus quest 3') ||
           userAgent.includes('meta quest 3')) {
@@ -55,19 +44,17 @@ export class DiveTorch {
    * Create/recreate the spotlight
    */
   createSpotlight(beamWidthDegrees = 25) {
-    // Remove existing spotlight if it exists
+
     if (this.controllerSpotlight) {
       this.scene.remove(this.controllerSpotlight);
       this.scene.remove(this.spotlightTarget);
     }
     
-    // Convert degrees to radians
+
     const beamWidthRadians = (beamWidthDegrees * Math.PI) / 180;
     
-    // Adjust spotlight distance based on Quest device for performance
-    const spotlightDistance = this.isQuest2 ? 15 : 15; // Keep same distance for now
+    const spotlightDistance = this.isQuest2 ? 15 : 15;
     
-    // Create new spotlight with configurable beam width
     this.controllerSpotlight = new THREE.SpotLight(
       0xffffff,        // Pure white light
       2.5,             // Realistic underwater torch intensity
@@ -77,13 +64,12 @@ export class DiveTorch {
       0.8              // Higher decay for realistic underwater attenuation
     );
     
-    // Configure spotlight properties
+
     this.controllerSpotlight.position.set(0, 0, 0);
-    // Start visible for debugging (normally hidden in Survey mode)
     this.controllerSpotlight.visible = true;
-    this.controllerSpotlight.castShadow = true; // Enable shadow casting
+    this.controllerSpotlight.castShadow = true;
     
-    // Optimize shadow settings for VR performance and eliminate moire effects
+
     const shadowMapSize = this.isQuest2 ? 512 : 1024; // Reduce shadow quality on Quest 2
     this.controllerSpotlight.shadow.mapSize.width = shadowMapSize;
     this.controllerSpotlight.shadow.mapSize.height = shadowMapSize;
@@ -91,25 +77,20 @@ export class DiveTorch {
     this.controllerSpotlight.shadow.camera.far = spotlightDistance; // Match spotlight distance
     this.controllerSpotlight.shadow.camera.fov = beamWidthDegrees; // Match spotlight angle
     
-    // Fix shadow acne and moire effects with proper bias settings
+
     this.controllerSpotlight.shadow.bias = -0.0005; // Negative bias to prevent shadow acne
     this.controllerSpotlight.shadow.normalBias = 0.02; // Normal bias to reduce peter panning
     this.controllerSpotlight.shadow.radius = 4; // Softer shadow edges to reduce artifacts
     this.controllerSpotlight.shadow.blurSamples = 10; // More samples for smoother shadows
     
-    // Add spotlight to scene
     this.scene.add(this.controllerSpotlight);
     
-    // Create a simple target object for the spotlight
     this.spotlightTarget = new THREE.Object3D();
     this.scene.add(this.spotlightTarget);
     this.controllerSpotlight.target = this.spotlightTarget;
     
   }
   
-  /**
-   * Enable torch for dive mode
-   */
   enableTorch() {
     if (this.controllerSpotlight) {
       this.controllerSpotlight.visible = true;
@@ -138,41 +119,34 @@ export class DiveTorch {
       return;
     }
     
-    // Get controller world position and rotation
+
     const controllerPosition = new THREE.Vector3();
     const controllerQuaternion = new THREE.Quaternion();
     
     controller.getWorldPosition(controllerPosition);
     controller.getWorldQuaternion(controllerQuaternion);
     
-    // Set spotlight position to controller position
+
     this.controllerSpotlight.position.copy(controllerPosition);
     
-    // Calculate forward direction from controller
     const forward = new THREE.Vector3(0, 0, -1);
     forward.applyQuaternion(controllerQuaternion);
     
-    // Position target in front of controller
     const targetPosition = controllerPosition.clone().add(forward.multiplyScalar(2));
     this.spotlightTarget.position.copy(targetPosition);
-    
-    // Debug logging (occasional to avoid spam)
   }
   
-  /**
-   * Update torch position for non-VR mode (follow camera)
-   */
   updateCameraPosition(camera) {
     if (!this.controllerSpotlight || !this.spotlightTarget) return;
     
-    // Position spotlight at camera position
+
     this.controllerSpotlight.position.copy(camera.position);
     
-    // Calculate forward direction from camera
+
     const forward = new THREE.Vector3(0, 0, -1);
     forward.applyQuaternion(camera.quaternion);
     
-    // Position target in front of camera
+
     const targetPosition = camera.position.clone().add(forward.multiplyScalar(8));
     this.spotlightTarget.position.copy(targetPosition);
     
@@ -230,8 +204,8 @@ export class DiveTorch {
    * Update torch system (call in animation loop)
    */
   update(deltaTime) {
-    // Could add torch flickering, battery effects, etc. here
-    // For now, just maintain steady operation
+
+
   }
   
   /**

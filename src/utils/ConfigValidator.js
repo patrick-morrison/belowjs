@@ -5,23 +5,24 @@
 export const defaultConfig = {
   container: '#viewer-container',
   
-  // Model configuration
+
   models: {},
   
-  // Scene configuration
+
   scene: {
     background: 0x0a1a2a // Deep ocean blue
   },
   
-  // Camera configuration
+
   camera: {
     fov: 65,
-    near: 0.05,
+
+ear: 0.05,
     far: 2000,
     position: { x: 0, y: 5, z: 10 }
   },
   
-  // Renderer configuration
+
   renderer: {
     antialias: true,
     powerPreference: 'high-performance',
@@ -31,7 +32,7 @@ export const defaultConfig = {
     toneMappingExposure: 1.0
   },
   
-  // Controls configuration
+
   controls: {
     desktop: {
       enableDamping: true,
@@ -42,24 +43,24 @@ export const defaultConfig = {
     }
   },
   
-  // VR configuration - preserving original patterns
+
   vr: {
     enabled: true,
     
-    // Original movement speeds from index.html
+
     movement: {
       moveSpeed: 2.0,    // m/s base movement speed
       turnSpeed: 1.5,    // rad/s turn speed
       flySpeed: 1.0      // m/s vertical movement
     },
     
-    // Original ramping speeds for smooth movement
+
     ramping: {
       speedRampRate: 3.0,
       boostRampRate: 6.0
     },
     
-    // Original controller mappings
+
     controllers: {
       leftHand: {
         movement: true,        // horizontal movement
@@ -73,7 +74,7 @@ export const defaultConfig = {
       gripBoostMultiplier: 3.0  // Original speed boost multiplier
     },
     
-    // Original Quest optimizations
+
     optimization: {
       quest2RenderDistance: 20,  // Limit for Quest 2
       autoDetectDevice: true
@@ -82,10 +83,10 @@ export const defaultConfig = {
 };
 
 export function validateConfig(userConfig = {}) {
-  // Merge user config with defaults
+
   const config = mergeDeep(defaultConfig, userConfig);
   
-  // Basic validation
+
   if (userConfig.container && typeof userConfig.container !== 'string') {
     throw new Error('Container must be a string selector or element ID');
   }

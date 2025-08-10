@@ -7,7 +7,7 @@
 
 export class VRComfort {
   constructor() {
-    // VR Comfort Settings - Simplified
+
     this.settings = {
       locomotionMode: 'smooth', // 'smooth', 'teleport'
       turningMode: 'smooth',    // 'smooth', 'snap'
@@ -17,7 +17,7 @@ export class VRComfort {
       comfortSpeed: 0.5         // speed multiplier when reduced motion is on
     };
     
-    // Comfort presets
+
     this.presets = {
       'max-comfort': {
         locomotionMode: 'teleport',
@@ -43,12 +43,12 @@ export class VRComfort {
       }
     };
     
-    // Callbacks
+
     this.onSettingsChange = null;
   }
   
   setSettings(newSettings) {
-    // Apply comfort settings with validation
+
     const validModes = ['smooth', 'teleport'];
     const validTurningModes = ['smooth', 'snap'];
     
@@ -126,7 +126,7 @@ export class VRComfort {
   }
   
   addCustomPreset(name, settings) {
-    // Validate settings before adding
+
     const validSettings = {};
     
     if (settings.locomotionMode && ['smooth', 'teleport'].includes(settings.locomotionMode)) {
@@ -177,21 +177,21 @@ export class VRComfort {
   }
   
   getComfortLevel() {
-    // Calculate overall comfort level based on settings (0-100)
+
     let comfortScore = 0;
     
-    // Locomotion mode scoring
+
     if (this.settings.locomotionMode === 'teleport') comfortScore += 40;
     else if (this.settings.locomotionMode === 'smooth') comfortScore += 20;
     
-    // Turning mode scoring
+
     if (this.settings.turningMode === 'snap') comfortScore += 30;
     else if (this.settings.turningMode === 'smooth') comfortScore += 15;
     
-    // Motion reduction scoring
+
     if (this.settings.reducedMotion) comfortScore += 20;
     
-    // Speed scoring
+
     if (this.settings.comfortSpeed <= 0.5) comfortScore += 10;
     else if (this.settings.comfortSpeed <= 0.8) comfortScore += 5;
     
