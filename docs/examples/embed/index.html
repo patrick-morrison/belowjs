@@ -77,6 +77,62 @@
             height: auto !important;
             position: static !important;
         }
+
+        /* Mobile responsive layout */
+        @media (max-width: 768px) {
+            body, html {
+                padding: 0;
+                background: #ffffff;
+            }
+            
+            .container {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .viewer-container {
+                flex: 1;
+                height: 60vh;
+                min-height: 400px;
+                border: none;
+                border-radius: 0;
+                margin: 0;
+            }
+            
+            h1, .subtitle, .content {
+                padding: 0 16px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+                margin: 16px 0 8px 0;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+                margin-bottom: 16px;
+            }
+            
+            .viewer-instructions {
+                padding: 8px 16px;
+                font-size: 0.8em;
+            }
+            
+            .content {
+                padding: 16px;
+                margin: 0;
+            }
+            
+            .content h2 {
+                font-size: 1.2em;
+            }
+        }
     </style>
 </head>
 <body>
