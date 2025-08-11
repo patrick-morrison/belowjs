@@ -13,7 +13,7 @@ sidebar: false
     </div>
     <div class="cta-buttons">
       <a href="/examples/" class="cta-button cta-primary">View Examples</a>
-      <a href="/examples/" class="cta-button cta-secondary">Get Started</a>
+      <a href="/installation" class="cta-button cta-secondary">Get Started</a>
     </div>
   </div>
   
@@ -24,8 +24,9 @@ sidebar: false
       title="BelowJS Interactive Demo"
       loading="lazy">
     </iframe>
-    <div class="demo-controls">
-      <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Click goggles (supported devices)
+    <div class="demo-controls" style="margin-top: -4px;">
+      <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR (supported devices)
+      <br>Model: Sesa 1928, Credit <a href="https://wrecksploration.au/projects/site03/" target="_blank">WreckSploration</a>
     </div>
   </div>
   
@@ -41,7 +42,7 @@ sidebar: false
               <span>Deploy to GitHub Pages - lasts forever with little maintenance</span>
             </div>
           </a>
-          <a href="/examples/basic" class="feature-item">
+          <a href="https://patrick-morrison.github.io/belowjs/examples/basic/" class="feature-item" target="_blank">
             <div class="feature-icon">🎛️</div>
             <div class="feature-text">
               <strong>Full control over your underwater photogrammetry models</strong>
@@ -55,7 +56,7 @@ sidebar: false
               <span>Desktop and VR modes work together, optimized for Quest 3</span>
             </div>
           </a>
-          <a href="/examples/dragdrop" class="feature-item">
+          <a href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" class="feature-item" target="_blank">
             <div class="feature-icon">🌊</div>
             <div class="feature-text">
               <strong>Feel the wrecks as they are</strong>

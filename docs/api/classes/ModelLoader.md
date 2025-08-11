@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: ModelLoader
 
-Defined in: models/ModelLoader.js:7
+Defined in: [models/ModelLoader.js:7](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L7)
 
 ## Constructors
 
@@ -14,7 +19,7 @@ Defined in: models/ModelLoader.js:7
 
 > **new ModelLoader**(`renderer`): `ModelLoader`
 
-Defined in: models/ModelLoader.js:8
+Defined in: [models/ModelLoader.js:8](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L8)
 
 #### Parameters
 
@@ -32,7 +37,7 @@ Defined in: models/ModelLoader.js:8
 
 > **cache**: `Map`\<`any`, `any`\>
 
-Defined in: models/ModelLoader.js:18
+Defined in: [models/ModelLoader.js:18](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L18)
 
 ***
 
@@ -40,7 +45,7 @@ Defined in: models/ModelLoader.js:18
 
 > **dracoLoader**: `any`
 
-Defined in: models/ModelLoader.js:11
+Defined in: [models/ModelLoader.js:11](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L11)
 
 ***
 
@@ -48,7 +53,7 @@ Defined in: models/ModelLoader.js:11
 
 > **ktx2Loader**: `any`
 
-Defined in: models/ModelLoader.js:12
+Defined in: [models/ModelLoader.js:12](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L12)
 
 ***
 
@@ -56,7 +61,7 @@ Defined in: models/ModelLoader.js:12
 
 > **ktx2SetupComplete**: `boolean`
 
-Defined in: models/ModelLoader.js:20
+Defined in: [models/ModelLoader.js:20](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L20)
 
 ***
 
@@ -64,7 +69,7 @@ Defined in: models/ModelLoader.js:20
 
 > **loader**: `any`
 
-Defined in: models/ModelLoader.js:10
+Defined in: [models/ModelLoader.js:10](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L10)
 
 ***
 
@@ -72,7 +77,7 @@ Defined in: models/ModelLoader.js:10
 
 > **renderer**: `any`
 
-Defined in: models/ModelLoader.js:9
+Defined in: [models/ModelLoader.js:9](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L9)
 
 ***
 
@@ -80,7 +85,7 @@ Defined in: models/ModelLoader.js:9
 
 > `static` **sharedKTX2Loader**: `any`
 
-Defined in: models/ModelLoader.js:227
+Defined in: [models/ModelLoader.js:227](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L227)
 
 ***
 
@@ -88,7 +93,7 @@ Defined in: models/ModelLoader.js:227
 
 > `static` **sharedKTX2SetupComplete**: `boolean`
 
-Defined in: models/ModelLoader.js:228
+Defined in: [models/ModelLoader.js:228](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L228)
 
 ## Methods
 
@@ -96,7 +101,7 @@ Defined in: models/ModelLoader.js:228
 
 > **dispose**(): `void`
 
-Defined in: models/ModelLoader.js:216
+Defined in: [models/ModelLoader.js:216](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L216)
 
 #### Returns
 
@@ -108,7 +113,7 @@ Defined in: models/ModelLoader.js:216
 
 > **load**(`url`, `onProgress`, `signal`): `Promise`\<`any`\>
 
-Defined in: models/ModelLoader.js:71
+Defined in: [models/ModelLoader.js:71](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L71)
 
 #### Parameters
 
@@ -134,7 +139,7 @@ Defined in: models/ModelLoader.js:71
 
 > **processMaterial**(`material`): `void`
 
-Defined in: models/ModelLoader.js:209
+Defined in: [models/ModelLoader.js:209](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L209)
 
 #### Parameters
 
@@ -152,7 +157,7 @@ Defined in: models/ModelLoader.js:209
 
 > **processModel**(`gltf`): `any`
 
-Defined in: models/ModelLoader.js:118
+Defined in: [models/ModelLoader.js:118](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L118)
 
 #### Parameters
 
@@ -170,7 +175,7 @@ Defined in: models/ModelLoader.js:118
 
 > **setRenderer**(`renderer`): `void`
 
-Defined in: models/ModelLoader.js:52
+Defined in: [models/ModelLoader.js:52](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L52)
 
 #### Parameters
 
@@ -188,7 +193,7 @@ Defined in: models/ModelLoader.js:52
 
 > **setupKTX2Loader**(): `void`
 
-Defined in: models/ModelLoader.js:24
+Defined in: [models/ModelLoader.js:24](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/models/ModelLoader.js#L24)
 
 #### Returns
 

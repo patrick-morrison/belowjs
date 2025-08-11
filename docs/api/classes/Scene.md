@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: Scene
 
-Defined in: core/Scene.js:3
+Defined in: [core/Scene.js:3](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L3)
 
 ## Constructors
 
@@ -14,7 +19,7 @@ Defined in: core/Scene.js:3
 
 > **new Scene**(`config`): `Scene`
 
-Defined in: core/Scene.js:4
+Defined in: [core/Scene.js:4](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L4)
 
 #### Parameters
 
@@ -30,7 +35,7 @@ Defined in: core/Scene.js:4
 
 > **config**: `object`
 
-Defined in: core/Scene.js:5
+Defined in: [core/Scene.js:5](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L5)
 
 ***
 
@@ -38,7 +43,7 @@ Defined in: core/Scene.js:5
 
 > **scene**: `any`
 
-Defined in: core/Scene.js:6
+Defined in: [core/Scene.js:6](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L6)
 
 ## Methods
 
@@ -46,7 +51,7 @@ Defined in: core/Scene.js:6
 
 > **add**(`object`): `void`
 
-Defined in: core/Scene.js:22
+Defined in: [core/Scene.js:22](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L22)
 
 #### Parameters
 
@@ -64,7 +69,7 @@ Defined in: core/Scene.js:22
 
 > **dispose**(): `void`
 
-Defined in: core/Scene.js:34
+Defined in: [core/Scene.js:34](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L34)
 
 #### Returns
 
@@ -76,7 +81,7 @@ Defined in: core/Scene.js:34
 
 > **getScene**(): `any`
 
-Defined in: core/Scene.js:30
+Defined in: [core/Scene.js:30](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L30)
 
 #### Returns
 
@@ -88,7 +93,7 @@ Defined in: core/Scene.js:30
 
 > **init**(): `void`
 
-Defined in: core/Scene.js:10
+Defined in: [core/Scene.js:10](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L10)
 
 #### Returns
 
@@ -100,7 +105,7 @@ Defined in: core/Scene.js:10
 
 > **remove**(`object`): `void`
 
-Defined in: core/Scene.js:26
+Defined in: [core/Scene.js:26](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/Scene.js#L26)
 
 #### Parameters
 

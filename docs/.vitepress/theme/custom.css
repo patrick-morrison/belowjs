@@ -125,101 +125,124 @@
 }
 
 /* HOMEPAGE-SPECIFIC STYLES - Only apply when FullWidthLayout is active */
+/* More specific scoping to prevent conflicts with other pages */
 
-.full-width-layout .VPHome {
+body.full-width-layout .VPHome,
+.full-width-layout.homepage .VPHome {
   margin-bottom: 0 !important;
 }
 
-.full-width-layout .VPDoc {
+body.full-width-layout .VPDoc,
+.full-width-layout.homepage .VPDoc {
   padding: 0 !important;
   margin: 0 !important;
 }
 
-.full-width-layout .VPContent {
+body.full-width-layout .VPContent,
+.full-width-layout.homepage .VPContent {
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
 }
 
-.full-width-layout .VPContent.is-home {
+body.full-width-layout .VPContent.is-home,
+.full-width-layout.homepage .VPContent.is-home {
   width: 100% !important;
   max-width: none !important;
 }
 
-.full-width-layout .content {
+body.full-width-layout .content,
+.full-width-layout.homepage .content {
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
   width: 100% !important;
 }
 
-.full-width-layout .vp-doc {
+body.full-width-layout .vp-doc,
+.full-width-layout.homepage .vp-doc {
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
 }
 
 /* Remove ALL VitePress containers that constrain width - but not navbar */
-.full-width-layout .VPDoc .container {
+body.full-width-layout .VPDoc .container,
+.full-width-layout.homepage .VPDoc .container {
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
 }
 
 /* Hide everything that clutters the landing page */
-.full-width-layout .VPDocAsideOutline {
+body.full-width-layout .VPDocAsideOutline,
+.full-width-layout.homepage .VPDocAsideOutline {
   display: none !important;
 }
 
-.full-width-layout .VPSidebar {
+body.full-width-layout .VPSidebar,
+.full-width-layout.homepage .VPSidebar {
   display: none !important;
 }
 
-.full-width-layout .VPContent.has-sidebar {
+body.full-width-layout .VPContent.has-sidebar,
+.full-width-layout.homepage .VPContent.has-sidebar {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
 /* Force full-width even with has-sidebar class */
-.full-width-layout .VPDoc.has-aside {
+body.full-width-layout .VPDoc.has-aside,
+.full-width-layout.homepage .VPDoc.has-aside {
   display: block !important;
 }
 
-.full-width-layout .VPDoc.has-aside .container {
+body.full-width-layout .VPDoc.has-aside .container,
+.full-width-layout.homepage .VPDoc.has-aside .container {
   max-width: none !important;
   display: block !important;
 }
 
-.full-width-layout .VPDoc .aside {
+body.full-width-layout .VPDoc .aside,
+.full-width-layout.homepage .VPDoc .aside {
   display: none !important;
 }
 
 /* Override VitePress content width constraints */
-.full-width-layout .content-container {
+body.full-width-layout .content-container,
+.full-width-layout.homepage .content-container {
   max-width: none !important;
 }
 
-.full-width-layout .VPDoc:not(.has-sidebar) .content {
+body.full-width-layout .VPDoc:not(.has-sidebar) .content,
+.full-width-layout.homepage .VPDoc:not(.has-sidebar) .content {
   max-width: none !important;
 }
 
-.full-width-layout .VPDoc.has-aside .content {
+body.full-width-layout .VPDoc.has-aside .content,
+.full-width-layout.homepage .VPDoc.has-aside .content {
   max-width: none !important;
   margin: 0 !important;
   min-width: auto !important;
 }
 
 /* Remove default page title styling */
-.full-width-layout .vp-doc h1 {
+body.full-width-layout .vp-doc h1,
+.full-width-layout.homepage .vp-doc h1 {
   display: none;
 }
 
 /* Hide VitePress home components */
-.full-width-layout .VPHero,
-.full-width-layout .VPFeatures,
-.full-width-layout .VPHomeContent,
-.full-width-layout .VPHomeHero,
-.full-width-layout .VPHomeFeatures {
+body.full-width-layout .VPHero,
+body.full-width-layout .VPFeatures,
+body.full-width-layout .VPHomeContent,
+body.full-width-layout .VPHomeHero,
+body.full-width-layout .VPHomeFeatures,
+.full-width-layout.homepage .VPHero,
+.full-width-layout.homepage .VPFeatures,
+.full-width-layout.homepage .VPHomeContent,
+.full-width-layout.homepage .VPHomeHero,
+.full-width-layout.homepage .VPHomeFeatures {
   display: none !important;
 }
 
@@ -626,10 +649,26 @@
   backdrop-filter: blur(12px);
   background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid var(--vp-c-divider-light);
+  position: relative;
+  z-index: 3000;
 }
 
 .dark .VPNav {
   background: rgba(26, 26, 26, 0.95);
+}
+
+/* Ensure hamburger and nav components work properly */
+.VPNavBarHamburger, 
+.VPNavBarHamburger *,
+.VPNavBarMenuGroup,
+.VPNavBarMenu,
+.VPNavBarTitle {
+  pointer-events: auto !important;
+}
+
+/* Force proper z-index for mobile menu */
+.VPNavScreenMenu {
+  z-index: 3001 !important;
 }
 
 /* Sidebar */
@@ -806,4 +845,48 @@
 
 .vp-doc h3 + div[class*="language-"] {
   margin-top: 1rem;
+}
+
+/* Specific styles for guides and API pages to prevent layout conflicts */
+.guides-page .vp-doc,
+.api-page .vp-doc {
+  max-width: 1024px !important;
+  margin: 0 auto !important;
+  padding: 2rem 1.5rem !important;
+}
+
+.guides-page .VPContent,
+.api-page .VPContent {
+  max-width: none !important;
+}
+
+.guides-page .VPDoc .container,
+.api-page .VPDoc .container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure proper sidebar behavior for guides and API */
+.guides-page .VPSidebar,
+.api-page .VPSidebar {
+  display: block !important;
+}
+
+.guides-page .VPDocAsideOutline,
+.api-page .VPDocAsideOutline {
+  display: block !important;
+}
+
+/* Fix content width when sidebar is present */
+.guides-page .VPContent.has-sidebar,
+.api-page .VPContent.has-sidebar {
+  padding-left: var(--vp-sidebar-width) !important;
+}
+
+/* Ensure standard pages work normally */
+.standard-page .vp-doc,
+.examples-page .vp-doc {
+  max-width: 1024px !important;
+  margin: 0 auto !important;
+  padding: 2rem 1.5rem !important;
 }

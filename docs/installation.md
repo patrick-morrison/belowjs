@@ -1,42 +1,29 @@
 # Installation
 
-## CDN (recommended for getting started)
+## CDN
 
-This gives you a complete VR-ready 3D viewer with dive lighting, measurement tools, and mode switching enabled by default.
+Both Three.js and BelowJS use ES modules. Add the import map and stylesheet:
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
-        }
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+        "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
     }
-    </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
-    <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; }
-    </style>
-</head>
-<body>
-    <script type="module">
-        import { ModelViewer } from 'belowjs';
-        
-        const config = {
-            models: {
-                'kxi': {
-                    url: 'shipwreck.glb'
-                }
-            }
-        };
-        
-        const viewer = new ModelViewer('body', config);
-    </script>
-</body>
-</html>
+}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
+```
+
+Then import and use:
+
+```javascript
+import { ModelViewer } from 'belowjs';
+
+const viewer = new ModelViewer('body', {
+    models: { 'wreck': { url: 'shipwreck.glb' } }
+});
 ```
 
 ## npm
@@ -75,6 +62,18 @@ This builds the necessary files into the `/dist` directory:
 - `belowjs.js` (~419 KB) — ES modules version  
 - `belowjs.css` (~20 KB) — Complete stylesheet
 
+## Static deployment
+
+Deploy using CDN (no downloads needed):
+
+```
+shipwrecks-vr/
+├── index.html          # Uses CDN imports
+└── models/
+    ├── kxi.glb
+    └── kozvii.glb
+```
+
 ## VR setup
 
 VR requires HTTPS in production. For local development:
@@ -93,10 +92,10 @@ python -m http.server 8000
 
 ## Browser support
 
-| Feature | Chrome | Firefox | Safari | Edge |
-|---------|--------|---------|--------|------|
-| Basic viewing | ✅ | ✅ | ✅ | ✅ |
-| VR mode | ✅ | ✅ | ❌ | ✅ |
+| Feature       | Chrome | Firefox | Safari | Edge |
+| ------------- | ------ | ------- | ------ | ---- |
+| Basic viewing | ✅     | ✅      | ✅     | ✅   |
+| VR mode       | ✅     | ✅      | ❌     | ✅   |
 
 ## Troubleshooting
 

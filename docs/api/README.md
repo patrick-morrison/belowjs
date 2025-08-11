@@ -23,11 +23,11 @@ Setup virtual dives in minutes. Full control over your underwater photogrammetry
 
 BelowJS is a 3D model viewer built on Three.js that allows communities to share their underwater photogrammetry models on the web and in VR. 
 
-Virtual reality and desktop modes are tightly integrated with a measurement system, so archaeologists can research sites with confidence. An optional dive mode lets audiences feel the wrecks as they are - optimized for the Meta Quest 3 headset.
+Virtual reality and desktop modes are tightly integrated with a measurement system, so archaeologists can research sites with confidence. An optional dive mode lets audiences feel the wrecks as they are - optimised for the Meta Quest 3 headset.
 
-BelowJS can be deployed statically or as part of a system. A simple GitHub page can share optimized models for free, and will last forever with little maintenance. Conversely, it can power dynamic systems like BelowVR, which lets teams virtually dive together.
+BelowJS can be deployed statically or as part of a system. A simple GitHub page can share optimised models for free, and will last forever with little maintenance. Conversely, it can power dynamic systems like BelowVR, which lets teams virtually dive together.
 
-Sensible defaults make your work look beautiful. We have tools to help you optimize, scale and annotate them.
+Sensible defaults make your work look beautiful. We have tools to help you optimise, scale and annotate them.
 
 The code is yours, as long as you share what you do with it.
 
@@ -96,7 +96,7 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
 ## What it does
 
 - Loads and displays GLB 3D models in a web browser
-- Works with VR headsets through WebXR, optimized for Quest 3
+- Works with VR headsets through WebXR, optimised for Quest 3
 - Provides measurement tools for both desktop and VR environments
 - Includes underwater lighting simulation and particle effects
 - Supports multiple models with dropdown switching

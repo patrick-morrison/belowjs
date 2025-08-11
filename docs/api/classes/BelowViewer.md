@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: BelowViewer
 
-Defined in: core/BelowViewer.js:81
+Defined in: [core/BelowViewer.js:81](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L81)
 
 BelowViewer - Core 3D rendering engine for BelowJS
 
@@ -92,7 +97,7 @@ const renderer = viewer.renderer;
 
 > **new BelowViewer**(`container`, `config?`): `BelowViewer`
 
-Defined in: core/BelowViewer.js:88
+Defined in: [core/BelowViewer.js:88](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L88)
 
 Creates a new BelowViewer instance
 
@@ -124,7 +129,7 @@ Configuration options
 
 > **cameraManager**: [`Camera`](Camera.md)
 
-Defined in: core/BelowViewer.js:155
+Defined in: [core/BelowViewer.js:155](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L155)
 
 ***
 
@@ -132,7 +137,7 @@ Defined in: core/BelowViewer.js:155
 
 > **config**: `any`
 
-Defined in: core/BelowViewer.js:151
+Defined in: [core/BelowViewer.js:151](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L151)
 
 ***
 
@@ -140,7 +145,7 @@ Defined in: core/BelowViewer.js:151
 
 > **container**: `HTMLElement`
 
-Defined in: core/BelowViewer.js:91
+Defined in: [core/BelowViewer.js:91](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L91)
 
 ***
 
@@ -148,7 +153,7 @@ Defined in: core/BelowViewer.js:91
 
 > **currentAbortController**: `AbortController`
 
-Defined in: core/BelowViewer.js:164
+Defined in: [core/BelowViewer.js:164](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L164)
 
 ***
 
@@ -156,7 +161,7 @@ Defined in: core/BelowViewer.js:164
 
 > **dolly**: `any`
 
-Defined in: core/BelowViewer.js:160
+Defined in: [core/BelowViewer.js:160](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L160)
 
 ***
 
@@ -164,7 +169,7 @@ Defined in: core/BelowViewer.js:160
 
 > **events**: `object`
 
-Defined in: utils/EventSystem.js:41
+Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L41)
 
 #### Inherited from
 
@@ -176,7 +181,7 @@ Defined in: utils/EventSystem.js:41
 
 > **isInitialized**: `boolean`
 
-Defined in: core/BelowViewer.js:162
+Defined in: [core/BelowViewer.js:162](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L162)
 
 ***
 
@@ -184,7 +189,7 @@ Defined in: core/BelowViewer.js:162
 
 > **isVREnabled**: `boolean`
 
-Defined in: core/BelowViewer.js:159
+Defined in: [core/BelowViewer.js:159](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L159)
 
 ***
 
@@ -192,7 +197,7 @@ Defined in: core/BelowViewer.js:159
 
 > **loadedModels**: `any`[]
 
-Defined in: core/BelowViewer.js:163
+Defined in: [core/BelowViewer.js:163](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L163)
 
 ***
 
@@ -200,7 +205,7 @@ Defined in: core/BelowViewer.js:163
 
 > **modelLoader**: [`ModelLoader`](ModelLoader.md)
 
-Defined in: core/BelowViewer.js:156
+Defined in: [core/BelowViewer.js:156](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L156)
 
 ***
 
@@ -208,7 +213,7 @@ Defined in: core/BelowViewer.js:156
 
 > **renderer**: `any`
 
-Defined in: core/BelowViewer.js:153
+Defined in: [core/BelowViewer.js:153](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L153)
 
 ***
 
@@ -216,7 +221,7 @@ Defined in: core/BelowViewer.js:153
 
 > **sceneManager**: [`Scene`](Scene.md)
 
-Defined in: core/BelowViewer.js:154
+Defined in: [core/BelowViewer.js:154](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L154)
 
 ***
 
@@ -224,7 +229,7 @@ Defined in: core/BelowViewer.js:154
 
 > **vrManager**: [`VRManager`](VRManager.md)
 
-Defined in: core/BelowViewer.js:157
+Defined in: [core/BelowViewer.js:157](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L157)
 
 ## Methods
 
@@ -232,7 +237,7 @@ Defined in: core/BelowViewer.js:157
 
 > **applyDesktopPositions**(`positions`): `void`
 
-Defined in: core/BelowViewer.js:695
+Defined in: [core/BelowViewer.js:695](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L695)
 
 #### Parameters
 
@@ -250,7 +255,7 @@ Defined in: core/BelowViewer.js:695
 
 > **applyInitialPositions**(`positions`): `void`
 
-Defined in: core/BelowViewer.js:803
+Defined in: [core/BelowViewer.js:803](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L803)
 
 #### Parameters
 
@@ -268,7 +273,7 @@ Defined in: core/BelowViewer.js:803
 
 > **centerModelAndRecalculateBounds**(`model`): `Vector3`
 
-Defined in: core/BelowViewer.js:450
+Defined in: [core/BelowViewer.js:450](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L450)
 
 Centers the model at the origin and recalculates its bounding box.
 Note: This method modifies the model's position as a side effect.
@@ -293,7 +298,7 @@ The original center offset for reference.
 
 > **clearModels**(): `void`
 
-Defined in: core/BelowViewer.js:584
+Defined in: [core/BelowViewer.js:584](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L584)
 
 #### Returns
 
@@ -305,7 +310,7 @@ Defined in: core/BelowViewer.js:584
 
 > **dispose**(): `void`
 
-Defined in: core/BelowViewer.js:634
+Defined in: [core/BelowViewer.js:634](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L634)
 
 Clean up and dispose of all resources
 
@@ -337,7 +342,7 @@ viewer.dispose();
 
 > **emit**(`event`, `data?`): [`EventSystem`](EventSystem.md)
 
-Defined in: utils/EventSystem.js:121
+Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L121)
 
 Emit an event to all listeners
 
@@ -392,7 +397,7 @@ this.emit('rendering-complete');
 
 > **frameModel**(`model`): `void`
 
-Defined in: core/BelowViewer.js:430
+Defined in: [core/BelowViewer.js:430](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L430)
 
 #### Parameters
 
@@ -410,7 +415,7 @@ Defined in: core/BelowViewer.js:430
 
 > **getCamera**(): `any`
 
-Defined in: core/BelowViewer.js:516
+Defined in: [core/BelowViewer.js:516](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L516)
 
 Get the Three.js camera instance
 
@@ -444,7 +449,7 @@ if (camera) {
 
 > **getCurrentModel**(): `any`
 
-Defined in: core/BelowViewer.js:571
+Defined in: [core/BelowViewer.js:571](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L571)
 
 Get the most recently loaded model
 
@@ -478,7 +483,7 @@ if (model) {
 
 > **getLoadedModels**(): `any`[]
 
-Defined in: core/BelowViewer.js:552
+Defined in: [core/BelowViewer.js:552](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L552)
 
 Get all loaded models
 
@@ -510,7 +515,7 @@ const models = viewer.getLoadedModels();
 
 > **getRenderer**(): `any`
 
-Defined in: core/BelowViewer.js:535
+Defined in: [core/BelowViewer.js:535](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L535)
 
 Get the Three.js WebGL renderer instance
 
@@ -544,7 +549,7 @@ if (renderer) {
 
 > **getScene**(): `any`
 
-Defined in: core/BelowViewer.js:497
+Defined in: [core/BelowViewer.js:497](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L497)
 
 #### Returns
 
@@ -556,7 +561,7 @@ Defined in: core/BelowViewer.js:497
 
 > **getVRComfortSettings**(): `any`
 
-Defined in: core/BelowViewer.js:779
+Defined in: [core/BelowViewer.js:779](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L779)
 
 Get current VR comfort settings
 
@@ -588,7 +593,7 @@ const settings = viewer.getVRComfortSettings();
 
 > **getVRManager**(): [`VRManager`](VRManager.md)
 
-Defined in: core/BelowViewer.js:736
+Defined in: [core/BelowViewer.js:736](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L736)
 
 #### Returns
 
@@ -600,7 +605,7 @@ Defined in: core/BelowViewer.js:736
 
 > **init**(): `void`
 
-Defined in: core/BelowViewer.js:169
+Defined in: [core/BelowViewer.js:169](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L169)
 
 #### Returns
 
@@ -612,7 +617,7 @@ Defined in: core/BelowViewer.js:169
 
 > **initRenderer**(): `void`
 
-Defined in: core/BelowViewer.js:201
+Defined in: [core/BelowViewer.js:201](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L201)
 
 #### Returns
 
@@ -624,7 +629,7 @@ Defined in: core/BelowViewer.js:201
 
 > **initVR**(): `void`
 
-Defined in: core/BelowViewer.js:235
+Defined in: [core/BelowViewer.js:235](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L235)
 
 #### Returns
 
@@ -636,7 +641,7 @@ Defined in: core/BelowViewer.js:235
 
 > **isVRPresenting**(): `boolean`
 
-Defined in: core/BelowViewer.js:732
+Defined in: [core/BelowViewer.js:732](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L732)
 
 #### Returns
 
@@ -648,7 +653,7 @@ Defined in: core/BelowViewer.js:732
 
 > **loadModel**(`url`, `options?`): `Promise`\<`Object3D`\>
 
-Defined in: core/BelowViewer.js:356
+Defined in: [core/BelowViewer.js:356](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L356)
 
 Load a 3D model from a URL
 
@@ -733,7 +738,7 @@ try {
 
 > **off**(`event`, `callback?`): [`EventSystem`](EventSystem.md)
 
-Defined in: utils/EventSystem.js:90
+Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L90)
 
 Remove an event listener
 
@@ -785,7 +790,7 @@ viewer.off('model-loaded');
 
 > **on**(`event`, `callback`): [`EventSystem`](EventSystem.md)
 
-Defined in: utils/EventSystem.js:65
+Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L65)
 
 Add an event listener
 
@@ -841,7 +846,7 @@ viewer
 
 > **onWindowResize**(): `void`
 
-Defined in: core/BelowViewer.js:312
+Defined in: [core/BelowViewer.js:312](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L312)
 
 #### Returns
 
@@ -853,7 +858,7 @@ Defined in: core/BelowViewer.js:312
 
 > **removeAllListeners**(): [`EventSystem`](EventSystem.md)
 
-Defined in: utils/EventSystem.js:146
+Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L146)
 
 Remove all event listeners
 
@@ -888,7 +893,7 @@ viewer.removeAllListeners();
 
 > **removeModel**(`model`): `void`
 
-Defined in: core/BelowViewer.js:575
+Defined in: [core/BelowViewer.js:575](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L575)
 
 #### Parameters
 
@@ -906,7 +911,7 @@ Defined in: core/BelowViewer.js:575
 
 > **setupEventListeners**(): `void`
 
-Defined in: core/BelowViewer.js:302
+Defined in: [core/BelowViewer.js:302](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L302)
 
 #### Returns
 
@@ -918,7 +923,7 @@ Defined in: core/BelowViewer.js:302
 
 > **setVRComfortPreset**(`preset`): `void`
 
-Defined in: core/BelowViewer.js:796
+Defined in: [core/BelowViewer.js:796](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L796)
 
 Apply a predefined VR comfort preset
 
@@ -955,7 +960,7 @@ viewer.setVRComfortPreset('conservative');
 
 > **setVRComfortSettings**(`settings`): `void`
 
-Defined in: core/BelowViewer.js:760
+Defined in: [core/BelowViewer.js:760](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L760)
 
 Set VR comfort settings for motion sickness reduction
 
@@ -1011,7 +1016,7 @@ viewer.setVRComfortSettings({
 
 > **startRenderLoop**(): `void`
 
-Defined in: core/BelowViewer.js:468
+Defined in: [core/BelowViewer.js:468](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/BelowViewer.js#L468)
 
 #### Returns
 

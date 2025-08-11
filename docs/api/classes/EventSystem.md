@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: EventSystem
 
-Defined in: utils/EventSystem.js:36
+Defined in: [utils/EventSystem.js:36](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L36)
 
 EventSystem - Simple event emitter for BelowJS components
 
@@ -60,7 +65,7 @@ viewer.off('model-loaded');
 
 > **new EventSystem**(): `EventSystem`
 
-Defined in: utils/EventSystem.js:40
+Defined in: [utils/EventSystem.js:40](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L40)
 
 Creates a new EventSystem instance
 
@@ -74,7 +79,7 @@ Creates a new EventSystem instance
 
 > **events**: `object`
 
-Defined in: utils/EventSystem.js:41
+Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L41)
 
 ## Methods
 
@@ -82,7 +87,7 @@ Defined in: utils/EventSystem.js:41
 
 > **emit**(`event`, `data?`): `EventSystem`
 
-Defined in: utils/EventSystem.js:121
+Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L121)
 
 Emit an event to all listeners
 
@@ -133,7 +138,7 @@ this.emit('rendering-complete');
 
 > **off**(`event`, `callback?`): `EventSystem`
 
-Defined in: utils/EventSystem.js:90
+Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L90)
 
 Remove an event listener
 
@@ -181,7 +186,7 @@ viewer.off('model-loaded');
 
 > **on**(`event`, `callback`): `EventSystem`
 
-Defined in: utils/EventSystem.js:65
+Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L65)
 
 Add an event listener
 
@@ -233,7 +238,7 @@ viewer
 
 > **removeAllListeners**(): `EventSystem`
 
-Defined in: utils/EventSystem.js:146
+Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/EventSystem.js#L146)
 
 Remove all event listeners
 

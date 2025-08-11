@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: ConfigValidator
 
-Defined in: utils/ConfigValidator.js:4
+Defined in: [utils/ConfigValidator.js:4](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/ConfigValidator.js#L4)
 
 Validates a configuration object against a schema, applying defaults.
 
@@ -16,7 +21,7 @@ Validates a configuration object against a schema, applying defaults.
 
 > **new ConfigValidator**(`schema`): `ConfigValidator`
 
-Defined in: utils/ConfigValidator.js:8
+Defined in: [utils/ConfigValidator.js:8](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/ConfigValidator.js#L8)
 
 #### Parameters
 
@@ -36,7 +41,7 @@ Defines validation rules for each configuration key.
 
 > **schema**: `any`
 
-Defined in: utils/ConfigValidator.js:12
+Defined in: [utils/ConfigValidator.js:12](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/ConfigValidator.js#L12)
 
 ## Methods
 
@@ -44,7 +49,7 @@ Defined in: utils/ConfigValidator.js:12
 
 > **isTypeValid**(`value`, `type`): `boolean`
 
-Defined in: utils/ConfigValidator.js:61
+Defined in: [utils/ConfigValidator.js:61](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/ConfigValidator.js#L61)
 
 Checks if a value conforms to the specified type or types.
 
@@ -72,7 +77,7 @@ The expected type or an array of allowed types.
 
 > **validate**(`options`): `any`
 
-Defined in: utils/ConfigValidator.js:20
+Defined in: [utils/ConfigValidator.js:20](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/utils/ConfigValidator.js#L20)
 
 Validates an options object against the schema.
 

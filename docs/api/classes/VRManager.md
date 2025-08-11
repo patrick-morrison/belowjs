@@ -1,3 +1,8 @@
+---
+layout: doc
+sidebar: true
+---
+
 [**BelowJS API v1.0.0-rc.1**](../README.md)
 
 ***
@@ -6,7 +11,7 @@
 
 # Class: VRManager
 
-Defined in: core/VRManager.js:35
+Defined in: [core/VRManager.js:35](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L35)
 
 ## Constructors
 
@@ -14,7 +19,7 @@ Defined in: core/VRManager.js:35
 
 > **new VRManager**(`renderer`, `camera`, `scene`, `audioPath?`, `enableAudio?`, `container?`): `VRManager`
 
-Defined in: core/VRManager.js:45
+Defined in: [core/VRManager.js:45](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L45)
 
 Creates a new VRManager instance
 
@@ -64,7 +69,7 @@ Enable VR audio system
 
 > **\_comfortSettingsInitialized**: `boolean`
 
-Defined in: core/VRManager.js:172
+Defined in: [core/VRManager.js:172](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L172)
 
 ***
 
@@ -72,7 +77,7 @@ Defined in: core/VRManager.js:172
 
 > **\_preVRCameraState**: `object`
 
-Defined in: core/VRManager.js:69
+Defined in: [core/VRManager.js:69](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L69)
 
 #### autoRotate
 
@@ -132,7 +137,7 @@ Defined in: core/VRManager.js:69
 
 > **audioPath**: `string`
 
-Defined in: core/VRManager.js:49
+Defined in: [core/VRManager.js:49](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L49)
 
 ***
 
@@ -140,7 +145,7 @@ Defined in: core/VRManager.js:49
 
 > **camera**: `PerspectiveCamera`
 
-Defined in: core/VRManager.js:47
+Defined in: [core/VRManager.js:47](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L47)
 
 ***
 
@@ -148,7 +153,7 @@ Defined in: core/VRManager.js:47
 
 > **container**: `any`
 
-Defined in: core/VRManager.js:51
+Defined in: [core/VRManager.js:51](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L51)
 
 ***
 
@@ -156,7 +161,7 @@ Defined in: core/VRManager.js:51
 
 > **controller1**: `any`
 
-Defined in: core/VRManager.js:61
+Defined in: [core/VRManager.js:61](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L61)
 
 ***
 
@@ -164,7 +169,7 @@ Defined in: core/VRManager.js:61
 
 > **controller2**: `any`
 
-Defined in: core/VRManager.js:62
+Defined in: [core/VRManager.js:62](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L62)
 
 ***
 
@@ -172,7 +177,7 @@ Defined in: core/VRManager.js:62
 
 > **controllerGrip1**: `any`
 
-Defined in: core/VRManager.js:63
+Defined in: [core/VRManager.js:63](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L63)
 
 ***
 
@@ -180,7 +185,7 @@ Defined in: core/VRManager.js:63
 
 > **controllerGrip2**: `any`
 
-Defined in: core/VRManager.js:64
+Defined in: [core/VRManager.js:64](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L64)
 
 ***
 
@@ -188,7 +193,7 @@ Defined in: core/VRManager.js:64
 
 > **controllerGrips**: `any`[]
 
-Defined in: core/VRManager.js:66
+Defined in: [core/VRManager.js:66](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L66)
 
 ***
 
@@ -196,7 +201,7 @@ Defined in: core/VRManager.js:66
 
 > **controllers**: `any`[]
 
-Defined in: core/VRManager.js:65
+Defined in: [core/VRManager.js:65](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L65)
 
 ***
 
@@ -204,7 +209,7 @@ Defined in: core/VRManager.js:65
 
 > **enableAudio**: `boolean`
 
-Defined in: core/VRManager.js:50
+Defined in: [core/VRManager.js:50](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L50)
 
 ***
 
@@ -212,7 +217,7 @@ Defined in: core/VRManager.js:50
 
 > **isVRPresenting**: `boolean`
 
-Defined in: core/VRManager.js:60
+Defined in: [core/VRManager.js:60](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L60)
 
 ***
 
@@ -220,7 +225,7 @@ Defined in: core/VRManager.js:60
 
 > **isVRSupported**: `boolean`
 
-Defined in: core/VRManager.js:59
+Defined in: [core/VRManager.js:59](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L59)
 
 ***
 
@@ -228,7 +233,7 @@ Defined in: core/VRManager.js:59
 
 > **lastComfortLog**: `number`
 
-Defined in: core/VRManager.js:86
+Defined in: [core/VRManager.js:86](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L86)
 
 ***
 
@@ -236,7 +241,7 @@ Defined in: core/VRManager.js:86
 
 > **onModeToggle**: `any`
 
-Defined in: core/VRManager.js:88
+Defined in: [core/VRManager.js:88](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L88)
 
 ***
 
@@ -244,7 +249,7 @@ Defined in: core/VRManager.js:88
 
 > **onMovementStart**: `any`
 
-Defined in: core/VRManager.js:89
+Defined in: [core/VRManager.js:89](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L89)
 
 ***
 
@@ -252,7 +257,7 @@ Defined in: core/VRManager.js:89
 
 > **onMovementStop**: `any`
 
-Defined in: core/VRManager.js:90
+Defined in: [core/VRManager.js:90](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L90)
 
 ***
 
@@ -260,7 +265,7 @@ Defined in: core/VRManager.js:90
 
 > **onMovementUpdate**: `any`
 
-Defined in: core/VRManager.js:91
+Defined in: [core/VRManager.js:91](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L91)
 
 ***
 
@@ -268,7 +273,7 @@ Defined in: core/VRManager.js:91
 
 > **renderer**: `WebGLRenderer`
 
-Defined in: core/VRManager.js:46
+Defined in: [core/VRManager.js:46](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L46)
 
 ***
 
@@ -276,7 +281,7 @@ Defined in: core/VRManager.js:46
 
 > **scene**: `Scene`
 
-Defined in: core/VRManager.js:48
+Defined in: [core/VRManager.js:48](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L48)
 
 ***
 
@@ -284,7 +289,7 @@ Defined in: core/VRManager.js:48
 
 > **vrAudio**: `VRAudio`
 
-Defined in: core/VRManager.js:57
+Defined in: [core/VRManager.js:57](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L57)
 
 ***
 
@@ -292,7 +297,7 @@ Defined in: core/VRManager.js:57
 
 > **vrControllers**: `VRControllers`
 
-Defined in: core/VRManager.js:54
+Defined in: [core/VRManager.js:54](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L54)
 
 ***
 
@@ -300,7 +305,7 @@ Defined in: core/VRManager.js:54
 
 > **vrCore**: `VRCore`
 
-Defined in: core/VRManager.js:53
+Defined in: [core/VRManager.js:53](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L53)
 
 ***
 
@@ -308,7 +313,7 @@ Defined in: core/VRManager.js:53
 
 > **vrLocomotion**: `VRLocomotion`
 
-Defined in: core/VRManager.js:56
+Defined in: [core/VRManager.js:56](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L56)
 
 ***
 
@@ -316,7 +321,7 @@ Defined in: core/VRManager.js:56
 
 > **vrTeleport**: `VRTeleport`
 
-Defined in: core/VRManager.js:55
+Defined in: [core/VRManager.js:55](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L55)
 
 ## Methods
 
@@ -324,7 +329,7 @@ Defined in: core/VRManager.js:55
 
 > **\_restoreCameraState**(): `void`
 
-Defined in: core/VRManager.js:351
+Defined in: [core/VRManager.js:351](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L351)
 
 Restore camera state after exiting VR
 
@@ -338,7 +343,7 @@ Restore camera state after exiting VR
 
 > **\_saveCameraState**(): `void`
 
-Defined in: core/VRManager.js:327
+Defined in: [core/VRManager.js:327](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L327)
 
 Save current camera state before entering VR
 
@@ -352,7 +357,7 @@ Save current camera state before entering VR
 
 > **applyVRPositions**(`positions`): `void`
 
-Defined in: core/VRManager.js:298
+Defined in: [core/VRManager.js:298](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L298)
 
 #### Parameters
 
@@ -370,7 +375,7 @@ Defined in: core/VRManager.js:298
 
 > **checkVRSupport**(): `Promise`\<`any`\>
 
-Defined in: core/VRManager.js:441
+Defined in: [core/VRManager.js:441](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L441)
 
 #### Returns
 
@@ -382,7 +387,7 @@ Defined in: core/VRManager.js:441
 
 > **dispose**(): `void`
 
-Defined in: core/VRManager.js:426
+Defined in: [core/VRManager.js:426](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L426)
 
 Clean up and dispose of all VR resources
 
@@ -414,7 +419,7 @@ vrManager.dispose();
 
 > **ensureComfortSettingsApplied**(): `void`
 
-Defined in: core/VRManager.js:284
+Defined in: [core/VRManager.js:284](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L284)
 
 #### Returns
 
@@ -426,7 +431,7 @@ Defined in: core/VRManager.js:284
 
 > **getComfortSettings**(): `any`
 
-Defined in: core/VRManager.js:262
+Defined in: [core/VRManager.js:262](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L262)
 
 Get current VR comfort settings
 
@@ -458,7 +463,7 @@ const settings = vrManager.getComfortSettings();
 
 > **getVRStatus**(): `object`
 
-Defined in: core/VRManager.js:379
+Defined in: [core/VRManager.js:379](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L379)
 
 #### Returns
 
@@ -542,7 +547,7 @@ Defined in: core/VRManager.js:379
 
 > **init**(): `void`
 
-Defined in: core/VRManager.js:96
+Defined in: [core/VRManager.js:96](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L96)
 
 #### Returns
 
@@ -554,7 +559,7 @@ Defined in: core/VRManager.js:96
 
 > **normalizeAngle**(`angle`): `any`
 
-Defined in: core/VRManager.js:446
+Defined in: [core/VRManager.js:446](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L446)
 
 #### Parameters
 
@@ -572,7 +577,7 @@ Defined in: core/VRManager.js:446
 
 > **resetTeleportState**(): `void`
 
-Defined in: core/VRManager.js:406
+Defined in: [core/VRManager.js:406](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L406)
 
 #### Returns
 
@@ -584,7 +589,7 @@ Defined in: core/VRManager.js:406
 
 > **setAudioMuted**(`muted`): `void`
 
-Defined in: core/VRManager.js:393
+Defined in: [core/VRManager.js:393](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L393)
 
 #### Parameters
 
@@ -602,7 +607,7 @@ Defined in: core/VRManager.js:393
 
 > **setAudioVolumeMultipliers**(`base`, `boost`, `ambience`): `void`
 
-Defined in: core/VRManager.js:399
+Defined in: [core/VRManager.js:399](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L399)
 
 #### Parameters
 
@@ -628,7 +633,7 @@ Defined in: core/VRManager.js:399
 
 > **setComfortPreset**(`preset`): `void`
 
-Defined in: core/VRManager.js:279
+Defined in: [core/VRManager.js:279](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L279)
 
 Apply a predefined comfort preset
 
@@ -665,7 +670,7 @@ vrManager.setComfortPreset('conservative');
 
 > **setComfortSettings**(`settings`): `void`
 
-Defined in: core/VRManager.js:245
+Defined in: [core/VRManager.js:245](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L245)
 
 Set VR comfort settings for motion sickness reduction
 
@@ -729,7 +734,7 @@ vrManager.setComfortSettings({
 
 > **setControls**(`controls`): `void`
 
-Defined in: core/VRManager.js:320
+Defined in: [core/VRManager.js:320](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L320)
 
 Set the orbit controls reference for camera state preservation
 
@@ -751,7 +756,7 @@ OrbitControls instance
 
 > **setupModuleConnections**(): `void`
 
-Defined in: core/VRManager.js:106
+Defined in: [core/VRManager.js:106](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L106)
 
 #### Returns
 
@@ -763,7 +768,7 @@ Defined in: core/VRManager.js:106
 
 > **startMovement**(`type`): `void`
 
-Defined in: core/VRManager.js:177
+Defined in: [core/VRManager.js:177](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L177)
 
 #### Parameters
 
@@ -781,7 +786,7 @@ Defined in: core/VRManager.js:177
 
 > **stopMovement**(): `void`
 
-Defined in: core/VRManager.js:181
+Defined in: [core/VRManager.js:181](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L181)
 
 #### Returns
 
@@ -793,7 +798,7 @@ Defined in: core/VRManager.js:181
 
 > **syncLegacyProperties**(): `void`
 
-Defined in: core/VRManager.js:208
+Defined in: [core/VRManager.js:208](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L208)
 
 #### Returns
 
@@ -805,7 +810,7 @@ Defined in: core/VRManager.js:208
 
 > **update**(`deltaTime`): `void`
 
-Defined in: core/VRManager.js:186
+Defined in: [core/VRManager.js:186](https://github.com/patrick-morrison/belowjs/blob/303f195918c8aa23c55f3b9dffc55c8bc17f9e21/src/core/VRManager.js#L186)
 
 #### Parameters
 
