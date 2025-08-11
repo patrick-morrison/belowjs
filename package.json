@@ -13,6 +13,12 @@
     "dev:embed": "vite serve --open examples/embed/",
     "build": "vite build",
     "preview": "vite preview",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "npm run docs:api && npm run docs:api:frontmatter && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:api": "typedoc",
+    "docs:api:frontmatter": "node docs/add-api-frontmatter.js",
+    "docs:full": "npm run docs:api && npm run docs:api:frontmatter",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "echo 'Integration tests available via examples' && exit 0",
     "lint": "eslint src/ vite.config.js",
@@ -55,6 +61,10 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "eslint": "^9.33.0",
-    "vite": "7.1.1"
+    "typedoc": "^0.28.10",
+    "typedoc-plugin-markdown": "^4.8.0",
+    "typescript": "^5.9.2",
+    "vite": "7.1.1",
+    "vitepress": "^1.6.4"
   }
 }

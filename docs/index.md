@@ -1,0 +1,89 @@
+---
+layout: page
+sidebar: false
+---
+
+<div class="landing-page">
+  <div class="hero-content">
+    <div class="built-for">THREE.JS + WEBXR</div>
+    <h1>BelowJS</h1>
+    <div class="tagline">View underwater photogrammetry models in VR</div>
+    <div class="description">
+      Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams dive together.
+    </div>
+    <div class="cta-buttons">
+      <a href="/examples/" class="cta-button cta-primary">View Examples</a>
+      <a href="/installation" class="cta-button cta-secondary">Get Started</a>
+    </div>
+  </div>
+  
+  <div class="demo-section">
+    <iframe 
+      src="/homepage-demo.html" 
+      class="demo-viewer"
+      title="BelowJS Interactive Demo"
+      loading="lazy">
+    </iframe>
+    <div class="demo-controls" style="margin-top: -4px;">
+      <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR (supported devices)
+      <br>Model: Sesa 1928, Credit <a href="https://wrecksploration.au/projects/site03/" target="_blank">WreckSploration</a>
+    </div>
+  </div>
+  
+  <div class="features-section">
+    <div class="features-split">
+      <div class="features-main">
+        <h2>Dive shipwrecks in virtual reality</h2>
+        <div class="feature-list">
+          <a href="/installation" class="feature-item">
+            <div class="feature-icon">🚀</div>
+            <div class="feature-text">
+              <strong>Setup virtual dives in minutes</strong>
+              <span>Deploy to GitHub Pages - lasts forever with little maintenance</span>
+            </div>
+          </a>
+          <a href="https://patrick-morrison.github.io/belowjs/examples/basic/" class="feature-item" target="_blank">
+            <div class="feature-icon">🎛️</div>
+            <div class="feature-text">
+              <strong>Full control over your underwater photogrammetry models</strong>
+              <span>Research sites with confidence using integrated measurement tools</span>
+            </div>
+          </a>
+          <a href="/guides/vr-headsets" class="feature-item">
+            <div class="feature-icon">🥽</div>
+            <div class="feature-text">
+              <strong>Web and virtual reality as first class technologies</strong>
+              <span>Desktop and VR modes work together, optimized for Quest 3</span>
+            </div>
+          </a>
+          <a href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" class="feature-item" target="_blank">
+            <div class="feature-icon">🌊</div>
+            <div class="feature-text">
+              <strong>Feel the wrecks as they are</strong>
+              <span>Optional dive mode with authentic underwater lighting and particles</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="features-stats">
+        <a href="/installation" class="stat-item">
+          <div class="stat-number">419KB</div>
+          <div class="stat-label">Complete bundle size</div>
+        </a>
+        <a href="/examples/" class="stat-item">
+          <div class="stat-number">3</div>
+          <div class="stat-label">Example viewers included</div>
+        </a>
+        <a href="/implementations" class="stat-item">
+          <div class="stat-number">14</div>
+          <div class="stat-label">Models on WreckSploration VR</div>
+        </a>
+        <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
+          <div class="stat-number">GPL-3.0</div>
+          <div class="stat-label">Open source license</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
