@@ -1,24 +1,88 @@
-# BelowJS
+---
+layout: page
+sidebar: false
+---
 
-<iframe src="/viewer.html" class="viewer" title="BelowJS viewer example"></iframe>
-
-## Dive Shipwrecks in Virtual Reality
-
-Setup virtual dives in minutes. Full control over your underwater photogrammetry models. Web and virtual reality as first class technologies.
-
-## About
-
-BelowJS is a 3D model viewer built on Three.js that allows communities to share their underwater photogrammetry models on the web and in VR.
-
-Virtual reality and desktop modes are tightly integrated with a measurement system, so archaeologists can research sites with confidence. An optional dive mode lets audiences feel the wrecks as they are — optimised for the Meta Quest 3 headset.
-
-BelowJS can be deployed statically or as part of a system. A simple GitHub page can share optimised models for free, and will last forever with little maintenance. Conversely, it can power dynamic systems like BelowVR, which lets teams virtually dive together.
-
-Sensible defaults make your work look beautiful. We have tools to help you optimise, scale and annotate them.
-
-The code is yours, as long as you share what you do with it.
-
-## API
-
-See the [API reference](./api/) generated from the source code.
+<div class="landing-page">
+  <div class="hero-content">
+    <div class="built-for">THREE.JS + WEBXR</div>
+    <h1>BelowJS</h1>
+    <div class="tagline">View underwater photogrammetry models in VR</div>
+    <div class="description">
+      Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams dive together.
+    </div>
+    <div class="cta-buttons">
+      <a href="/examples/" class="cta-button cta-primary">View Examples</a>
+      <a href="/examples/" class="cta-button cta-secondary">Get Started</a>
+    </div>
+  </div>
+  
+  <div class="demo-section">
+    <iframe 
+      src="/homepage-demo.html" 
+      class="demo-viewer"
+      title="BelowJS Interactive Demo"
+      loading="lazy">
+    </iframe>
+    <div class="demo-controls">
+      <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Click goggles (supported devices)
+    </div>
+  </div>
+  
+  <div class="features-section">
+    <div class="features-split">
+      <div class="features-main">
+        <h2>Dive shipwrecks in virtual reality</h2>
+        <div class="feature-list">
+          <a href="/installation" class="feature-item">
+            <div class="feature-icon">🚀</div>
+            <div class="feature-text">
+              <strong>Setup virtual dives in minutes</strong>
+              <span>Deploy to GitHub Pages - lasts forever with little maintenance</span>
+            </div>
+          </a>
+          <a href="/examples/basic" class="feature-item">
+            <div class="feature-icon">🎛️</div>
+            <div class="feature-text">
+              <strong>Full control over your underwater photogrammetry models</strong>
+              <span>Research sites with confidence using integrated measurement tools</span>
+            </div>
+          </a>
+          <a href="/guides/vr-headsets" class="feature-item">
+            <div class="feature-icon">🥽</div>
+            <div class="feature-text">
+              <strong>Web and virtual reality as first class technologies</strong>
+              <span>Desktop and VR modes work together, optimized for Quest 3</span>
+            </div>
+          </a>
+          <a href="/examples/dragdrop" class="feature-item">
+            <div class="feature-icon">🌊</div>
+            <div class="feature-text">
+              <strong>Feel the wrecks as they are</strong>
+              <span>Optional dive mode with authentic underwater lighting and particles</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="features-stats">
+        <a href="/installation" class="stat-item">
+          <div class="stat-number">419KB</div>
+          <div class="stat-label">Complete bundle size</div>
+        </a>
+        <a href="/examples/" class="stat-item">
+          <div class="stat-number">3</div>
+          <div class="stat-label">Example viewers included</div>
+        </a>
+        <a href="/implementations" class="stat-item">
+          <div class="stat-number">14</div>
+          <div class="stat-label">Models on WreckSploration VR</div>
+        </a>
+        <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
+          <div class="stat-number">GPL-3.0</div>
+          <div class="stat-label">Open source license</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 

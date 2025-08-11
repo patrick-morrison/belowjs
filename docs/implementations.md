@@ -1,14 +1,8 @@
 # Implementations
 
-## WreckSploration VR
+Real projects using BelowJS for underwater archaeology and maritime heritage.
 
-Collaborative dives for exploring photogrammetry models together.
+## Your implementation
 
-## BelowVR
-
-Dynamic system for virtual dives with shared sessions.
-
-## BelowDesktop
-
-Electron application for offline viewing when the web isn't available.
+Using BelowJS for something interesting? [Let us know](https://github.com/patrick-morrison/belowjs/discussions) - we'd love to feature your project.
 

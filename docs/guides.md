@@ -1,22 +1,20 @@
-# Guides & Tools
+# Guides
 
-## VR Headsets
+These guides cover the complete workflow from capturing underwater photos to viewing 3D models in VR. The best virtual experiences are built on quality data and savvy processesing.
 
-Tips for configuring devices like the Meta Quest 3.
+## Complete Workflow
 
-## Underwater Photogrammetry in Metashape
+### [Metashape Workflow](./guides/metashape-workflow.md)
+Complete photogrammetry processing pipeline from raw photos to web-ready models.
 
-Best practices for capturing and processing underwater datasets.
+### [Model Setup](./guides/model-setup.md)
+Configuring scale, position, lighting, and materials for optimal viewing.
 
-## Preprocessing
+### [Model Optimization](./guides/optimization.md)
+Reducing file sizes and improving performance for web and VR platforms.
 
-Clean models before loading them into BelowJS.
+### [VR Headsets](./guides/vr-headsets.md)
+Setting up Meta Quest, PC VR, and other headsets for underwater model viewing.
 
-## Scaling and Rotating Models
-
-Ensure models are correctly oriented and scaled.
-
-## Optimisation
-
-Reduce file sizes and improve performance for web and VR.
+---
 
