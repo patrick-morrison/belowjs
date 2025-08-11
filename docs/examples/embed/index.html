@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SS Timaru - 3D Measurement Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚓</text></svg>">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            background: #f5f7fa;
+            color: #4a5568;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 32px;
+            font-size: 1.1em;
+        }
+
+        .viewer-instructions {
+            margin: 8px 0;
+            color: #718096;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        .viewer-container {
+            height: 500px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 24px 0;
+            background: #f7fafc;
+        }
+
+        .content {
+            margin: 32px 0;
+            font-size: 0.95em;
+        }
+
+        .content h2 {
+            color: #2d3748;
+            margin: 0 0 16px 0;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .content p {
+            margin-bottom: 16px;
+            color: #4a5568;
+        }
+
+        /* Force scrolling */
+        html, body {
+            overflow: visible !important;
+            height: auto !important;
+            position: static !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SS Timaru (CND4)</h1>
+        <p class="subtitle">Commonwealth Naval Dredge No. 4 - 3D Archaeological Model</p>
+        <p style="text-align: center; margin: 16px 0; font-size: 0.9em; color: #718096;">
+            Project by <a href="https://wrecksploration.au/projects/timaru/" target="_blank" style="color: #4299e1; text-decoration: none;">WreckSploration</a>
+        </p>
+        
+        <div class="viewer-container">
+            <iframe 
+                src="viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa" 
+                width="100%" 
+                height="100%" 
+                frameborder="0"
+                title="SS Timaru 3D Archaeological Model">
+            </iframe>
+        </div>
+
+        <div class="viewer-instructions">
+            Click "MEASURE" to activate • Click two points to measure • Double-click to center view • Drag to rotate • Scroll to zoom
+        </div>
+
+        <div class="content">
+            <h2>The Timaru</h2>
+            <p>Discovered by Grant Pretorius, Chas Brown, and Huon Fairbairn with Luke Nelson skippering; in a joint operation between Maritime Discovery Group and WreckSploration on 28/03/2025. The wreck lies in 50m of water off the south west of Rottnest Island.</p>
+            
+            <p>During WWI, the Commonwealth Government requisitioned or purchased a number of dredges from around Australia, and between 1917 and 1919 brought them to WA for dredging Cockburn Sound for the construction of the Henderson Naval Base. With the cessation of the war, work stopped and the dredges were laid up in Cockburn Sound, and slowly sold off during the 1920s. One of those was the steam hopper barge 404, also known as TIMARU, Naval Dredger 4, or CND4, built in 1893.</p>
+            
+            <p>A suction Hopper Dredge is a self-propelled, seagoing vessel that uses suction pipes to dredge material from the seabed and store it in a hopper. These dredgers are versatile and used for various dredging projects, including maintaining waterways, land reclamation, and coastal protection.</p>
+            
+            <h2>3D Model</h2>
+            <p>This interactive 3D model allows precise measurement and examination of the wreck structure for archaeological documentation. Use the measurement tools to analyze dimensions and structural details of this historically significant vessel.</p>
+        </div>
+    </div>
+</body>
+</html>

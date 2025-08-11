@@ -67,6 +67,22 @@ export class VRAudio {
       console.warn('🔇 Audio unlock failed:', e);
     }
   }
+
+  async initImmediatelyForVR(basePath) {
+    // Initialize audio immediately for VR (VR button click is user gesture)
+    try {
+      if (!this.audioContext) {
+        await this.init(basePath || this._basePath);
+      }
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+      return true;
+    } catch (e) {
+      console.warn('🔇 VR Audio immediate initialization failed:', e);
+      return false;
+    }
+  }
   
   startAmbientSound() {
     if (!this.audioContext || !this.ambienceSound || this.currentAmbienceSound) return;

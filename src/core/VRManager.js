@@ -105,13 +105,15 @@ export class VRManager {
   
   setupModuleConnections() {
     // VR session lifecycle
-    this.vrCore.onSessionStart = () => {
+    this.vrCore.onSessionStart = async () => {
       this._saveCameraState();
       this.isVRPresenting = true;
       if (this.vrAudio) {
-        // VR button click counts as a user gesture; initialize/resume and start ambience
-        this.vrAudio.initAudioOnInteraction(this.audioPath);
-        this.vrAudio.startAmbientSound();
+        // VR button click counts as a user gesture; initialize immediately and start ambience
+        const audioInitialized = await this.vrAudio.initImmediatelyForVR(this.audioPath);
+        if (audioInitialized) {
+          this.vrAudio.startAmbientSound();
+        }
       }
     };
 

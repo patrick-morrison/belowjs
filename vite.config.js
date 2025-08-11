@@ -56,7 +56,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '/models': '/models'
+      '/models': '/models',
+      'belowjs': '/dist/belowjs.js'
     }
   },
   build: {

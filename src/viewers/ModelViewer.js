@@ -299,13 +299,20 @@ export class ModelViewer extends EventSystem {
       this.lastComfortMode = event.detail.isComfortMode;
     });
     if (this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
-      this.belowViewer.vrManager.vrCore.onSessionStart = () => {
+      // Chain with existing onSessionStart callback instead of replacing it
+      const originalCallback = this.belowViewer.vrManager.vrCore.onSessionStart;
+      this.belowViewer.vrManager.vrCore.onSessionStart = async () => {
+        // Call original VRManager callback first (for audio initialization)
+        if (originalCallback) {
+          await originalCallback();
+        }
+        // Then handle comfort glyph
         if (this.lastComfortMode !== null) {
           setTimeout(() => {
             if (this.lastComfortMode) {
-              this.belowViewer.vrManager.setComfortPreset('max-comfort');
+              this.belowViewer.vrManager.setComfortPreset('comfort');
             } else {
-              this.belowViewer.vrManager.setComfortPreset('performance');
+              this.belowViewer.vrManager.setComfortPreset('free');
             }
             this.comfortGlyph.setComfortMode(this.lastComfortMode);
           }, 50);

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Measurement Viewer</title>
+    
+    <!-- Import map for CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
+        }
+    }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Hide dive mode toggle - measurement only */
+        #modeToggleContainer,
+        .semantic-toggle {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelUrl = urlParams.get('model');
+        const modelName = urlParams.get('name') || 'Model';
+        const cameraX = parseFloat(urlParams.get('cx')) || 0;
+        const cameraY = parseFloat(urlParams.get('cy')) || 10;
+        const cameraZ = parseFloat(urlParams.get('cz')) || 20;
+        const targetX = parseFloat(urlParams.get('tx')) || 0;
+        const targetY = parseFloat(urlParams.get('ty')) || 0;
+        const targetZ = parseFloat(urlParams.get('tz')) || 0;
+        const backgroundColor = urlParams.get('bg') || '#f8f9fa';
+        const credit = urlParams.get('credit') || '';
+
+        // Check if required model URL is provided
+        if (!modelUrl) {
+            document.body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; text-align: center; padding: 20px;">
+                    <h2>BelowJS Embed Viewer</h2>
+                    <p>This viewer requires URL parameters. Example:</p>
+                    <code style="background: #f0f0f0; padding: 10px; border-radius: 4px; display: block; margin: 10px 0;">
+                        viewer.html?model=path/to/model.glb&name=Model+Name&cx=10&cy=5&cz=15&tx=0&ty=0&tz=0
+                    </code>
+                    <p><strong>Required:</strong> model<br>
+                    <strong>Optional:</strong> name, cx/cy/cz (camera), tx/ty/tz (target), bg (background), credit</p>
+                </div>
+            `;
+            throw new Error('Model URL parameter is required');
+        }
+
+        // Dynamic model configuration based on URL parameters
+        const models = {
+          'model': { 
+            url: modelUrl, 
+            name: modelName,
+            credit: credit,
+            initialPositions: {
+              desktop: {
+                camera: { x: cameraX, y: cameraY, z: cameraZ },
+                target: { x: targetX, y: targetY, z: targetZ }
+              }
+            }
+          }
+        };
+
+        // Create viewer container
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        // Light measurement viewer: clean, bright, measurement-focused
+        const viewer = new ModelViewer(viewerContainer, {
+          models: models,
+          measurementTheme: 'light', // Use light theme for measurement panel
+          enableFullscreen: true,
+          autoLoadFirst: true,
+          showInfo: false,
+          showLoadingIndicator: false,
+          enableVRAudio: false, // Disable VR audio to prevent 404 errors
+          viewerConfig: {
+            scene: {
+              background: { type: 'color', value: backgroundColor }, // Configurable background 
+              fog: { enabled: false }
+            },
+            camera: {
+              fov: 65,
+              near: 0.05,
+              far: 2000
+            }
+          }
+        });
+    </script>
+</body>
+</html>

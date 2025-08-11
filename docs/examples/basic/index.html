@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Basic Model Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
+    
+    <!-- Import map for CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
+        }
+    }
+    </script>
+    
+    <!-- BelowJS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Hide old comfort button */
+        #vrComfortButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        // Model configurations
+        const models = {
+          'kxi': { 
+            url: './models/kxi.glb', 
+            name: 'HNLMS K XI (1946)', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: -6.391, y: 12.461, z: -42.105 },
+                target: { x: 1.529, y: 0.088, z: -14.334 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'sesa': { 
+            url: './models/sesa.glb', 
+            name: 'Sesa', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 18.93, y: 11.572, z: 52.508 },
+                target: { x: -1.613, y: -8.088, z: 4.822 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          },
+          'unknown': { 
+            url: './models/unknown.glb', 
+            name: 'Unknown Wreck', 
+            credit: 'WreckSploration',
+            initialPositions: {
+              desktop: {
+                camera: { x: 34.226, y: 10.354, z: 2.12 },
+                target: { x: 10.959, y: -1.07, z: 2.247 }
+              },
+              vr: {
+                dolly: { x: 0, y: 2, z: 15 },
+                rotation: { x: 0, y: 0, z: 0 }
+              }
+            }
+          }
+        };
+
+        // Initialize viewer
+        let currentModel = 'unknown';
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.position = 'fixed';
+        viewerContainer.style.inset = '0';
+        viewerContainer.style.zIndex = '0';
+        document.body.appendChild(viewerContainer);
+
+        const viewer = new ModelViewer(viewerContainer, {
+          enableVR: true,
+          showInfo: true,
+          models: models,
+          enableVRComfortGlyph: true,
+          enableFullscreen: true,
+          enableVRAudio: true,
+          audioPath: './sound/',
+          viewerConfig: {
+            scene: {
+              background: '#001122'
+            }
+          },
+          initialModel: currentModel,
+          initialPositions: models[currentModel].initialPositions
+        });
+        
+        // Handle model selection changes
+        // Use new BEM class for model selector dropdown
+        function attachDropdownListener() {
+          const dropdown = document.querySelector('.model-selector__dropdown');
+          if (dropdown) {
+            dropdown.addEventListener('change', (event) => {
+              const selectedModelKey = event.target.value;
+              if (selectedModelKey !== currentModel) {
+                currentModel = selectedModelKey;
+                viewer.loadModel(selectedModelKey);
+              }
+            });
+          } else {
+            // Retry after a short delay if dropdown not yet in DOM
+            setTimeout(attachDropdownListener, 100);
+          }
+        }
+        attachDropdownListener();
+    </script>
+</body>
+</html>
