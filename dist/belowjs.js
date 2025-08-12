@@ -8353,7 +8353,6 @@ class Dn extends wt {
   }
   updateLoadingProgress({ progress: e }) {
     if (e.lengthComputable && this.currentModelKey) {
-      this.config.models[this.currentModelKey];
       const t = Math.round(e.loaded / e.total * 100);
       if (this.loadingPercentage = t, this.loadingMessage = "Loading model", this.ui.loading) {
         const i = this.ui.loading.querySelector(".spinner-percentage"), s = this.ui.loading.querySelector(".loading-status"), o = this.ui.loading.querySelector(".spinner-path");

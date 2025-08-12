@@ -127,6 +127,7 @@ After making modifications to the library:
 
 5. **Update Release Documentation**
    - Update `docs/changelog.html` with new version details
+   - **CRITICAL**: Run `npm run docs:examples` to update ALL documentation CDN references
    - Update main website changelog at padmorrison.com/belowjs
    - Ensure version consistency across all documentation
 

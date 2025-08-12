@@ -91,4 +91,34 @@ function convertToCDN(htmlContent, version) {
 // Copy examples
 copyDir(EXAMPLES_SRC, EXAMPLES_DEST);
 
+// Update hardcoded version references in documentation pages
+updateDocumentationReferences(version);
+
 console.log('✅ Examples copied to docs/ with CDN imports');
+
+function updateDocumentationReferences(version) {
+  const docsDir = path.join(rootDir, 'docs');
+  const filesToUpdate = [
+    'examples.html',
+    'installation.html', 
+    'demo.html'
+  ];
+  
+  console.log(`Updating CDN references to v${version} in documentation pages...`);
+  
+  for (const filename of filesToUpdate) {
+    const filepath = path.join(docsDir, filename);
+    if (fs.existsSync(filepath)) {
+      let content = fs.readFileSync(filepath, 'utf8');
+      
+      // Update belowjs CDN URLs (both JS and CSS)
+      content = content.replace(
+        /belowjs@1\.0\.0-rc\.\d+/g,
+        `belowjs@${version}`
+      );
+      
+      fs.writeFileSync(filepath, content, 'utf8');
+      console.log(`  ✅ Updated ${filename}`);
+    }
+  }
+}
