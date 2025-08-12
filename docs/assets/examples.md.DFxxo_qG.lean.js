@@ -1,1 +1,0 @@
-import{_ as i,c as a,o as n,ae as l}from"./chunks/framework.CtVwKphR.js";const g=JSON.parse('{"title":"Examples","description":"","frontmatter":{},"headers":[],"relativePath":"examples.md","filePath":"examples.md"}'),t={name:"examples.md"};function e(h,s,p,k,r,E){return n(),a("div",null,s[0]||(s[0]=[l("",27)]))}const o=i(t,[["render",e]]);export{g as __pageData,o as default};

@@ -82,4 +82,22 @@ function convertToCDN(htmlContent, version) {
 // Copy examples
 copyDir(EXAMPLES_SRC, EXAMPLES_DEST);
 
+// Copy homepage demo from site/public to docs/
+const HOMEPAGE_DEMO_SRC = path.join(rootDir, 'site', 'public', 'homepage-demo.html');
+const HOMEPAGE_DEMO_DEST = path.join(rootDir, 'docs', 'homepage-demo.html');
+const MODELS_SRC = path.join(rootDir, 'site', 'public', 'models');
+const MODELS_DEST = path.join(rootDir, 'docs', 'models');
+
+if (fs.existsSync(HOMEPAGE_DEMO_SRC)) {
+  let content = fs.readFileSync(HOMEPAGE_DEMO_SRC, 'utf8');
+  content = convertToCDN(content, version);
+  fs.writeFileSync(HOMEPAGE_DEMO_DEST, content, 'utf8');
+  console.log('✅ Homepage demo copied to docs/');
+}
+
+if (fs.existsSync(MODELS_SRC)) {
+  copyDir(MODELS_SRC, MODELS_DEST);
+  console.log('✅ Models copied to docs/');
+}
+
 console.log('✅ Examples copied to docs/ with CDN imports');
