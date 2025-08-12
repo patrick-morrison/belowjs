@@ -204,6 +204,13 @@ export class ModelViewer extends EventSystem {
     this.fullscreenButton = null;
     this.lastComfortMode = null;
     
+    // VR loading state
+    this.isLoading = false;
+    this.loadingMessage = '';
+    this.loadingModelName = '';
+    this.loadingPercentage = 0;
+    this.vrUpdateLoop = null;
+    
     if (typeof window !== 'undefined') {
       window.modelViewer = this;
     }
@@ -482,7 +489,6 @@ export class ModelViewer extends EventSystem {
 
 
   onVRSessionStart() {
-
     if (this.ui.info) {
       this.ui.info.style.display = 'none';
     }
@@ -491,6 +497,36 @@ export class ModelViewer extends EventSystem {
       this.ui.selector.style.opacity = '0.5';
     }
 
+    // Show VR loading indicator if loading is in progress
+    if (this.isLoading) {
+      this.updateVRLoadingIndicator();
+    }
+
+    // Set up VR loading sprite update loop
+    if (!this.vrUpdateLoop) {
+      let lastUpdateTime = 0;
+      const updateVRElements = (currentTime) => {
+        if (this.belowViewer && this.belowViewer.renderer && 
+            this.belowViewer.renderer.xr && this.belowViewer.renderer.xr.isPresenting) {
+          
+          // Only update position periodically to avoid jitter (every 100ms)
+          if (currentTime - lastUpdateTime > 100) {
+            // Update VR loading sprite position if it exists and is visible
+            if (this.vrLoadingSprite && 
+                this.belowViewer.sceneManager.scene.children.includes(this.vrLoadingSprite) &&
+                this.isLoading) {
+              this.positionVRLoadingSprite();
+            }
+            lastUpdateTime = currentTime;
+          }
+          
+          this.vrUpdateLoop = requestAnimationFrame(updateVRElements);
+        } else {
+          this.vrUpdateLoop = null;
+        }
+      };
+      this.vrUpdateLoop = requestAnimationFrame(updateVRElements);
+    }
 
     if (this.measurementSystem && typeof this.measurementSystem.attachVR === 'function') {
 
@@ -513,7 +549,6 @@ export class ModelViewer extends EventSystem {
   }
 
   onVRSessionEnd() {
-
     if (this.ui.info && this.config.showInfo) {
       this.ui.info.style.display = 'block';
     }
@@ -521,6 +556,15 @@ export class ModelViewer extends EventSystem {
       this.ui.selector.style.pointerEvents = 'auto';
       this.ui.selector.style.opacity = '1';
     }
+
+    // Clean up VR update loop
+    if (this.vrUpdateLoop) {
+      cancelAnimationFrame(this.vrUpdateLoop);
+      this.vrUpdateLoop = null;
+    }
+
+    // Hide VR loading indicator when exiting VR
+    this.updateVRLoadingIndicator();
     
 
     if (this.measurementSystem) {
@@ -859,6 +903,126 @@ export class ModelViewer extends EventSystem {
     this.container.appendChild(loading);
     this.ui.loading = loading;
   }
+
+  /**
+   * Create VR loading indicator as a canvas-based sprite
+   * Similar to measurement labels, this creates a world-space UI element for VR
+   */
+  createVRLoadingIndicator(message = 'Loading...', modelName = '', percentage = 0) {
+    const DPR = (window.devicePixelRatio || 1) * 2;
+    const logicalWidth = 512;
+    const logicalHeight = 256;
+    const canvasWidth = logicalWidth * DPR;
+    const canvasHeight = logicalHeight * DPR;
+
+    // Create or reuse canvas
+    if (!this.vrLoadingCanvas) {
+      this.vrLoadingCanvas = document.createElement('canvas');
+    }
+    
+    if (this.vrLoadingCanvas.width !== canvasWidth || this.vrLoadingCanvas.height !== canvasHeight) {
+      this.vrLoadingCanvas.width = canvasWidth;
+      this.vrLoadingCanvas.height = canvasHeight;
+    }
+
+    const context = this.vrLoadingCanvas.getContext('2d');
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    context.save();
+    context.scale(DPR, DPR);
+
+    const centerX = logicalWidth / 2;
+    const centerY = logicalHeight / 2;
+
+    // Spinner circle (floating, no background)
+    const spinnerRadius = 25;
+    const spinnerY = centerY - 40;
+    
+    // Outer circle (track) with shadow
+    context.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    context.shadowBlur = 3;
+    context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(centerX, spinnerY, spinnerRadius, 0, Math.PI * 2);
+    context.stroke();
+    
+    // Reset shadow for progress arc
+    context.shadowColor = 'transparent';
+    context.shadowBlur = 0;
+    
+    // Progress arc
+    if (percentage > 0) {
+      const progressAngle = (percentage / 100) * Math.PI * 2;
+      context.strokeStyle = '#ffffff';
+      context.lineWidth = 3;
+      context.beginPath();
+      context.arc(centerX, spinnerY, spinnerRadius, -Math.PI / 2, -Math.PI / 2 + progressAngle);
+      context.stroke();
+    }
+
+    // Percentage text inside spinner
+    context.fillStyle = 'white';
+    context.font = `600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    context.shadowBlur = 2;
+    context.shadowOffsetX = 1;
+    context.shadowOffsetY = 1;
+    context.fillText(`${Math.round(percentage)}%`, centerX, spinnerY);
+
+    // Main model name text
+    if (modelName) {
+      context.fillStyle = 'white';
+      context.font = `600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      context.shadowBlur = 4;
+      context.shadowOffsetX = 1;
+      context.shadowOffsetY = 1;
+      context.fillText(modelName, centerX, centerY + 20);
+    }
+
+    // Loading message
+    context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    context.font = `400 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    context.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    context.shadowBlur = 3;
+    context.shadowOffsetX = 1;
+    context.shadowOffsetY = 1;
+    context.fillText(message, centerX, centerY + 50);
+
+    context.restore();
+
+    // Create or update texture
+    if (!this.vrLoadingTexture) {
+      this.vrLoadingTexture = new THREE.CanvasTexture(this.vrLoadingCanvas);
+      this.vrLoadingTexture.minFilter = THREE.LinearFilter;
+      this.vrLoadingTexture.magFilter = THREE.LinearFilter;
+    } else {
+      this.vrLoadingTexture.needsUpdate = true;
+    }
+
+    // Create or update sprite
+    if (!this.vrLoadingSprite) {
+      const spriteMaterial = new THREE.SpriteMaterial({ 
+        map: this.vrLoadingTexture,
+        depthTest: false,
+        depthWrite: false,
+        transparent: true
+      });
+      this.vrLoadingSprite = new THREE.Sprite(spriteMaterial);
+      
+      // Set scale
+      const scale = 0.7;
+      const aspectRatio = logicalWidth / logicalHeight;
+      this.vrLoadingSprite.scale.set(scale * aspectRatio, scale, 1);
+    }
+
+    return this.vrLoadingSprite;
+  }
   
   createStatusIndicator() {
     const status = document.createElement('div');
@@ -1046,6 +1210,13 @@ export class ModelViewer extends EventSystem {
   }
   
   showLoading(message = 'Loading...', modelName = null) {
+    // Store loading state for VR
+    this.isLoading = true;
+    this.loadingMessage = message;
+    this.loadingModelName = modelName || '';
+    this.loadingPercentage = 0;
+    
+    // Show desktop loading indicator
     if (this.ui.loading) {
       const statusElement = this.ui.loading.querySelector('.loading-status');
       const modelNameElement = this.ui.loading.querySelector('.loading-model-name');
@@ -1063,12 +1234,97 @@ export class ModelViewer extends EventSystem {
       
       this.ui.loading.style.display = 'flex';
     }
+
+    // Always create and show VR loading indicator if in VR
+    this.updateVRLoadingIndicator();
+  }
+
+  /**
+   * Show VR loading sprite in the scene
+   */
+  showVRLoadingSprite() {
+    if (!this.vrLoadingSprite || !this.belowViewer?.sceneManager) {
+      return;
+    }
+
+    // Always recalculate position when showing
+    this.positionVRLoadingSprite();
+    
+    // Remove and re-add to ensure clean state
+    if (this.belowViewer.sceneManager.scene.children.includes(this.vrLoadingSprite)) {
+      this.belowViewer.sceneManager.scene.remove(this.vrLoadingSprite);
+    }
+    
+    this.belowViewer.sceneManager.scene.add(this.vrLoadingSprite);
+  }
+
+  /**
+   * Update VR loading indicator based on current state
+   */
+  updateVRLoadingIndicator() {
+    const inVR = this.belowViewer && this.belowViewer.renderer && 
+                 this.belowViewer.renderer.xr && this.belowViewer.renderer.xr.isPresenting;
+    
+    if (this.isLoading && inVR) {
+      // Always recreate the VR loading indicator to ensure fresh state
+      this.createVRLoadingIndicator(this.loadingMessage, this.loadingModelName, this.loadingPercentage);
+      this.showVRLoadingSprite();
+    } else if (this.vrLoadingSprite && this.belowViewer?.sceneManager) {
+      // Hide VR loading indicator if not loading or not in VR
+      this.belowViewer.sceneManager.scene.remove(this.vrLoadingSprite);
+    }
   }
   
   hideLoading() {
+    // Clear loading state
+    this.isLoading = false;
+    this.loadingMessage = '';
+    this.loadingModelName = '';
+    this.loadingPercentage = 0;
+    
+    // Hide desktop loading indicator
     if (this.ui.loading) {
       this.ui.loading.style.display = 'none';
     }
+
+    // Hide and cleanup VR loading indicator
+    if (this.vrLoadingSprite && this.belowViewer && this.belowViewer.sceneManager) {
+      this.belowViewer.sceneManager.scene.remove(this.vrLoadingSprite);
+      
+      // Reset sprite position to avoid positioning issues on next load
+      this.vrLoadingSprite.position.set(0, 0, 0);
+      this.vrLoadingSprite.rotation.set(0, 0, 0);
+    }
+  }
+
+  /**
+   * Position VR loading sprite in front of user's view
+   */
+  positionVRLoadingSprite() {
+    if (!this.vrLoadingSprite || !this.belowViewer || !this.belowViewer.cameraManager) {
+      return;
+    }
+
+    const camera = this.belowViewer.cameraManager.camera;
+    const distance = 2.0; // 2 meters in front
+    
+    // Get fresh camera direction
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    
+    // Get fresh camera position
+    const cameraPosition = new THREE.Vector3();
+    camera.getWorldPosition(cameraPosition);
+    
+    // Position sprite in front of camera
+    const position = new THREE.Vector3();
+    position.copy(cameraPosition);
+    position.add(direction.multiplyScalar(distance));
+    
+    this.vrLoadingSprite.position.copy(position);
+    
+    // Make sprite face the camera
+    this.vrLoadingSprite.lookAt(cameraPosition);
   }
   
   updateStatus(message) {
@@ -1083,6 +1339,11 @@ export class ModelViewer extends EventSystem {
       const modelConfig = this.config.models[this.currentModelKey];
       const percent = Math.round((progress.loaded / progress.total) * 100);
       
+      // Update loading state
+      this.loadingPercentage = percent;
+      this.loadingMessage = 'Loading model';
+      
+      // Update desktop loading indicator
       if (this.ui.loading) {
         const percentageElement = this.ui.loading.querySelector('.spinner-percentage');
         const statusElement = this.ui.loading.querySelector('.loading-status');
@@ -1101,6 +1362,9 @@ export class ModelViewer extends EventSystem {
           spinnerPath.style.strokeDashoffset = offset;
         }
       }
+
+      // Update VR loading indicator
+      this.updateVRLoadingIndicator();
     }
   }
   
