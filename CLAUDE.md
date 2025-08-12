@@ -3,6 +3,14 @@
 ## Project Status
 BelowJS is a production-ready 3D model viewer library with VR support and underwater exploration features.
 
+## Recent Updates (August 2025)
+- ✅ **Switched to static documentation**: Removed VitePress, now using hand-crafted HTML docs
+- ✅ **Fixed navigation links**: Logo links now properly point to docs index instead of root domain
+- ✅ **Added changelog page**: Complete `docs/changelog.html` with 1.0.0-rc.1 release notes
+- ✅ **Updated all navbars**: Added changelog link to all 10 documentation pages  
+- ✅ **Fixed iframe gaps**: Removed spacing issues in examples page embed viewer
+- ⚠️ **Website changelog**: Need to update main website (padmorrison.com/belowjs) with latest release info
+
 ## Build System
 - **Production bundles**: All examples use `/dist/belowjs.css` and `/dist/belowjs.js`
 - **Build command**: `npm run build` creates optimized bundles
@@ -54,17 +62,34 @@ npm run dev:embed        # Light theme embeddable measurement viewer
 **Note**: Examples use production builds, so `npm run build` is required before testing changes.
 
 ## Documentation System
-- **VitePress source**: `site/` folder contains documentation source
-- **VitePress output**: `docs/` folder (GitHub Pages deployment)
+- **Static HTML docs**: `docs/` folder contains hand-crafted documentation pages
+- **GitHub Pages deployment**: Serves directly from `docs/` folder
 - **API documentation**: Auto-generated from source code via TypeDoc
 - **Examples**: Automatically copied with CDN imports for production
+- **Changelog**: `docs/changelog.html` documents version history and releases
 
 ### Documentation Commands
 ```bash
-npm run docs:dev      # Start documentation development server
-npm run docs:build    # Build complete documentation site
-npm run docs:preview  # Preview built documentation
+npm run docs:serve    # Serve docs locally on port 8000
+npm run docs:examples # Copy examples to docs folder
 ```
+
+### Navigation Structure
+All documentation pages include consistent navigation with:
+- Installation, Examples, Guides, Implementations, **Changelog**
+- Logo links correctly point to docs index (not root domain)
+- Guide subpages use relative paths (`../changelog.html`)
+- External links to GitHub and NPM
+
+### Documentation Pages
+- `docs/index.html` - Homepage with hero and features
+- `docs/installation.html` - Setup and installation guide
+- `docs/examples.html` - Live demos and code examples
+- `docs/guides.html` - Workflow guides listing
+- `docs/implementations.html` - Real-world usage showcase
+- `docs/changelog.html` - Version history and release notes
+- `docs/guides/` - Individual guide pages (4 guides)
+- `docs/examples/` - Copied examples with CDN imports
 
 ## Release & Deployment Workflow
 
@@ -79,12 +104,12 @@ After making modifications to the library:
 
 2. **Update Documentation**
    ```bash
-   npm run docs:build   # Generates API docs + builds site
+   npm run docs:examples # Copy examples to docs with CDN imports
    ```
    This automatically:
-   - Generates fresh API documentation from source code
    - Copies examples from `examples/` → `docs/examples/` with CDN imports
-   - Builds VitePress documentation site to `docs/` folder
+   - Updates CDN URLs to match current version
+   - Static HTML documentation is ready for deployment
 
 3. **Quality Checks**
    ```bash
@@ -100,13 +125,18 @@ After making modifications to the library:
    ```
    This automatically runs `prepublishOnly` (build + lint)
 
-5. **Deploy to GitHub**
+5. **Update Release Documentation**
+   - Update `docs/changelog.html` with new version details
+   - Update main website changelog at padmorrison.com/belowjs
+   - Ensure version consistency across all documentation
+
+6. **Deploy to GitHub**
    ```bash
    git push origin main --tags
    ```
    GitHub Pages automatically deploys from `docs/` folder
 
-6. **Publish to NPM**
+7. **Publish to NPM**
    ```bash
    npm publish
    ```
@@ -117,3 +147,6 @@ After making modifications to the library:
 - **Production examples** (`docs/examples/`) use CDN imports automatically
 - **Version consistency** ensured by automated CDN URL updates
 - **Quality gates** prevent publishing without building and linting
+- **Changelog maintenance** required for both GitHub docs and main website
+- **Navigation fixes** ensure proper docs-relative linking (not root domain)
+- **Static documentation** - no build step required, direct HTML editing

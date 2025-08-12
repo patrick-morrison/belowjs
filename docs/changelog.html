@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - BelowJS</title>
+    <meta name="description" content="Release notes and changelog for BelowJS underwater VR viewer">
+    <meta name="theme-color" content="#0d3b66">
+    
+    <!-- Site styles -->
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/docs.css">
+    <style>
+        .version-section {
+            margin: 3rem 0;
+            padding: 2rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .version-section:last-child {
+            border-bottom: none;
+        }
+        
+        .version-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .version-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0d3b66;
+        }
+        
+        .version-date {
+            color: #64748b;
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+        }
+        
+        .version-tag {
+            background: #059669;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .version-tag.rc {
+            background: #ea580c;
+        }
+        
+        .changes-list {
+            margin: 1.5rem 0;
+        }
+        
+        .changes-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .changes-list li {
+            margin: 0.75rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .changes-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #0d3b66;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .change-type {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.025em;
+            margin-right: 0.5rem;
+        }
+        
+        .change-type.new {
+            color: #059669;
+        }
+        
+        .change-type.improved {
+            color: #0369a1;
+        }
+        
+        .change-type.fixed {
+            color: #dc2626;
+        }
+        
+        .npm-install {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .npm-install code {
+            background: none;
+            padding: 0;
+            font-size: inherit;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="installation.html">Installation</a>
+                <a href="examples.html">Examples</a>
+                <a href="guides.html">Guides</a>
+                <a href="implementations.html">Implementations</a>
+                <a href="changelog.html">Changelog</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="installation.html">Installation</a>
+        <a href="examples.html">Examples</a>
+        <a href="guides.html">Guides</a>
+        <a href="implementations.html">Implementations</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Main content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Changelog</h1>
+            <p>Release notes and version history for BelowJS.</p>
+
+            <div class="npm-install">
+                <strong>Latest Release:</strong><br>
+                <code>npm install belowjs@1.0.0-rc.1</code>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
+                    <div class="version-number">1.0.0-rc.1</div>
+                    <div class="version-tag rc">Release Candidate</div>
+                    <div class="version-date">August 2025</div>
+                </div>
+                
+                <p>First release candidate for BelowJS 1.0! This version is production-ready and available on NPM.</p>
+                
+                <div class="changes-list">
+                    <ul>
+                        <li><span class="change-type new">New</span> Complete underwater VR viewer with dive mode and lighting effects</li>
+                        <li><span class="change-type new">New</span> WebXR support for immersive VR experiences on compatible headsets</li>
+                        <li><span class="change-type new">New</span> Measurement tools for archaeological documentation</li>
+                        <li><span class="change-type new">New</span> Multi-model support with seamless switching</li>
+                        <li><span class="change-type new">New</span> Customizable lighting and dive environment</li>
+                        <li><span class="change-type new">New</span> Touch and keyboard controls for accessibility</li>
+                        <li><span class="change-type new">New</span> Drag-and-drop model loading</li>
+                        <li><span class="change-type new">New</span> Embed viewer for iframe integration</li>
+                        <li><span class="change-type new">New</span> Complete documentation and examples</li>
+                        <li><span class="change-type improved">Improved</span> Bundle size optimized to 419KB</li>
+                        <li><span class="change-type improved">Improved</span> Performance for large photogrammetry models</li>
+                        <li><span class="change-type improved">Improved</span> Mobile device compatibility</li>
+                    </ul>
+                </div>
+                
+                <p><strong>Breaking Changes:</strong> This is the first public release, so no breaking changes from previous versions.</p>
+                
+                <p><strong>Known Issues:</strong> None currently reported. Please file issues on <a href="https://github.com/patrick-morrison/belowjs/issues" target="_blank">GitHub</a>.</p>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
+                    <div class="version-number">Pre-Release Development</div>
+                    <div class="version-date">2024-2025</div>
+                </div>
+                
+                <p>Extensive development and testing phase for underwater photogrammetry visualization:</p>
+                
+                <div class="changes-list">
+                    <ul>
+                        <li>Core Three.js integration and scene management</li>
+                        <li>WebXR implementation for VR headset support</li>
+                        <li>Maritime archaeology measurement tools development</li>
+                        <li>Dive mode with realistic underwater lighting</li>
+                        <li>Performance optimization for large 3D models</li>
+                        <li>Testing with real underwater photogrammetry models</li>
+                        <li>Documentation and example creation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="assets/navigation.js"></script>
+</body>
+</html>
