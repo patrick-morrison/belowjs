@@ -18,10 +18,17 @@
             border-radius: 8px;
             margin: 2rem 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: block;
         }
         
         .demo-iframe.small {
             height: 400px;
+        }
+        
+        /* Fix iframe gaps */
+        iframe {
+            display: block;
+            border: none;
         }
         
         .demo-caption {
@@ -68,7 +75,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
-            <a href="/" class="nav-title">BelowJS</a>
+            <a href="index.html" class="nav-title">BelowJS</a>
             <div class="nav-links">
                 <a href="installation.html">Installation</a>
                 <a href="examples.html">Examples</a>
@@ -127,6 +134,7 @@
                     width="100%" 
                     height="500" 
                     frameborder="0"
+                    style="display: block; border: none;"
                     title="BelowJS Embed Demo - SS Timaru 3D Model"
                     loading="lazy">
                 </iframe>
