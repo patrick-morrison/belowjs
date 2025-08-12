@@ -963,7 +963,7 @@ export class ModelViewer extends EventSystem {
 
     // Percentage text inside spinner
     context.fillStyle = 'white';
-    context.font = `600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    context.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -975,7 +975,7 @@ export class ModelViewer extends EventSystem {
     // Main model name text
     if (modelName) {
       context.fillStyle = 'white';
-      context.font = `600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      context.font = '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -987,7 +987,7 @@ export class ModelViewer extends EventSystem {
 
     // Loading message
     context.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    context.font = `400 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    context.font = '400 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     context.shadowColor = 'rgba(0, 0, 0, 0.8)';
     context.shadowBlur = 3;
     context.shadowOffsetX = 1;
@@ -1336,7 +1336,6 @@ export class ModelViewer extends EventSystem {
   
   updateLoadingProgress({ progress }) {
     if (progress.lengthComputable && this.currentModelKey) {
-      const modelConfig = this.config.models[this.currentModelKey];
       const percent = Math.round((progress.loaded / progress.total) * 100);
       
       // Update loading state
@@ -1353,7 +1352,7 @@ export class ModelViewer extends EventSystem {
           percentageElement.textContent = `${percent}%`;
         }
         if (statusElement) {
-          statusElement.textContent = `Loading model`;
+          statusElement.textContent = 'Loading model';
         }
         if (spinnerPath) {
           // Update the circular progress
