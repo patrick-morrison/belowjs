@@ -11,17 +11,16 @@ export default defineConfig({
     ['meta', { property: 'og:title', content: 'BelowJS - View underwater photogrammetry models in VR' }],
     ['meta', { property: 'og:description', content: 'A Three.js library for maritime archaeology and underwater heritage' }],
   ],
-  // Temporarily disable vite config that might interfere with VitePress hydration
-  // vite: {
-  //   resolve: {
-  //     alias: {
-  //       'belowjs': '/dist/belowjs.js'
-  //     }
-  //   },
-  //   optimizeDeps: {
-  //     exclude: ['belowjs']
-  //   }
-  // },
+  vite: {
+    resolve: {
+      alias: {
+        'belowjs': '/dist/belowjs.js'
+      }
+    },
+    optimizeDeps: {
+      exclude: ['belowjs']
+    }
+  },
   appearance: false,
   ignoreDeadLinks: true,
   themeConfig: {
