@@ -11,7 +11,7 @@ sidebar: true
 
 # Class: Scene
 
-Defined in: [core/Scene.js:3](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L3)
+Defined in: [core/Scene.js:3](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L3)
 
 ## Constructors
 
@@ -19,7 +19,7 @@ Defined in: [core/Scene.js:3](https://github.com/patrick-morrison/belowjs/blob/0
 
 > **new Scene**(`config`): `Scene`
 
-Defined in: [core/Scene.js:4](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L4)
+Defined in: [core/Scene.js:4](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L4)
 
 #### Parameters
 
@@ -35,7 +35,7 @@ Defined in: [core/Scene.js:4](https://github.com/patrick-morrison/belowjs/blob/0
 
 > **config**: `object`
 
-Defined in: [core/Scene.js:5](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L5)
+Defined in: [core/Scene.js:5](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L5)
 
 ***
 
@@ -43,7 +43,7 @@ Defined in: [core/Scene.js:5](https://github.com/patrick-morrison/belowjs/blob/0
 
 > **scene**: `any`
 
-Defined in: [core/Scene.js:6](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L6)
+Defined in: [core/Scene.js:6](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L6)
 
 ## Methods
 
@@ -51,7 +51,7 @@ Defined in: [core/Scene.js:6](https://github.com/patrick-morrison/belowjs/blob/0
 
 > **add**(`object`): `void`
 
-Defined in: [core/Scene.js:22](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L22)
+Defined in: [core/Scene.js:22](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L22)
 
 #### Parameters
 
@@ -69,7 +69,7 @@ Defined in: [core/Scene.js:22](https://github.com/patrick-morrison/belowjs/blob/
 
 > **dispose**(): `void`
 
-Defined in: [core/Scene.js:34](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L34)
+Defined in: [core/Scene.js:34](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L34)
 
 #### Returns
 
@@ -81,7 +81,7 @@ Defined in: [core/Scene.js:34](https://github.com/patrick-morrison/belowjs/blob/
 
 > **getScene**(): `any`
 
-Defined in: [core/Scene.js:30](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L30)
+Defined in: [core/Scene.js:30](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L30)
 
 #### Returns
 
@@ -93,7 +93,7 @@ Defined in: [core/Scene.js:30](https://github.com/patrick-morrison/belowjs/blob/
 
 > **init**(): `void`
 
-Defined in: [core/Scene.js:10](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L10)
+Defined in: [core/Scene.js:10](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L10)
 
 #### Returns
 
@@ -105,7 +105,7 @@ Defined in: [core/Scene.js:10](https://github.com/patrick-morrison/belowjs/blob/
 
 > **remove**(`object`): `void`
 
-Defined in: [core/Scene.js:26](https://github.com/patrick-morrison/belowjs/blob/03f7a8be425170900ce7223be2af24ddc822ead2/src/core/Scene.js#L26)
+Defined in: [core/Scene.js:26](https://github.com/patrick-morrison/belowjs/blob/e0d2339359551c744ccd91c6c9a89c4c86b5b199/src/core/Scene.js#L26)
 
 #### Parameters
 

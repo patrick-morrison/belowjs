@@ -76,6 +76,12 @@ function convertToCDN(htmlContent, version) {
     '<!-- Import map for CDN production -->'
   );
   
+  // Convert model URLs to GitHub Pages URLs
+  htmlContent = htmlContent.replace(
+    /url: '\/models\//g,
+    "url: 'https://patrick-morrison.github.io/belowjs/models/"
+  );
+  
   return htmlContent;
 }
 

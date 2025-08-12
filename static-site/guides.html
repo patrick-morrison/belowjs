@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guides - BelowJS</title>
+    <meta name="description" content="Complete workflow guides for underwater photogrammetry and VR">
+    <meta name="theme-color" content="#0d3b66">
+    
+    <!-- Site styles -->
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .guide-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        .guide-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 59, 102, 0.15);
+            border-color: #0d3b66;
+        }
+        
+        .guide-card h3 {
+            margin: 0 0 1rem 0;
+            color: #0d3b66;
+            font-size: 1.3rem;
+        }
+        
+        .guide-card p {
+            margin: 0;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        .workflow-overview {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 3rem;
+            margin: 3rem 0;
+            text-align: center;
+        }
+        
+        .workflow-steps {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .workflow-step {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 120px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .workflow-step .step-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0d3b66;
+            margin-bottom: 0.5rem;
+        }
+        
+        .workflow-step .step-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .guide-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .workflow-overview {
+                padding: 2rem 1rem;
+            }
+            
+            .workflow-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="/installation.html">Installation</a>
+                <a href="/examples.html">Examples</a>
+                <a href="/api/">API</a>
+                <a href="/guides.html">Guides</a>
+                <a href="/implementations.html">Implementations</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="/installation.html">Installation</a>
+        <a href="/examples.html">Examples</a>
+        <a href="/api/">API</a>
+        <a href="/guides.html">Guides</a>
+        <a href="/implementations.html">Implementations</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-container">
+        <div class="page-content">
+            <h1>Guides</h1>
+            <p>Complete workflow guides from capturing underwater photos to viewing 3D models in VR. The best virtual experiences are built on quality data and smart processing.</p>
+
+            <div class="workflow-overview">
+                <h2 style="margin: 0 0 1rem 0; color: #2c3e50;">Complete Underwater VR Pipeline</h2>
+                <p style="margin: 0 0 2rem 0; color: #4a5568;">From capture to experience</p>
+                
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        <div class="step-number">📷</div>
+                        <div class="step-title">Capture</div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">⚙️</div>
+                        <div class="step-title">Process</div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">🎯</div>
+                        <div class="step-title">Optimize</div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">🌐</div>
+                        <div class="step-title">Deploy</div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">🥽</div>
+                        <div class="step-title">Experience</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-grid">
+                <a href="/guides/metashape-workflow.html" class="guide-card">
+                    <h3>Metashape Workflow</h3>
+                    <p>Complete photogrammetry processing pipeline from raw photos to web-ready models. Learn professional techniques for underwater reconstruction.</p>
+                </a>
+
+                <a href="/guides/model-setup.html" class="guide-card">
+                    <h3>Model Setup</h3>
+                    <p>Configure scale, position, lighting, and materials for optimal viewing. Get your models looking perfect in VR.</p>
+                </a>
+
+                <a href="/guides/optimization.html" class="guide-card">
+                    <h3>Model Optimization</h3>
+                    <p>Reduce file sizes and improve performance for web and VR platforms. Essential techniques for smooth experiences.</p>
+                </a>
+
+                <a href="/guides/vr-headsets.html" class="guide-card">
+                    <h3>VR Headsets</h3>
+                    <p>Set up Meta Quest, PC VR, and other headsets for underwater model viewing. Get the best VR experience.</p>
+                </a>
+            </div>
+
+            <div style="margin-top: 4rem; padding: 2rem; background: #f8fafc; border-radius: 12px; text-align: center;">
+                <h3 style="margin: 0 0 1rem 0; color: #0d3b66;">Ready to start building?</h3>
+                <p style="margin: 0 0 2rem 0; color: #4a5568;">Jump straight into the examples or get BelowJS installed</p>
+                <a href="/examples.html" class="btn btn-primary">View Examples</a>
+                <a href="/installation.html" class="btn btn-secondary" style="margin-left: 1rem;">Install BelowJS</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="assets/navigation.js"></script>
+</body>
+</html>

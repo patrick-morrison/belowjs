@@ -4,15 +4,15 @@ Explore live interactive demos to see BelowJS in action. Take these open example
 
 <div style="margin: 2rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <iframe 
-    src="https://patrick-morrison.github.io/belowjs/examples/embed/viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa" 
+    src="https://patrick-morrison.github.io/belowjs/homepage-demo.html" 
     width="100%" 
     height="500" 
     frameborder="0"
-    title="BelowJS Embed Viewer Example"
+    title="BelowJS Interactive Demo"
     loading="lazy">
   </iframe>
 </div>
-<p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ This is the embed viewer in action</p>
+<p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ Interactive demo with Sesa 1928 model</p>
 
 ## Basic Viewer
 Full-featured multi-model viewer with VR support, measurement tools, and dive mode.
@@ -36,6 +36,18 @@ npm run dev:dragdrop
 Lightweight viewer designed for iframe embedding with URL parameter configuration.
 
 **[View Live Demo](https://patrick-morrison.github.io/belowjs/examples/embed/)** | **[Source Code](https://github.com/patrick-morrison/belowjs/tree/main/examples/embed)**
+
+<div style="margin: 1.5rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <iframe 
+    src="https://patrick-morrison.github.io/belowjs/examples/embed/" 
+    width="100%" 
+    height="400" 
+    frameborder="0"
+    title="BelowJS Embed Demo"
+    loading="lazy">
+  </iframe>
+</div>
+<p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ Live embed viewer with measurement tools</p>
 
 ```bash
 npm run dev:embed

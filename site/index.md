@@ -19,7 +19,7 @@ sidebar: false
   
   <div class="demo-section">
     <iframe 
-      src="/homepage-demo.html" 
+      src="https://patrick-morrison.github.io/belowjs/homepage-demo.html" 
       class="demo-viewer"
       title="BelowJS Interactive Demo"
       loading="lazy">

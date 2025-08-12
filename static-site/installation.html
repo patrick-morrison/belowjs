@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation - BelowJS</title>
+    <meta name="description" content="Install BelowJS for your underwater photogrammetry projects">
+    <meta name="theme-color" content="#0d3b66">
+    
+    <!-- Site styles -->
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="/installation.html">Installation</a>
+                <a href="/examples.html">Examples</a>
+                <a href="/api/">API</a>
+                <a href="/guides.html">Guides</a>
+                <a href="/implementations.html">Implementations</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="/installation.html">Installation</a>
+        <a href="/examples.html">Examples</a>
+        <a href="/api/">API</a>
+        <a href="/guides.html">Guides</a>
+        <a href="/implementations.html">Implementations</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Documentation Content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Installation</h1>
+            <p>Get started with BelowJS for your underwater photogrammetry projects. Both Three.js and BelowJS use ES modules for clean, modern JavaScript.</p>
+
+            <h2>CDN</h2>
+            <p>Both Three.js and BelowJS use ES modules. Add the import map and stylesheet:</p>
+
+            <pre><code>&lt;script type="importmap"&gt;
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+        "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.js"
+    }
+}
+&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.1/dist/belowjs.css"&gt;</code></pre>
+
+            <p>Then import and use:</p>
+
+            <pre><code>import { ModelViewer } from 'belowjs';
+
+const viewer = new ModelViewer('body', {
+    models: { 'wreck': { url: 'shipwreck.glb' } }
+});</code></pre>
+
+            <h2>npm</h2>
+
+            <pre><code>npm install belowjs three</code></pre>
+
+            <pre><code>import { ModelViewer } from 'belowjs';
+import 'belowjs/dist/belowjs.css';
+
+const config = {
+    models: {
+        'kxi': {
+            url: 'shipwreck.glb'
+        }
+    }
+};
+
+const viewer = new ModelViewer('#container', config);</code></pre>
+
+            <h2>Manual installation</h2>
+            <p>If you prefer to install manually, clone the repository and build the distribution files:</p>
+
+            <pre><code>git clone https://github.com/patrick-morrison/belowjs
+cd belowjs
+npm install
+npm run build</code></pre>
+
+            <p>This builds the necessary files into the <code>/dist</code> directory:</p>
+            <ul>
+                <li><code>belowjs.js</code> (~419 KB) — ES modules version</li>
+                <li><code>belowjs.css</code> (~20 KB) — Complete stylesheet</li>
+            </ul>
+
+            <h2>Static deployment</h2>
+            <p>Deploy using CDN (no downloads needed):</p>
+
+            <div class="file-tree">shipwrecks-vr/
+├── index.html          # Uses CDN imports
+└── models/
+    ├── kxi.glb
+    └── kozvii.glb</div>
+
+            <h2>VR setup</h2>
+            <p>VR requires HTTPS in production. For local development:</p>
+
+            <pre><code>python -m http.server 8000</code></pre>
+
+            <p><strong>Quest:</strong> Chrome can forward localhost to Quest via USB debugging. <a href="https://developers.meta.com/horizon/documentation/web/browser-remote-debugging/" target="_blank">Setup guide</a>.</p>
+
+            <h2>Model requirements</h2>
+            <ul>
+                <li><strong>Format:</strong> GLB files (binary glTF)</li>
+                <li><strong>Size:</strong> Under 50MB recommended for web</li>
+                <li><strong>Optimization:</strong> Use Blender or similar to reduce polygons for better performance</li>
+            </ul>
+
+            <h2>Browser support</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Chrome</th>
+                        <th>Firefox</th>
+                        <th>Safari</th>
+                        <th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Basic viewing</td>
+                        <td><span class="badge success">✅</span></td>
+                        <td><span class="badge success">✅</span></td>
+                        <td><span class="badge success">✅</span></td>
+                        <td><span class="badge success">✅</span></td>
+                    </tr>
+                    <tr>
+                        <td>VR mode</td>
+                        <td><span class="badge success">✅</span></td>
+                        <td><span class="badge success">✅</span></td>
+                        <td><span class="badge error">❌</span></td>
+                        <td><span class="badge success">✅</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Troubleshooting</h2>
+
+            <h3>Model not loading?</h3>
+            <ul>
+                <li>Check file path and CORS headers</li>
+                <li>Verify GLB file is valid</li>
+                <li>Open browser console for error messages</li>
+            </ul>
+
+            <h3>VR button not showing?</h3>
+            <ul>
+                <li>Use HTTPS (required for WebXR)</li>
+                <li>Check browser VR support</li>
+                <li>Connect and enable VR headset</li>
+            </ul>
+
+            <h3>Performance issues?</h3>
+            <ul>
+                <li>Reduce model polygon count</li>
+                <li>Compress textures</li>
+                <li>Use smaller texture sizes</li>
+            </ul>
+
+            <hr>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <p style="margin-bottom: 2rem; color: #4a5568;">Ready to build amazing underwater VR experiences?</p>
+                <a href="/examples.html" class="btn btn-primary">View Examples</a>
+                <a href="/guides.html" class="btn btn-secondary" style="margin-left: 1rem;">Read Guides</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="assets/navigation.js"></script>
+</body>
+</html>
