@@ -52,3 +52,68 @@ npm run dev:embed        # Light theme embeddable measurement viewer
 4. **Test changes** at `http://localhost:5173`
 
 **Note**: Examples use production builds, so `npm run build` is required before testing changes.
+
+## Documentation System
+- **VitePress source**: `site/` folder contains documentation source
+- **VitePress output**: `docs/` folder (GitHub Pages deployment)
+- **API documentation**: Auto-generated from source code via TypeDoc
+- **Examples**: Automatically copied with CDN imports for production
+
+### Documentation Commands
+```bash
+npm run docs:dev      # Start documentation development server
+npm run docs:build    # Build complete documentation site
+npm run docs:preview  # Preview built documentation
+```
+
+## Release & Deployment Workflow
+
+### Complete Update Process
+After making modifications to the library:
+
+1. **Build & Test Changes**
+   ```bash
+   npm run build        # Build library bundles
+   npm run dev          # Test with development examples
+   ```
+
+2. **Update Documentation**
+   ```bash
+   npm run docs:build   # Generates API docs + builds site
+   ```
+   This automatically:
+   - Generates fresh API documentation from source code
+   - Copies examples from `examples/` → `docs/examples/` with CDN imports
+   - Builds VitePress documentation site to `docs/` folder
+
+3. **Quality Checks**
+   ```bash
+   npm run lint         # Check code quality
+   npm run lint:fix     # Fix linting issues
+   ```
+
+4. **Version & Prepare Release**
+   ```bash
+   npm version patch    # Bump version (1.0.0-rc.1 → 1.0.0-rc.2)
+   npm version minor    # Minor bump (1.0.0-rc.1 → 1.0.1-rc.1)
+   npm version major    # Major bump (1.0.0-rc.1 → 2.0.0-rc.1)
+   ```
+   This automatically runs `prepublishOnly` (build + lint)
+
+5. **Deploy to GitHub**
+   ```bash
+   git push origin main --tags
+   ```
+   GitHub Pages automatically deploys from `docs/` folder
+
+6. **Publish to NPM**
+   ```bash
+   npm publish
+   ```
+
+### Important Notes
+- **Documentation examples** automatically use correct CDN versions
+- **Development examples** (`examples/`) use local builds for testing
+- **Production examples** (`docs/examples/`) use CDN imports automatically
+- **Version consistency** ensured by automated CDN URL updates
+- **Quality gates** prevent publishing without building and linting

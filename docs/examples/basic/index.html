@@ -6,7 +6,7 @@
     <title>BelowJS - Basic Model Viewer</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚢</text></svg>">
     
-    <!-- Import map for CDN -->
+    <!-- Import map for CDN production -->
     <script type="importmap">
     {
         "imports": {
@@ -113,7 +113,6 @@
         });
         
         // Handle model selection changes
-        // Use new BEM class for model selector dropdown
         function attachDropdownListener() {
           const dropdown = document.querySelector('.model-selector__dropdown');
           if (dropdown) {

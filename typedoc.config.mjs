@@ -1,6 +1,6 @@
 export default {
   entryPoints: ['src/index.js'],
-  out: 'docs/api',
+  out: 'site/api',
   plugin: ['typedoc-plugin-markdown'],
   readme: 'README.md',
   includeVersion: true,
