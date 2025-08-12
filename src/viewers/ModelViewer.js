@@ -939,6 +939,15 @@ export class ModelViewer extends EventSystem {
 
       this.belowViewer.clearModels();
 
+      // When switching models while in VR, locomotion state can persist which
+      // leaves movement controls unresponsive in the next model. Explicitly
+      // reset VR movement systems after clearing the previous model so the
+      // new session starts fresh.
+      if (this.belowViewer.vrManager) {
+        this.belowViewer.vrManager.stopMovement();
+        this.belowViewer.vrManager.resetTeleportState();
+      }
+
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const model = await this.belowViewer.loadModel(modelConfig.url, {
