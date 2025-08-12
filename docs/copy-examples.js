@@ -39,14 +39,23 @@ function copyDir(src, dest) {
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
     } else if (entry.isFile()) {
-      let content = fs.readFileSync(srcPath, 'utf8');
-      
-      // Convert HTML files to use CDN imports
-      if (entry.name.endsWith('.html')) {
-        content = convertToCDN(content, version);
+      // Handle binary files (GLB models) separately
+      if (entry.name.endsWith('.glb') || entry.name.endsWith('.gltf') || 
+          entry.name.endsWith('.bin') || entry.name.endsWith('.jpg') || 
+          entry.name.endsWith('.png') || entry.name.endsWith('.jpeg')) {
+        // Copy binary files as-is
+        fs.copyFileSync(srcPath, destPath);
+      } else {
+        // Handle text files
+        let content = fs.readFileSync(srcPath, 'utf8');
+        
+        // Convert HTML files to use CDN imports
+        if (entry.name.endsWith('.html')) {
+          content = convertToCDN(content, version);
+        }
+        
+        fs.writeFileSync(destPath, content, 'utf8');
       }
-      
-      fs.writeFileSync(destPath, content, 'utf8');
     }
   }
 }
@@ -76,34 +85,10 @@ function convertToCDN(htmlContent, version) {
     '<!-- Import map for CDN production -->'
   );
   
-  // Convert model URLs to GitHub Pages URLs
-  htmlContent = htmlContent.replace(
-    /url: '\/models\//g,
-    "url: 'https://patrick-morrison.github.io/belowjs/models/"
-  );
-  
   return htmlContent;
 }
 
 // Copy examples
 copyDir(EXAMPLES_SRC, EXAMPLES_DEST);
-
-// Copy homepage demo from site/public to docs/
-const HOMEPAGE_DEMO_SRC = path.join(rootDir, 'site', 'public', 'homepage-demo.html');
-const HOMEPAGE_DEMO_DEST = path.join(rootDir, 'docs', 'homepage-demo.html');
-const MODELS_SRC = path.join(rootDir, 'site', 'public', 'models');
-const MODELS_DEST = path.join(rootDir, 'docs', 'models');
-
-if (fs.existsSync(HOMEPAGE_DEMO_SRC)) {
-  let content = fs.readFileSync(HOMEPAGE_DEMO_SRC, 'utf8');
-  content = convertToCDN(content, version);
-  fs.writeFileSync(HOMEPAGE_DEMO_DEST, content, 'utf8');
-  console.log('✅ Homepage demo copied to docs/');
-}
-
-if (fs.existsSync(MODELS_SRC)) {
-  copyDir(MODELS_SRC, MODELS_DEST);
-  console.log('✅ Models copied to docs/');
-}
 
 console.log('✅ Examples copied to docs/ with CDN imports');
