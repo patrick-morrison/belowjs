@@ -4942,7 +4942,7 @@ class Cn {
       autoRotateSpeed: null,
       controls: null
       // Reference to controls object
-    }, this.lastComfortLog = 0, this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
+    }, this._initialPositions = null, this.lastComfortLog = 0, this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
   }
   init() {
     this.vrCore.init(), this.vrControllers.init(), this.vrTeleport.init(), this.vrLocomotion.init(), this.setupModuleConnections();
@@ -4951,9 +4951,7 @@ class Cn {
     this.vrCore.onSessionStart = async () => {
       this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && await this.vrAudio.initImmediatelyForVR(this.audioPath) && this.vrAudio.startAmbientSound();
     }, this.vrCore.onSessionEnd = () => {
-      this.isVRPresenting = !1, this.vrAudio && (this.vrAudio.stopMovementSound(), this.vrAudio.stopAmbientSound()), setTimeout(() => {
-        this._restoreCameraState();
-      }, 100);
+      this.isVRPresenting = !1, this.vrAudio && (this.vrAudio.stopMovementSound(), this.vrAudio.stopAmbientSound()), this._restoreCameraState();
     }, this.vrControllers.onModeToggle = () => {
       this.onModeToggle && this.onModeToggle();
     }, this.vrLocomotion.onMovementStart = () => {
@@ -5066,6 +5064,13 @@ class Cn {
     this._preVRCameraState.controls = e;
   }
   /**
+   * Set initial positions for fallback when no pre-VR state exists
+   * @param {Object} initialPositions - Initial desktop positions
+   */
+  setInitialPositions(e) {
+    this._initialPositions = e;
+  }
+  /**
    * Save current camera state before entering VR
    */
   _saveCameraState() {
@@ -5076,12 +5081,33 @@ class Cn {
   }
   /**
    * Restore camera state after exiting VR
+   * First tries to restore pre-VR state, falls back to initial positions if available
    */
   _restoreCameraState() {
-    if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position)
-      return;
     const e = this._preVRCameraState.controls;
-    this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed, e.update();
+    if (!e) {
+      console.warn("VRManager: No controls reference for camera restoration");
+      return;
+    }
+    if (this._preVRCameraState.target && this._preVRCameraState.position)
+      console.log("VRManager: Restoring pre-VR camera state"), this.camera.position.copy(this._preVRCameraState.position), this.camera.zoom = this._preVRCameraState.zoom || 1, this.camera.updateProjectionMatrix(), e.target.copy(this._preVRCameraState.target), e.minDistance = this._preVRCameraState.minDistance, e.maxDistance = this._preVRCameraState.maxDistance, e.enableDamping = this._preVRCameraState.enableDamping, e.dampingFactor = this._preVRCameraState.dampingFactor, e.enableZoom = this._preVRCameraState.enableZoom, e.enablePan = this._preVRCameraState.enablePan, e.enableRotate = this._preVRCameraState.enableRotate, e.autoRotate = this._preVRCameraState.autoRotate, e.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed;
+    else if (this._initialPositions && this._initialPositions.desktop) {
+      console.log("VRManager: Falling back to initial desktop positions");
+      const t = this._initialPositions.desktop;
+      t.camera && this.camera.position.set(
+        t.camera.x,
+        t.camera.y,
+        t.camera.z
+      ), t.target && e.target.set(
+        t.target.x,
+        t.target.y,
+        t.target.z
+      );
+    } else
+      console.warn("VRManager: No pre-VR state or initial positions available for restoration");
+    e.update(), requestAnimationFrame(() => {
+      e.update();
+    });
   }
   getVRStatus() {
     const e = this.vrCore.getVRStatus(), t = this.vrAudio ? this.vrAudio.getAudioStatus() : { enabled: !1 }, i = this.vrLocomotion.getMovementState(), s = this.vrLocomotion.getComfortSettings();
@@ -5364,7 +5390,7 @@ class In extends yt {
   initVR() {
     this.dolly = new u.Group(), this.dolly.add(this.cameraManager.camera), this.sceneManager.scene.add(this.dolly);
     const e = this.config.audioPath || "./sound/", t = this.config.enableVRAudio === !0;
-    this.vrManager = new Cn(this.renderer, this.cameraManager.camera, this.sceneManager.scene, e, t, this.container), this.vrManager.setControls(this.cameraManager.controls), this.vrManager.onModeToggle = () => {
+    this.vrManager = new Cn(this.renderer, this.cameraManager.camera, this.sceneManager.scene, e, t, this.container), this.vrManager.setControls(this.cameraManager.controls), this.config.initialPositions && this.vrManager.setInitialPositions(this.config.initialPositions), this.vrManager.onModeToggle = () => {
       this.emit("vr-mode-toggle");
     }, this.vrManager.onMovementStart = () => {
       this.emit("vr-movement-start");
@@ -5379,11 +5405,7 @@ class In extends yt {
       }
       this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("vr-session-start");
     }, this.vrManager.onSessionEnd = () => {
-      if (this.cameraManager.controls && (this.cameraManager.controls.enabled = !0, this.cameraManager.controls.update()), this.dolly.position.set(0, 0, 0), this.dolly.rotation.set(0, 0, 0), this.loadedModels.length > 0) {
-        const i = this.loadedModels[this.loadedModels.length - 1];
-        i.options && i.options.initialPositions && i.options.initialPositions.desktop && this.applyDesktopPositions(i.options.initialPositions.desktop);
-      }
-      this.emit("vr-session-end");
+      this.cameraManager.controls && (this.cameraManager.controls.enabled = !0), this.dolly.position.set(0, 0, 0), this.dolly.rotation.set(0, 0, 0), this.emit("vr-session-end");
     };
   }
   setupEventListeners() {
@@ -8152,7 +8174,18 @@ class Dn extends yt {
   }
   createLoadingIndicator() {
     const e = document.createElement("div");
-    e.className = "loading-indicator below-loading", e.textContent = "Loading...", e.style.display = "none", this.container.appendChild(e), this.ui.loading = e;
+    e.className = "loading-indicator below-loading", e.style.display = "none", e.innerHTML = `
+      <div class="loading-spinner">
+        <div class="spinner-circle">
+          <div class="spinner-path"></div>
+        </div>
+        <div class="spinner-percentage">0%</div>
+      </div>
+      <div class="loading-content">
+        <div class="loading-model-name">Loading Model</div>
+        <div class="loading-status">Initializing...</div>
+      </div>
+    `, this.container.appendChild(e), this.ui.loading = e;
   }
   createStatusIndicator() {
     const e = document.createElement("div");
@@ -8201,7 +8234,7 @@ class Dn extends yt {
       console.error("Model not found:", e);
       return;
     }
-    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading(`Loading ${t.name || e}...`), document.title = `BelowJS – ${t.name || e}`;
+    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), document.title = `BelowJS – ${t.name || e}`;
     try {
       this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), this.belowViewer.vrManager && (this.belowViewer.vrManager.stopMovement(), this.belowViewer.vrManager.resetTeleportState()), await new Promise((s) => setTimeout(s, 50));
       const i = await this.belowViewer.loadModel(t.url, {
@@ -8218,33 +8251,38 @@ class Dn extends yt {
   applyInitialPositions(e, t) {
     const i = e.initialPositions;
     if (!i) return;
-    const s = this.belowViewer.isVRPresenting();
-    if (s && i.vr) {
-      const o = this.belowViewer.getCamera().parent;
-      o && (o.position.set(
+    const s = this.belowViewer.getVRManager();
+    s && s.setInitialPositions(i);
+    const o = this.belowViewer.isVRPresenting();
+    if (o && i.vr) {
+      const n = this.belowViewer.getCamera().parent;
+      n && (n.position.set(
         i.vr.dolly.x,
         i.vr.dolly.y,
         i.vr.dolly.z
-      ), o.rotation.set(
+      ), n.rotation.set(
         i.vr.rotation.x,
         i.vr.rotation.y,
         i.vr.rotation.z
       ));
-    } else if (!s && i.desktop) {
-      const o = this.belowViewer.getCamera(), n = this.belowViewer.cameraManager.controls;
-      o && n && (o.position.set(
+    } else if (!o && i.desktop) {
+      const n = this.belowViewer.getCamera(), r = this.belowViewer.cameraManager.controls;
+      n && r && (n.position.set(
         i.desktop.camera.x,
         i.desktop.camera.y,
         i.desktop.camera.z
-      ), n.target.set(
+      ), r.target.set(
         i.desktop.target.x,
         i.desktop.target.y,
         i.desktop.target.z
-      ), n.update());
+      ), r.update());
     }
   }
-  showLoading(e = "Loading...") {
-    this.ui.loading && (this.ui.loading.textContent = e, this.ui.loading.style.display = "block");
+  showLoading(e = "Loading...", t = null) {
+    if (this.ui.loading) {
+      const i = this.ui.loading.querySelector(".loading-status"), s = this.ui.loading.querySelector(".loading-model-name"), o = this.ui.loading.querySelector(".spinner-percentage");
+      i && (i.textContent = e), s && t && (s.textContent = t), o && (o.textContent = "0%"), this.ui.loading.style.display = "flex";
+    }
   }
   hideLoading() {
     this.ui.loading && (this.ui.loading.style.display = "none");
@@ -8254,8 +8292,15 @@ class Dn extends yt {
   }
   updateLoadingProgress({ progress: e }) {
     if (e.lengthComputable && this.currentModelKey) {
-      const t = this.config.models[this.currentModelKey], i = Math.round(e.loaded / e.total * 100);
-      this.showLoading(`Loading ${t?.name || "model"}: ${i}%`);
+      this.config.models[this.currentModelKey];
+      const t = Math.round(e.loaded / e.total * 100);
+      if (this.ui.loading) {
+        const i = this.ui.loading.querySelector(".spinner-percentage"), s = this.ui.loading.querySelector(".loading-status"), o = this.ui.loading.querySelector(".spinner-path");
+        if (i && (i.textContent = `${t}%`), s && (s.textContent = "Loading model"), o) {
+          const n = 2 * Math.PI * 20, r = n - t / 100 * n;
+          o.style.strokeDashoffset = r;
+        }
+      }
     }
   }
   onModelLoaded({ model: e }) {

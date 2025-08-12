@@ -245,6 +245,11 @@ export class BelowViewer extends EventSystem {
 
     this.vrManager.setControls(this.cameraManager.controls);
     
+    // Pass initial positions to VRManager for proper restoration
+    if (this.config.initialPositions) {
+      this.vrManager.setInitialPositions(this.config.initialPositions);
+    }
+    
     this.vrManager.onModeToggle = () => {
       this.emit('vr-mode-toggle');
     };
@@ -278,21 +283,14 @@ export class BelowViewer extends EventSystem {
     };
     
     this.vrManager.onSessionEnd = () => {
-
+      // VR session cleanup - VRManager handles camera restoration
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = true;
-        this.cameraManager.controls.update();
       }
       
+      // Reset VR dolly to origin
       this.dolly.position.set(0, 0, 0);
       this.dolly.rotation.set(0, 0, 0);
-      
-      if (this.loadedModels.length > 0) {
-        const currentModel = this.loadedModels[this.loadedModels.length - 1];
-        if (currentModel.options && currentModel.options.initialPositions && currentModel.options.initialPositions.desktop) {
-          this.applyDesktopPositions(currentModel.options.initialPositions.desktop);
-        }
-      }
       
       this.emit('vr-session-end');
     };

@@ -840,8 +840,22 @@ export class ModelViewer extends EventSystem {
   createLoadingIndicator() {
     const loading = document.createElement('div');
     loading.className = 'loading-indicator below-loading';
-    loading.textContent = 'Loading...';
     loading.style.display = 'none';
+    
+    // Create the inner structure
+    loading.innerHTML = `
+      <div class="loading-spinner">
+        <div class="spinner-circle">
+          <div class="spinner-path"></div>
+        </div>
+        <div class="spinner-percentage">0%</div>
+      </div>
+      <div class="loading-content">
+        <div class="loading-model-name">Loading Model</div>
+        <div class="loading-status">Initializing...</div>
+      </div>
+    `;
+    
     this.container.appendChild(loading);
     this.ui.loading = loading;
   }
@@ -926,7 +940,7 @@ export class ModelViewer extends EventSystem {
       this.ui.dropdown.value = modelKey;
     }
 
-    this.showLoading(`Loading ${modelConfig.name || modelKey}...`);
+    this.showLoading('Preparing to load...', modelConfig.name || modelKey);
 
     document.title = `BelowJS – ${modelConfig.name || modelKey}`;
     try {
@@ -988,6 +1002,12 @@ export class ModelViewer extends EventSystem {
     const positions = modelConfig.initialPositions;
     if (!positions) return;
 
+    // Update VRManager with latest initial positions for proper restoration
+    const vrManager = this.belowViewer.getVRManager();
+    if (vrManager) {
+      vrManager.setInitialPositions(positions);
+    }
+
     const isVRMode = this.belowViewer.isVRPresenting();
 
     if (isVRMode && positions.vr) {
@@ -1025,10 +1045,23 @@ export class ModelViewer extends EventSystem {
     }
   }
   
-  showLoading(message = 'Loading...') {
+  showLoading(message = 'Loading...', modelName = null) {
     if (this.ui.loading) {
-      this.ui.loading.textContent = message;
-      this.ui.loading.style.display = 'block';
+      const statusElement = this.ui.loading.querySelector('.loading-status');
+      const modelNameElement = this.ui.loading.querySelector('.loading-model-name');
+      const percentageElement = this.ui.loading.querySelector('.spinner-percentage');
+      
+      if (statusElement) {
+        statusElement.textContent = message;
+      }
+      if (modelNameElement && modelName) {
+        modelNameElement.textContent = modelName;
+      }
+      if (percentageElement) {
+        percentageElement.textContent = '0%';
+      }
+      
+      this.ui.loading.style.display = 'flex';
     }
   }
   
@@ -1049,7 +1082,25 @@ export class ModelViewer extends EventSystem {
     if (progress.lengthComputable && this.currentModelKey) {
       const modelConfig = this.config.models[this.currentModelKey];
       const percent = Math.round((progress.loaded / progress.total) * 100);
-      this.showLoading(`Loading ${modelConfig?.name || 'model'}: ${percent}%`);
+      
+      if (this.ui.loading) {
+        const percentageElement = this.ui.loading.querySelector('.spinner-percentage');
+        const statusElement = this.ui.loading.querySelector('.loading-status');
+        const spinnerPath = this.ui.loading.querySelector('.spinner-path');
+        
+        if (percentageElement) {
+          percentageElement.textContent = `${percent}%`;
+        }
+        if (statusElement) {
+          statusElement.textContent = `Loading model`;
+        }
+        if (spinnerPath) {
+          // Update the circular progress
+          const circumference = 2 * Math.PI * 20; // radius is 20
+          const offset = circumference - (percent / 100) * circumference;
+          spinnerPath.style.strokeDashoffset = offset;
+        }
+      }
     }
   }
   

@@ -82,6 +82,9 @@ export class VRManager {
       controls: null // Reference to controls object
     };
     
+    // Store initial positions as fallback
+    this._initialPositions = null;
+    
 
     this.lastComfortLog = 0;
     
@@ -123,9 +126,8 @@ export class VRManager {
         this.vrAudio.stopMovementSound();
         this.vrAudio.stopAmbientSound();
       }
-      setTimeout(() => {
-        this._restoreCameraState();
-      }, 100);
+      // Remove timeout - restore immediately
+      this._restoreCameraState();
     };
 
     this.vrControllers.onModeToggle = () => {
@@ -322,6 +324,14 @@ export class VRManager {
   }
 
   /**
+   * Set initial positions for fallback when no pre-VR state exists
+   * @param {Object} initialPositions - Initial desktop positions
+   */
+  setInitialPositions(initialPositions) {
+    this._initialPositions = initialPositions;
+  }
+
+  /**
    * Save current camera state before entering VR
    */
   _saveCameraState() {
@@ -347,32 +357,66 @@ export class VRManager {
 
   /**
    * Restore camera state after exiting VR
+   * First tries to restore pre-VR state, falls back to initial positions if available
    */
   _restoreCameraState() {
-    if (!this._preVRCameraState.controls || !this._preVRCameraState.target || !this._preVRCameraState.position) {
+    const controls = this._preVRCameraState.controls;
+    if (!controls) {
+      console.warn('VRManager: No controls reference for camera restoration');
       return;
     }
+
+    // Try to restore pre-VR state first
+    if (this._preVRCameraState.target && this._preVRCameraState.position) {
+      console.log('VRManager: Restoring pre-VR camera state');
+      
+      this.camera.position.copy(this._preVRCameraState.position);
+      this.camera.zoom = this._preVRCameraState.zoom || 1;
+      this.camera.updateProjectionMatrix();
+      
+      controls.target.copy(this._preVRCameraState.target);
+      controls.minDistance = this._preVRCameraState.minDistance;
+      controls.maxDistance = this._preVRCameraState.maxDistance;
+      controls.enableDamping = this._preVRCameraState.enableDamping;
+      controls.dampingFactor = this._preVRCameraState.dampingFactor;
+      controls.enableZoom = this._preVRCameraState.enableZoom;
+      controls.enablePan = this._preVRCameraState.enablePan;
+      controls.enableRotate = this._preVRCameraState.enableRotate;
+      controls.autoRotate = this._preVRCameraState.autoRotate;
+      controls.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed;
+      
+    } else if (this._initialPositions && this._initialPositions.desktop) {
+      // Fallback to initial desktop positions
+      console.log('VRManager: Falling back to initial desktop positions');
+      const desktop = this._initialPositions.desktop;
+      
+      if (desktop.camera) {
+        this.camera.position.set(
+          desktop.camera.x,
+          desktop.camera.y,
+          desktop.camera.z
+        );
+      }
+      
+      if (desktop.target) {
+        controls.target.set(
+          desktop.target.x,
+          desktop.target.y,
+          desktop.target.z
+        );
+      }
+      
+    } else {
+      console.warn('VRManager: No pre-VR state or initial positions available for restoration');
+    }
     
-    const controls = this._preVRCameraState.controls;
-    
-    
-    this.camera.position.copy(this._preVRCameraState.position);
-    this.camera.zoom = this._preVRCameraState.zoom || 1;
-    this.camera.updateProjectionMatrix();
-    
-    controls.target.copy(this._preVRCameraState.target);
-    controls.minDistance = this._preVRCameraState.minDistance;
-    controls.maxDistance = this._preVRCameraState.maxDistance;
-    controls.enableDamping = this._preVRCameraState.enableDamping;
-    controls.dampingFactor = this._preVRCameraState.dampingFactor;
-    controls.enableZoom = this._preVRCameraState.enableZoom;
-    controls.enablePan = this._preVRCameraState.enablePan;
-    controls.enableRotate = this._preVRCameraState.enableRotate;
-    controls.autoRotate = this._preVRCameraState.autoRotate;
-    controls.autoRotateSpeed = this._preVRCameraState.autoRotateSpeed;
-    
+    // Always update controls after restoration
     controls.update();
     
+    // Ensure controls are properly updated with a second frame
+    requestAnimationFrame(() => {
+      controls.update();
+    });
   }
   
 
