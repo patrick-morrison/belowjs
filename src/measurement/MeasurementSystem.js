@@ -515,7 +515,7 @@ export class MeasurementSystem {
   }
 
   createMeasurementDisplay(distance) {
-    const DPR = (window.devicePixelRatio || 1);
+    const DPR = (window.devicePixelRatio || 1) * 4;
     const logicalWidth = 256;
     const logicalHeight = 64;
     const canvasWidth = logicalWidth * DPR;

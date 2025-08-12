@@ -6736,7 +6736,7 @@ class yn {
     }
   }
   createMeasurementDisplay(e) {
-    const t = window.devicePixelRatio || 1, i = 256, s = 64, o = i * t, n = s * t;
+    const t = (window.devicePixelRatio || 1) * 4, i = 256, s = 64, o = i * t, n = s * t;
     this.measurementCanvas || (this.measurementCanvas = document.createElement("canvas")), (this.measurementCanvas.width !== o || this.measurementCanvas.height !== n) && (this.measurementCanvas.width = o, this.measurementCanvas.height = n);
     const r = this.measurementCanvas.getContext("2d");
     r.setTransform(1, 0, 0, 1, 0, 0), r.clearRect(0, 0, o, n), r.save(), r.scale(t, t);
