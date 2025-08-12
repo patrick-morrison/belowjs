@@ -14,7 +14,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "docs:dev": "vitepress dev site",
-    "docs:build": "npm run docs:api && npm run docs:api:frontmatter && npx vitepress build site --outDir=docs && node scripts/copy-examples-for-docs.js",
+    "docs:build": "npm run docs:api && npm run docs:api:frontmatter && npx vitepress build site --base /belowjs/ --outDir=docs && node scripts/copy-examples-for-docs.js",
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc",
     "docs:api:frontmatter": "node site/add-api-frontmatter.js",

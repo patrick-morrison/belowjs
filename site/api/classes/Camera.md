@@ -11,7 +11,7 @@ sidebar: true
 
 # Class: Camera
 
-Defined in: [core/Camera.js:38](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L38)
+Defined in: [core/Camera.js:38](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L38)
 
 Camera - 3D camera management with controls and animation
 
@@ -84,7 +84,7 @@ const camera = new Camera({
 
 > **new Camera**(`config?`): `Camera`
 
-Defined in: [core/Camera.js:44](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L44)
+Defined in: [core/Camera.js:44](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L44)
 
 Creates a new Camera instance
 
@@ -110,7 +110,7 @@ Camera configuration
 
 > **camera**: `any`
 
-Defined in: [core/Camera.js:47](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L47)
+Defined in: [core/Camera.js:47](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L47)
 
 ***
 
@@ -118,7 +118,7 @@ Defined in: [core/Camera.js:47](https://github.com/patrick-morrison/belowjs/blob
 
 > **config**: `any`
 
-Defined in: [core/Camera.js:46](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L46)
+Defined in: [core/Camera.js:46](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L46)
 
 ***
 
@@ -126,7 +126,7 @@ Defined in: [core/Camera.js:46](https://github.com/patrick-morrison/belowjs/blob
 
 > **controls**: `any`
 
-Defined in: [core/Camera.js:48](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L48)
+Defined in: [core/Camera.js:48](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L48)
 
 ***
 
@@ -134,7 +134,7 @@ Defined in: [core/Camera.js:48](https://github.com/patrick-morrison/belowjs/blob
 
 > **events**: `object`
 
-Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L41)
+Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L41)
 
 #### Inherited from
 
@@ -146,7 +146,7 @@ Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowj
 
 > **focusAnimation**: `number`
 
-Defined in: [core/Camera.js:49](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L49)
+Defined in: [core/Camera.js:49](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L49)
 
 ## Methods
 
@@ -154,7 +154,7 @@ Defined in: [core/Camera.js:49](https://github.com/patrick-morrison/belowjs/blob
 
 > **dispose**(): `void`
 
-Defined in: [core/Camera.js:219](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L219)
+Defined in: [core/Camera.js:219](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L219)
 
 Clean up and dispose of camera resources
 
@@ -186,7 +186,7 @@ camera.dispose();
 
 > **emit**(`event`, `data?`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L121)
+Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L121)
 
 Emit an event to all listeners
 
@@ -241,7 +241,7 @@ this.emit('rendering-complete');
 
 > **focusOn**(`target`, `_distance`): `void`
 
-Defined in: [core/Camera.js:155](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L155)
+Defined in: [core/Camera.js:155](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L155)
 
 Smoothly focus the camera on a target point
 
@@ -293,7 +293,7 @@ camera.focusOn(targetPoint, 15);
 
 > **frameObject**(`center`, `size`): `void`
 
-Defined in: [core/Camera.js:117](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L117)
+Defined in: [core/Camera.js:117](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L117)
 
 Frame an object by positioning the camera to view it optimally
 
@@ -339,7 +339,7 @@ camera.frameObject(center, size);
 
 > **getCamera**(): `any`
 
-Defined in: [core/Camera.js:92](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L92)
+Defined in: [core/Camera.js:92](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L92)
 
 #### Returns
 
@@ -351,7 +351,7 @@ Defined in: [core/Camera.js:92](https://github.com/patrick-morrison/belowjs/blob
 
 > **getControls**(): `any`
 
-Defined in: [core/Camera.js:96](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L96)
+Defined in: [core/Camera.js:96](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L96)
 
 #### Returns
 
@@ -363,7 +363,7 @@ Defined in: [core/Camera.js:96](https://github.com/patrick-morrison/belowjs/blob
 
 > **init**(): `void`
 
-Defined in: [core/Camera.js:53](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L53)
+Defined in: [core/Camera.js:53](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L53)
 
 #### Returns
 
@@ -375,7 +375,7 @@ Defined in: [core/Camera.js:53](https://github.com/patrick-morrison/belowjs/blob
 
 > **initControls**(`domElement`): `void`
 
-Defined in: [core/Camera.js:65](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L65)
+Defined in: [core/Camera.js:65](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L65)
 
 #### Parameters
 
@@ -393,7 +393,7 @@ Defined in: [core/Camera.js:65](https://github.com/patrick-morrison/belowjs/blob
 
 > **off**(`event`, `callback?`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L90)
+Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L90)
 
 Remove an event listener
 
@@ -445,7 +445,7 @@ viewer.off('model-loaded');
 
 > **on**(`event`, `callback`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L65)
+Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L65)
 
 Add an event listener
 
@@ -501,7 +501,7 @@ viewer
 
 > **removeAllListeners**(): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L146)
+Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L146)
 
 Remove all event listeners
 
@@ -536,7 +536,7 @@ viewer.removeAllListeners();
 
 > **setSize**(`width`, `height`): `void`
 
-Defined in: [core/Camera.js:87](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L87)
+Defined in: [core/Camera.js:87](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L87)
 
 #### Parameters
 
@@ -558,7 +558,7 @@ Defined in: [core/Camera.js:87](https://github.com/patrick-morrison/belowjs/blob
 
 > **update**(): `void`
 
-Defined in: [core/Camera.js:81](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/core/Camera.js#L81)
+Defined in: [core/Camera.js:81](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/core/Camera.js#L81)
 
 #### Returns
 

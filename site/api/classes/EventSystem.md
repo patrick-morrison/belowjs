@@ -11,7 +11,7 @@ sidebar: true
 
 # Class: EventSystem
 
-Defined in: [utils/EventSystem.js:36](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L36)
+Defined in: [utils/EventSystem.js:36](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L36)
 
 EventSystem - Simple event emitter for BelowJS components
 
@@ -65,7 +65,7 @@ viewer.off('model-loaded');
 
 > **new EventSystem**(): `EventSystem`
 
-Defined in: [utils/EventSystem.js:40](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L40)
+Defined in: [utils/EventSystem.js:40](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L40)
 
 Creates a new EventSystem instance
 
@@ -79,7 +79,7 @@ Creates a new EventSystem instance
 
 > **events**: `object`
 
-Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L41)
+Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L41)
 
 ## Methods
 
@@ -87,7 +87,7 @@ Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowj
 
 > **emit**(`event`, `data?`): `EventSystem`
 
-Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L121)
+Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L121)
 
 Emit an event to all listeners
 
@@ -138,7 +138,7 @@ this.emit('rendering-complete');
 
 > **off**(`event`, `callback?`): `EventSystem`
 
-Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L90)
+Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L90)
 
 Remove an event listener
 
@@ -186,7 +186,7 @@ viewer.off('model-loaded');
 
 > **on**(`event`, `callback`): `EventSystem`
 
-Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L65)
+Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L65)
 
 Add an event listener
 
@@ -238,7 +238,7 @@ viewer
 
 > **removeAllListeners**(): `EventSystem`
 
-Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L146)
+Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L146)
 
 Remove all event listeners
 

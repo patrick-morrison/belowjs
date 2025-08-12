@@ -11,7 +11,7 @@ sidebar: true
 
 # Class: ModelViewer
 
-Defined in: [viewers/ModelViewer.js:150](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L150)
+Defined in: [viewers/ModelViewer.js:150](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L150)
 
 ModelViewer - High-level 3D model viewer with automatic UI management
 
@@ -114,7 +114,7 @@ const viewer = new ModelViewer(document.getElementById('viewer'), {
 
 > **new ModelViewer**(`container`, `options?`): `ModelViewer`
 
-Defined in: [viewers/ModelViewer.js:157](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L157)
+Defined in: [viewers/ModelViewer.js:157](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L157)
 
 Creates a new ModelViewer instance
 
@@ -146,7 +146,7 @@ Configuration options
 
 > **\_onFullscreenChange**: () => `void`
 
-Defined in: [viewers/ModelViewer.js:412](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L412)
+Defined in: [viewers/ModelViewer.js:412](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L412)
 
 #### Returns
 
@@ -158,7 +158,7 @@ Defined in: [viewers/ModelViewer.js:412](https://github.com/patrick-morrison/bel
 
 > **belowViewer**: [`BelowViewer`](BelowViewer.md)
 
-Defined in: [viewers/ModelViewer.js:199](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L199)
+Defined in: [viewers/ModelViewer.js:199](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L199)
 
 ***
 
@@ -166,7 +166,7 @@ Defined in: [viewers/ModelViewer.js:199](https://github.com/patrick-morrison/bel
 
 > **comfortGlyph**: `VRComfortGlyph`
 
-Defined in: [viewers/ModelViewer.js:202](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L202)
+Defined in: [viewers/ModelViewer.js:202](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L202)
 
 ***
 
@@ -174,7 +174,7 @@ Defined in: [viewers/ModelViewer.js:202](https://github.com/patrick-morrison/bel
 
 > **config**: `any`
 
-Defined in: [viewers/ModelViewer.js:195](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L195)
+Defined in: [viewers/ModelViewer.js:195](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L195)
 
 ***
 
@@ -182,7 +182,7 @@ Defined in: [viewers/ModelViewer.js:195](https://github.com/patrick-morrison/bel
 
 > **container**: `string` \| `HTMLElement`
 
-Defined in: [viewers/ModelViewer.js:162](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L162)
+Defined in: [viewers/ModelViewer.js:162](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L162)
 
 ***
 
@@ -190,7 +190,7 @@ Defined in: [viewers/ModelViewer.js:162](https://github.com/patrick-morrison/bel
 
 > **currentModelKey**: `string`
 
-Defined in: [viewers/ModelViewer.js:198](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L198)
+Defined in: [viewers/ModelViewer.js:198](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L198)
 
 ***
 
@@ -198,7 +198,7 @@ Defined in: [viewers/ModelViewer.js:198](https://github.com/patrick-morrison/bel
 
 > **diveSystem**: `DiveSystem`
 
-Defined in: [viewers/ModelViewer.js:203](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L203)
+Defined in: [viewers/ModelViewer.js:203](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L203)
 
 ***
 
@@ -206,7 +206,7 @@ Defined in: [viewers/ModelViewer.js:203](https://github.com/patrick-morrison/bel
 
 > **events**: `object`
 
-Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L41)
+Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L41)
 
 #### Inherited from
 
@@ -218,7 +218,7 @@ Defined in: [utils/EventSystem.js:41](https://github.com/patrick-morrison/belowj
 
 > **focusEventHandlers**: `object`
 
-Defined in: [viewers/ModelViewer.js:599](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L599)
+Defined in: [viewers/ModelViewer.js:599](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L599)
 
 #### onMouseClick()
 
@@ -276,7 +276,7 @@ Defined in: [viewers/ModelViewer.js:599](https://github.com/patrick-morrison/bel
 
 > **fullscreenButton**: `HTMLDivElement`
 
-Defined in: [viewers/ModelViewer.js:204](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L204)
+Defined in: [viewers/ModelViewer.js:204](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L204)
 
 ***
 
@@ -284,7 +284,7 @@ Defined in: [viewers/ModelViewer.js:204](https://github.com/patrick-morrison/bel
 
 > **lastComfortMode**: `any`
 
-Defined in: [viewers/ModelViewer.js:205](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L205)
+Defined in: [viewers/ModelViewer.js:205](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L205)
 
 ***
 
@@ -292,7 +292,7 @@ Defined in: [viewers/ModelViewer.js:205](https://github.com/patrick-morrison/bel
 
 > **measurementSystem**: `MeasurementSystem`
 
-Defined in: [viewers/ModelViewer.js:201](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L201)
+Defined in: [viewers/ModelViewer.js:201](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L201)
 
 ***
 
@@ -300,7 +300,7 @@ Defined in: [viewers/ModelViewer.js:201](https://github.com/patrick-morrison/bel
 
 > **modelReady**: `boolean`
 
-Defined in: [viewers/ModelViewer.js:969](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L969)
+Defined in: [viewers/ModelViewer.js:969](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L969)
 
 ***
 
@@ -308,7 +308,7 @@ Defined in: [viewers/ModelViewer.js:969](https://github.com/patrick-morrison/bel
 
 > **options**: `any`
 
-Defined in: [viewers/ModelViewer.js:196](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L196)
+Defined in: [viewers/ModelViewer.js:196](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L196)
 
 ***
 
@@ -316,7 +316,7 @@ Defined in: [viewers/ModelViewer.js:196](https://github.com/patrick-morrison/bel
 
 > **ui**: `object`
 
-Defined in: [viewers/ModelViewer.js:200](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L200)
+Defined in: [viewers/ModelViewer.js:200](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L200)
 
 ## Methods
 
@@ -324,7 +324,7 @@ Defined in: [viewers/ModelViewer.js:200](https://github.com/patrick-morrison/bel
 
 > **\_maybeAttachDiveSystem**(): `void`
 
-Defined in: [viewers/ModelViewer.js:333](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L333)
+Defined in: [viewers/ModelViewer.js:333](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L333)
 
 #### Returns
 
@@ -336,7 +336,7 @@ Defined in: [viewers/ModelViewer.js:333](https://github.com/patrick-morrison/bel
 
 > **\_maybeAttachFullscreenButton**(): `void`
 
-Defined in: [viewers/ModelViewer.js:383](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L383)
+Defined in: [viewers/ModelViewer.js:383](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L383)
 
 #### Returns
 
@@ -348,7 +348,7 @@ Defined in: [viewers/ModelViewer.js:383](https://github.com/patrick-morrison/bel
 
 > **\_maybeAttachMeasurementSystem**(): `void`
 
-Defined in: [viewers/ModelViewer.js:256](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L256)
+Defined in: [viewers/ModelViewer.js:256](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L256)
 
 #### Returns
 
@@ -360,7 +360,7 @@ Defined in: [viewers/ModelViewer.js:256](https://github.com/patrick-morrison/bel
 
 > **\_maybeAttachVRComfortGlyph**(): `Promise`\<`void`\>
 
-Defined in: [viewers/ModelViewer.js:281](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L281)
+Defined in: [viewers/ModelViewer.js:281](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L281)
 
 #### Returns
 
@@ -372,7 +372,7 @@ Defined in: [viewers/ModelViewer.js:281](https://github.com/patrick-morrison/bel
 
 > **applyInitialPositions**(`modelConfig`, `_model`): `void`
 
-Defined in: [viewers/ModelViewer.js:987](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L987)
+Defined in: [viewers/ModelViewer.js:987](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L987)
 
 #### Parameters
 
@@ -394,7 +394,7 @@ Defined in: [viewers/ModelViewer.js:987](https://github.com/patrick-morrison/bel
 
 > **createDiveModeToggle**(): `void`
 
-Defined in: [viewers/ModelViewer.js:789](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L789)
+Defined in: [viewers/ModelViewer.js:789](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L789)
 
 #### Returns
 
@@ -406,7 +406,7 @@ Defined in: [viewers/ModelViewer.js:789](https://github.com/patrick-morrison/bel
 
 > **createInfoPanel**(): `void`
 
-Defined in: [viewers/ModelViewer.js:858](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L858)
+Defined in: [viewers/ModelViewer.js:858](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L858)
 
 #### Returns
 
@@ -418,7 +418,7 @@ Defined in: [viewers/ModelViewer.js:858](https://github.com/patrick-morrison/bel
 
 > **createLoadingIndicator**(): `void`
 
-Defined in: [viewers/ModelViewer.js:840](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L840)
+Defined in: [viewers/ModelViewer.js:840](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L840)
 
 #### Returns
 
@@ -430,7 +430,7 @@ Defined in: [viewers/ModelViewer.js:840](https://github.com/patrick-morrison/bel
 
 > **createModelSelector**(): `void`
 
-Defined in: [viewers/ModelViewer.js:723](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L723)
+Defined in: [viewers/ModelViewer.js:723](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L723)
 
 #### Returns
 
@@ -442,7 +442,7 @@ Defined in: [viewers/ModelViewer.js:723](https://github.com/patrick-morrison/bel
 
 > **createStatusIndicator**(): `void`
 
-Defined in: [viewers/ModelViewer.js:849](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L849)
+Defined in: [viewers/ModelViewer.js:849](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L849)
 
 #### Returns
 
@@ -454,7 +454,7 @@ Defined in: [viewers/ModelViewer.js:849](https://github.com/patrick-morrison/bel
 
 > **createUI**(): `void`
 
-Defined in: [viewers/ModelViewer.js:680](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L680)
+Defined in: [viewers/ModelViewer.js:680](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L680)
 
 #### Returns
 
@@ -466,7 +466,7 @@ Defined in: [viewers/ModelViewer.js:680](https://github.com/patrick-morrison/bel
 
 > **dispose**(): `void`
 
-Defined in: [viewers/ModelViewer.js:1250](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1250)
+Defined in: [viewers/ModelViewer.js:1250](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1250)
 
 Clean up and dispose of all resources
 
@@ -498,7 +498,7 @@ viewer.dispose();
 
 > **emit**(`event`, `data?`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L121)
+Defined in: [utils/EventSystem.js:121](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L121)
 
 Emit an event to all listeners
 
@@ -553,7 +553,7 @@ this.emit('rendering-complete');
 
 > **focusOn**(`point`, `distance?`): `void`
 
-Defined in: [viewers/ModelViewer.js:1140](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1140)
+Defined in: [viewers/ModelViewer.js:1140](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1140)
 
 Focus the camera on a specific 3D point
 
@@ -616,7 +616,7 @@ viewer.focusOn({ x: 10, y: 5, z: 0 }, 15);
 
 > **focusOnPoint**(`event`): `void`
 
-Defined in: [viewers/ModelViewer.js:606](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L606)
+Defined in: [viewers/ModelViewer.js:606](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L606)
 
 #### Parameters
 
@@ -634,7 +634,7 @@ Defined in: [viewers/ModelViewer.js:606](https://github.com/patrick-morrison/bel
 
 > **getCamera**(): `any`
 
-Defined in: [viewers/ModelViewer.js:1099](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1099)
+Defined in: [viewers/ModelViewer.js:1099](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1099)
 
 Get the Three.js camera instance
 
@@ -667,7 +667,7 @@ if (camera) {
 
 > **getCurrentModel**(): `any`
 
-Defined in: [viewers/ModelViewer.js:1081](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1081)
+Defined in: [viewers/ModelViewer.js:1081](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1081)
 
 Get the currently loaded model object
 
@@ -700,7 +700,7 @@ if (model) {
 
 > **getScene**(): `any`
 
-Defined in: [viewers/ModelViewer.js:1118](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1118)
+Defined in: [viewers/ModelViewer.js:1118](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1118)
 
 Get the Three.js scene instance
 
@@ -734,7 +734,7 @@ if (scene) {
 
 > **getVRComfortSettings**(): `any`
 
-Defined in: [viewers/ModelViewer.js:1228](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1228)
+Defined in: [viewers/ModelViewer.js:1228](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1228)
 
 Get current VR comfort settings
 
@@ -765,7 +765,7 @@ const settings = viewer.getVRComfortSettings();
 
 > **hideLoading**(): `void`
 
-Defined in: [viewers/ModelViewer.js:1035](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1035)
+Defined in: [viewers/ModelViewer.js:1035](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1035)
 
 #### Returns
 
@@ -777,7 +777,7 @@ Defined in: [viewers/ModelViewer.js:1035](https://github.com/patrick-morrison/be
 
 > **init**(): `void`
 
-Defined in: [viewers/ModelViewer.js:214](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L214)
+Defined in: [viewers/ModelViewer.js:214](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L214)
 
 #### Returns
 
@@ -789,7 +789,7 @@ Defined in: [viewers/ModelViewer.js:214](https://github.com/patrick-morrison/bel
 
 > **isFullscreen**(): `boolean`
 
-Defined in: [viewers/ModelViewer.js:432](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L432)
+Defined in: [viewers/ModelViewer.js:432](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L432)
 
 #### Returns
 
@@ -801,7 +801,7 @@ Defined in: [viewers/ModelViewer.js:432](https://github.com/patrick-morrison/bel
 
 > **isMeasurementHelper**(`obj`): `boolean`
 
-Defined in: [viewers/ModelViewer.js:646](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L646)
+Defined in: [viewers/ModelViewer.js:646](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L646)
 
 #### Parameters
 
@@ -819,7 +819,7 @@ Defined in: [viewers/ModelViewer.js:646](https://github.com/patrick-morrison/bel
 
 > **loadModel**(`modelKey`): `Promise`\<`void`\>
 
-Defined in: [viewers/ModelViewer.js:917](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L917)
+Defined in: [viewers/ModelViewer.js:917](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L917)
 
 Load a model by its key
 
@@ -868,7 +868,7 @@ await viewer.loadModel('shipwreck');
 
 > **off**(`event`, `callback?`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L90)
+Defined in: [utils/EventSystem.js:90](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L90)
 
 Remove an event listener
 
@@ -920,7 +920,7 @@ viewer.off('model-loaded');
 
 > **on**(`event`, `callback`): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L65)
+Defined in: [utils/EventSystem.js:65](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L65)
 
 Add an event listener
 
@@ -976,7 +976,7 @@ viewer
 
 > **onModelLoaded**(`__namedParameters`): `void`
 
-Defined in: [viewers/ModelViewer.js:1056](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1056)
+Defined in: [viewers/ModelViewer.js:1056](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1056)
 
 #### Parameters
 
@@ -996,7 +996,7 @@ Defined in: [viewers/ModelViewer.js:1056](https://github.com/patrick-morrison/be
 
 > **onModelLoadError**(`__namedParameters`): `void`
 
-Defined in: [viewers/ModelViewer.js:1062](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1062)
+Defined in: [viewers/ModelViewer.js:1062](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1062)
 
 #### Parameters
 
@@ -1016,7 +1016,7 @@ Defined in: [viewers/ModelViewer.js:1062](https://github.com/patrick-morrison/be
 
 > **onVRModeToggle**(): `void`
 
-Defined in: [viewers/ModelViewer.js:546](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L546)
+Defined in: [viewers/ModelViewer.js:546](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L546)
 
 #### Returns
 
@@ -1028,7 +1028,7 @@ Defined in: [viewers/ModelViewer.js:546](https://github.com/patrick-morrison/bel
 
 > **onVRSessionEnd**(): `void`
 
-Defined in: [viewers/ModelViewer.js:515](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L515)
+Defined in: [viewers/ModelViewer.js:515](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L515)
 
 #### Returns
 
@@ -1040,7 +1040,7 @@ Defined in: [viewers/ModelViewer.js:515](https://github.com/patrick-morrison/bel
 
 > **onVRSessionStart**(): `void`
 
-Defined in: [viewers/ModelViewer.js:484](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L484)
+Defined in: [viewers/ModelViewer.js:484](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L484)
 
 #### Returns
 
@@ -1052,7 +1052,7 @@ Defined in: [viewers/ModelViewer.js:484](https://github.com/patrick-morrison/bel
 
 > **populateDropdown**(): `void`
 
-Defined in: [viewers/ModelViewer.js:881](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L881)
+Defined in: [viewers/ModelViewer.js:881](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L881)
 
 #### Returns
 
@@ -1064,7 +1064,7 @@ Defined in: [viewers/ModelViewer.js:881](https://github.com/patrick-morrison/bel
 
 > **removeAllListeners**(): [`EventSystem`](EventSystem.md)
 
-Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/EventSystem.js#L146)
+Defined in: [utils/EventSystem.js:146](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/EventSystem.js#L146)
 
 Remove all event listeners
 
@@ -1099,7 +1099,7 @@ viewer.removeAllListeners();
 
 > **resetCamera**(): `void`
 
-Defined in: [viewers/ModelViewer.js:1161](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1161)
+Defined in: [viewers/ModelViewer.js:1161](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1161)
 
 Reset camera to the initial position for the current model
 
@@ -1132,7 +1132,7 @@ viewer.resetCamera();
 
 > **setupEventForwarding**(): `void`
 
-Defined in: [viewers/ModelViewer.js:445](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L445)
+Defined in: [viewers/ModelViewer.js:445](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L445)
 
 #### Returns
 
@@ -1144,7 +1144,7 @@ Defined in: [viewers/ModelViewer.js:445](https://github.com/patrick-morrison/bel
 
 > **setupFocusInteraction**(): `void`
 
-Defined in: [viewers/ModelViewer.js:549](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L549)
+Defined in: [viewers/ModelViewer.js:549](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L549)
 
 #### Returns
 
@@ -1156,7 +1156,7 @@ Defined in: [viewers/ModelViewer.js:549](https://github.com/patrick-morrison/bel
 
 > **setVRComfortPreset**(`preset`): `void`
 
-Defined in: [viewers/ModelViewer.js:1210](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1210)
+Defined in: [viewers/ModelViewer.js:1210](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1210)
 
 #### Parameters
 
@@ -1174,7 +1174,7 @@ Defined in: [viewers/ModelViewer.js:1210](https://github.com/patrick-morrison/be
 
 > **setVRComfortSettings**(`settings`): `void`
 
-Defined in: [viewers/ModelViewer.js:1204](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1204)
+Defined in: [viewers/ModelViewer.js:1204](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1204)
 
 Set VR comfort settings for motion sickness reduction
 
@@ -1231,7 +1231,7 @@ viewer.setVRComfortSettings({
 
 > **showLoading**(`message`): `void`
 
-Defined in: [viewers/ModelViewer.js:1028](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1028)
+Defined in: [viewers/ModelViewer.js:1028](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1028)
 
 #### Parameters
 
@@ -1249,7 +1249,7 @@ Defined in: [viewers/ModelViewer.js:1028](https://github.com/patrick-morrison/be
 
 > **toggleFullscreen**(): `void`
 
-Defined in: [viewers/ModelViewer.js:417](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L417)
+Defined in: [viewers/ModelViewer.js:417](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L417)
 
 #### Returns
 
@@ -1261,7 +1261,7 @@ Defined in: [viewers/ModelViewer.js:417](https://github.com/patrick-morrison/bel
 
 > **updateFullscreenButton**(): `void`
 
-Defined in: [viewers/ModelViewer.js:437](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L437)
+Defined in: [viewers/ModelViewer.js:437](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L437)
 
 #### Returns
 
@@ -1273,7 +1273,7 @@ Defined in: [viewers/ModelViewer.js:437](https://github.com/patrick-morrison/bel
 
 > **updateLoadingProgress**(`__namedParameters`): `void`
 
-Defined in: [viewers/ModelViewer.js:1048](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1048)
+Defined in: [viewers/ModelViewer.js:1048](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1048)
 
 #### Parameters
 
@@ -1293,7 +1293,7 @@ Defined in: [viewers/ModelViewer.js:1048](https://github.com/patrick-morrison/be
 
 > **updateStatus**(`message`): `void`
 
-Defined in: [viewers/ModelViewer.js:1041](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/viewers/ModelViewer.js#L1041)
+Defined in: [viewers/ModelViewer.js:1041](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/viewers/ModelViewer.js#L1041)
 
 #### Parameters
 

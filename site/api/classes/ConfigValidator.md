@@ -11,7 +11,7 @@ sidebar: true
 
 # Class: ConfigValidator
 
-Defined in: [utils/ConfigValidator.js:4](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/ConfigValidator.js#L4)
+Defined in: [utils/ConfigValidator.js:4](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/ConfigValidator.js#L4)
 
 Validates a configuration object against a schema, applying defaults.
 
@@ -21,7 +21,7 @@ Validates a configuration object against a schema, applying defaults.
 
 > **new ConfigValidator**(`schema`): `ConfigValidator`
 
-Defined in: [utils/ConfigValidator.js:8](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/ConfigValidator.js#L8)
+Defined in: [utils/ConfigValidator.js:8](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/ConfigValidator.js#L8)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defines validation rules for each configuration key.
 
 > **schema**: `any`
 
-Defined in: [utils/ConfigValidator.js:12](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/ConfigValidator.js#L12)
+Defined in: [utils/ConfigValidator.js:12](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/ConfigValidator.js#L12)
 
 ## Methods
 
@@ -49,7 +49,7 @@ Defined in: [utils/ConfigValidator.js:12](https://github.com/patrick-morrison/be
 
 > **isTypeValid**(`value`, `type`): `boolean`
 
-Defined in: [utils/ConfigValidator.js:61](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/ConfigValidator.js#L61)
+Defined in: [utils/ConfigValidator.js:61](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/ConfigValidator.js#L61)
 
 Checks if a value conforms to the specified type or types.
 
@@ -77,7 +77,7 @@ The expected type or an array of allowed types.
 
 > **validate**(`options`): `any`
 
-Defined in: [utils/ConfigValidator.js:20](https://github.com/patrick-morrison/belowjs/blob/3dad94c9258636bf7e164e6552e8b1768d6eaa22/src/utils/ConfigValidator.js#L20)
+Defined in: [utils/ConfigValidator.js:20](https://github.com/patrick-morrison/belowjs/blob/3ac9f62272d4d9399615250b738e7ad3182509e8/src/utils/ConfigValidator.js#L20)
 
 Validates an options object against the schema.
 
