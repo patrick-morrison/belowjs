@@ -884,6 +884,9 @@ export class ModelViewer extends EventSystem {
   createLoadingIndicator() {
     const loading = document.createElement('div');
     loading.className = 'loading-indicator below-loading';
+    if (this.config.measurementTheme === 'light') {
+      loading.classList.add('light-theme');
+    }
     loading.style.display = 'none';
     
     // Create the inner structure

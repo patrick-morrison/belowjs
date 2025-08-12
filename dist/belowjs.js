@@ -8181,7 +8181,7 @@ class Dn extends wt {
   }
   createLoadingIndicator() {
     const e = document.createElement("div");
-    e.className = "loading-indicator below-loading", e.style.display = "none", e.innerHTML = `
+    e.className = "loading-indicator below-loading", this.config.measurementTheme === "light" && e.classList.add("light-theme"), e.style.display = "none", e.innerHTML = `
       <div class="loading-spinner">
         <div class="spinner-circle">
           <div class="spinner-path"></div>
