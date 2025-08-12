@@ -1,6 +1,18 @@
 # Examples
 
-Explore live interactive demos to see BelowJS in action, from simple viewers to full-featured VR experiences.
+Explore live interactive demos to see BelowJS in action. Take these open examples and have your own site up and running in minutes.
+
+<div style="margin: 2rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <iframe 
+    src="https://patrick-morrison.github.io/belowjs/examples/embed/viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa" 
+    width="100%" 
+    height="500" 
+    frameborder="0"
+    title="BelowJS Embed Viewer Example"
+    loading="lazy">
+  </iframe>
+</div>
+<p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ This is the embed viewer in action</p>
 
 ## Basic Viewer
 Full-featured multi-model viewer with VR support, measurement tools, and dive mode.
