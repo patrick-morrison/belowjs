@@ -187,6 +187,12 @@
     margin-top: 0.2rem;
 }
 
+.feature-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
 .feature-text strong {
     color: #2c3e50;
     font-weight: 600;
@@ -207,6 +213,10 @@
     padding: 1.5rem;
     border-radius: 12px;
     border: 1px solid #e4e4e7;
+    align-self: center;
+    justify-self: center;
+    max-width: 280px;
+    width: 100%;
 }
 
 .stat-item {
@@ -221,19 +231,20 @@
 }
 
 .stat-number {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
     color: #0d3b66;
     line-height: 1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
 .stat-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #718096;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 500;
+    line-height: 1.3;
 }
 
 /* Responsive - matches VitePress breakpoints */
@@ -260,7 +271,7 @@
 @media (max-width: 960px) {
     .landing-page {
         grid-template-columns: 1fr;
-        gap: 3rem;
+        gap: 1.5rem;
         text-align: center;
         padding: 2rem 1rem;
         min-height: 60vh;
@@ -290,6 +301,7 @@
     
     .tagline {
         text-align: center;
+        margin-bottom: 1rem;
     }
     
     .description {
@@ -311,30 +323,80 @@
     .cta-buttons {
         justify-content: center;
         align-items: center;
+        gap: 12px;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .cta-button {
+        padding: 10px 24px;
+        font-size: 0.95rem;
+        flex: 1;
+        min-width: 140px;
+        max-width: 160px;
+        text-align: center;
     }
     
     .features-section {
         margin-left: 1rem;
         margin-right: 1rem;
-        padding: 3rem 2rem;
+        padding: 2rem 1.5rem;
+        margin-top: 2rem;
     }
     
     .features-split {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
+    
+    .features-main h2 {
+        text-align: center;
+    }
+    
+    .features-stats {
+        max-width: none;
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .feature-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .features-stats {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
     .landing-page {
         padding: 1.5rem 1rem;
-        gap: 2rem;
+        gap: 1.5rem;
         place-items: center;
     }
     
     .hero-content {
         max-width: 100%;
         text-align: center;
+    }
+    
+    .demo-section {
+        padding-left: 0;
+        max-width: 100%;
+        width: 100%;
     }
     
     .hero-content h1 {
@@ -345,12 +407,13 @@
     .tagline {
         font-size: 1.1rem;
         text-align: center;
+        margin-bottom: 1rem;
     }
     
     .description {
         font-size: 0.95rem;
         line-height: 1.4;
-        margin: 0 auto 2rem auto;
+        margin: 0 auto 1.5rem auto;
         text-align: center;
         max-width: 400px;
     }
@@ -361,30 +424,31 @@
     }
     
     .demo-viewer {
-        height: 300px;
+        height: 260px;
         border-radius: 12px;
     }
     
     .cta-buttons {
-        flex-direction: column;
-        gap: 0.75rem;
+        flex-direction: row;
+        gap: 8px;
         align-items: center;
         justify-content: center;
         width: 100%;
     }
     
     .cta-button {
-        padding: 0.75rem 1.5rem;
+        padding: 10px 20px;
         font-size: 0.9rem;
-        width: 100%;
-        max-width: 200px;
+        flex: 1;
+        max-width: 150px;
         text-align: center;
     }
     
     .features-section {
         margin-left: 1rem;
         margin-right: 1rem;
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
+        margin-top: 1.5rem;
     }
 
     .features-main h2 {
@@ -393,15 +457,35 @@
         margin-bottom: 1rem;
     }
 
+    .feature-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
     .feature-text strong {
         font-size: 1rem;
+        line-height: 1.3;
     }
 
     .feature-text span {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .features-stats {
+        padding: 0.75rem;
+        gap: 0.75rem;
+        border-radius: 8px;
     }
 
     .stat-number {
-        font-size: 2rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        line-height: 1.2;
     }
 }
