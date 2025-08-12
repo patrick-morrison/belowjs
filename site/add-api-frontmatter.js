@@ -83,6 +83,15 @@ function main() {
     process.exit(1);
   }
   
+  // Rename README.md to index.md for VitePress compatibility
+  const readmePath = path.join(DOCS_API_DIR, 'README.md');
+  const indexPath = path.join(DOCS_API_DIR, 'index.md');
+  
+  if (fs.existsSync(readmePath)) {
+    fs.renameSync(readmePath, indexPath);
+    console.log('✓ Renamed README.md to index.md for VitePress compatibility\n');
+  }
+  
   const markdownFiles = findMarkdownFiles(DOCS_API_DIR);
   
   if (markdownFiles.length === 0) {
