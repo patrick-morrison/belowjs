@@ -77,8 +77,8 @@
                 Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams can dive together.
             </div>
             <div class="cta-buttons">
-                <a href="examples.html" class="cta-button cta-primary">View Examples</a>
-                <a href="installation.html" class="cta-button cta-secondary">Get Started</a>
+                <a href="examples/basic/index.html" class="cta-button cta-primary">Try Demo</a>
+                <a href="examples.html" class="cta-button cta-secondary">Get Started</a>
             </div>
         </div>
         
@@ -90,15 +90,86 @@
                 loading="lazy">
             </iframe>
             <div class="demo-controls">
-                <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR (supported devices)
-                <br>Model: Sesa 1928, credit: <a href="https://wrecksploration.au/projects/site03/" target="_blank">WreckSploration</a>
+                <div class="demo-controls-instructions">
+                    <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR (supported devices)
+                </div>
+                <div class="demo-controls-credit">
+                    Model: Sesa 1928, credit: <a href="https://wrecksploration.au/projects/site03/" target="_blank">WreckSploration</a>
+                </div>
+            </div>
+            <div class="cta-buttons cta-buttons-mobile">
+                <a href="examples/basic/index.html" class="cta-button cta-primary">Try Demo</a>
+                <a href="examples.html" class="cta-button cta-secondary">Get Started</a>
+            </div>
+            <div class="description description-mobile">
+                Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams can dive together.
             </div>
         </div>
+    
+    <!-- Hero Feature Section - Desktop Only -->
+    <div class="hero-feature-section">
+        <div class="hero-feature-container">
+            <div class="hero-feature-content">
+                <div class="hero-feature-text">
+                    <h2>VR and Desktop, together</h2>
+                    <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to step inside the same scene.</p>
+                </div>
+                <div class="hero-feature-image">
+                    <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Cards Section - Outside landing-page container -->
+    <div class="feature-cards-section">
+        <div class="feature-cards-container">
+            <div class="feature-card-item feature-card-first">
+                <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
+                <div class="feature-card-content">
+                    <h3>VR and Desktop, together</h3>
+                    <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to step inside the same scene.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card-item">
+                <img src="assets/measurement.jpg" alt="Research-grade measurement tools" loading="lazy">
+                <div class="feature-card-content">
+                    <h3>Research‑grade measurement</h3>
+                    <p>Built‑in tools archaeologists actually use: measure sites to identify and quantify, on desktop and VR.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card-item">
+                <img src="assets/divemode.jpeg" alt="Dive mode in VR" loading="lazy">
+                <div class="feature-card-content">
+                    <h3>Dive mode in VR</h3>
+                    <p>A comfort‑friendly WebXR mode tuned for Quest—lighting, movement, and UI that feels like a real dive.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card-item">
+                <img src="assets/hosting.jpeg" alt="Flexible hosting options" loading="lazy">
+                <div class="feature-card-content">
+                    <h3>Share on your own terms</h3>
+                    <p>Host models anywhere (GitHub Pages, your site, your own app). Just HTML and your *.glb model files.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card-item">
+                <img src="assets/extensible.png" alt="Extensible and customizable" loading="lazy">
+                <div class="feature-card-content">
+                    <h3>Extensible (GPL‑3.0)</h3>
+                    <p>Customize workflows, add buttons, brand the UI—keep your improvements. Share the code so everyone benefits.</p>
+                </div>
+            </div>
+        </div>
+    </div>
         
         <div class="features-section">
             <div class="features-split">
                 <div class="features-main">
-                    <h2>Dive shipwrecks in virtual reality</h2>
+                    <h2>Create your own virtual dives</h2>
                     <div class="feature-list">
                         <a href="guides/metashape-workflow.html" class="feature-item">
                             <div class="feature-icon">📷</div>
@@ -139,22 +210,80 @@
                 </div>
                 <div class="features-stats">
                     <a href="installation.html" class="stat-item">
-                        <div class="stat-number">419KB</div>
-                        <div class="stat-label">Complete bundle size</div>
+                        <div class="stat-number">5 mins</div>
+                        <div class="stat-label">From model to web</div>
                     </a>
                     <a href="examples.html" class="stat-item">
                         <div class="stat-number">3</div>
                         <div class="stat-label">Production-ready examples</div>
+                    </a>
+                    <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
+                        <div class="stat-number">10K</div>
+                        <div class="stat-label">Lines of modern JavaScript code</div>
                     </a>
                     <a href="implementations.html" class="stat-item">
                         <div class="stat-number">14</div>
                         <div class="stat-label">Models on WreckSplorationVR</div>
                     </a>
                     <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
+                        <div class="stat-number">1.2M</div>
+                        <div class="stat-label">Polygons on Quest 3 headsets</div>
+                    </a>
+                    <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
                         <div class="stat-number">GPL-3.0</div>
                         <div class="stat-label">Open source license</div>
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <div class="faq-container">
+            <div class="faq-header">
+                <h2>FAQ</h2>
+            </div>
+            <div class="faq-content">
+                <div class="faq-item">
+                    <h3>What does it cost?</h3>
+                    <p>It's free and open source.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Do I need a VR headset?</h3>
+                    <p>No, it works on any device through the web. It will make you want to buy one though. We recommend the Meta Quest 3.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How do I get my models on there?</h3>
+                    <p>See the examples. You can use any photogrammetry software, and use it to scale and orient your model. Then export as a GLB.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How big can it be?</h3>
+                    <p>We recommend around ~50mb for ease of use, we have a tutorial on how to optimize it. We have tested up to 1.2 million polygon models with 4×4k textures on Quest 3 - this is extremely detailed even on a large site.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Can I change the code / UI?</h3>
+                    <p>Yes it's open and designed to be interchangeable. There are sensible defaults that try to make your work look beautiful, but it's yours under GPL3, as long as you share!</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Do I need to be good at coding?</h3>
+                    <p>Give it a shot, the examples are simple. If you can copy and paste, you can get it running.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final CTA Section -->
+    <div class="final-cta-section">
+        <div class="final-cta-container">
+            <h2>Ready to bring your underwater models to life?</h2>
+            <p>Take some underwater photos, turn them into a 3D model, and share it with the world. 3D models are meant to be seen in VR.</p>
+            <div class="final-cta-buttons">
+                <a href="examples/basic/index.html" class="btn btn-primary btn-large">Explore the Demo</a>
+                <a href="examples.html" class="btn btn-secondary btn-large">Get BelowJS</a>
+            </div>
+            <div class="final-cta-note">
+                Free • Open source • Your models, your code.
             </div>
         </div>
     </div>

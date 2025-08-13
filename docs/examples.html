@@ -23,54 +23,74 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             display: block;
         }
-        
         .demo-iframe.small {
             height: 400px;
         }
-        
         /* Fix iframe gaps */
         iframe {
             display: block;
             border: none;
         }
-        
         .demo-caption {
             text-align: center;
             font-size: 0.85em;
             color: #666;
             margin-top: 0.5rem;
         }
-        
         .example-section {
             margin: 3rem 0;
             padding: 2rem 0;
             border-bottom: 1px solid #f1f5f9;
         }
-        
         .example-section:last-child {
             border-bottom: none;
         }
-        
+        /* Totally new button styles for example page - override global styles */
+        .example-links .button {
+            display: inline-block;
+            padding: 0.75em 1.8em;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-decoration: none !important;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            margin-right: 0.8em;
+            background: #f4f7fa;
+            color: #183153 !important;
+            box-shadow: 0 1px 4px rgba(24,49,83,0.07);
+            transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+        }
+        .example-links .button:last-child {
+            margin-right: 0;
+        }
+        .example-links .demo-btn {
+            background: #183153 !important;
+            color: #fff !important;
+        }
+        .example-links .demo-btn:hover, .example-links .demo-btn:focus {
+            background: #25407a !important;
+            color: #fff !important;
+            box-shadow: 0 2px 8px rgba(24,49,83,0.13);
+        }
+        .example-links .source-btn {
+            background: #f4f7fa !important;
+            color: #25407a !important;
+            border: 2px solid #25407a !important;
+        }
+        .example-links .source-btn:hover, .example-links .source-btn:focus {
+            background: #e9eef5 !important;
+            color: #183153 !important;
+            border-color: #183153 !important;
+            box-shadow: 0 2px 8px rgba(24,49,83,0.10);
+        }
         .example-links {
             display: flex;
             gap: 1rem;
-            margin: 1rem 0;
+            margin: 1rem 0 2rem 0;
             flex-wrap: wrap;
-        }
-        
-        .example-links a {
-            font-weight: 600;
-        }
-        
-        .deployment-structure {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            justify-content: flex-start;
         }
     </style>
 </head>
@@ -120,7 +140,7 @@
             GitHub
         </a>
         <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"></svg>
                 <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
             </svg>
             NPM
@@ -148,23 +168,29 @@
 
             <h2>Basic Viewer</h2>
             <p>Full-featured multi-model viewer with VR support, measurement tools, and dive mode.</p>
-
-            <p><strong><a href="examples/basic/" target="_blank">View Live Demo</a></strong> | <strong><a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/basic" target="_blank">Source Code</a></strong></p>
-
+            <p class="example-note"><strong>Note:</strong> Copy this one to make your own viewer. This and a handful of model files is all you need.</p>
+            <div class="example-links">
+                <a href="examples/basic/" target="_blank" class="button demo-btn">View Live Demo</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/basic" target="_blank" class="button source-btn">Source Code</a>
+            </div>
             <pre><code>npm run dev        # or npm run dev:basic</code></pre>
 
             <h2>Drag & Drop Loader</h2>
             <p>File loader with drag-and-drop GLB support and custom UI elements.</p>
-
-            <p><strong><a href="examples/dragdrop/" target="_blank">View Live Demo</a></strong> | <strong><a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/dragdrop" target="_blank">Source Code</a></strong></p>
-
+            <p class="example-note"><strong>Note:</strong> Great for trying out your own models, and getting the initial camera positions for making your own viewer.</p>
+            <div class="example-links">
+                <a href="examples/dragdrop/" target="_blank" class="button demo-btn">View Live Demo</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/dragdrop" target="_blank" class="button source-btn">Source Code</a>
+            </div>
             <pre><code>npm run dev:dragdrop</code></pre>
 
             <h2>Embed Viewer</h2>
             <p>Lightweight viewer designed for iframe embedding with URL parameter configuration.</p>
-
-            <p><strong><a href="examples/embed/" target="_blank">View Live Demo</a></strong> | <strong><a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/embed" target="_blank">Source Code</a></strong></p>
-
+            <p class="example-note"><strong>Note:</strong> You can use this on your own site to share models among other text. No more external embeds—just a single HTML file pointing to your models, under your control, with full VR support.</p>
+            <div class="example-links">
+                <a href="examples/embed/" target="_blank" class="button demo-btn">View Live Demo</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/examples/embed" target="_blank" class="button source-btn">Source Code</a>
+            </div>
             <pre><code>npm run dev:embed</code></pre>
 
             <h2>Running locally</h2>
