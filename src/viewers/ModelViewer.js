@@ -1339,7 +1339,7 @@ export class ModelViewer extends EventSystem {
   
   updateLoadingProgress({ progress }) {
     if (progress.lengthComputable && this.currentModelKey) {
-      const percent = Math.round((progress.loaded / progress.total) * 100);
+      const percent = Math.min(100, Math.round((progress.loaded / progress.total) * 100));
       
       // Update loading state
       this.loadingPercentage = percent;
