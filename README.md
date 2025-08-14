@@ -216,4 +216,4 @@ GPL-3.0-or-later — See [LICENSE](LICENSE) file.
 
 Created by [Patrick Morrison](https://padmorrison.com).
 
-Built for underwater archaeology. Models courtesy of [WreckSploration](https://wrecksploration.com).
+Built for underwater archaeology. Models courtesy of [WreckSploration](https://wrecksploration.au).
