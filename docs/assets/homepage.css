@@ -815,23 +815,26 @@
         text-align: center;
     }
     
+    .feature-item:last-child {
+        border-bottom: 1px solid #e4e4e7 !important;
+        padding-bottom: 1.5rem;
+    }
+    
     .features-stats {
+        background: transparent;
+        border: none;
+        padding: 1rem 0;
+        gap: 1rem;
+        border-radius: 0;
         max-width: none;
-        grid-template-columns: repeat(2, 1fr);
         display: grid;
-        gap: 1.5rem;
-        padding: 1.5rem;
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .feature-text {
         display: flex;
         flex-direction: column;
         gap: 0.3rem;
-    }
-    
-    .features-stats {
-        padding: 1rem;
-        gap: 1rem;
     }
     
     .stat-number {
@@ -1038,10 +1041,17 @@
         line-height: 1.4;
     }
 
+    .feature-item:last-child {
+        border-bottom: 1px solid #e4e4e7 !important;
+        padding-bottom: 1.5rem;
+    }
+    
     .features-stats {
-        padding: 0.75rem;
+        background: transparent;
+        border: none;
+        padding: 0.75rem 0;
         gap: 0.75rem;
-        border-radius: 8px;
+        border-radius: 0;
     }
 
     .stat-number {
@@ -1249,14 +1259,43 @@
     }
     
     .final-cta-section {
-        padding: 2.5rem 1rem;
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .final-cta-container {
+        max-width: 100%;
+        padding: 0 0.5rem;
     }
     
     .final-cta-container h2 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+        margin: 0 0 1rem 0;
+        line-height: 1.1;
     }
     
     .final-cta-container p {
-        font-size: 1rem;
+        font-size: 0.9rem;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.4;
+    }
+    
+    .final-cta-buttons {
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0 0.5rem;
+    }
+    
+    .btn-large {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        width: 100%;
+        max-width: none;
+        min-width: auto;
+        box-sizing: border-box;
+    }
+    
+    .final-cta-note {
+        font-size: 0.8rem;
+        padding: 0 1rem;
     }
 }
