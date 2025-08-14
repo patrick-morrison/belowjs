@@ -5,6 +5,28 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.3] - 2025-08-14 - Release Candidate
+
+### Fixed
+- Loading spinner percentage now clamped to maximum 100%
+- Loading spinner display issues in light mode
+- Fixed wrecksploration.com reference to correct wrecksploration.au domain
+
+### Improved
+- Example documentation clarity and structure
+
+## [1.0.0-rc.2] - 2025-08-12 - Release Candidate
+
+### Fixed
+- VR locomotion reset bug when switching models
+
+### Added
+- VR loading indicator for model changes
+- Complete static documentation site
+
+### Improved
+- Audio system robustness
+
 ## [1.0.0-rc.1] - 2025-08-10 - Release Candidate
 
 ### Added
