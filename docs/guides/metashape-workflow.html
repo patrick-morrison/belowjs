@@ -71,9 +71,69 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Metashape Workflow</h1>
-            <p>Complete photogrammetry processing pipeline from raw photos to web-ready models.</p>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 17 August 2025</em></p>
             
-            <p><em>This guide is coming soon...</em></p>
+            <p>BelowJS can use 3D models from any photogrammetry package. The industry standard is Agisoft Metashape, which produces excellent models even in challenging underwater conditions. This guide provides our approach to preparing a model in it, refer to the <a href="https://www.agisoft.com/pdf/metashape_2_1_en.pdf" target="_blank">manual</a> and other tutorials for an introduction to the software.</p>
+            
+            <h2>Image Capture</h2>
+            <p>Image capture for photogrammetry relies on systematic collection and appropriate overlap. Typically this means swimming over a wreck site in a 'lawnmower' pattern, capturing an image every second or so, aiming for 70-80% overlap. For best camera calibration and to avoid gaps, this pattern should be done in two passes: first along the length of the wreck, then across the wreck perpendicularly. The camera should mostly point downward. Overhang imaging is lowest priority—tilt the camera when needed but avoid capturing too much water column. It takes practice.</p>
+            
+            <p>Any camera can be used. GoPros on timelapse are unreasonably effective. DSLRs, film cameras, and 360 cameras all work, with their own benefits and calibration challenges. The more detailed, consistent and sharper images, the better the results.</p>
+            
+            <h2>Processing</h2>
+            <p>All your images should be loaded into Metashape, then you work down the <a href="https://www.agisoft.com/pdf/metashape_2_1_en.pdf" target="_blank">workflow menu</a> as below.</p>
+            
+            <h3>Align Photos</h3>
+            <p>We use Medium or High settings depending on the processing power available. With a modern laptop and a few thousand images, High settings should only take a few hours. If you want to check results more quickly, Low quality settings are useful.</p>
+            
+            <p>Generic preselection is an excellent way to speed up high-quality datasets. For more difficult datasets, it may cause alignments to fail. Try with it enabled first, then turn it off if troubleshooting alignment issues.</p>
+            
+            <p><strong>Tip:</strong> Sometimes underwater datasets benefit from lower settings, because it smooths out the noise. If you are having trouble aligning, try reducing the accuracy setting.</p>
+            
+            <p><strong>Workflow → Align Images</strong></p>
+            <ul>
+                <li>High</li>
+                <li>Generic Preselection</li>
+                <li>Key point limit: 40,000</li>
+                <li>Tie point limit: 0 (unlimited, 4,000 is also fine)</li>
+                <li>Exclude stationary tie points</li>
+                <li>No adaptive camera model fitting</li>
+            </ul>
+            
+            <p>Once this is done you will see a point cloud, with the site starting to appear.</p>
+            
+            <h3>Build Model</h3>
+            <p>The most time consuming step is building the model. The quality chosen here will directly affect your final output, at the cost of processing time and storage space. We will reduce the polygon count later, but higher quality inputs produce better results when reduced than starting with low quality.</p>
+            
+            <p><strong>Workflow → Build Model</strong></p>
+            <p><strong>Depth maps</strong></p>
+            <ul>
+                <li>Quality: High</li>
+                <li>Face Count: High</li>
+                <li>Interpolation: Enabled</li>
+                <li>Depth Filtering: Mild</li>
+            </ul>
+            
+            <h3>Decimate</h3>
+            <p>The <a href="vr-headsets.html">Meta Quest 3 headset</a> has been tested with models from 1 to 1.2 million polygons, beyond that, it can struggle. Use Tools → Models → Decimate models to reduce the polygon count. For lower tier devices or slower internet connections, 500,000 may be a better target.</p>
+            
+            <h3>Build Texture</h3>
+            <p>Once the model is at the target polygon count, you can build textures. A single texture map can be easier to deal with, but 4 × 4k textures are tested to be the most detailed option usable on standard VR headsets. You could consider a single 4k texture for lighter applications.</p>
+            
+            <p><strong>Workflow → Build Texture</strong></p>
+            <ul>
+                <li>Texture type: Diffuse</li>
+                <li>Source data: Images</li>
+                <li>Mapping mode: Generic</li>
+                <li>Blending mode: Mosaic</li>
+                <li>Texture Size: 4096</li>
+                <li>Page Count: 4</li>
+                <li>Enable hole filling</li>
+                <li>Don't enable ghosting filter</li>
+            </ul>
+            
+            <h2>Next Steps</h2>
+            <p>Before exporting as a .glb file, we first <a href="model-setup.html">orient and scale</a> the model.</p>
         </div>
     </div>
 

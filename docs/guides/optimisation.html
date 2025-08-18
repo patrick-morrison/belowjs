@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Optimisation - BelowJS</title>
+    <meta name="description" content="Reducing file sizes and improving performance for web and VR platforms">
+    <meta name="theme-color" content="#0d3b66">
+    
+    <!-- Analytics -->
+    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7" src="https://umami.padmorrison.com/umami.js"></script>
+    
+    <!-- Site styles -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="../installation.html">Installation</a>
+                <a href="../examples.html">Examples</a>
+                <a href="../guides.html">Guides</a>
+                <a href="../implementations.html">Implementations</a>
+                <a href="../changelog.html">Changelog</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="../installation.html">Installation</a>
+        <a href="../examples.html">Examples</a>
+        <a href="../guides.html">Guides</a>
+        <a href="../implementations.html">Implementations</a>
+        <a href="../changelog.html">Changelog</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Page Content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Model Optimisation</h1>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 17 August 2025</em></p>
+            <p>Learn how to optimise photogrammetry models for smooth WebXR performance on headsets and mobile devices. This guide covers mesh compression, texture optimisation, and practical file size targets for web deployment.</p>
+            
+            <h2>Optimising Photogrammetry 3D Models for WebXR on Meta Quest 3</h2>
+            
+            <p>BelowJS uses .glb files to store 3D models. This is the binary (single-file) version of glTF, an open standard for sharing 3D data often thought of as the "JPEG of 3D." All photogrammetry packages we use can export .glb files, so we have an opinionated pipeline for preparing them for the web.</p>
+            
+            <p>Model exports are rarely well-optimised by default. In WebXR they benefit substantially from mesh and texture compression. This 1) reduces file size (faster loads) and 2) greatly reduces GPU memory (VRAM), which is crucial for running large, detailed models on a headset or phone.</p>
+            
+            <p>Below is how we approach optimisation, plus a script to do it for you.</p>
+            
+            <h3>Exporting from Metashape:</h3>
+            <p>Assuming you have a <a href="model-setup.html">scaled and levelled model</a>, it is simple to export from Agisoft Metashape. It will be similar in other packages.</p>
+            
+            <p>In Metashape, File → Export → Export model… Binary gITF (*-glb)</p>
+            <ul>
+                <li>Use Local Coordinates (m),</li>
+                <li>Disable Vertex colors (wasted space, we are using a texture)</li>
+                <li>Textures as JPG are normally fine, otherwise PNG or TIFF for better colour correction</li>
+                <li>Use glTF Y-up convention (make sure Metashape is on latest version, this is a recent addition. Without this your models will be on their side.)</li>
+            </ul>
+            
+            <p>This .glb is a single file that contains the mesh and the textures - it's an alternative to formats like like .obj, .fbx, .stl, etc. We have had the best results with 1,000,000 polygon models using 4 × 4K textures, which stays under 50MB - an acceptable limit for most modern internet connections. In some cases it might be worth considering a much lower target - say under 10MB.</p>
+            
+            <h3>Mesh Compression</h3>
+            <p>Draco is a de-facto standard for glTF geometry compression. It's well supported in Three.js, and can significantly reduce mesh sizes with only a small decode cost on model load. For technical details on using Draco with Three.js, see the <a href="https://threejs.org/docs/examples/en/loaders/DRACOLoader.html" target="_blank">DRACOLoader documentation</a>.</p>
+            
+            <p>This can be done in one line with <a href="https://gltf-transform.dev/" target="_blank">gltf-transform</a>, which also produced mipmaps:</p>
+            <pre><code>npx gltf-transform draco input.glb output.glb</code></pre>
+            
+            <p>For many models the default settings are ideal, however, Metashape models with multiple textures can end up with distracting seams caused by imperfect compression. This is because the underlying representation of model with 4 texture tiles is 4 separate models, and slight changes to the mesh become very obvious in VR.</p>
+            
+            <p>The solution is to increase the quality of quantization, from a default of 14-bit to 20-bit. We have had no visible seams on models compressed at this setting. With this method highly-detailed 1 million polygon models can be viewed on Meta Quest 3 headsets, with plenty of room for other processing.</p>
+            <pre><code>npx gltf-transform draco tmp-ktx.glb output.glb \
+  --method sequential \
+  --encode-speed 0 --decode-speed 0 \
+  --quantize-position 20 \
+  --quantize-normal 20 \
+  --quantize-color 20 \
+  --quantize-texcoord 20 \
+  --quantize-generic 20</code></pre>
+            
+            <h3>Texture Compression</h3>
+            <p>The biggest gains in VRAM (GPU memory) efficiency come from texture compression. We use the GPU-native KTX2 ETC1S:</p>
+            <pre><code>npx gltf-transform etc1s input.glb tmp-ktx.glb --quality 64</code></pre>
+            
+            <p>For a model with four 4K textures and ~1,000,000 polygons, this workflow typically reduces size from ~65 MB on disk and ~1.5 GB VRAM to ~45 MB on disk and ~390 MB VRAM—about a 30% cut on disk and 75% less VRAM. Without this, the headset often crashes on load.</p>
+            
+            <table style="border-collapse: collapse; width: 100%; margin: 1rem 0;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Model</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Disk before</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Disk after</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">VRAM before</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">VRAM after</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Junee</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">71.2 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">44.4 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">1.5 GB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">392.4 MB</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Clipper</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">64.2 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">48.5 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">1.5 GB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">390.1 MB</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Sesa</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">61.3 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">43.9 MB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">1.5 GB</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">388.0 MB</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>below-optimiser</h3>
+            <p>We use a utility for this process.</p>
+            <pre><code>./below-optimiser pack input.glb</code></pre>
+            
+            <p>This will apply 20-bit Draco mesh compression and KTX2 texture compression, then write out <code>&lt;input&gt;-quest.glb</code>.</p>
+            
+            <p>For texture editing - normally light colour correction, we also have unpack:</p>
+            <pre><code>./below-optimiser unpack input.glb</code></pre>
+            
+            <p>This will create a folder of the form <code>path/to/input_edit</code>. You can then edit these textures, and pack that folder.</p>
+            <pre><code>./below-optimiser pack path/to/input_edit</code></pre>
+            
+            <p>It will also detect normal maps, and link them, as long as they are named to the form <code>*normal1.*</code>, <code>*normal2.*</code>, etc. If you originally had .png textures, but replaced them with jpegs, it will also detect that and adjust the gltf references before packing.</p>
+            
+            <p>Download below-optimiser at <a href="https://github.com/patrick-morrison/belowoptimiser" target="_blank">https://github.com/patrick-morrison/belowoptimiser</a><br>
+            It has been tested on macOS, and Windows Subsystem for Linux (WSL).</p>
+            
+            <h2>Next Steps</h2>
+            <p>Once your model is optimised, you can <a href="../examples.html">load it into BelowJS</a> and experience it in <a href="vr-headsets.html">VR with a compatible headset</a>.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="../assets/navigation.js"></script>
+</body>
+</html>

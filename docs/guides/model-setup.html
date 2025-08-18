@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Model Setup - BelowJS</title>
-    <meta name="description" content="Configuring scale, position, lighting, and materials for optimal viewing">
+    <meta name="description" content="Configuring scale and rotation for optimal viewing">
     <meta name="theme-color" content="#0d3b66">
     
     <!-- Analytics -->
@@ -70,10 +70,49 @@
     <!-- Page Content -->
     <div class="docs-container">
         <div class="docs-content">
-            <h1>Model Setup</h1>
-            <p>Configuring scale, position, lighting, and materials for optimal viewing.</p>
+            <h1>Scaling and Orienting 3D Models for BelowJS</h1>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 17 August 2025</em></p>
             
-            <p><em>This guide is coming soon...</em></p>
+            <p>BelowJS relies on models being properly scaled and oriented. When this is done, the measurement system will work, and model navigation is intuitive in desktop and VR.</p>
+            
+            <h2>Orienting in Agisoft Metashape Pro</h2>
+            <p>Both Standard and Pro Metashape have the ability to orient models. If you have a georeferenced model in Agisoft Pro, it will already be correct.</p>
+            
+            <p>If you do not have georeferencing information, in the top toolbar, there is a dropdown next to the Move Object pyramid, and in there is the Rotate Object button. With this enabled, clicking and dragging in the viewer will rotate the model, rather than moving the camera. The Model Predefined Views are handy here.</p>
+            
+            <p>A typical process is:</p>
+            <ol>
+                <li>Enable Rotate Object</li>
+                <li>Set Predefined view to Front (1 on keyboard)</li>
+                <li>Rotate object until it looks right</li>
+                <li>Set Predefined view to Right (3 on keyboard)</li>
+                <li>Rotate object until it looks right</li>
+                <li>Set Predefined view to Top (7 on keyboard)</li>
+                <li>Rotate object until it looks right</li>
+                <li>Repeat until you aren't adjusting anymore</li>
+                <li>Disable Rotate Object by selecting the Navigation Tool (mouse pointer in toolbar)</li>
+            </ol>
+            
+            <p>This process is basically identical in Blender, using the Rotate tool (R key), and the predefined views as the 1, 3 and 7 keys on the numpad.</p>
+            
+            <h2>Scaling in Agisoft Metashape Pro</h2>
+            <p>If you have Agisoft Metashape Pro, you can scale using a scale bar. This is the preferred option because you can scale off the raw images, and use multiple sources of information to refine error estimates.</p>
+            
+            <p>In short, you add a marker on each end of the scale bar using Right Click → Add Marker. In the Reference Pane (typically bottom right of screen), you shift-select both markers and right click to create a Scale Bar. Below that you can define the distance - for a 1 m scale bar, you will type 1 in the box. To apply, you hit the Update Transform button - it looks like a refresh icon on the top of the reference pane. Your model may resize so much it disappears from screen. Hit 0 on your keyboard to reset the view.</p>
+            
+            <p>If you have a georeferenced model, it will already be scaled - but a scale bar is normally more precise. You can also use known features as a scale bar, if you did not use one - for example: 1) known cray pot dimensions, 2) pre-measured masts or cannons, 3) dive knives. Beware scaling errors. Good practice and multiple checks are important if you care about the accuracy of the BelowJS measurement tool.</p>
+            
+            <h2>Scaling in other open source programs</h2>
+            <p>There are tutorials elsewhere on the internet for scaling in free and open source programs. Look for recent tutorials as software interfaces change frequently.</p>
+            
+            <p>In Blender you can measure a known scale with the ruler, and calculate the scale factor as <em>s = length_true / length_measurement</em>. Then use the S key to type in the scale adjustment. For example, if you measure a 1 m scale bar as '5 m', then hit S and type 0.2 (1 / 5). When you measure again, this should be correct, and ready to export.</p>
+            
+            <p>This approach can be done in most 3D packages, including <a href="https://www.youtube.com/watch?v=ZlNqm0_oTpU" target="_blank">MeshLab</a>.</p>
+            
+            <p>Another approach is to add a 1-meter cube, then scale visually until it matches a 1 m scale bar. This is good to reasonable accuracy, but not ideal.</p>
+            
+            <h2>Next Steps</h2>
+            <p>Once you have your model properly scaled and oriented, export it as a GLB file and move to <a href="optimisation.html">Model Optimisation</a> to reduce file sizes and improve performance for web and VR platforms.</p>
         </div>
     </div>
 
