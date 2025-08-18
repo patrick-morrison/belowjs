@@ -8227,11 +8227,11 @@ class Dn extends wt {
   }
   createInfoPanel() {
     const e = document.createElement("div");
-    e.id = "info", e.className = "below-panel";
+    e.id = "info", e.className = "below-panel info-panel";
     const t = document.createElement("div");
-    t.id = "infoTitle", t.textContent = "BelowJS";
+    t.id = "infoTitle", t.className = "info-panel__title", t.textContent = "BelowJS";
     const i = document.createElement("div");
-    i.id = "infoControls", i.innerHTML = `
+    i.id = "infoControls", i.className = "info-panel__controls", i.innerHTML = `
       <strong>Desktop:</strong> Drag to rotate • Scroll to zoom<br>
       <strong>Mobile:</strong> Touch and drag to explore
     `, e.appendChild(t), e.appendChild(i), this.container.appendChild(e), this.ui.info = e;

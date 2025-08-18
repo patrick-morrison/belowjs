@@ -1039,14 +1039,16 @@ export class ModelViewer extends EventSystem {
   createInfoPanel() {
     const info = document.createElement('div');
     info.id = 'info';
-    info.className = 'below-panel';
+    info.className = 'below-panel info-panel';
     
     const title = document.createElement('div');
     title.id = 'infoTitle';
+    title.className = 'info-panel__title';
     title.textContent = 'BelowJS';
     
     const controls = document.createElement('div');
     controls.id = 'infoControls';
+    controls.className = 'info-panel__controls';
     controls.innerHTML = `
       <strong>Desktop:</strong> Drag to rotate • Scroll to zoom<br>
       <strong>Mobile:</strong> Touch and drag to explore
