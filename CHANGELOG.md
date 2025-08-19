@@ -5,6 +5,20 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.4] - 2025-08-19 - Release Candidate
+
+### Added
+- WrecksplorationVR implementation showcase
+- Comprehensive guides for development workflows
+- CDN reference management for all documentation examples
+
+### Improved
+- Documentation structure and navigation
+- Static documentation system with better maintainability
+
+### Fixed
+- Info panel not showing properly by adding below-panel class
+
 ## [1.0.0-rc.3] - 2025-08-14 - Release Candidate
 
 ### Fixed
