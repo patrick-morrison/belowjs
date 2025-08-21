@@ -108,6 +108,15 @@
             <h2>Step 3: Test in Drag and Drop viewer</h2>
             <p>Your model will load immediately and you can check if everything works properly!</p>
 
+            <div style="background: #f8f9fa; border-left: 4px solid #10b981; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
+                    Test your model and check file size, polygon count, and performance.
+                </p>
+                <a href="../examples/dragdrop/" target="_blank" style="display: inline-block; background: #047857; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                    Test your model →
+                </a>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                     <img src="screenshots/dragdrop.gif" alt="Testing model in BelowJS drag and drop viewer" style="width: 100%; height: auto; border-radius: 8px;">
@@ -119,15 +128,6 @@
                 </div>
             </div>
 
-            <div style="background: #f8f9fa; border-left: 4px solid #10b981; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
-                    Test your model and check file size, polygon count, and performance.
-                </p>
-                <a href="../examples/dragdrop/" target="_blank" style="display: inline-block; background: #047857; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
-                    Test your model →
-                </a>
-            </div>
-
             <h2>Step 4: Optimise and scale your model (Optional)</h2>
             <p>If your model wasn't scaled before you uploaded, follow the <a href="model-setup.html">model setup guide</a>. The Blender process is probably the easiest.</p>
             
@@ -136,6 +136,8 @@
             <pre><code>./below-optimiser pack input.glb</code></pre>
 
             <h2>Step 5: Copy the Basic example</h2>
+            <p>The basic example uses CDN imports, so nothing else is needed - just the HTML file and your models!</p>
+            
             <ul>
                 <li>Download the <a href="../examples.html">basic example</a> HTML</li>
                 <li>Put your own models in the same folder</li>
@@ -149,8 +151,6 @@
 └── models/
     ├── camilla_1903_shipwreck.glb
     └── another_wreck.glb</code></pre>
-
-            <p>The basic example uses CDN imports, so nothing else is needed - just the HTML file and your models!</p>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
