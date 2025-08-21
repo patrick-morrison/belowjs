@@ -72,7 +72,25 @@
         <div class="docs-content">
             <h1>Installation</h1>
 
-            <h2>CDN</h2>
+            <h2>Model requirements</h2>
+            <ul>
+                <li><strong>Format:</strong> GLB files (binary glTF)</li>
+                <li><strong>Size:</strong> Under 50MB recommended for web</li>
+                <li><strong>Optimisation:</strong> See the <a href="guides/optimisation.html">optimisation guide</a> for performance improvements</li>
+            </ul>
+
+            <div style="background: #f8f9fa; border-left: 4px solid #10b981; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
+                    Unsure about your model's specifications? Use the drag & drop example to analyze file size, polygon count, and performance.
+                </p>
+                <a href="examples/dragdrop/" target="_blank" style="display: inline-block; background: #047857; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                    Test your model →
+                </a>
+            </div>
+
+            <h2>CDN (Recommended)</h2>
+            <p>The simplest approach - all <a href="examples.html">examples</a> here use CDN imports. If you copy the basic viewer example, this is how it works: you only need a single HTML file and your models, with no downloads or build steps required.</p>
+            
             <p>Both Three.js and BelowJS use ES modules. Add the import map and stylesheet:</p>
 
             <pre><code>&lt;script type="importmap"&gt;
@@ -94,6 +112,7 @@ const viewer = new ModelViewer('body', {
 });</code></pre>
 
             <h2>npm</h2>
+            <p>Use npm when integrating BelowJS into an existing project with a build system (Webpack, Vite, etc.).</p>
 
             <pre><code>npm install belowjs three</code></pre>
 
@@ -111,7 +130,7 @@ const config = {
 const viewer = new ModelViewer('#container', config);</code></pre>
 
             <h2>Manual installation</h2>
-            <p>If you prefer to install manually, clone the repository and build the distribution files:</p>
+            <p>If you prefer to download files directly, you can get them from <a href="https://github.com/patrick-morrison/belowjs/tree/main/dist" target="_blank">GitHub</a> or clone the repository and build them yourself:</p>
 
             <pre><code>git clone https://github.com/patrick-morrison/belowjs
 cd belowjs
@@ -139,13 +158,6 @@ npm run build</code></pre>
             <pre><code>python -m http.server 8000</code></pre>
 
             <p><strong>Quest:</strong> Chrome can forward localhost to Quest via USB debugging. <a href="https://developers.meta.com/horizon/documentation/web/browser-remote-debugging/" target="_blank">Setup guide</a>.</p>
-
-            <h2>Model requirements</h2>
-            <ul>
-                <li><strong>Format:</strong> GLB files (binary glTF)</li>
-                <li><strong>Size:</strong> Under 50MB recommended for web</li>
-                <li><strong>Optimization:</strong> Use Blender or similar to reduce polygons for better performance</li>
-            </ul>
 
             <h2>Browser support</h2>
             <table>
@@ -178,25 +190,30 @@ npm run build</code></pre>
 
             <h2>Troubleshooting</h2>
 
-            <p><strong>Model not loading?</strong></p>
+            <p><strong>Don't know where to start?</strong></p>
             <ul>
-                <li>Check file path and CORS headers</li>
-                <li>Verify GLB file is valid</li>
+                <li>Copy the <a href="examples.html">basic example</a> and swap out your model files</li>
+            </ul>
+
+            <p><strong>Model not loading properly?</strong></p>
+            <ul>
+                <li>Test your GLB file in the <a href="examples/dragdrop/">drag & drop example</a> first</li>
+                <li>Check it is scaled properly - see the <a href="guides/model-setup.html">model setup guide</a></li>
+                <li>Check file paths - see the <a href="examples.html">basic example</a> on the examples page</li>
                 <li>Open browser console for error messages</li>
             </ul>
 
             <p><strong>VR button not showing?</strong></p>
             <ul>
                 <li>Use HTTPS (required for WebXR)</li>
-                <li>Check browser VR support</li>
-                <li>Connect and enable VR headset</li>
+                <li>Check browser VR support in the table above</li>
+                <li>View in a VR headset or connect PCVR - see <a href="guides/vr-headsets.html">VR headsets guide</a></li>
             </ul>
 
             <p><strong>Performance issues?</strong></p>
             <ul>
-                <li>Reduce model polygon count</li>
-                <li>Compress textures</li>
-                <li>Use smaller texture sizes</li>
+                <li>Check model stats in the <a href="examples/dragdrop/">drag & drop example</a></li>
+                <li>Follow the <a href="guides/optimisation.html">optimisation guide</a> for reducing file sizes and polygon counts</li>
             </ul>
         </div>
     </div>
