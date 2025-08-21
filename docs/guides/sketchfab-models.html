@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working with Sketchfab Models - BelowJS</title>
+    <meta name="description" content="How to use your Sketchfab models in BelowJS">
+    <meta name="theme-color" content="#0d3b66">
+    
+    <!-- Analytics -->
+    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7" src="https://umami.padmorrison.com/umami.js"></script>
+    
+    <!-- Site styles -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="../installation.html">Installation</a>
+                <a href="../examples.html">Examples</a>
+                <a href="../guides.html">Guides</a>
+                <a href="../implementations.html">Implementations</a>
+                <a href="../changelog.html">Changelog</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="../installation.html">Installation</a>
+        <a href="../examples.html">Examples</a>
+        <a href="../guides.html">Guides</a>
+        <a href="../implementations.html">Implementations</a>
+        <a href="../changelog.html">Changelog</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Documentation Content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Use your Sketchfab models in BelowJS</h1>
+            <div style="background: #f8f9fa; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <h4 style="margin: 0 0 0.75rem 0; color: #0d3b66; font-weight: 600;">Built for underwater photogrammetry</h4>
+                <p style="margin: 0; color: #495057; line-height: 1.5;">
+                    BelowJS provides optimised rendering and performance specifically designed for underwater photogrammetry models in VR.
+                </p>
+            </div>
+
+            <h2>Before you start</h2>
+            <p>Many underwater photogrammetrists already use Sketchfab to share their work. A scaled and oriented model from Sketchfab can be loaded into BelowJS in minutes - they work well together. This guide will show you how to create your own viewer with better performance, customisation, and full control over the experience.</p>
+            
+            <p>You'll need:</p>
+            <ul>
+                <li><strong>A Sketchfab account</strong> with models that have downloads enabled</li>
+                <li><strong>Basic HTML knowledge</strong> for editing file paths</li>
+                <li><strong>10 minutes</strong> to follow this guide</li>
+            </ul>
+
+            <h2>Step 1: Orient your model</h2>
+            <p>Sketchfab models look best when they are properly oriented. If you already rotate your models so they have a proper floor, you're all set. If not, this can be done in the 3D Settings page under General → Straighten Model, then check Show Advanced Rotation. Additionally, this orientation will improve display quality on Sketchfab as well.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/orienting.gif" alt="Orienting model in Sketchfab 3D Settings" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">Orient your model</p>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/download-model.gif" alt="Downloading GLB model from Sketchfab" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">Download as GLB</p>
+                </div>
+            </div>
+
+            <h2>Step 2: Download as GLB</h2>
+            <p>If your model has downloads enabled, you will find it below the viewer on Sketchfab. If not, you may have the option in Model Properties to download the model as GLB, or you may need to adjust download permissions in your model settings. You can download in any format and convert to GLB, but this saves an extra step.</p>
+
+            <h2>Step 3: Test in Drag and Drop viewer</h2>
+            <p>Your model will load immediately and you can check if everything works properly!</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/dragdrop.gif" alt="Testing model in BelowJS drag and drop viewer" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">Test in drag and drop viewer</p>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/measureanddive.gif" alt="Final result with measurement and VR capabilities" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">Measurement and dive mode</p>
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; border-left: 4px solid #10b981; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
+                    Test your model and check file size, polygon count, and performance.
+                </p>
+                <a href="../examples/dragdrop/" target="_blank" style="display: inline-block; background: #047857; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                    Test your model →
+                </a>
+            </div>
+
+            <h2>Step 4: Optimise and scale your model (Optional)</h2>
+            <p>If your model wasn't scaled before you uploaded, follow the <a href="model-setup.html">model setup guide</a>. The Blender process is probably the easiest.</p>
+            
+            <p>Sketchfab GLBs are already well optimised, but we can do better - especially for VR. Use the <a href="optimisation.html">optimisation guide</a>. With the script, it's as simple as running:</p>
+            
+            <pre><code>./below-optimiser pack input.glb</code></pre>
+
+            <h2>Step 5: Copy the Basic example</h2>
+            <ul>
+                <li>Download the <a href="../examples.html">basic example</a> HTML</li>
+                <li>Put your own models in the same folder</li>
+                <li>Edit the HTML to change the file paths</li>
+                <li>Use the <a href="../examples/dragdrop/" target="_blank">drag and drop viewer</a> to choose initial camera positions for your models</li>
+            </ul>
+
+            <p>Your folder structure will look like this:</p>
+            <pre><code>belowjs-example/
+├── index.html          # Basic example HTML (uses CDNs)
+└── models/
+    ├── camilla_1903_shipwreck.glb
+    └── another_wreck.glb</code></pre>
+
+            <p>The basic example uses CDN imports, so nothing else is needed - just the HTML file and your models!</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/optimise.gif" alt="Optimising models for better performance" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">(Optional) Optimise your models</p>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <img src="screenshots/htmling.gif" alt="Setting up HTML with BelowJS" style="width: 100%; height: auto; border-radius: 8px;">
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">Edit a few lines of HTML</p>
+                </div>
+            </div>
+
+            <h2>Step 6: Upload to the internet</h2>
+            <p>You can use any static hosting - GitHub Pages is free, or services like Netlify offer free tiers. Paid hosting starts from a few dollars a month, and you have full control.</p>
+            
+            <p>Additionally, check the <a href="../examples.html">examples page</a> for an embedded viewer that can integrate as an iframe into your existing site, on any platform including WordPress.</p>
+
+            <h2>Next steps</h2>
+            <ul>
+                <li><a href="../examples.html">Explore examples</a> for advanced features</li>
+                <li><a href="vr-headsets.html">Set up VR viewing</a> for immersive experience</li>
+                <li><a href="optimisation.html">Optimise performance</a> for better loading</li>
+                <li><a href="../implementations.html">See real implementations</a> for inspiration</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="../assets/navigation.js"></script>
+</body>
+</html>

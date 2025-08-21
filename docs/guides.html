@@ -14,91 +14,42 @@
     <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/docs.css">
     <style>
-        .guide-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+        .guide-list {
+            list-style: none;
+            padding: 0;
             margin: 2rem 0;
         }
         
-        .guide-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 2rem;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s ease;
+        .guide-item {
+            margin-bottom: 2rem;
         }
         
-        .guide-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(13, 59, 102, 0.15);
-            border-color: #0d3b66;
+        .guide-item:last-child {
+            margin-bottom: 0;
         }
         
-        .guide-card h3 {
-            margin: 0 0 1rem 0;
+        .guide-item h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .guide-item h3 a {
             color: #0d3b66;
-            font-size: 1.3rem;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s;
         }
         
-        .guide-card p {
+        .guide-item h3 a:hover {
+            border-bottom-color: #0d3b66;
+        }
+        
+        .guide-item p {
             margin: 0;
             color: #4a5568;
-            line-height: 1.6;
-        }
-        
-        .workflow-overview {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 16px;
-            padding: 3rem;
-            margin: 3rem 0;
-            text-align: center;
-        }
-        
-        .workflow-steps {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .workflow-step {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            min-width: 120px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .workflow-step .step-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0d3b66;
-            margin-bottom: 0.5rem;
-        }
-        
-        .workflow-step .step-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        @media (max-width: 768px) {
-            .guide-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .workflow-overview {
-                padding: 2rem 1rem;
-            }
-            
-            .workflow-steps {
-                flex-direction: column;
-                align-items: center;
-            }
+            line-height: 1.5;
+            font-size: 0.95rem;
         }
     </style>
 </head>
@@ -159,21 +110,34 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Guides</h1>
-            <p>These guides cover the complete workflow from capturing underwater photos to viewing 3D models in VR. The best virtual experiences are built on quality data and savvy processing.</p>
+            <p>Complete workflow guides from capturing underwater photos to viewing 3D models in VR. The best virtual experiences are built on quality data and savvy processing.</p>
 
-            <h2><a href="./guides/metashape-workflow.html">Metashape Workflow</a></h2>
-            <p>Complete photogrammetry processing pipeline from raw photos to web-ready models.</p>
-
-            <h2><a href="./guides/model-setup.html">Model Setup</a></h2>
-            <p>Configuring scale and rotation for optimal viewing.</p>
-
-            <h2><a href="./guides/optimisation.html">Model Optimisation</a></h2>
-            <p>Reducing file sizes and improving performance for web and VR platforms.</p>
-
-            <h2><a href="./guides/vr-headsets.html">VR Headsets</a></h2>
-            <p>Meta Quest 3 recommendations and setup tips for VR diving.</p>
-
-            <hr>
+            <ul class="guide-list">
+                <li class="guide-item">
+                    <h3><a href="./guides/sketchfab-models.html">Working with Sketchfab Models</a></h3>
+                    <p>Load your Sketchfab models into BelowJS in minutes for better performance, customisation, and full control over your underwater explorations.</p>
+                </li>
+                
+                <li class="guide-item">
+                    <h3><a href="./guides/metashape-workflow.html">Metashape Workflow</a></h3>
+                    <p>Complete photogrammetry processing pipeline from photos to web-ready models.</p>
+                </li>
+                
+                <li class="guide-item">
+                    <h3><a href="./guides/model-setup.html">Model Setup</a></h3>
+                    <p>Configuring scale and rotation for optimal viewing.</p>
+                </li>
+                
+                <li class="guide-item">
+                    <h3><a href="./guides/optimisation.html">Model Optimisation</a></h3>
+                    <p>Reducing file sizes and improving performance for web and VR platforms.</p>
+                </li>
+                
+                <li class="guide-item">
+                    <h3><a href="./guides/vr-headsets.html">VR Headsets</a></h3>
+                    <p>Meta Quest 3 recommendations and setup tips for VR diving.</p>
+                </li>
+            </ul>
         </div>
     </div>
 
