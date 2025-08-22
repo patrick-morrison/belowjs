@@ -236,32 +236,6 @@ npm run dev</code></pre>
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <h2>With all features enabled</h2>
-
-            <pre><code>import { ModelViewer } from 'belowjs';
-
-new ModelViewer(document.body, {
-  models: {
-    'wreck': {
-      url: 'shipwreck.glb',
-      name: 'Historic Shipwreck',
-      initialPositions: {
-        desktop: {
-          camera: { x: 10, y: 5, z: 15 },
-          target: { x: 0, y: 0, z: 0 }
-        },
-        vr: {
-          dolly: { x: 0, y: 2, z: 10 },
-          rotation: { x: 0, y: 0, z: 0 }
-        }
-      }
-    }
-  },
-  enableVR: true,
-  enableMeasurement: true,
-  enableDiveSystem: true
-});</code></pre>
-
             <h2>URL parameter embedding</h2>
             <p>The embed example supports URL parameters for dynamic configuration:</p>
 
