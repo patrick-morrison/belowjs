@@ -114,7 +114,7 @@
   --quantize-generic 20</code></pre>
             
             <h3>Texture Compression</h3>
-            <p>The biggest gains in VRAM (GPU memory) efficiency come from texture compression. We use the GPU-native KTX2 ETC1S:</p>
+            <p>The biggest gains in VRAM (GPU memory) efficiency come from texture compression. We use the GPU-native KTX2 ETC1S (see <a href="https://www.donmccurdy.com/2024/02/11/web-texture-formats/" target="_blank">Don McCurdy's web texture formats guide</a> for more information):</p>
             <pre><code>npx gltf-transform etc1s input.glb tmp-ktx.glb --quality 64</code></pre>
             
             <p>For a model with four 4K textures and ~1,000,000 polygons, this workflow typically reduces size from ~65 MB on disk and ~1.5 GB VRAM to ~45 MB on disk and ~390 MB VRAM—about a 30% cut on disk and 75% less VRAM. Without this, the headset often crashes on load.</p>
