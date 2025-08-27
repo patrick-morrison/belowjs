@@ -6,7 +6,7 @@ BelowJS is a production-ready 3D model viewer library with VR support and underw
 ## Recent Updates (August 2025)
 - ✅ **Switched to static documentation**: Removed VitePress, now using hand-crafted HTML docs
 - ✅ **Fixed navigation links**: Logo links now properly point to docs index instead of root domain
-- ✅ **Added changelog page**: Complete `docs/changelog.html` with 1.0.0-rc.1 release notes
+- ✅ **Added changelog page**: Complete `docs/changelog.html` with 1.0.0 stable release notes
 - ✅ **Updated all navbars**: Added changelog link to all 10 documentation pages  
 - ✅ **Fixed iframe gaps**: Removed spacing issues in examples page embed viewer
 - ⚠️ **Website changelog**: Need to update main website (padmorrison.com/belowjs) with latest release info
@@ -119,9 +119,9 @@ After making modifications to the library:
 
 4. **Version & Prepare Release**
    ```bash
-   npm version patch    # Bump version (1.0.0-rc.1 → 1.0.0-rc.2)
-   npm version minor    # Minor bump (1.0.0-rc.1 → 1.0.1-rc.1)
-   npm version major    # Major bump (1.0.0-rc.1 → 2.0.0-rc.1)
+   npm version patch    # Bump version (1.0.0 → 1.0.1)
+   npm version minor    # Minor bump (1.0.0 → 1.1.0)
+   npm version major    # Major bump (1.0.0 → 2.0.0)
    ```
    This automatically runs `prepublishOnly` (build + lint)
 

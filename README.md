@@ -4,9 +4,9 @@
 [![npm downloads](https://img.shields.io/npm/dm/belowjs.svg)](https://www.npmjs.com/package/belowjs)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-📖 **[Full Documentation & Examples at belowjs.com](https://belowjs.com)**
+📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Note:** This is a pre-release version (`1.0.0-rc.4`). The API is stable, but please be aware that minor changes may occur before the final 1.0.0 release.
+> **Current Version:** `1.0.0` - Stable release ready for production use.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -59,11 +59,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.4/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.0.0/dist/belowjs.js"
         }
     }
     </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0-rc.4/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.0.0/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>

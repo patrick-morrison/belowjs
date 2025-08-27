@@ -368,8 +368,6 @@ export class VRManager {
 
     // Try to restore pre-VR state first
     if (this._preVRCameraState.target && this._preVRCameraState.position) {
-      console.log('VRManager: Restoring pre-VR camera state');
-      
       this.camera.position.copy(this._preVRCameraState.position);
       this.camera.zoom = this._preVRCameraState.zoom || 1;
       this.camera.updateProjectionMatrix();
@@ -387,7 +385,6 @@ export class VRManager {
       
     } else if (this._initialPositions && this._initialPositions.desktop) {
       // Fallback to initial desktop positions
-      console.log('VRManager: Falling back to initial desktop positions');
       const desktop = this._initialPositions.desktop;
       
       if (desktop.camera) {

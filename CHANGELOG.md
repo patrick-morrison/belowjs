@@ -5,10 +5,23 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-08-27 - Stable Release
+
+### Release Notes
+- **Stable 1.0.0**: First stable release of the BelowJS library
+- **Production ready**: Complete 3D model viewer with VR support
+- **Comprehensive documentation**: Full documentation site with examples and guides
+- **Quality assurance**: Thorough testing and quality checks completed
+
+### Summary
+BelowJS 1.0.0 is now production-ready for underwater/dive model visualization with WebXR support, measurement tools, and comprehensive documentation. The API is stable and fully documented.
+
+**Now Live in Production:** BelowJS 1.0.0 is powering WreckSploration VR - the first production implementation featuring shipwreck exploration in virtual reality.
+
 ## [1.0.0-rc.4] - 2025-08-19 - Release Candidate
 
 ### Added
-- WrecksplorationVR implementation showcase
+- WreckSploration VR implementation showcase
 - Comprehensive guides for development workflows
 - CDN reference management for all documentation examples
 
