@@ -188,6 +188,57 @@
 @media (max-width: 768px) {
 }
 
+/* Screenshot Button */
+.screenshot-button {
+  position: absolute;
+  bottom: 140px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--below-panel-bg);
+  border: 1px solid var(--below-panel-border);
+  color: var(--below-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 120;
+  backdrop-filter: var(--below-panel-backdrop);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.screenshot-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.screenshot-button.light-theme {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  top: 76px !important;
+  bottom: auto !important;
+  right: 20px !important;
+}
+
+.screenshot-button.light-theme:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.3) !important;
+  color: rgba(255, 255, 255, 1) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+.screenshot-button.no-measurement {
+  bottom: 70px !important;
+}
+
 /* Fullscreen Button */
 .fullscreen-button {
   position: absolute;

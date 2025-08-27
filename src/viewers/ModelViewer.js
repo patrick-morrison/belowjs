@@ -72,6 +72,7 @@ import { DiveSystem } from '../dive/DiveSystem.js';
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
  * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
+ * @property {boolean} [enableScreenshot=false] - Show screenshot button
  * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
  * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
@@ -178,6 +179,7 @@ export class ModelViewer extends EventSystem {
       enableDiveSystem: { type: 'boolean', default: true },
       showDiveToggle: { type: 'boolean', default: true },
       enableFullscreen: { type: 'boolean', default: false },
+      enableScreenshot: { type: 'boolean', default: false },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
       viewerConfig: {
@@ -202,6 +204,7 @@ export class ModelViewer extends EventSystem {
     this.comfortGlyph = null;
     this.diveSystem = null;
     this.fullscreenButton = null;
+    this.screenshotButton = null;
     this.lastComfortMode = null;
     
     // VR loading state
@@ -236,6 +239,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
     });
 
@@ -245,6 +249,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
     }
 
@@ -387,6 +392,37 @@ export class ModelViewer extends EventSystem {
   }
 
 
+  _maybeAttachScreenshotButton() {
+    if (!this.config.enableScreenshot || this.screenshotButton) return;
+
+    const button = document.createElement('div');
+    button.id = 'screenshotButton';
+    button.className = 'screenshot-button';
+    if (this.config.measurementTheme === 'light') {
+      button.classList.add('light-theme');
+    }
+    if (!this.config.enableMeasurement) {
+      button.classList.add('no-measurement');
+    }
+    button.textContent = '📷';
+    button.tabIndex = 0;
+    button.title = 'Save Screenshot';
+    button.setAttribute('aria-label', 'Save Screenshot');
+
+    button.addEventListener('click', () => this.takeScreenshot());
+    button.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.takeScreenshot();
+      }
+    });
+
+    this.container.appendChild(button);
+    this.screenshotButton = button;
+    this.ui.screenshot = button;
+  }
+
+
   _maybeAttachFullscreenButton() {
     if (!this.config.enableFullscreen || this.fullscreenButton) return;
 
@@ -447,6 +483,20 @@ export class ModelViewer extends EventSystem {
     this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
     this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
     this.fullscreenButton.textContent = active ? '\u26F6' : '\u26F6';
+  }
+
+  takeScreenshot() {
+    try {
+      const canvas = this.belowViewer?.renderer?.domElement;
+      if (!canvas) return;
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'screenshot.png';
+      link.click();
+    } catch (err) {
+      console.error('[ModelViewer] Failed to capture screenshot', err);
+    }
   }
   
   setupEventForwarding() {
@@ -1597,6 +1647,10 @@ export class ModelViewer extends EventSystem {
       this.fullscreenButton.remove();
       this.fullscreenButton = null;
       document.removeEventListener('fullscreenchange', this._onFullscreenChange);
+    }
+    if (this.screenshotButton) {
+      this.screenshotButton.remove();
+      this.screenshotButton = null;
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();
