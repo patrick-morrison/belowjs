@@ -5376,7 +5376,8 @@ class In extends wt {
     this.renderer = new u.WebGLRenderer({
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
-      powerPreference: this.config.renderer.powerPreference
+      powerPreference: this.config.renderer.powerPreference,
+      preserveDrawingBuffer: !0
     }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = u.PCFSoftShadowMap, this.renderer.outputColorSpace = u.SRGBColorSpace;
     const e = {
       none: u.NoToneMapping,
@@ -8004,7 +8005,10 @@ class Dn extends wt {
   _maybeAttachScreenshotButton() {
     if (!this.config.enableScreenshot || this.screenshotButton) return;
     const e = document.createElement("div");
-    e.id = "screenshotButton", e.className = "screenshot-button", this.config.measurementTheme === "light" && e.classList.add("light-theme"), this.config.enableMeasurement || e.classList.add("no-measurement"), e.textContent = "📷", e.tabIndex = 0, e.title = "Save Screenshot", e.setAttribute("aria-label", "Save Screenshot"), e.addEventListener("click", () => this.takeScreenshot()), e.addEventListener("keydown", (t) => {
+    e.id = "screenshotButton", e.className = "screenshot-button", this.config.measurementTheme === "light" && e.classList.add("light-theme"), this.config.enableMeasurement || e.classList.add("no-measurement"), e.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+      <circle cx="12" cy="13" r="4"></circle>
+    </svg>`, e.tabIndex = 0, e.title = "Save Screenshot", e.setAttribute("aria-label", "Save Screenshot"), e.addEventListener("click", () => this.takeScreenshot()), e.addEventListener("keydown", (t) => {
       (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.takeScreenshot());
     }), this.container.appendChild(e), this.screenshotButton = e, this.ui.screenshot = e;
   }
@@ -8033,12 +8037,38 @@ class Dn extends wt {
     const e = this.isFullscreen();
     this.fullscreenButton.title = e ? "Exit Fullscreen" : "Enter Fullscreen", this.fullscreenButton.setAttribute("aria-label", e ? "Exit Fullscreen" : "Enter Fullscreen"), this.fullscreenButton.textContent = "⛶";
   }
+  /**
+   * Captures a screenshot of the current 3D scene without UI overlays
+   * 
+   * The method forces a render to ensure the canvas is up-to-date, validates
+   * the resulting image data, and automatically downloads the screenshot as a PNG
+   * file with a timestamp-based filename.
+   * 
+   * @method takeScreenshot
+   * @throws {Error} Will log errors if canvas is unavailable or screenshot capture fails
+   * @returns {void}
+   * 
+   * @example
+   * // Programmatically capture a screenshot
+   * viewer.takeScreenshot();
+   * 
+   * @since 1.0.0
+   */
   takeScreenshot() {
     try {
       const e = this.belowViewer?.renderer?.domElement;
-      if (!e) return;
-      const t = e.toDataURL("image/png"), i = document.createElement("a");
-      i.href = t, i.download = "screenshot.png", i.click();
+      if (!e) {
+        console.error("[ModelViewer] No canvas available for screenshot");
+        return;
+      }
+      this.belowViewer.renderer && this.belowViewer.sceneManager && this.belowViewer.cameraManager && this.belowViewer.renderer.render(this.belowViewer.sceneManager.scene, this.belowViewer.cameraManager.camera);
+      const t = e.toDataURL("image/png");
+      if (t === "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==") {
+        console.error("[ModelViewer] Screenshot captured empty canvas");
+        return;
+      }
+      const i = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "").slice(0, -5), o = `${this.currentModelKey ? this.config.models[this.currentModelKey]?.name?.replace(/[^a-zA-Z0-9\-_]/g, "-") || this.currentModelKey.replace(/[^a-zA-Z0-9\-_]/g, "-") : "unknown"}-belowjs-${i}.png`, n = document.createElement("a");
+      n.href = t, n.download = o, document.body.appendChild(n), n.click(), document.body.removeChild(n), console.log(`[ModelViewer] Screenshot saved as ${o}`);
     } catch (e) {
       console.error("[ModelViewer] Failed to capture screenshot", e);
     }
