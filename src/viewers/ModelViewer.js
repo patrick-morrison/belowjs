@@ -404,7 +404,10 @@ export class ModelViewer extends EventSystem {
     if (!this.config.enableMeasurement) {
       button.classList.add('no-measurement');
     }
-    button.textContent = '📷';
+    button.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+      <circle cx="12" cy="13" r="4"></circle>
+    </svg>`;
     button.tabIndex = 0;
     button.title = 'Save Screenshot';
     button.setAttribute('aria-label', 'Save Screenshot');
@@ -485,15 +488,59 @@ export class ModelViewer extends EventSystem {
     this.fullscreenButton.textContent = active ? '\u26F6' : '\u26F6';
   }
 
+  /**
+   * Captures a screenshot of the current 3D scene without UI overlays
+   * 
+   * The method forces a render to ensure the canvas is up-to-date, validates
+   * the resulting image data, and automatically downloads the screenshot as a PNG
+   * file with a timestamp-based filename.
+   * 
+   * @method takeScreenshot
+   * @throws {Error} Will log errors if canvas is unavailable or screenshot capture fails
+   * @returns {void}
+   * 
+   * @example
+   * // Programmatically capture a screenshot
+   * viewer.takeScreenshot();
+   * 
+   * @since 1.0.0
+   */
   takeScreenshot() {
     try {
       const canvas = this.belowViewer?.renderer?.domElement;
-      if (!canvas) return;
+      if (!canvas) {
+        console.error('[ModelViewer] No canvas available for screenshot');
+        return;
+      }
+      
+      // Force a render to ensure the canvas is up-to-date
+      if (this.belowViewer.renderer && this.belowViewer.sceneManager && this.belowViewer.cameraManager) {
+        this.belowViewer.renderer.render(this.belowViewer.sceneManager.scene, this.belowViewer.cameraManager.camera);
+      }
+      
       const dataURL = canvas.toDataURL('image/png');
+      
+      // Check if we got a valid image (not just a black/empty canvas)
+      if (dataURL === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==') {
+        console.error('[ModelViewer] Screenshot captured empty canvas');
+        return;
+      }
+      
+      // Generate filename with model name and timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, -5);
+      const modelName = this.currentModelKey ? 
+        this.config.models[this.currentModelKey]?.name?.replace(/[^a-zA-Z0-9\-_]/g, '-') || this.currentModelKey.replace(/[^a-zA-Z0-9\-_]/g, '-') :
+        'unknown';
+      const filename = `${modelName}-belowjs-${timestamp}.png`;
+      
       const link = document.createElement('a');
       link.href = dataURL;
-      link.download = 'screenshot.png';
+      link.download = filename;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      
+      console.log(`[ModelViewer] Screenshot saved as ${filename}`);
     } catch (err) {
       console.error('[ModelViewer] Failed to capture screenshot', err);
     }
