@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2025-08-27 - Stable Release
 
+## [1.0.1] - 2025-09-03
+
+### Changed
+- Cleaned the basic example (`examples/basic/index.html`):
+  - Remove legacy `#vrComfortButton` style rule
+  - Remove redundant manual dropdown listener (internal handler used)
+  - Disable `autoLoadFirst` and explicitly load initial model (`kxi`)
+
 ### Release Notes
 - **Stable 1.0.0**: First stable release of the BelowJS library
 - **Production ready**: Complete 3D model viewer with VR support
