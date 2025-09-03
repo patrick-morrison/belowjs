@@ -72,6 +72,7 @@ import { DiveSystem } from '../dive/DiveSystem.js';
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
  * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
+ * @property {boolean} [enableScreenshot=false] - Show screenshot button
  * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
  * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
@@ -178,6 +179,7 @@ export class ModelViewer extends EventSystem {
       enableDiveSystem: { type: 'boolean', default: true },
       showDiveToggle: { type: 'boolean', default: true },
       enableFullscreen: { type: 'boolean', default: false },
+      enableScreenshot: { type: 'boolean', default: false },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
       viewerConfig: {
@@ -202,6 +204,7 @@ export class ModelViewer extends EventSystem {
     this.comfortGlyph = null;
     this.diveSystem = null;
     this.fullscreenButton = null;
+    this.screenshotButton = null;
     this.lastComfortMode = null;
     
     // VR loading state
@@ -236,6 +239,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
     });
 
@@ -245,6 +249,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
+      this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
     }
 
@@ -387,6 +392,40 @@ export class ModelViewer extends EventSystem {
   }
 
 
+  _maybeAttachScreenshotButton() {
+    if (!this.config.enableScreenshot || this.screenshotButton) return;
+
+    const button = document.createElement('div');
+    button.id = 'screenshotButton';
+    button.className = 'screenshot-button';
+    if (this.config.measurementTheme === 'light') {
+      button.classList.add('light-theme');
+    }
+    if (!this.config.enableMeasurement) {
+      button.classList.add('no-measurement');
+    }
+    button.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+      <circle cx="12" cy="13" r="4"></circle>
+    </svg>`;
+    button.tabIndex = 0;
+    button.title = 'Save Screenshot';
+    button.setAttribute('aria-label', 'Save Screenshot');
+
+    button.addEventListener('click', () => this.takeScreenshot());
+    button.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.takeScreenshot();
+      }
+    });
+
+    this.container.appendChild(button);
+    this.screenshotButton = button;
+    this.ui.screenshot = button;
+  }
+
+
   _maybeAttachFullscreenButton() {
     if (!this.config.enableFullscreen || this.fullscreenButton) return;
 
@@ -447,6 +486,64 @@ export class ModelViewer extends EventSystem {
     this.fullscreenButton.title = active ? 'Exit Fullscreen' : 'Enter Fullscreen';
     this.fullscreenButton.setAttribute('aria-label', active ? 'Exit Fullscreen' : 'Enter Fullscreen');
     this.fullscreenButton.textContent = active ? '\u26F6' : '\u26F6';
+  }
+
+  /**
+   * Captures a screenshot of the current 3D scene without UI overlays
+   * 
+   * The method forces a render to ensure the canvas is up-to-date, validates
+   * the resulting image data, and automatically downloads the screenshot as a PNG
+   * file with a timestamp-based filename.
+   * 
+   * @method takeScreenshot
+   * @throws {Error} Will log errors if canvas is unavailable or screenshot capture fails
+   * @returns {void}
+   * 
+   * @example
+   * // Programmatically capture a screenshot
+   * viewer.takeScreenshot();
+   * 
+   * @since 1.0.0
+   */
+  takeScreenshot() {
+    try {
+      const canvas = this.belowViewer?.renderer?.domElement;
+      if (!canvas) {
+        console.error('[ModelViewer] No canvas available for screenshot');
+        return;
+      }
+      
+      // Force a render to ensure the canvas is up-to-date
+      if (this.belowViewer.renderer && this.belowViewer.sceneManager && this.belowViewer.cameraManager) {
+        this.belowViewer.renderer.render(this.belowViewer.sceneManager.scene, this.belowViewer.cameraManager.camera);
+      }
+      
+      const dataURL = canvas.toDataURL('image/png');
+      
+      // Check if we got a valid image (not just a black/empty canvas)
+      if (dataURL === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==') {
+        console.error('[ModelViewer] Screenshot captured empty canvas');
+        return;
+      }
+      
+      // Generate filename with model name and timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, -5);
+      const modelName = this.currentModelKey ? 
+        this.config.models[this.currentModelKey]?.name?.replace(/[^a-zA-Z0-9\-_]/g, '-') || this.currentModelKey.replace(/[^a-zA-Z0-9\-_]/g, '-') :
+        'unknown';
+      const filename = `${modelName}-belowjs-${timestamp}.png`;
+      
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log(`[ModelViewer] Screenshot saved as ${filename}`);
+    } catch (err) {
+      console.error('[ModelViewer] Failed to capture screenshot', err);
+    }
   }
   
   setupEventForwarding() {
@@ -1597,6 +1694,10 @@ export class ModelViewer extends EventSystem {
       this.fullscreenButton.remove();
       this.fullscreenButton = null;
       document.removeEventListener('fullscreenchange', this._onFullscreenChange);
+    }
+    if (this.screenshotButton) {
+      this.screenshotButton.remove();
+      this.screenshotButton = null;
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();
