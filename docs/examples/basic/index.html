@@ -28,10 +28,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
-        /* Hide old comfort button */
-        #vrComfortButton {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -87,8 +83,8 @@
           }
         };
 
-        // Initialize viewer
-        let currentModel = 'unknown';
+        // Initialize viewer with first model
+        let currentModel = 'kxi';
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.inset = '0';
@@ -101,34 +97,18 @@
           models: models,
           enableVRComfortGlyph: true,
           enableFullscreen: true,
+          autoLoadFirst: false,
           enableVRAudio: true,
           audioPath: './sound/',
           viewerConfig: {
             scene: {
               background: '#001122'
             }
-          },
-          initialModel: currentModel,
-          initialPositions: models[currentModel].initialPositions
+          }
         });
         
-        // Handle model selection changes
-        function attachDropdownListener() {
-          const dropdown = document.querySelector('.model-selector__dropdown');
-          if (dropdown) {
-            dropdown.addEventListener('change', (event) => {
-              const selectedModelKey = event.target.value;
-              if (selectedModelKey !== currentModel) {
-                currentModel = selectedModelKey;
-                viewer.loadModel(selectedModelKey);
-              }
-            });
-          } else {
-            // Retry after a short delay if dropdown not yet in DOM
-            setTimeout(attachDropdownListener, 100);
-          }
-        }
-        attachDropdownListener();
+        // Explicitly load the initial model (ModelViewer handles dropdown changes internally)
+        setTimeout(() => viewer.loadModel(currentModel), 100);
     </script>
 </body>
 </html>
