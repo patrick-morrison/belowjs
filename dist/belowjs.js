@@ -5375,7 +5375,8 @@ class In extends wt {
     this.renderer = new u.WebGLRenderer({
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
-      powerPreference: this.config.renderer.powerPreference
+      powerPreference: this.config.renderer.powerPreference,
+      preserveDrawingBuffer: !0
     }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = u.PCFSoftShadowMap, this.renderer.outputColorSpace = u.SRGBColorSpace;
     const e = {
       none: u.NoToneMapping,
@@ -7904,6 +7905,7 @@ class Dn extends wt {
       enableDiveSystem: { type: "boolean", default: !0 },
       showDiveToggle: { type: "boolean", default: !0 },
       enableFullscreen: { type: "boolean", default: !1 },
+      enableScreenshot: { type: "boolean", default: !1 },
       enableVRAudio: { type: "boolean", default: !1 },
       audioPath: { type: "string", default: "./sound/" },
       viewerConfig: {
@@ -7917,7 +7919,7 @@ class Dn extends wt {
       initialModel: { type: "string", default: null },
       initialPositions: { type: "object", default: null }
     };
-    this.config = new qe(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.lastComfortMode = null, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
+    this.config = new qe(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.lastComfortMode = null, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
   }
   init() {
     const e = {
@@ -7927,8 +7929,8 @@ class Dn extends wt {
       ...typeof this.config.enableVRAudio < "u" && { enableVRAudio: this.config.enableVRAudio }
     };
     if (this.belowViewer = new In(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
-      this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachFullscreenButton();
-    }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachFullscreenButton()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
+      this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton();
+    }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
       setTimeout(() => this.loadModel(t), 100);
     }
@@ -7999,6 +8001,16 @@ class Dn extends wt {
       this.diveSystem && t.model && this.diveSystem.updateParticleBounds(t.model);
     }), typeof window < "u" && (window.diveSystem = this.diveSystem);
   }
+  _maybeAttachScreenshotButton() {
+    if (!this.config.enableScreenshot || this.screenshotButton) return;
+    const e = document.createElement("div");
+    e.id = "screenshotButton", e.className = "screenshot-button", this.config.measurementTheme === "light" && e.classList.add("light-theme"), this.config.enableMeasurement || e.classList.add("no-measurement"), e.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+      <circle cx="12" cy="13" r="4"></circle>
+    </svg>`, e.tabIndex = 0, e.title = "Save Screenshot", e.setAttribute("aria-label", "Save Screenshot"), e.addEventListener("click", () => this.takeScreenshot()), e.addEventListener("keydown", (t) => {
+      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.takeScreenshot());
+    }), this.container.appendChild(e), this.screenshotButton = e, this.ui.screenshot = e;
+  }
   _maybeAttachFullscreenButton() {
     if (!this.config.enableFullscreen || this.fullscreenButton) return;
     const e = document.createElement("div");
@@ -8023,6 +8035,42 @@ class Dn extends wt {
     if (!this.fullscreenButton) return;
     const e = this.isFullscreen();
     this.fullscreenButton.title = e ? "Exit Fullscreen" : "Enter Fullscreen", this.fullscreenButton.setAttribute("aria-label", e ? "Exit Fullscreen" : "Enter Fullscreen"), this.fullscreenButton.textContent = "⛶";
+  }
+  /**
+   * Captures a screenshot of the current 3D scene without UI overlays
+   * 
+   * The method forces a render to ensure the canvas is up-to-date, validates
+   * the resulting image data, and automatically downloads the screenshot as a PNG
+   * file with a timestamp-based filename.
+   * 
+   * @method takeScreenshot
+   * @throws {Error} Will log errors if canvas is unavailable or screenshot capture fails
+   * @returns {void}
+   * 
+   * @example
+   * // Programmatically capture a screenshot
+   * viewer.takeScreenshot();
+   * 
+   * @since 1.0.0
+   */
+  takeScreenshot() {
+    try {
+      const e = this.belowViewer?.renderer?.domElement;
+      if (!e) {
+        console.error("[ModelViewer] No canvas available for screenshot");
+        return;
+      }
+      this.belowViewer.renderer && this.belowViewer.sceneManager && this.belowViewer.cameraManager && this.belowViewer.renderer.render(this.belowViewer.sceneManager.scene, this.belowViewer.cameraManager.camera);
+      const t = e.toDataURL("image/png");
+      if (t === "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==") {
+        console.error("[ModelViewer] Screenshot captured empty canvas");
+        return;
+      }
+      const i = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "").slice(0, -5), o = `${this.currentModelKey ? this.config.models[this.currentModelKey]?.name?.replace(/[^a-zA-Z0-9\-_]/g, "-") || this.currentModelKey.replace(/[^a-zA-Z0-9\-_]/g, "-") : "unknown"}-belowjs-${i}.png`, n = document.createElement("a");
+      n.href = t, n.download = o, document.body.appendChild(n), n.click(), document.body.removeChild(n), console.log(`[ModelViewer] Screenshot saved as ${o}`);
+    } catch (e) {
+      console.error("[ModelViewer] Failed to capture screenshot", e);
+    }
   }
   setupEventForwarding() {
     this.belowViewer.on("initialized", (e) => this.emit("initialized", e)), this.belowViewer.on("model-load-start", (e) => this.emit("model-load-start", e)), this.belowViewer.on("model-load-progress", (e) => {
@@ -8528,7 +8576,7 @@ class Dn extends wt {
       const e = this.belowViewer.renderer.domElement;
       e.removeEventListener("mousedown", this.focusEventHandlers.onMouseDown), e.removeEventListener("mousemove", this.focusEventHandlers.onMouseMove), e.removeEventListener("mouseup", this.focusEventHandlers.onMouseUp), e.removeEventListener("click", this.focusEventHandlers.onMouseClick), this.focusEventHandlers = null;
     }
-    this.measurementSystem && (this.measurementSystem.dispose(), this.measurementSystem = null), this.comfortGlyph && (this.comfortGlyph.dispose(), this.comfortGlyph = null), this.diveSystem && (this.diveSystem.dispose(), this.diveSystem = null, typeof window < "u" && window.diveSystem === this.diveSystem && (window.diveSystem = null)), this.fullscreenButton && (this.fullscreenButton.remove(), this.fullscreenButton = null, document.removeEventListener("fullscreenchange", this._onFullscreenChange)), this.belowViewer && this.belowViewer.dispose(), this.removeAllListeners();
+    this.measurementSystem && (this.measurementSystem.dispose(), this.measurementSystem = null), this.comfortGlyph && (this.comfortGlyph.dispose(), this.comfortGlyph = null), this.diveSystem && (this.diveSystem.dispose(), this.diveSystem = null, typeof window < "u" && window.diveSystem === this.diveSystem && (window.diveSystem = null)), this.fullscreenButton && (this.fullscreenButton.remove(), this.fullscreenButton = null, document.removeEventListener("fullscreenchange", this._onFullscreenChange)), this.screenshotButton && (this.screenshotButton.remove(), this.screenshotButton = null), this.belowViewer && this.belowViewer.dispose(), this.removeAllListeners();
   }
 }
 export {

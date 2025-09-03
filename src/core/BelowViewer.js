@@ -202,7 +202,8 @@ export class BelowViewer extends EventSystem {
     this.renderer = new THREE.WebGLRenderer({
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
-      powerPreference: this.config.renderer.powerPreference
+      powerPreference: this.config.renderer.powerPreference,
+      preserveDrawingBuffer: true
     });
     
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);

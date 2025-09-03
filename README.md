@@ -185,9 +185,12 @@ new ModelViewer(document.body, {
   },
   enableVR: true,
   enableMeasurement: true,
-  enableDiveSystem: true
+  enableDiveSystem: true,
+  enableScreenshot: true
 });
 ```
+
+Enable `enableScreenshot` to add a button that captures the scene without UI overlays.
 
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:
