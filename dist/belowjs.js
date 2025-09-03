@@ -5376,7 +5376,9 @@ class In extends wt {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
-      preserveDrawingBuffer: !0
+      // Only preserve the drawing buffer when explicitly requested via config
+      // (e.g., for screenshot support). Defaults to false for performance.
+      preserveDrawingBuffer: this.config.renderer?.preserveDrawingBuffer === !0
     }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = u.PCFSoftShadowMap, this.renderer.outputColorSpace = u.SRGBColorSpace;
     const e = {
       none: u.NoToneMapping,
@@ -7928,7 +7930,7 @@ class Dn extends wt {
       ...this.config.audioPath && { audioPath: this.config.audioPath },
       ...typeof this.config.enableVRAudio < "u" && { enableVRAudio: this.config.enableVRAudio }
     };
-    if (this.belowViewer = new In(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
+    if (this.config.enableScreenshot && (e.renderer = e.renderer || {}, e.renderer.preserveDrawingBuffer = !0), this.belowViewer = new In(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
       this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton();
     }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];

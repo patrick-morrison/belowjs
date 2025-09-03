@@ -203,7 +203,9 @@ export class BelowViewer extends EventSystem {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
-      preserveDrawingBuffer: true
+      // Only preserve the drawing buffer when explicitly requested via config
+      // (e.g., for screenshot support). Defaults to false for performance.
+      preserveDrawingBuffer: this.config.renderer?.preserveDrawingBuffer === true
     });
     
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);

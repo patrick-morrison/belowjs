@@ -228,6 +228,12 @@ export class ModelViewer extends EventSystem {
       ...(this.config.audioPath && { audioPath: this.config.audioPath }),
       ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio })
     };
+
+    // If screenshot UI is enabled, ensure renderer preserves drawing buffer
+    if (this.config.enableScreenshot) {
+      viewerConfig.renderer = viewerConfig.renderer || {};
+      viewerConfig.renderer.preserveDrawingBuffer = true;
+    }
     
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
 
