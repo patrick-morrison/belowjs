@@ -182,21 +182,25 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.0.0</code>
+                <code>npm install belowjs@1.1.0</code>
             </div>
 
             <div class="version-section">
                 <div class="version-header">
-                    <div class="version-number">1.0.1</div>
-                    <div class="version-tag">Patch</div>
+                    <div class="version-number">1.1.0</div>
+                    <div class="version-tag">Minor</div>
                     <div class="version-date">September 3, 2025</div>
                 </div>
                 
-                <p>Maintenance release with a small documentation example cleanup.</p>
+                <p>New screenshot capture capability and example updates.</p>
                 
                 <div class="changes-list">
                     <ul>
-                        <li><span class="change-type improved">Improved</span> Basic example cleanup: removed legacy <code>#vrComfortButton</code> style, removed redundant manual dropdown listener (use internal handler), explicitly load initial model (<code>kxi</code>), and regenerated docs examples via copy script.</li>
+                        <li><span class="change-type new">New</span> Screenshot capture button in the viewer UI</li>
+                        <li><span class="change-type new">New</span> <code>enableScreenshot</code> config option on <code>ModelViewer</code></li>
+                        <li><span class="change-type new">New</span> <code>takeScreenshot()</code> method to programmatically save a PNG</li>
+                        <li><span class="change-type improved">Improved</span> Renderer now uses <code>preserveDrawingBuffer</code> to support screenshots</li>
+                        <li><span class="change-type improved">Improved</span> Examples updated to include <code>enableScreenshot: true</code> and CDN references bumped to 1.1.0</li>
                     </ul>
                 </div>
             </div>
