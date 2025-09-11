@@ -5586,7 +5586,7 @@ class In extends wt {
           i.map && i.map.dispose(), i.normalMap && i.normalMap.dispose(), i.roughnessMap && i.roughnessMap.dispose(), i.metalnessMap && i.metalnessMap.dispose(), i.dispose();
         }) : (t.material.map && t.material.map.dispose(), t.material.normalMap && t.material.normalMap.dispose(), t.material.roughnessMap && t.material.roughnessMap.dispose(), t.material.metalnessMap && t.material.metalnessMap.dispose(), t.material.dispose())));
       }), this.sceneManager.remove(e);
-    }), this.loadedModels.length = 0, this.emit("models-cleared");
+    }), this.loadedModels.length = 0, this.modelLoader && this.modelLoader.cache && this.modelLoader.cache.clear(), this.emit("models-cleared");
   }
   /**
    * Clean up and dispose of all resources

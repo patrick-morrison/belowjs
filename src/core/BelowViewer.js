@@ -610,8 +610,13 @@ export class BelowViewer extends EventSystem {
       
       this.sceneManager.remove(model);
     });
-    
+
     this.loadedModels.length = 0;
+
+    if (this.modelLoader && this.modelLoader.cache) {
+      this.modelLoader.cache.clear();
+    }
+
     this.emit('models-cleared');
   }
 
