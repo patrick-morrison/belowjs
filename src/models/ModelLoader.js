@@ -7,11 +7,16 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 export class ModelLoader {
   constructor(renderer = null) {
     this.renderer = renderer;
+    this.platformKey = ModelLoader.getPlatformKey();
+    this.isIOSDevice = this.platformKey === 'ios';
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
     this.ktx2Loader = null;
 
     this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    if (this.isIOSDevice && typeof this.dracoLoader.setWorkerLimit === 'function') {
+      this.dracoLoader.setWorkerLimit(1);
+    }
     this.loader.setDRACOLoader(this.dracoLoader);
     this.loader.setMeshoptDecoder(MeshoptDecoder);
 
@@ -22,48 +27,62 @@ export class ModelLoader {
   }
 
   setupKTX2Loader() {
-
-    if (ModelLoader.sharedKTX2SetupComplete && ModelLoader.sharedKTX2Loader) {
-      this.ktx2Loader = ModelLoader.sharedKTX2Loader;
-      this.ktx2SetupComplete = true;
-      this.loader.setKTX2Loader(this.ktx2Loader);
-      return;
-    }
+    const platformKey = this.platformKey;
 
     try {
-      if (!ModelLoader.sharedKTX2Loader) {
-        ModelLoader.sharedKTX2Loader = new KTX2Loader();
-        ModelLoader.sharedKTX2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
+      if (!ModelLoader.sharedKTX2Loaders.has(platformKey)) {
+        const loader = new KTX2Loader();
+        loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
+        if (this.isIOSDevice && typeof loader.setWorkerLimit === 'function') {
+          loader.setWorkerLimit(1);
+        }
+        ModelLoader.sharedKTX2Loaders.set(platformKey, loader);
+        ModelLoader.sharedKTX2SetupComplete.set(platformKey, false);
       }
-      this.ktx2Loader = ModelLoader.sharedKTX2Loader;
 
-      if (this.renderer && !ModelLoader.sharedKTX2SetupComplete) {
-        this.ktx2Loader.detectSupport(this.renderer);
-        ModelLoader.sharedKTX2SetupComplete = true;
-      }
+      this.ktx2Loader = ModelLoader.sharedKTX2Loaders.get(platformKey);
       this.loader.setKTX2Loader(this.ktx2Loader);
-      this.ktx2SetupComplete = true;
+      this.ktx2SetupComplete = ModelLoader.sharedKTX2SetupComplete.get(platformKey) || false;
+
+      if (this.renderer && !this.ktx2SetupComplete) {
+        this.ensureKTX2Support();
+      }
     } catch (error) {
       console.warn('KTX2 loader setup failed, falling back to standard textures:', error);
       this.ktx2Loader = null;
     }
   }
 
+  ensureKTX2Support() {
+    if (!this.ktx2Loader || !this.renderer) {
+      return;
+    }
+
+    const platformKey = this.platformKey;
+    if (ModelLoader.sharedKTX2SetupComplete.get(platformKey)) {
+      this.ktx2SetupComplete = true;
+      return;
+    }
+
+    try {
+      this.ktx2Loader.detectSupport(this.renderer);
+      ModelLoader.sharedKTX2SetupComplete.set(platformKey, true);
+      this.ktx2SetupComplete = true;
+    } catch (error) {
+      console.warn('Failed to set up KTX2 loader with renderer:', error);
+    }
+  }
+
   setRenderer(renderer) {
     this.renderer = renderer;
-    
 
-    if (this.ktx2Loader && renderer && !this.ktx2SetupComplete) {
-      try {
-        this.ktx2Loader.detectSupport(renderer);
-        this.loader.setKTX2Loader(this.ktx2Loader);
-      } catch (error) {
-        console.warn('Failed to set up KTX2 loader with renderer:', error);
-      }
+    if (!renderer) {
+      return;
     }
-    
 
-    if (!this.ktx2Loader && renderer) {
+    if (this.ktx2Loader) {
+      this.ensureKTX2Support();
+    } else {
       this.setupKTX2Loader();
     }
   }
@@ -77,14 +96,25 @@ export class ModelLoader {
     }
 
     return new Promise((resolve, reject) => {
+      let abortHandler = null;
+      const cleanup = () => {
+        if (signal && abortHandler) {
+          signal.removeEventListener('abort', abortHandler);
+          abortHandler = null;
+        }
+      };
+
+      const rejectWithCancellation = () => {
+        cleanup();
+        reject(new Error('Loading cancelled'));
+      };
 
       if (signal) {
-        signal.addEventListener('abort', () => {
-          reject(new Error('Loading cancelled'));
-        });
+        abortHandler = rejectWithCancellation;
+        signal.addEventListener('abort', abortHandler);
         
         if (signal.aborted) {
-          reject(new Error('Loading cancelled'));
+          rejectWithCancellation();
           return;
         }
       }
@@ -93,13 +123,15 @@ export class ModelLoader {
         url,
         (gltf) => {
           if (signal && signal.aborted) {
-            reject(new Error('Loading cancelled'));
+            cleanup();
             return;
           }
           
           this.cache.set(url, gltf);
           
           const model = this.processModel(gltf);
+          this.releaseParserCaches(gltf);
+          cleanup();
           resolve(model);
         },
         (progress) => {
@@ -109,6 +141,7 @@ export class ModelLoader {
           if (onProgress) onProgress(progress);
         },
         (error) => {
+          cleanup();
           reject(error);
         }
       );
@@ -117,6 +150,7 @@ export class ModelLoader {
 
   processModel(gltf) {
     const model = gltf.scene;
+    const maxAnisotropy = this.getMaxAnisotropy();
 
     model.traverse((obj) => {
       if (obj.isLight) {
@@ -163,12 +197,12 @@ export class ModelLoader {
             }
             
 
-            if (newMaterial.map) {
-              newMaterial.map.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+            if (newMaterial.map && maxAnisotropy !== null) {
+              newMaterial.map.anisotropy = maxAnisotropy;
               newMaterial.map.needsUpdate = true;
             }
-            if (newMaterial.normalMap) {
-              newMaterial.normalMap.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+            if (newMaterial.normalMap && maxAnisotropy !== null) {
+              newMaterial.normalMap.anisotropy = maxAnisotropy;
               newMaterial.normalMap.needsUpdate = true;
             }
             
@@ -177,6 +211,10 @@ export class ModelLoader {
               obj.material[idx] = newMaterial;
             } else {
               obj.material = newMaterial;
+            }
+
+            if (material !== newMaterial && typeof material?.dispose === 'function') {
+              material.dispose();
             }
           } else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
             material.needsUpdate = true;
@@ -206,11 +244,134 @@ export class ModelLoader {
     return model;
   }
 
+  getMaxAnisotropy() {
+    if (!this.renderer || !this.renderer.capabilities || typeof this.renderer.capabilities.getMaxAnisotropy !== 'function') {
+      return null;
+    }
+    const value = this.renderer.capabilities.getMaxAnisotropy();
+    return typeof value === 'number' ? value : null;
+  }
+
   processMaterial(material) {
 
     if (material && material.needsUpdate !== undefined) {
       material.needsUpdate = true;
     }
+  }
+
+  releaseFromCache(url) {
+    if (!this.cache.has(url)) {
+      return;
+    }
+
+    const cachedGLTF = this.cache.get(url);
+    this.disposeGLTFResources(cachedGLTF);
+    this.cache.delete(url);
+  }
+
+  disposeGLTFResources(gltf) {
+    if (!gltf) return;
+    this.releaseParserCaches(gltf);
+
+    const processedScenes = new Set();
+    const processScene = (scene) => {
+      if (!scene || processedScenes.has(scene)) return;
+      processedScenes.add(scene);
+
+      scene.traverse((child) => {
+        if (child.isMesh) {
+          if (child.geometry) {
+            child.geometry.dispose();
+          }
+          this.disposeMaterialResources(child.material);
+        }
+      });
+    };
+
+    if (Array.isArray(gltf.scenes)) {
+      gltf.scenes.forEach(processScene);
+    }
+
+    if (gltf.scene) {
+      processScene(gltf.scene);
+    }
+  }
+
+  disposeMaterialResources(material) {
+    if (!material) return;
+
+    const materials = Array.isArray(material) ? material : [material];
+    const textureSlots = [
+      'map',
+      'alphaMap',
+      'aoMap',
+      'bumpMap',
+      'clearcoatMap',
+      'clearcoatNormalMap',
+      'clearcoatRoughnessMap',
+      'displacementMap',
+      'emissiveMap',
+      'envMap',
+      'iridescenceMap',
+      'lightMap',
+      'metalnessMap',
+      'normalMap',
+      'roughnessMap',
+      'specularMap',
+      'specularColorMap',
+      'specularIntensityMap',
+      'sheenColorMap',
+      'sheenRoughnessMap',
+      'thicknessMap',
+      'transmissionMap',
+      'anisotropyMap'
+    ];
+
+    materials.forEach((mat) => {
+      if (!mat) return;
+
+      textureSlots.forEach((slot) => {
+        const texture = mat[slot];
+        if (texture && typeof texture.dispose === 'function') {
+          texture.dispose();
+        }
+        if (texture && texture.source && typeof texture.source.dispose === 'function') {
+          texture.source.dispose();
+        }
+        if (texture && texture.image && typeof texture.image.close === 'function') {
+          texture.image.close();
+        }
+        if (texture) {
+          mat[slot] = null;
+        }
+      });
+
+      if (typeof mat.dispose === 'function') {
+        mat.dispose();
+      }
+    });
+  }
+
+  releaseParserCaches(gltf) {
+    const parser = gltf?.parser;
+    if (!parser) return;
+
+    if (parser.cache && typeof parser.cache.removeAll === 'function') {
+      parser.cache.removeAll();
+    }
+    if (parser.associations && typeof parser.associations.clear === 'function') {
+      parser.associations.clear();
+    }
+
+    parser.primitiveCache = {};
+    parser.nodeCache = {};
+    parser.meshCache = { refs: {}, uses: {} };
+    parser.cameraCache = { refs: {}, uses: {} };
+    parser.lightCache = { refs: {}, uses: {} };
+    parser.sourceCache = {};
+    parser.textureCache = {};
+    parser.nodeNamesUsed = {};
+    gltf.parser = null;
   }
 
   dispose() {
@@ -219,10 +380,31 @@ export class ModelLoader {
       this.dracoLoader.dispose();
     }
 
+    this.cache.forEach((gltf) => {
+      this.disposeGLTFResources(gltf);
+    });
     this.cache.clear();
     this.ktx2SetupComplete = false;
   }
+
+  static isIOSPlatform() {
+    if (typeof navigator === 'undefined') {
+      return false;
+    }
+
+    const ua = navigator.userAgent || '';
+    const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+    const maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
+
+    const isiOS = /iPad|iPhone|iPod/i.test(ua);
+    const isTouchMac = platform === 'MacIntel' && maxTouchPoints > 1;
+    return isiOS || isTouchMac;
+  }
+
+  static getPlatformKey() {
+    return ModelLoader.isIOSPlatform() ? 'ios' : 'default';
+  }
 }
 
-ModelLoader.sharedKTX2Loader = null;
-ModelLoader.sharedKTX2SetupComplete = false;
+ModelLoader.sharedKTX2Loaders = new Map();
+ModelLoader.sharedKTX2SetupComplete = new Map();

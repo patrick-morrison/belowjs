@@ -5,6 +5,16 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-09-10
+
+### Changed
+- Limit Draco and KTX2 loader workers to a single thread on iOS to reduce Safari/iOS startup memory pressure.
+- Scope shared KTX2 loader instances per platform so renderer detection is repeated only where needed.
+
+### Fixed
+- Release cached GLTF scenes, textures, and parser registries as soon as models are cleared to stop Safari desktop/iOS from crashing during model swaps.
+- Clean up abort listeners and converted materials immediately after GLTF loads so cancelled requests don’t hold onto GPU resources.
+
 ## [1.1.0] - 2025-09-03
 
 ### Added

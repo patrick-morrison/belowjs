@@ -574,13 +574,21 @@ export class BelowViewer extends EventSystem {
   removeModel(model) {
     const index = this.loadedModels.findIndex(item => item.model === model);
     if (index >= 0) {
+      const { url } = this.loadedModels[index];
       this.sceneManager.remove(model);
       this.loadedModels.splice(index, 1);
       this.emit('model-removed', { model });
+
+      const isUrlStillInUse = this.loadedModels.some(item => item.url === url);
+      if (!isUrlStillInUse && this.modelLoader) {
+        this.modelLoader.releaseFromCache(url);
+      }
     }
   }
 
   clearModels() {
+    const urlsToRelease = new Set(this.loadedModels.map(({ url }) => url));
+
     this.loadedModels.forEach(({ model }) => {
 
       model.traverse((child) => {
@@ -612,6 +620,11 @@ export class BelowViewer extends EventSystem {
     });
     
     this.loadedModels.length = 0;
+    urlsToRelease.forEach((url) => {
+      if (this.modelLoader) {
+        this.modelLoader.releaseFromCache(url);
+      }
+    });
     this.emit('models-cleared');
   }
 
@@ -682,6 +695,11 @@ export class BelowViewer extends EventSystem {
         this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
       }
       this.renderer = null;
+    }
+    
+    if (this.modelLoader) {
+      this.modelLoader.dispose();
+      this.modelLoader = null;
     }
     
     window.removeEventListener('resize', this.onWindowResize.bind(this));
