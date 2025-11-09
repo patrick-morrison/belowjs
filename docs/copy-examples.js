@@ -26,6 +26,12 @@ if (fs.existsSync(EXAMPLES_DEST)) {
   fs.rmSync(EXAMPLES_DEST, { recursive: true });
 }
 
+const BINARY_EXTENSIONS = [
+  '.glb', '.gltf', '.bin',
+  '.jpg', '.jpeg', '.png',
+  '.ogg', '.mp3', '.wav', '.flac'
+];
+
 // Copy directory
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -39,12 +45,10 @@ function copyDir(src, dest) {
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
     } else if (entry.isFile()) {
-      // Handle binary files (GLB models) separately
-      if (entry.name.endsWith('.glb') || entry.name.endsWith('.gltf') || 
-          entry.name.endsWith('.bin') || entry.name.endsWith('.jpg') || 
-          entry.name.endsWith('.png') || entry.name.endsWith('.jpeg')) {
-        // Copy binary files as-is
-        fs.copyFileSync(srcPath, destPath);
+      const isBinary = BINARY_EXTENSIONS.some((ext) => entry.name.toLowerCase().endsWith(ext));
+      
+      if (isBinary) {
+        fs.copyFileSync(srcPath, destPath); // keep binary data intact
       } else {
         // Handle text files
         let content = fs.readFileSync(srcPath, 'utf8');
