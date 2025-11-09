@@ -6,7 +6,7 @@
 
 📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Current Version:** `1.2.0` - Memory-hardened release with Safari/iOS loading fixes.
+> **Current Version:** `1.3.0` - Quest Link stability patch for WebXR optional features.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -59,11 +59,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.2.0/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.3.0/dist/belowjs.js"
         }
     }
     </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.2.0/dist/belowjs.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.3.0/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>
@@ -112,7 +112,7 @@ npm install && npm run build
 ### Live Examples
 
 - [Basic Viewer](https://patrick-morrison.github.io/belowjs/examples/basic/) — Full-featured multi-model viewer
-- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — File loader with custom UI
+- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — File loader with custom UI; recommended path for Meta Quest Link desktop streaming
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
 
 ## Installation

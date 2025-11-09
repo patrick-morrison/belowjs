@@ -3924,12 +3924,7 @@ class nn {
     try {
       this.waitForVRCSS().then(() => {
         const e = {
-          optionalFeatures: [
-            "hand-tracking",
-            "local-floor",
-            "bounded-floor",
-            "layers"
-          ]
+          optionalFeatures: this.getOptionalFeatures()
         };
         this.vrButton = Ee.createButton(this.renderer, e), this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', this.vrButton.className = "vr-button--glass vr-button-available", this.vrButton.disabled = !1, this.vrButton.style.cssText = `
           position: fixed !important;
@@ -3947,6 +3942,38 @@ class nn {
     } catch (e) {
       console.error("❌ VR button creation failed:", e);
     }
+  }
+  getOptionalFeatures() {
+    const e = ["hand-tracking", "local-floor"];
+    try {
+      this.supportsBoundedFloor() && e.push("bounded-floor");
+    } catch (t) {
+      console.warn("VR optional feature detection failed:", t);
+    }
+    return e;
+  }
+  supportsBoundedFloor() {
+    if (typeof navigator > "u" || this.isPolyfilledXR())
+      return !1;
+    const e = navigator.xr;
+    return e ? Array.isArray(e.supportedReferenceSpaceTypes) ? e.supportedReferenceSpaceTypes.includes("bounded-floor") : typeof window < "u" && typeof window.XRBoundedReferenceSpace < "u" : !1;
+  }
+  isPolyfilledXR() {
+    if (typeof window < "u" && typeof window.WebXRPolyfill < "u")
+      return !0;
+    if (typeof navigator > "u" || !navigator.xr)
+      return !1;
+    const e = navigator.xr, t = e.constructor && e.constructor.name;
+    if (t && t.toLowerCase().includes("polyfill"))
+      return !0;
+    try {
+      const i = e.requestSession && e.requestSession.toString();
+      if (typeof i == "string" && !i.includes("[native code]"))
+        return !0;
+    } catch {
+      return !0;
+    }
+    return !1;
   }
   styleVRButton() {
     const e = () => {

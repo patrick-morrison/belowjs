@@ -106,12 +106,7 @@ export class VRCore {
 
       this.waitForVRCSS().then(() => {
         const sessionInit = {
-          optionalFeatures: [
-            'hand-tracking',
-            'local-floor',
-            'bounded-floor',
-            'layers'
-          ]
+          optionalFeatures: this.getOptionalFeatures()
         };
         this.vrButton = VRButton.createButton(this.renderer, sessionInit);
         this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR';
@@ -135,6 +130,68 @@ export class VRCore {
     } catch (error) {
       console.error('❌ VR button creation failed:', error);
     }
+  }
+
+  getOptionalFeatures() {
+    const features = ['hand-tracking', 'local-floor'];
+
+    try {
+      if (this.supportsBoundedFloor()) {
+        features.push('bounded-floor');
+      }
+    } catch (error) {
+      console.warn('VR optional feature detection failed:', error);
+    }
+
+    return features;
+  }
+
+  supportsBoundedFloor() {
+    if (typeof navigator === 'undefined' || this.isPolyfilledXR()) {
+      return false;
+    }
+
+    const xr = navigator.xr;
+    if (!xr) {
+      return false;
+    }
+
+    if (Array.isArray(xr.supportedReferenceSpaceTypes)) {
+      return xr.supportedReferenceSpaceTypes.includes('bounded-floor');
+    }
+
+    if (typeof window !== 'undefined' && typeof window.XRBoundedReferenceSpace !== 'undefined') {
+      return true;
+    }
+
+    return false;
+  }
+
+  isPolyfilledXR() {
+    if (typeof window !== 'undefined' && typeof window.WebXRPolyfill !== 'undefined') {
+      return true;
+    }
+
+    if (typeof navigator === 'undefined' || !navigator.xr) {
+      return false;
+    }
+
+    const xrSystem = navigator.xr;
+    const ctorName = xrSystem.constructor && xrSystem.constructor.name;
+    if (ctorName && ctorName.toLowerCase().includes('polyfill')) {
+      return true;
+    }
+
+    try {
+      const requestSrc = xrSystem.requestSession && xrSystem.requestSession.toString();
+      if (typeof requestSrc === 'string' && !requestSrc.includes('[native code]')) {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+
+    return false;
   }
   
   styleVRButton() {

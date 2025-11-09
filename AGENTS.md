@@ -85,7 +85,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.2.0)
-- Fixes: Safari/iOS loader cleanup to avoid reload loops + crashes when swapping KTX2 models
-- Platform: Draco/KTX2 worker pools limited per-platform while desktops retain concurrency
-- Docs + README updated; examples regenerated with CDN `@1.2.0`
+## Current (1.3.0)
+- Fixes: Quest Link WebXR sessions no longer crash when optional features are polyfilled.
+- Platform: Optional WebXR layers/bounded-floor requests gated by runtime detection so native headsets retain full capability.
+- Docs + README updated; examples regenerated with CDN `@1.3.0`
