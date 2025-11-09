@@ -3632,7 +3632,7 @@ function on() {
 }
 class V {
   constructor(e = null) {
-    this.renderer = e, this.isIOSWebKit = V.isIOSWebKit(), this.platformKey = V.getPlatformKey(), this.loader = new ui(), this.dracoLoader = new Mo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(tn), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
+    this.renderer = e, this.isIOSWebKit = V.isIOSWebKit(), this.platformKey = V.getPlatformKey(), this.loader = new ui(), this.dracoLoader = new Mo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(tn), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
   }
   setupKTX2Loader() {
     const e = this.platformKey;
@@ -3672,7 +3672,7 @@ class V {
     const o = () => this.performLoad(e, t, i, s);
     if (!this.isIOSWebKit)
       return o();
-    const n = this.loadQueue.then(() => o());
+    const n = this.loadQueue.then(() => (this.activeIOSLoad && typeof s == "function" && s("freeing-resources"), o()));
     return this.loadQueue = n.catch(() => {
     }), n;
   }
@@ -3682,13 +3682,13 @@ class V {
       const A = () => {
         i && r && (i.removeEventListener("abort", r), r = null);
       }, a = () => {
-        A(), n(new Error("Loading cancelled"));
+        A(), this.isIOSWebKit && (this.activeIOSLoad = !1), n(new Error("Loading cancelled"));
       };
       if (i && (r = a, i.addEventListener("abort", r), i.aborted)) {
         a();
         return;
       }
-      s && s("downloading"), this.loader.load(
+      s && s("downloading"), this.isIOSWebKit && (this.activeIOSLoad = !0), this.loader.load(
         e,
         (l) => {
           if (s && s("processing"), i && i.aborted) {
@@ -3697,13 +3697,13 @@ class V {
           }
           this.cache.set(e, l);
           const h = this.processModel(l);
-          s && s("finalizing"), this.releaseParserCaches(l), A(), o(h);
+          s && s("finalizing"), this.releaseParserCaches(l), A(), this.isIOSWebKit && (this.activeIOSLoad = !1), o(h);
         },
         (l) => {
           i && i.aborted || t && t(l);
         },
         (l) => {
-          A(), n(l);
+          A(), this.isIOSWebKit && (this.activeIOSLoad = !1), n(l);
         }
       );
     });
@@ -8046,7 +8046,7 @@ class Tn extends yt {
       initialModel: { type: "string", default: null },
       initialPositions: { type: "object", default: null }
     };
-    this.config = new qe(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.lastComfortMode = null, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
+    this.config = new qe(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.lastComfortMode = null, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.lastManualLoadingMessage = "", this.stageOverrideActive = !1, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
   }
   init() {
     const e = {
@@ -8444,11 +8444,9 @@ class Tn extends yt {
       console.error("Model not found:", e);
       return;
     }
-    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e);
-    const s = this.belowViewer?.getLoadedModels()?.length > 0;
-    s && this.setLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
+    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), this.belowViewer?.getLoadedModels()?.length > 0 && this.setManualLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
     try {
-      this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), this.belowViewer.vrManager && (this.belowViewer.vrManager.stopMovement(), this.belowViewer.vrManager.resetTeleportState()), await new Promise((n) => setTimeout(n, 50)), s && this.setLoadingMessage("Loading model...");
+      this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), this.belowViewer.vrManager && (this.belowViewer.vrManager.stopMovement(), this.belowViewer.vrManager.resetTeleportState()), await new Promise((n) => setTimeout(n, 50));
       const o = await this.belowViewer.loadModel(t.url, {
         autoFrame: !1,
         // We'll handle positioning manually
@@ -8491,7 +8489,7 @@ class Tn extends yt {
     }
   }
   showLoading(e = "Loading...", t = null) {
-    if (this.isLoading = !0, this.loadingMessage = e, this.loadingModelName = t || "", this.loadingPercentage = 0, this.ui.loading) {
+    if (this.isLoading = !0, this.loadingModelName = t || "", this.loadingPercentage = 0, this.setManualLoadingMessage(e), this.lastManualLoadingMessage = e || "", this.ui.loading) {
       const i = this.ui.loading.querySelector(".loading-status"), s = this.ui.loading.querySelector(".loading-model-name"), o = this.ui.loading.querySelector(".spinner-percentage");
       i && (i.textContent = e), s && t && (s.textContent = t), o && (o.textContent = "0%"), this.ui.loading.style.display = "flex";
     }
@@ -8513,10 +8511,23 @@ class Tn extends yt {
   hideLoading() {
     this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.ui.loading && (this.ui.loading.style.display = "none"), this.vrLoadingSprite && this.belowViewer && this.belowViewer.sceneManager && (this.belowViewer.sceneManager.scene.remove(this.vrLoadingSprite), this.vrLoadingSprite.position.set(0, 0, 0), this.vrLoadingSprite.rotation.set(0, 0, 0));
   }
-  setLoadingMessage(e) {
-    if (this.loadingMessage = e, this.ui.loading) {
+  setManualLoadingMessage(e) {
+    this.lastManualLoadingMessage = e || "", this.stageOverrideActive = !1, this.updateLoadingText(e);
+  }
+  setStageLoadingMessage(e) {
+    this.stageOverrideActive = !0, this.updateLoadingText(e);
+  }
+  restoreManualLoadingMessage() {
+    if (!this.lastManualLoadingMessage) {
+      this.stageOverrideActive = !1;
+      return;
+    }
+    this.stageOverrideActive = !1, this.updateLoadingText(this.lastManualLoadingMessage);
+  }
+  updateLoadingText(e) {
+    if (this.loadingMessage = e || "", this.ui.loading) {
       const t = this.ui.loading.querySelector(".loading-status");
-      t && (t.textContent = e);
+      t && (t.textContent = this.loadingMessage);
     }
     this.updateVRLoadingIndicator();
   }
@@ -8539,11 +8550,11 @@ class Tn extends yt {
   updateLoadingProgress({ progress: e }) {
     if (e.lengthComputable && this.currentModelKey) {
       const t = Math.min(100, Math.round(e.loaded / e.total * 100));
-      if (this.loadingPercentage = t, this.loadingMessage = "Loading model", this.ui.loading) {
-        const i = this.ui.loading.querySelector(".spinner-percentage"), s = this.ui.loading.querySelector(".loading-status"), o = this.ui.loading.querySelector(".spinner-path");
-        if (i && (i.textContent = `${t}%`), s && (s.textContent = "Loading model"), o) {
-          const n = 2 * Math.PI * 20, r = n - t / 100 * n;
-          o.style.strokeDashoffset = r;
+      if (this.loadingPercentage = t, this.stageOverrideActive || this.setManualLoadingMessage("Loading model"), this.ui.loading) {
+        const i = this.ui.loading.querySelector(".spinner-percentage"), s = this.ui.loading.querySelector(".spinner-path");
+        if (i && (i.textContent = `${t}%`), s) {
+          const o = 2 * Math.PI * 20, n = o - t / 100 * o;
+          s.style.strokeDashoffset = n;
         }
       }
       this.updateVRLoadingIndicator();
@@ -8556,21 +8567,15 @@ class Tn extends yt {
     this.hideLoading(), this.updateStatus(`Failed to load model: ${e.message}`);
   }
   onModelLoadStage({ stage: e }) {
-    if (this.isLoading)
-      switch (e) {
-        case "downloading":
-          this.setLoadingMessage("Downloading model...");
-          break;
-        case "cloning":
-          this.setLoadingMessage("Fetching from cache...");
-          break;
-        case "processing":
-          this.setLoadingMessage("Uploading textures...");
-          break;
-        case "finalizing":
-          this.setLoadingMessage("Finalizing view...");
-          break;
-      }
+    if (!this.isLoading) return;
+    const t = {
+      downloading: "Downloading model...",
+      "freeing-resources": "Freeing GPU memory...",
+      cloning: "Fetching from cache...",
+      processing: "Uploading textures... almost there",
+      finalizing: "Finalizing view..."
+    };
+    t[e] ? this.setStageLoadingMessage(t[e]) : e === "completed" && this.restoreManualLoadingMessage();
   }
   /**
    * Get the currently loaded model object

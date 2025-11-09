@@ -14,6 +14,7 @@ export class ModelLoader {
     this.dracoLoader = new DRACOLoader();
     this.ktx2Loader = null;
     this.loadQueue = Promise.resolve();
+    this.activeIOSLoad = false;
 
     this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     if (this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit === 'function') {
@@ -106,7 +107,12 @@ export class ModelLoader {
       return executeLoad();
     }
 
-    const queuedPromise = this.loadQueue.then(() => executeLoad());
+    const queuedPromise = this.loadQueue.then(() => {
+      if (this.activeIOSLoad && typeof onStageChange === 'function') {
+        onStageChange('freeing-resources');
+      }
+      return executeLoad();
+    });
     this.loadQueue = queuedPromise.catch(() => {});
     return queuedPromise;
   }
@@ -123,6 +129,9 @@ export class ModelLoader {
 
       const rejectWithCancellation = () => {
         cleanup();
+        if (this.isIOSWebKit) {
+          this.activeIOSLoad = false;
+        }
         reject(new Error('Loading cancelled'));
       };
 
@@ -138,6 +147,10 @@ export class ModelLoader {
 
       if (onStageChange) {
         onStageChange('downloading');
+      }
+
+      if (this.isIOSWebKit) {
+        this.activeIOSLoad = true;
       }
 
       this.loader.load(
@@ -159,6 +172,9 @@ export class ModelLoader {
           }
           this.releaseParserCaches(gltf);
           cleanup();
+          if (this.isIOSWebKit) {
+            this.activeIOSLoad = false;
+          }
           resolve(model);
         },
         (progress) => {
@@ -169,6 +185,9 @@ export class ModelLoader {
         },
         (error) => {
           cleanup();
+          if (this.isIOSWebKit) {
+            this.activeIOSLoad = false;
+          }
           reject(error);
         }
       );
