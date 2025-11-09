@@ -4,6 +4,7 @@ import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { Scene } from './Scene.js';
 import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
+import { disposeObject3D } from '../utils/ThreeCleanupUtils.js';
 import { VRManager } from './VRManager.js';
 import { DebugCommands } from './DebugCommands.js';
 
@@ -162,6 +163,10 @@ export class BelowViewer extends EventSystem {
     this.isInitialized = false;
     this.loadedModels = [];
     this.currentAbortController = null;
+    this.skipRenderDuringLoad = false;
+    this.pixelRatioBeforeThrottle = 1;
+    this.originalPixelRatio = 1;
+    this.isConstrainedSafari = false;
     
     this.init();
   }
@@ -173,6 +178,13 @@ export class BelowViewer extends EventSystem {
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
+      this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || false;
+      if (this.renderer?.getPixelRatio) {
+        this.originalPixelRatio = this.renderer.getPixelRatio();
+      } else if (typeof window !== 'undefined') {
+        this.originalPixelRatio = window.devicePixelRatio || 1;
+      }
+      this.pixelRatioBeforeThrottle = this.originalPixelRatio;
       
       if (this.isVREnabled) {
         this.initVR();
@@ -361,16 +373,25 @@ export class BelowViewer extends EventSystem {
     this.currentAbortController = new AbortController();
     const signal = this.currentAbortController.signal;
     
+    const shouldThrottleRendering = this.isConstrainedSafari;
     try {
       this.emit('model-load-start', { url });
+      if (shouldThrottleRendering) {
+        this.applyLoadRenderingConstraints(true);
+      }
       
       const onProgress = (progress) => {
         if (!signal.aborted) {
           this.emit('model-load-progress', { url, progress });
         }
       };
+      const onStageChange = (stage) => {
+        if (!signal.aborted) {
+          this.emit('model-load-stage', { url, stage });
+        }
+      };
       
-      const model = await this.modelLoader.load(url, onProgress, signal);
+      const model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
       
       if (signal.aborted) {
         return null;
@@ -404,6 +425,9 @@ export class BelowViewer extends EventSystem {
         this.currentAbortController = null;
       }
       
+      if (onStageChange) {
+        onStageChange('completed');
+      }
       this.emit('model-loaded', { model, url });
       return model;
       
@@ -423,6 +447,10 @@ export class BelowViewer extends EventSystem {
       }
       
       throw error;
+    } finally {
+      if (shouldThrottleRendering) {
+        this.applyLoadRenderingConstraints(false);
+      }
     }
   }
 
@@ -483,13 +511,36 @@ export class BelowViewer extends EventSystem {
 
       this.emit('before-render', deltaTime);
       
+      const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
-        this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+        if (!this.skipRenderDuringLoad || isXRPresenting) {
+          this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+        }
       }
     };
     
 
     this.renderer.setAnimationLoop(animate);
+  }
+
+  applyLoadRenderingConstraints(isLoading) {
+    if (!this.isConstrainedSafari || !this.renderer) {
+      return;
+    }
+
+    if (isLoading) {
+      this.pixelRatioBeforeThrottle = this.renderer.getPixelRatio ? this.renderer.getPixelRatio() : this.originalPixelRatio;
+      if (typeof this.renderer.setPixelRatio === 'function') {
+        const targetRatio = Math.min(this.pixelRatioBeforeThrottle || this.originalPixelRatio, 1.25);
+        this.renderer.setPixelRatio(targetRatio);
+      }
+      this.skipRenderDuringLoad = true;
+    } else {
+      if (typeof this.renderer.setPixelRatio === 'function') {
+        this.renderer.setPixelRatio(this.pixelRatioBeforeThrottle || this.originalPixelRatio);
+      }
+      this.skipRenderDuringLoad = false;
+    }
   }
 
 
@@ -576,6 +627,7 @@ export class BelowViewer extends EventSystem {
     if (index >= 0) {
       const { url } = this.loadedModels[index];
       this.sceneManager.remove(model);
+      disposeObject3D(model);
       this.loadedModels.splice(index, 1);
       this.emit('model-removed', { model });
 
@@ -590,32 +642,7 @@ export class BelowViewer extends EventSystem {
     const urlsToRelease = new Set(this.loadedModels.map(({ url }) => url));
 
     this.loadedModels.forEach(({ model }) => {
-
-      model.traverse((child) => {
-        if (child.isMesh) {
-          if (child.geometry) {
-            child.geometry.dispose();
-          }
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach(mat => {
-                if (mat.map) mat.map.dispose();
-                if (mat.normalMap) mat.normalMap.dispose();
-                if (mat.roughnessMap) mat.roughnessMap.dispose();
-                if (mat.metalnessMap) mat.metalnessMap.dispose();
-                mat.dispose();
-              });
-            } else {
-              if (child.material.map) child.material.map.dispose();
-              if (child.material.normalMap) child.material.normalMap.dispose();
-              if (child.material.roughnessMap) child.material.roughnessMap.dispose();
-              if (child.material.metalnessMap) child.material.metalnessMap.dispose();
-              child.material.dispose();
-            }
-          }
-        }
-      });
-      
+      disposeObject3D(model);
       this.sceneManager.remove(model);
     });
     
@@ -666,19 +693,7 @@ export class BelowViewer extends EventSystem {
       if (model.parent) {
         model.parent.remove(model);
       }
-
-      model.traverse((child) => {
-        if (child.geometry) {
-          child.geometry.dispose();
-        }
-        if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach(material => material.dispose());
-          } else {
-            child.material.dispose();
-          }
-        }
-      });
+      disposeObject3D(model);
     });
     this.loadedModels = [];
     

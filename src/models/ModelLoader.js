@@ -3,18 +3,20 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { clearThreeGlobalCache } from '../utils/ThreeCleanupUtils.js';
 
 export class ModelLoader {
   constructor(renderer = null) {
     this.renderer = renderer;
+    this.isIOSWebKit = ModelLoader.isIOSWebKit();
     this.platformKey = ModelLoader.getPlatformKey();
-    this.isIOSDevice = this.platformKey === 'ios';
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
     this.ktx2Loader = null;
+    this.loadQueue = Promise.resolve();
 
     this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-    if (this.isIOSDevice && typeof this.dracoLoader.setWorkerLimit === 'function') {
+    if (this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit === 'function') {
       this.dracoLoader.setWorkerLimit(1);
     }
     this.loader.setDRACOLoader(this.dracoLoader);
@@ -33,7 +35,7 @@ export class ModelLoader {
       if (!ModelLoader.sharedKTX2Loaders.has(platformKey)) {
         const loader = new KTX2Loader();
         loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
-        if (this.isIOSDevice && typeof loader.setWorkerLimit === 'function') {
+        if (this.isIOSWebKit && typeof loader.setWorkerLimit === 'function') {
           loader.setWorkerLimit(1);
         }
         ModelLoader.sharedKTX2Loaders.set(platformKey, loader);
@@ -87,14 +89,29 @@ export class ModelLoader {
     }
   }
 
-  async load(url, onProgress = null, signal = null) {
+  async load(url, onProgress = null, signal = null, onStageChange = null) {
     if (this.cache.has(url)) {
+      if (onStageChange) {
+        onStageChange('cloning');
+      }
       const cachedGLTF = this.cache.get(url);
       const clonedScene = cachedGLTF.scene.clone(true);
       const model = this.processModel({ scene: clonedScene });
       return model;
     }
 
+    const executeLoad = () => this.performLoad(url, onProgress, signal, onStageChange);
+
+    if (!this.isIOSWebKit) {
+      return executeLoad();
+    }
+
+    const queuedPromise = this.loadQueue.then(() => executeLoad());
+    this.loadQueue = queuedPromise.catch(() => {});
+    return queuedPromise;
+  }
+
+  performLoad(url, onProgress = null, signal = null, onStageChange = null) {
     return new Promise((resolve, reject) => {
       let abortHandler = null;
       const cleanup = () => {
@@ -119,9 +136,16 @@ export class ModelLoader {
         }
       }
 
+      if (onStageChange) {
+        onStageChange('downloading');
+      }
+
       this.loader.load(
         url,
         (gltf) => {
+          if (onStageChange) {
+            onStageChange('processing');
+          }
           if (signal && signal.aborted) {
             cleanup();
             return;
@@ -130,6 +154,9 @@ export class ModelLoader {
           this.cache.set(url, gltf);
           
           const model = this.processModel(gltf);
+          if (onStageChange) {
+            onStageChange('finalizing');
+          }
           this.releaseParserCaches(gltf);
           cleanup();
           resolve(model);
@@ -371,7 +398,13 @@ export class ModelLoader {
     parser.sourceCache = {};
     parser.textureCache = {};
     parser.nodeNamesUsed = {};
+    parser.json = null;
+    parser.extensions = null;
+    parser.plugins = null;
+    parser.options = null;
+    parser.textureLoader = null;
     gltf.parser = null;
+    clearThreeGlobalCache();
   }
 
   dispose() {
@@ -387,22 +420,31 @@ export class ModelLoader {
     this.ktx2SetupComplete = false;
   }
 
-  static isIOSPlatform() {
+  static isIOSWebKit() {
     if (typeof navigator === 'undefined') {
       return false;
     }
 
     const ua = navigator.userAgent || '';
     const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
-    const maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
 
-    const isiOS = /iPad|iPhone|iPod/i.test(ua);
-    const isTouchMac = platform === 'MacIntel' && maxTouchPoints > 1;
-    return isiOS || isTouchMac;
+    if (/iPhone|iPad|iPod/.test(platform)) {
+      return true;
+    }
+
+    if (platform === 'MacIntel' && navigator.maxTouchPoints > 1) {
+      return true;
+    }
+
+    if (/AppleWebKit/.test(ua) && /Mobile/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua)) {
+      return true;
+    }
+
+    return false;
   }
 
   static getPlatformKey() {
-    return ModelLoader.isIOSPlatform() ? 'ios' : 'default';
+    return ModelLoader.isIOSWebKit() ? 'ios' : 'default';
   }
 }
 

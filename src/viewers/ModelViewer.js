@@ -554,6 +554,10 @@ export class ModelViewer extends EventSystem {
       this.emit('model-load-progress', data);
       this.updateLoadingProgress(data);
     });
+    this.belowViewer.on('model-load-stage', (data) => {
+      this.emit('model-load-stage', data);
+      this.onModelLoadStage(data);
+    });
     this.belowViewer.on('model-loaded', (data) => {
       this.emit('model-loaded', data);
       this.emit('modelLoaded', data);
@@ -1207,6 +1211,11 @@ export class ModelViewer extends EventSystem {
     }
 
     this.showLoading('Preparing to load...', modelConfig.name || modelKey);
+    const hadExistingModel = this.belowViewer?.getLoadedModels()?.length > 0;
+    const shouldAnnounceCleanup = hadExistingModel;
+    if (shouldAnnounceCleanup) {
+      this.setLoadingMessage('Cleaning up previous model...');
+    }
 
     document.title = `BelowJS – ${modelConfig.name || modelKey}`;
     try {
@@ -1229,6 +1238,9 @@ export class ModelViewer extends EventSystem {
       }
 
       await new Promise(resolve => setTimeout(resolve, 50));
+      if (shouldAnnounceCleanup) {
+        this.setLoadingMessage('Loading model...');
+      }
 
       const model = await this.belowViewer.loadModel(modelConfig.url, {
         autoFrame: false,  // We'll handle positioning manually
@@ -1399,6 +1411,17 @@ export class ModelViewer extends EventSystem {
     }
   }
 
+  setLoadingMessage(message) {
+    this.loadingMessage = message;
+    if (this.ui.loading) {
+      const statusElement = this.ui.loading.querySelector('.loading-status');
+      if (statusElement) {
+        statusElement.textContent = message;
+      }
+    }
+    this.updateVRLoadingIndicator();
+  }
+
   /**
    * Position VR loading sprite in front of user's view
    */
@@ -1478,6 +1501,27 @@ export class ModelViewer extends EventSystem {
   onModelLoadError({ error }) {
     this.hideLoading();
     this.updateStatus(`Failed to load model: ${error.message}`);
+  }
+
+  onModelLoadStage({ stage }) {
+    if (!this.isLoading) return;
+
+    switch (stage) {
+    case 'downloading':
+      this.setLoadingMessage('Downloading model...');
+      break;
+    case 'cloning':
+      this.setLoadingMessage('Fetching from cache...');
+      break;
+    case 'processing':
+      this.setLoadingMessage('Uploading textures... almost there');
+      break;
+    case 'finalizing':
+      this.setLoadingMessage('Finalizing view...');
+      break;
+    default:
+      break;
+    }
   }
   
   /**
