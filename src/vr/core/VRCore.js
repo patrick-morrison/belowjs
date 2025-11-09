@@ -33,13 +33,29 @@ export class VRCore {
   init() {
 
     this.renderer.xr.enabled = true;
-    
+
 
     this.checkVRSupported();
-    
+
 
     this.removeExistingVRButtons();
-    
+
+    // Listen for sessiongranted event for Quest Link support
+    if ('xr' in navigator && navigator.xr) {
+      navigator.xr.addEventListener('sessiongranted', () => {
+        console.log('XR session granted - Quest Link may be active');
+        // If button already exists, trigger a re-check
+        if (this.vrButton && !this.isVRPresenting) {
+          setTimeout(() => {
+            if (VRButton.xrSessionIsGranted && this.vrButton && !this.isVRPresenting) {
+              console.log('Auto-clicking VR button for granted session');
+              this.vrButton.click();
+            }
+          }, 100);
+        }
+      });
+    }
+
 
     this.checkVRSupported().then(() => {
       if (this.isVRSupported) {
@@ -53,10 +69,10 @@ export class VRCore {
         }
       }
     });
-    
+
 
     this.setupSessionListeners();
-    
+
 
     if ('xr' in navigator) {
 
@@ -131,6 +147,15 @@ export class VRCore {
         `;
         this.container.appendChild(this.vrButton);
         this.styleVRButton();
+
+        // Check if session is already granted (Quest Link scenario)
+        // Wait a bit to allow VRButton's internal initialization to complete
+        setTimeout(() => {
+          if (VRButton.xrSessionIsGranted && !this.isVRPresenting) {
+            console.log('Session already granted, auto-clicking VR button (Quest Link)');
+            this.vrButton.click();
+          }
+        }, 500);
       });
     } catch (error) {
       console.error('❌ VR button creation failed:', error);

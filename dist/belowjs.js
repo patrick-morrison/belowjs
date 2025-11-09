@@ -1,5 +1,5 @@
 import * as u from "three";
-import { Controls as Gi, Vector3 as D, MOUSE as Ce, TOUCH as pe, Quaternion as Ue, Spherical as vt, Vector2 as H, Ray as Pi, Plane as Ni, MathUtils as It, TrianglesDrawMode as Ui, TriangleFanDrawMode as lt, TriangleStripDrawMode as oi, Loader as Et, LoaderUtils as xe, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Hi, PointLight as Vi, DirectionalLight as Oi, Matrix4 as Re, InstancedMesh as qi, InstancedBufferAttribute as ji, Object3D as Bt, TextureLoader as Ki, ImageBitmapLoader as zi, BufferAttribute as ve, InterleavedBuffer as Yi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as Ve, NearestMipmapLinearFilter as Ji, LinearMipmapNearestFilter as Wi, NearestMipmapNearestFilter as Xi, LinearFilter as he, NearestFilter as ni, RepeatWrapping as ct, MirroredRepeatWrapping as Zi, ClampToEdgeWrapping as $i, PointsMaterial as es, Material as je, LineBasicMaterial as ts, MeshStandardMaterial as ri, DoubleSide as is, MeshBasicMaterial as fe, PropertyBinding as ss, BufferGeometry as ai, SkinnedMesh as os, Mesh as Qt, LineSegments as ns, Line as rs, LineLoop as as, Points as As, Group as Ke, PerspectiveCamera as ls, OrthographicCamera as cs, Skeleton as hs, AnimationClip as ds, Bone as gs, InterpolateDiscrete as us, InterpolateLinear as Ai, Texture as Dt, VectorKeyframeTrack as Rt, NumberKeyframeTrack as Lt, QuaternionKeyframeTrack as Tt, ColorManagement as ht, FrontSide as ps, Interpolant as fs, Box3 as Oe, Sphere as wt, CompressedCubeTexture as ms, CompressedArrayTexture as bs, CompressedTexture as li, NoColorSpace as Ft, RGBA_BPTC_Format as dt, RGBA_S3TC_DXT5_Format as gt, RGBA_S3TC_DXT3_Format as kt, RGB_S3TC_DXT1_Format as _t, RGBA_S3TC_DXT1_Format as ut, RGBA_ASTC_6x6_Format as Gt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as ci, RGB_ETC2_Format as hi, RedFormat as Se, RGFormat as Me, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as Cs, Data3DTexture as Is, RGB_PVRTC_4BPPV1_Format as Es, RGB_ETC1_Format as Bs, RGBA_PVRTC_4BPPV1_Format as Qs, RGB_BPTC_UNSIGNED_Format as ws, SphereGeometry as ys, InstancedBufferGeometry as Ss, Float32BufferAttribute as Pt, InstancedInterleavedBuffer as pt, WireframeGeometry as Ms, ShaderMaterial as xs, ShaderLib as Pe, UniformsUtils as di, UniformsLib as Ne, Vector4 as Le, Line3 as vs } from "three";
+import { Controls as Gi, Vector3 as D, MOUSE as Ie, TOUCH as fe, Quaternion as Ue, Spherical as vt, Vector2 as H, Ray as Pi, Plane as Ni, MathUtils as It, TrianglesDrawMode as Ui, TriangleFanDrawMode as lt, TriangleStripDrawMode as oi, Loader as Et, LoaderUtils as xe, FileLoader as ce, MeshPhysicalMaterial as ee, Color as ae, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Hi, PointLight as Vi, DirectionalLight as Oi, Matrix4 as Re, InstancedMesh as qi, InstancedBufferAttribute as ji, Object3D as Bt, TextureLoader as Ki, ImageBitmapLoader as zi, BufferAttribute as ve, InterleavedBuffer as Yi, InterleavedBufferAttribute as le, LinearMipmapLinearFilter as Ve, NearestMipmapLinearFilter as Ji, LinearMipmapNearestFilter as Wi, NearestMipmapNearestFilter as Xi, LinearFilter as de, NearestFilter as ni, RepeatWrapping as ct, MirroredRepeatWrapping as Zi, ClampToEdgeWrapping as $i, PointsMaterial as es, Material as je, LineBasicMaterial as ts, MeshStandardMaterial as ri, DoubleSide as is, MeshBasicMaterial as me, PropertyBinding as ss, BufferGeometry as ai, SkinnedMesh as os, Mesh as Qt, LineSegments as ns, Line as rs, LineLoop as as, Points as As, Group as Ke, PerspectiveCamera as ls, OrthographicCamera as cs, Skeleton as hs, AnimationClip as ds, Bone as gs, InterpolateDiscrete as us, InterpolateLinear as Ai, Texture as Dt, VectorKeyframeTrack as Rt, NumberKeyframeTrack as Lt, QuaternionKeyframeTrack as Tt, ColorManagement as ht, FrontSide as ps, Interpolant as fs, Box3 as Oe, Sphere as wt, CompressedCubeTexture as ms, CompressedArrayTexture as bs, CompressedTexture as li, NoColorSpace as Ft, RGBA_BPTC_Format as dt, RGBA_S3TC_DXT5_Format as gt, RGBA_S3TC_DXT3_Format as kt, RGB_S3TC_DXT1_Format as _t, RGBA_S3TC_DXT1_Format as ut, RGBA_ASTC_6x6_Format as Gt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as ci, RGB_ETC2_Format as hi, RedFormat as Se, RGFormat as Me, RGBAFormat as be, UnsignedByteType as z, HalfFloatType as Ce, FloatType as De, DataTexture as Cs, Data3DTexture as Is, RGB_PVRTC_4BPPV1_Format as Es, RGB_ETC1_Format as Bs, RGBA_PVRTC_4BPPV1_Format as Qs, RGB_BPTC_UNSIGNED_Format as ws, SphereGeometry as ys, InstancedBufferGeometry as Ss, Float32BufferAttribute as Pt, InstancedInterleavedBuffer as pt, WireframeGeometry as Ms, ShaderMaterial as xs, ShaderLib as Pe, UniformsUtils as di, UniformsLib as Ne, Vector4 as Le, Line3 as vs } from "three";
 class yt {
   /**
    * Creates a new EventSystem instance
@@ -182,7 +182,7 @@ class Ls extends Gi {
    * @param {?HTMLDOMElement} domElement - The HTML element used for event listeners.
    */
   constructor(e, t = null) {
-    super(e, t), this.state = x.NONE, this.target = new D(), this.cursor = new D(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ce.ROTATE, MIDDLE: Ce.DOLLY, RIGHT: Ce.PAN }, this.touches = { ONE: pe.ROTATE, TWO: pe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new D(), this._lastQuaternion = new Ue(), this._lastTargetPosition = new D(), this._quat = new Ue().setFromUnitVectors(e.up, new D(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new vt(), this._sphericalDelta = new vt(), this._scale = 1, this._panOffset = new D(), this._rotateStart = new H(), this._rotateEnd = new H(), this._rotateDelta = new H(), this._panStart = new H(), this._panEnd = new H(), this._panDelta = new H(), this._dollyStart = new H(), this._dollyEnd = new H(), this._dollyDelta = new H(), this._dollyDirection = new D(), this._mouse = new H(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Fs.bind(this), this._onPointerDown = Ts.bind(this), this._onPointerUp = ks.bind(this), this._onContextMenu = Vs.bind(this), this._onMouseWheel = Ps.bind(this), this._onKeyDown = Ns.bind(this), this._onTouchStart = Us.bind(this), this._onTouchMove = Hs.bind(this), this._onMouseDown = _s.bind(this), this._onMouseMove = Gs.bind(this), this._interceptControlDown = Os.bind(this), this._interceptControlUp = qs.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
+    super(e, t), this.state = x.NONE, this.target = new D(), this.cursor = new D(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ie.ROTATE, MIDDLE: Ie.DOLLY, RIGHT: Ie.PAN }, this.touches = { ONE: fe.ROTATE, TWO: fe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new D(), this._lastQuaternion = new Ue(), this._lastTargetPosition = new D(), this._quat = new Ue().setFromUnitVectors(e.up, new D(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new vt(), this._sphericalDelta = new vt(), this._scale = 1, this._panOffset = new D(), this._rotateStart = new H(), this._rotateEnd = new H(), this._rotateDelta = new H(), this._panStart = new H(), this._panEnd = new H(), this._panDelta = new H(), this._dollyStart = new H(), this._dollyEnd = new H(), this._dollyDelta = new H(), this._dollyDirection = new D(), this._mouse = new H(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Fs.bind(this), this._onPointerDown = Ts.bind(this), this._onPointerUp = ks.bind(this), this._onContextMenu = Vs.bind(this), this._onMouseWheel = Ps.bind(this), this._onKeyDown = Ns.bind(this), this._onTouchStart = Us.bind(this), this._onTouchMove = Hs.bind(this), this._onMouseDown = _s.bind(this), this._onMouseMove = Gs.bind(this), this._interceptControlDown = Os.bind(this), this._interceptControlUp = qs.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
   }
   connect(e) {
     super.connect(e), this.domElement.addEventListener("pointerdown", this._onPointerDown), this.domElement.addEventListener("pointercancel", this._onPointerUp), this.domElement.addEventListener("contextmenu", this._onContextMenu), this.domElement.addEventListener("wheel", this._onMouseWheel, { passive: !1 }), this.domElement.getRootNode().addEventListener("keydown", this._interceptControlDown, { passive: !0, capture: !0 }), this.domElement.style.touchAction = "none";
@@ -503,11 +503,11 @@ function _s(c) {
       e = -1;
   }
   switch (e) {
-    case Ce.DOLLY:
+    case Ie.DOLLY:
       if (this.enableZoom === !1) return;
       this._handleMouseDownDolly(c), this.state = x.DOLLY;
       break;
-    case Ce.ROTATE:
+    case Ie.ROTATE:
       if (c.ctrlKey || c.metaKey || c.shiftKey) {
         if (this.enablePan === !1) return;
         this._handleMouseDownPan(c), this.state = x.PAN;
@@ -516,7 +516,7 @@ function _s(c) {
         this._handleMouseDownRotate(c), this.state = x.ROTATE;
       }
       break;
-    case Ce.PAN:
+    case Ie.PAN:
       if (c.ctrlKey || c.metaKey || c.shiftKey) {
         if (this.enableRotate === !1) return;
         this._handleMouseDownRotate(c), this.state = x.ROTATE;
@@ -556,11 +556,11 @@ function Us(c) {
   switch (this._trackPointer(c), this._pointers.length) {
     case 1:
       switch (this.touches.ONE) {
-        case pe.ROTATE:
+        case fe.ROTATE:
           if (this.enableRotate === !1) return;
           this._handleTouchStartRotate(c), this.state = x.TOUCH_ROTATE;
           break;
-        case pe.PAN:
+        case fe.PAN:
           if (this.enablePan === !1) return;
           this._handleTouchStartPan(c), this.state = x.TOUCH_PAN;
           break;
@@ -570,11 +570,11 @@ function Us(c) {
       break;
     case 2:
       switch (this.touches.TWO) {
-        case pe.DOLLY_PAN:
+        case fe.DOLLY_PAN:
           if (this.enableZoom === !1 && this.enablePan === !1) return;
           this._handleTouchStartDollyPan(c), this.state = x.TOUCH_DOLLY_PAN;
           break;
-        case pe.DOLLY_ROTATE:
+        case fe.DOLLY_ROTATE:
           if (this.enableZoom === !1 && this.enableRotate === !1) return;
           this._handleTouchStartDollyRotate(c), this.state = x.TOUCH_DOLLY_ROTATE;
           break;
@@ -830,7 +830,7 @@ class ui extends Et {
     this.manager.itemStart(e);
     const r = function(a) {
       s ? s(a) : console.error(a), o.manager.itemError(e), o.manager.itemEnd(e);
-    }, A = new le(this.manager);
+    }, A = new ce(this.manager);
     A.setPath(this.path), A.setResponseType("arraybuffer"), A.setRequestHeader(this.requestHeader), A.setWithCredentials(this.withCredentials), A.load(e, function(a) {
       try {
         o.parse(a, n, function(l) {
@@ -1029,7 +1029,7 @@ class zs {
     if (s) return s;
     const o = t.json, A = ((o.extensions && o.extensions[this.name] || {}).lights || [])[e];
     let a;
-    const l = new re(16777215);
+    const l = new ae(16777215);
     A.color !== void 0 && l.setRGB(A.color[0], A.color[1], A.color[2], Y);
     const h = A.range !== void 0 ? A.range : 0;
     switch (A.type) {
@@ -1063,11 +1063,11 @@ class Ys {
     this.name = S.KHR_MATERIALS_UNLIT;
   }
   getMaterialType() {
-    return fe;
+    return me;
   }
   extendParams(e, t, i) {
     const s = [];
-    e.color = new re(1, 1, 1), e.opacity = 1;
+    e.color = new ae(1, 1, 1), e.opacity = 1;
     const o = t.pbrMetallicRoughness;
     if (o) {
       if (Array.isArray(o.baseColorFactor)) {
@@ -1156,7 +1156,7 @@ class $s {
     if (!s.extensions || !s.extensions[this.name])
       return Promise.resolve();
     const o = [];
-    t.sheenColor = new re(0, 0, 0), t.sheenRoughness = 0, t.sheen = 1;
+    t.sheenColor = new ae(0, 0, 0), t.sheenRoughness = 0, t.sheen = 1;
     const n = s.extensions[this.name];
     if (n.sheenColorFactor !== void 0) {
       const r = n.sheenColorFactor;
@@ -1196,7 +1196,7 @@ class to {
     const o = [], n = s.extensions[this.name];
     t.thickness = n.thicknessFactor !== void 0 ? n.thicknessFactor : 0, n.thicknessTexture !== void 0 && o.push(i.assignTexture(t, "thicknessMap", n.thicknessTexture)), t.attenuationDistance = n.attenuationDistance || 1 / 0;
     const r = n.attenuationColor || [1, 1, 1];
-    return t.attenuationColor = new re().setRGB(r[0], r[1], r[2], Y), Promise.all(o);
+    return t.attenuationColor = new ae().setRGB(r[0], r[1], r[2], Y), Promise.all(o);
   }
 }
 class io {
@@ -1230,7 +1230,7 @@ class so {
     const o = [], n = s.extensions[this.name];
     t.specularIntensity = n.specularFactor !== void 0 ? n.specularFactor : 1, n.specularTexture !== void 0 && o.push(i.assignTexture(t, "specularIntensityMap", n.specularTexture));
     const r = n.specularColorFactor || [1, 1, 1];
-    return t.specularColor = new re().setRGB(r[0], r[1], r[2], Y), n.specularColorTexture !== void 0 && o.push(i.assignTexture(t, "specularColorMap", n.specularColorTexture, se)), Promise.all(o);
+    return t.specularColor = new ae().setRGB(r[0], r[1], r[2], Y), n.specularColorTexture !== void 0 && o.push(i.assignTexture(t, "specularColorMap", n.specularColorTexture, se)), Promise.all(o);
   }
 }
 class oo {
@@ -1421,7 +1421,7 @@ class go {
     for (const l in e.attributes) {
       const h = ft[l] || l.toLowerCase();
       if (n[l] !== void 0) {
-        const d = i.accessors[e.attributes[l]], g = Ie[d.componentType];
+        const d = i.accessors[e.attributes[l]], g = Ee[d.componentType];
         a[h] = g.name, A[h] = d.normalized === !0;
       }
     }
@@ -1485,7 +1485,7 @@ const j = {
   TRIANGLES: 4,
   TRIANGLE_STRIP: 5,
   TRIANGLE_FAN: 6
-}, Ie = {
+}, Ee = {
   5120: Int8Array,
   5121: Uint8Array,
   5122: Int16Array,
@@ -1494,7 +1494,7 @@ const j = {
   5126: Float32Array
 }, Ot = {
   9728: ni,
-  9729: he,
+  9729: de,
   9984: Xi,
   9985: Wi,
   9986: Ji,
@@ -1549,7 +1549,7 @@ function Co(c) {
     side: ps
   })), c.DefaultMaterial;
 }
-function ae(c, e, t) {
+function Ae(c, e, t) {
   for (const i in t.extensions)
     c[i] === void 0 && (e.userData.gltfExtensions = e.userData.gltfExtensions || {}, e.userData.gltfExtensions[i] = t.extensions[i]);
 }
@@ -1645,7 +1645,7 @@ class yo {
       const A = r.match(/Version\/(\d+)/);
       s = i && A ? parseInt(A[1], 10) : -1, o = r.indexOf("Firefox") > -1, n = o ? r.match(/Firefox\/([0-9]+)\./)[1] : -1;
     }
-    typeof createImageBitmap > "u" || i && s < 17 || o && n < 98 ? this.textureLoader = new Ki(this.options.manager) : this.textureLoader = new zi(this.options.manager), this.textureLoader.setCrossOrigin(this.options.crossOrigin), this.textureLoader.setRequestHeader(this.options.requestHeader), this.fileLoader = new le(this.options.manager), this.fileLoader.setResponseType("arraybuffer"), this.options.crossOrigin === "use-credentials" && this.fileLoader.setWithCredentials(!0);
+    typeof createImageBitmap > "u" || i && s < 17 || o && n < 98 ? this.textureLoader = new Ki(this.options.manager) : this.textureLoader = new zi(this.options.manager), this.textureLoader.setCrossOrigin(this.options.crossOrigin), this.textureLoader.setRequestHeader(this.options.requestHeader), this.fileLoader = new ce(this.options.manager), this.fileLoader.setResponseType("arraybuffer"), this.options.crossOrigin === "use-credentials" && this.fileLoader.setWithCredentials(!0);
   }
   setExtensions(e) {
     this.extensions = e;
@@ -1675,7 +1675,7 @@ class yo {
         parser: i,
         userData: {}
       };
-      return ae(o, r, s), ie(r, s), Promise.all(i._invokeAll(function(A) {
+      return Ae(o, r, s), ie(r, s), Promise.all(i._invokeAll(function(A) {
         return A.afterRoot && A.afterRoot(r);
       })).then(function() {
         for (const A of r.scenes)
@@ -1885,21 +1885,21 @@ class yo {
   loadAccessor(e) {
     const t = this, i = this.json, s = this.json.accessors[e];
     if (s.bufferView === void 0 && s.sparse === void 0) {
-      const n = Ye[s.type], r = Ie[s.componentType], A = s.normalized === !0, a = new r(s.count * n);
+      const n = Ye[s.type], r = Ee[s.componentType], A = s.normalized === !0, a = new r(s.count * n);
       return Promise.resolve(new ve(a, n, A));
     }
     const o = [];
     return s.bufferView !== void 0 ? o.push(this.getDependency("bufferView", s.bufferView)) : o.push(null), s.sparse !== void 0 && (o.push(this.getDependency("bufferView", s.sparse.indices.bufferView)), o.push(this.getDependency("bufferView", s.sparse.values.bufferView))), Promise.all(o).then(function(n) {
-      const r = n[0], A = Ye[s.type], a = Ie[s.componentType], l = a.BYTES_PER_ELEMENT, h = l * A, d = s.byteOffset || 0, g = s.bufferView !== void 0 ? i.bufferViews[s.bufferView].byteStride : void 0, p = s.normalized === !0;
+      const r = n[0], A = Ye[s.type], a = Ee[s.componentType], l = a.BYTES_PER_ELEMENT, h = l * A, d = s.byteOffset || 0, g = s.bufferView !== void 0 ? i.bufferViews[s.bufferView].byteStride : void 0, p = s.normalized === !0;
       let C, I;
       if (g && g !== h) {
         const f = Math.floor(d / g), m = "InterleavedBuffer:" + s.bufferView + ":" + s.componentType + ":" + f + ":" + s.count;
         let E = t.cache.get(m);
-        E || (C = new a(r, f * g, s.count * g / l), E = new Yi(C, g / l), t.cache.add(m, E)), I = new Ae(E, A, d % g / l, p);
+        E || (C = new a(r, f * g, s.count * g / l), E = new Yi(C, g / l), t.cache.add(m, E)), I = new le(E, A, d % g / l, p);
       } else
         r === null ? C = new a(s.count * A) : C = new a(r, d, s.count * A), I = new ve(C, A, p);
       if (s.sparse !== void 0) {
-        const f = Ye.SCALAR, m = Ie[s.sparse.indices.componentType], E = s.sparse.indices.byteOffset || 0, b = s.sparse.values.byteOffset || 0, B = new m(n[1], E, s.sparse.count * f), Q = new a(n[2], b, s.sparse.count * A);
+        const f = Ye.SCALAR, m = Ee[s.sparse.indices.componentType], E = s.sparse.indices.byteOffset || 0, b = s.sparse.values.byteOffset || 0, B = new m(n[1], E, s.sparse.count * f), Q = new a(n[2], b, s.sparse.count * A);
         r !== null && (I = new ve(I.array.slice(), I.itemSize, I.normalized)), I.normalized = !1;
         for (let w = 0, T = B.length; w < T; w++) {
           const R = B[w];
@@ -1933,7 +1933,7 @@ class yo {
     const a = this.loadImageSource(t, i).then(function(l) {
       l.flipY = !1, l.name = n.name || r.name || "", l.name === "" && typeof r.uri == "string" && r.uri.startsWith("data:image/") === !1 && (l.name = r.uri);
       const d = (o.samplers || {})[n.sampler] || {};
-      return l.magFilter = Ot[d.magFilter] || he, l.minFilter = Ot[d.minFilter] || Ve, l.wrapS = qt[d.wrapS] || ct, l.wrapT = qt[d.wrapT] || ct, l.generateMipmaps = !l.isCompressedTexture && l.minFilter !== ni && l.minFilter !== he, s.associations.set(l, { textures: e }), l;
+      return l.magFilter = Ot[d.magFilter] || de, l.minFilter = Ot[d.minFilter] || Ve, l.wrapS = qt[d.wrapS] || ct, l.wrapT = qt[d.wrapT] || ct, l.generateMipmaps = !l.isCompressedTexture && l.minFilter !== ni && l.minFilter !== de, s.associations.set(l, { textures: e }), l;
     }).catch(function() {
       return null;
     });
@@ -2042,7 +2042,7 @@ class yo {
       n = h.getMaterialType(), a.push(h.extendParams(r, o, t));
     } else {
       const h = o.pbrMetallicRoughness || {};
-      if (r.color = new re(1, 1, 1), r.opacity = 1, Array.isArray(h.baseColorFactor)) {
+      if (r.color = new ae(1, 1, 1), r.opacity = 1, Array.isArray(h.baseColorFactor)) {
         const d = h.baseColorFactor;
         r.color.setRGB(d[0], d[1], d[2], Y), r.opacity = d[3];
       }
@@ -2054,17 +2054,17 @@ class yo {
     }
     o.doubleSided === !0 && (r.side = is);
     const l = o.alphaMode || Je.OPAQUE;
-    if (l === Je.BLEND ? (r.transparent = !0, r.depthWrite = !1) : (r.transparent = !1, l === Je.MASK && (r.alphaTest = o.alphaCutoff !== void 0 ? o.alphaCutoff : 0.5)), o.normalTexture !== void 0 && n !== fe && (a.push(t.assignTexture(r, "normalMap", o.normalTexture)), r.normalScale = new H(1, 1), o.normalTexture.scale !== void 0)) {
+    if (l === Je.BLEND ? (r.transparent = !0, r.depthWrite = !1) : (r.transparent = !1, l === Je.MASK && (r.alphaTest = o.alphaCutoff !== void 0 ? o.alphaCutoff : 0.5)), o.normalTexture !== void 0 && n !== me && (a.push(t.assignTexture(r, "normalMap", o.normalTexture)), r.normalScale = new H(1, 1), o.normalTexture.scale !== void 0)) {
       const h = o.normalTexture.scale;
       r.normalScale.set(h, h);
     }
-    if (o.occlusionTexture !== void 0 && n !== fe && (a.push(t.assignTexture(r, "aoMap", o.occlusionTexture)), o.occlusionTexture.strength !== void 0 && (r.aoMapIntensity = o.occlusionTexture.strength)), o.emissiveFactor !== void 0 && n !== fe) {
+    if (o.occlusionTexture !== void 0 && n !== me && (a.push(t.assignTexture(r, "aoMap", o.occlusionTexture)), o.occlusionTexture.strength !== void 0 && (r.aoMapIntensity = o.occlusionTexture.strength)), o.emissiveFactor !== void 0 && n !== me) {
       const h = o.emissiveFactor;
-      r.emissive = new re().setRGB(h[0], h[1], h[2], Y);
+      r.emissive = new ae().setRGB(h[0], h[1], h[2], Y);
     }
-    return o.emissiveTexture !== void 0 && n !== fe && a.push(t.assignTexture(r, "emissiveMap", o.emissiveTexture, se)), Promise.all(a).then(function() {
+    return o.emissiveTexture !== void 0 && n !== me && a.push(t.assignTexture(r, "emissiveMap", o.emissiveTexture, se)), Promise.all(a).then(function() {
       const h = new n(r);
-      return o.name && (h.name = o.name), ie(h, o), t.associations.set(h, { materials: e }), o.extensions && ae(s, h, o), h;
+      return o.name && (h.name = o.name), ie(h, o), t.associations.set(h, { materials: e }), o.extensions && Ae(s, h, o), h;
     });
   }
   /**
@@ -2137,7 +2137,7 @@ class yo {
           f = new As(C, m);
         else
           throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + I.mode);
-        Object.keys(f.geometry.morphAttributes).length > 0 && Eo(f, o), f.name = t.createUniqueName(o.name || "mesh_" + e), ie(f, o), I.extensions && ae(s, f, I), t.assignFinalMaterial(f), h.push(f);
+        Object.keys(f.geometry.morphAttributes).length > 0 && Eo(f, o), f.name = t.createUniqueName(o.name || "mesh_" + e), ie(f, o), I.extensions && Ae(s, f, I), t.assignFinalMaterial(f), h.push(f);
       }
       for (let g = 0, p = h.length; g < p; g++)
         t.associations.set(h[g], {
@@ -2145,9 +2145,9 @@ class yo {
           primitives: g
         });
       if (h.length === 1)
-        return o.extensions && ae(s, h[0], o), h[0];
+        return o.extensions && Ae(s, h[0], o), h[0];
       const d = new Ke();
-      o.extensions && ae(s, d, o), t.associations.set(d, { meshes: e });
+      o.extensions && Ae(s, d, o), t.associations.set(d, { meshes: e });
       for (let g = 0, p = h.length; g < p; g++)
         d.add(h[g]);
       return d;
@@ -2284,7 +2284,7 @@ class yo {
       if (o.isBone === !0 ? l = new gs() : a.length > 1 ? l = new Ke() : a.length === 1 ? l = a[0] : l = new Bt(), l !== a[0])
         for (let h = 0, d = a.length; h < d; h++)
           l.add(a[h]);
-      if (o.name && (l.userData.name = o.name, l.name = n), ie(l, o), o.extensions && ae(i, l, o), o.matrix !== void 0) {
+      if (o.name && (l.userData.name = o.name, l.name = n), ie(l, o), o.extensions && Ae(i, l, o), o.matrix !== void 0) {
         const h = new Re();
         h.fromArray(o.matrix), l.applyMatrix4(h);
       } else
@@ -2307,7 +2307,7 @@ class yo {
    */
   loadScene(e) {
     const t = this.extensions, i = this.json.scenes[e], s = this, o = new Ke();
-    i.name && (o.name = s.createUniqueName(i.name)), ie(o, i), i.extensions && ae(t, o, i);
+    i.name && (o.name = s.createUniqueName(i.name)), ie(o, i), i.extensions && Ae(t, o, i);
     const n = i.nodes || [], r = [];
     for (let A = 0, a = n.length; A < a; A++)
       r.push(s.getDependency("node", n[A]));
@@ -2394,7 +2394,7 @@ function So(c, e, t) {
         new D(A[0], A[1], A[2]),
         new D(a[0], a[1], a[2])
       ), r.normalized) {
-        const l = mt(Ie[r.componentType]);
+        const l = mt(Ee[r.componentType]);
         s.min.multiplyScalar(l), s.max.multiplyScalar(l);
       }
     } else {
@@ -2412,7 +2412,7 @@ function So(c, e, t) {
         const d = t.json.accessors[h.POSITION], g = d.min, p = d.max;
         if (g !== void 0 && p !== void 0) {
           if (A.setX(Math.max(Math.abs(g[0]), Math.abs(p[0]))), A.setY(Math.max(Math.abs(g[1]), Math.abs(p[1]))), A.setZ(Math.max(Math.abs(g[2]), Math.abs(p[2]))), d.normalized) {
-            const C = mt(Ie[d.componentType]);
+            const C = mt(Ee[d.componentType]);
             A.multiplyScalar(C);
           }
           r.max(A);
@@ -2505,7 +2505,7 @@ class Mo extends Et {
    * @param {onErrorCallback} onError - Executed when errors occur.
    */
   load(e, t, i, s) {
-    const o = new le(this.manager);
+    const o = new ce(this.manager);
     o.setPath(this.path), o.setResponseType("arraybuffer"), o.setRequestHeader(this.requestHeader), o.setWithCredentials(this.withCredentials), o.load(e, (n) => {
       this.parse(n, t, s);
     }, i, s);
@@ -2565,12 +2565,12 @@ class Mo extends Et {
   }
   _assignVertexColorSpace(e, t) {
     if (t !== se) return;
-    const i = new re();
+    const i = new ae();
     for (let s = 0, o = e.count; s < o; s++)
       i.fromBufferAttribute(e, s), ht.colorSpaceToWorking(i, se), e.setXYZ(s, i.r, i.g, i.b);
   }
   _loadLibrary(e, t) {
-    const i = new le(this.manager);
+    const i = new ce(this.manager);
     return i.setPath(this.decoderPath), i.setResponseType(t), i.setWithCredentials(this.withCredentials), new Promise((s, o) => {
       i.load(e, s, void 0, o);
     });
@@ -2968,9 +2968,9 @@ class K extends Et {
   // TODO: Make this method private
   init() {
     if (!this.transcoderPending) {
-      const e = new le(this.manager);
+      const e = new ce(this.manager);
       e.setPath(this.transcoderPath), e.setWithCredentials(this.withCredentials);
-      const t = e.loadAsync("basis_transcoder.js"), i = new le(this.manager);
+      const t = e.loadAsync("basis_transcoder.js"), i = new ce(this.manager);
       i.setPath(this.transcoderPath), i.setResponseType("arraybuffer"), i.setWithCredentials(this.withCredentials);
       const s = i.loadAsync("basis_transcoder.wasm");
       this.transcoderPending = Promise.all([t, s]).then(([o, n]) => {
@@ -3008,7 +3008,7 @@ class K extends Et {
   load(e, t, i, s) {
     if (this.workerConfig === null)
       throw new Error("THREE.KTX2Loader: Missing initialization with `.detectSupport( renderer )`.");
-    const o = new le(this.manager);
+    const o = new ce(this.manager);
     o.setPath(this.path), o.setCrossOrigin(this.crossOrigin), o.setWithCredentials(this.withCredentials), o.setResponseType("arraybuffer"), o.load(e, (n) => {
       this.parse(n, t, s);
     }, i, s);
@@ -3038,7 +3038,7 @@ class K extends Et {
       const d = o[0].mipmaps;
       h = t.layerCount > 1 ? new bs(d, n, r, t.layerCount, A, a) : new li(d, n, r, A, a);
     }
-    return h.minFilter = o[0].mipmaps.length === 1 ? he : Ve, h.magFilter = he, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = Ti(t), h.premultiplyAlpha = !!(l & Ro), h;
+    return h.minFilter = o[0].mipmaps.length === 1 ? de : Ve, h.magFilter = de, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = Ti(t), h.premultiplyAlpha = !!(l & Ro), h;
   }
   /**
    * @private
@@ -3089,7 +3089,7 @@ K.TranscoderFormat = {
   RGBA_HALF: 25
 };
 K.EngineFormat = {
-  RGBAFormat: me,
+  RGBAFormat: be,
   RGBA_ASTC_4x4_Format: Ge,
   RGB_BPTC_UNSIGNED_Format: ws,
   RGBA_BPTC_Format: dt,
@@ -3103,7 +3103,7 @@ K.EngineFormat = {
 };
 K.EngineType = {
   UnsignedByteType: z,
-  HalfFloatType: be,
+  HalfFloatType: Ce,
   FloatType: De
 };
 K.BasisWorker = function() {
@@ -3161,14 +3161,14 @@ K.BasisWorker = function() {
       for (let q = 0; q < B; q++) {
         const F = [];
         let O, oe;
-        for (let de = 0; de < b; de++) {
-          const ge = C.getImageLevelInfo(q, de, W);
-          W === 0 && q === 0 && de === 0 && (ge.origWidth % 4 !== 0 || ge.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), B > 1 ? (O = ge.origWidth, oe = ge.origHeight) : (O = ge.width, oe = ge.height);
-          let ue = new Uint8Array(C.getImageTranscodedSizeInBytes(q, de, 0, R));
-          const _i = C.transcodeImage(ue, q, de, W, R, 0, -1, -1);
-          if (v === s.HalfFloatType && (ue = new Uint16Array(ue.buffer, ue.byteOffset, ue.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !_i)
+        for (let ge = 0; ge < b; ge++) {
+          const ue = C.getImageLevelInfo(q, ge, W);
+          W === 0 && q === 0 && ge === 0 && (ue.origWidth % 4 !== 0 || ue.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), B > 1 ? (O = ue.origWidth, oe = ue.origHeight) : (O = ue.width, oe = ue.height);
+          let pe = new Uint8Array(C.getImageTranscodedSizeInBytes(q, ge, 0, R));
+          const _i = C.transcodeImage(pe, q, ge, W, R, 0, -1, -1);
+          if (v === s.HalfFloatType && (pe = new Uint16Array(pe.buffer, pe.byteOffset, pe.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !_i)
             throw I(), new Error("THREE.KTX2Loader: .transcodeImage failed.");
-          F.push(ue);
+          F.push(pe);
         }
         const Qe = g(F);
         Be.push({ data: Qe, width: O, height: oe }), J.push(Qe.buffer);
@@ -3303,11 +3303,11 @@ K.BasisWorker = function() {
     return I;
   }
 };
-const $o = /* @__PURE__ */ new Set([me, Me, Se]), st = {
-  [xi]: me,
-  [yi]: me,
-  [Ei]: me,
-  [Bi]: me,
+const $o = /* @__PURE__ */ new Set([be, Me, Se]), st = {
+  [xi]: be,
+  [yi]: be,
+  [Ei]: be,
+  [Bi]: be,
   [Mi]: Me,
   [wi]: Me,
   [Ci]: Me,
@@ -3335,20 +3335,20 @@ const $o = /* @__PURE__ */ new Set([me, Me, Se]), st = {
   [qo]: dt
 }, ot = {
   [xi]: De,
-  [yi]: be,
+  [yi]: Ce,
   [Ei]: z,
   [Bi]: z,
   [Mi]: De,
-  [wi]: be,
+  [wi]: Ce,
   [Ci]: z,
   [Ii]: z,
   [Si]: De,
-  [Qi]: be,
+  [Qi]: Ce,
   [bi]: z,
   [mi]: z,
   [vi]: z,
   [Di]: z,
-  [Mt]: be,
+  [Mt]: Ce,
   [Li]: z,
   [Ri]: z
 };
@@ -3376,7 +3376,7 @@ async function en(c) {
       l.buffer,
       l.byteOffset,
       l.byteLength / Float32Array.BYTES_PER_ELEMENT
-    ) : ot[e] === be ? h = new Uint16Array(
+    ) : ot[e] === Ce ? h = new Uint16Array(
       l.buffer,
       l.byteOffset,
       l.byteLength / Uint16Array.BYTES_PER_ELEMENT
@@ -3392,7 +3392,7 @@ async function en(c) {
     s = c.pixelDepth === 0 ? new Cs(i[0].data, c.pixelWidth, c.pixelHeight) : new Is(i[0].data, c.pixelWidth, c.pixelHeight, c.pixelDepth);
   else {
     if (c.pixelDepth > 0) throw new Error("THREE.KTX2Loader: Unsupported pixelDepth.");
-    s = new li(i, c.pixelWidth, c.pixelHeight), s.minFilter = i.length === 1 ? he : Ve, s.magFilter = he;
+    s = new li(i, c.pixelWidth, c.pixelHeight), s.minFilter = i.length === 1 ? de : Ve, s.magFilter = de;
   }
   return s.mipmaps = i, s.type = ot[e], s.format = st[e], s.colorSpace = Ti(c), s.needsUpdate = !0, Promise.resolve(s);
 }
@@ -3815,7 +3815,7 @@ class V {
 }
 V.sharedKTX2Loaders = /* @__PURE__ */ new Map();
 V.sharedKTX2SetupComplete = /* @__PURE__ */ new Map();
-class Ee {
+class re {
   /**
    * Constructs a new VR button.
    *
@@ -3869,7 +3869,7 @@ class Ee {
     }
     if ("xr" in navigator)
       return i.id = "VRButton", i.style.display = "none", A(i), navigator.xr.isSessionSupported("immersive-vr").then(function(a) {
-        a ? s() : n(), a && Ee.xrSessionIsGranted && i.click();
+        a ? s() : n(), a && re.xrSessionIsGranted && i.click();
       }).catch(r), i;
     {
       const a = document.createElement("a");
@@ -3885,19 +3885,23 @@ class Ee {
     if (typeof navigator < "u" && "xr" in navigator) {
       if (/WebXRViewer\//i.test(navigator.userAgent)) return;
       navigator.xr.addEventListener("sessiongranted", () => {
-        Ee.xrSessionIsGranted = !0;
+        re.xrSessionIsGranted = !0;
       });
     }
   }
 }
-Ee.xrSessionIsGranted = !1;
-Ee.registerSessionGrantedListener();
+re.xrSessionIsGranted = !1;
+re.registerSessionGrantedListener();
 class nn {
   constructor(e, t, i, s = null) {
     this.renderer = e, this.camera = t, this.scene = i, this.container = s || document.body, this.isVRSupported = !1, this.isVRPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.vrButton = null, this.onSessionStart = null, this.onSessionEnd = null;
   }
   init() {
-    this.renderer.xr.enabled = !0, this.checkVRSupported(), this.removeExistingVRButtons(), this.checkVRSupported().then(() => {
+    this.renderer.xr.enabled = !0, this.checkVRSupported(), this.removeExistingVRButtons(), "xr" in navigator && navigator.xr && navigator.xr.addEventListener("sessiongranted", () => {
+      console.log("XR session granted - Quest Link may be active"), this.vrButton && !this.isVRPresenting && setTimeout(() => {
+        re.xrSessionIsGranted && this.vrButton && !this.isVRPresenting && (console.log("Auto-clicking VR button for granted session"), this.vrButton.click());
+      }, 100);
+    }), this.checkVRSupported().then(() => {
       this.isVRSupported && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
         this.createVRButton();
       }) : this.createVRButton());
@@ -3931,7 +3935,7 @@ class nn {
             "layers"
           ]
         };
-        this.vrButton = Ee.createButton(this.renderer, e), this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', this.vrButton.className = "vr-button--glass vr-button-available", this.vrButton.disabled = !1, this.vrButton.style.cssText = `
+        this.vrButton = re.createButton(this.renderer, e), this.vrButton.innerHTML = '<span class="vr-icon">🥽</span>ENTER VR', this.vrButton.className = "vr-button--glass vr-button-available", this.vrButton.disabled = !1, this.vrButton.style.cssText = `
           position: fixed !important;
           bottom: 80px !important;
           left: 50% !important;
@@ -3942,7 +3946,9 @@ class nn {
           opacity: 1 !important;
           pointer-events: auto !important;
           cursor: pointer !important;
-        `, this.container.appendChild(this.vrButton), this.styleVRButton();
+        `, this.container.appendChild(this.vrButton), this.styleVRButton(), setTimeout(() => {
+          re.xrSessionIsGranted && !this.isVRPresenting && (console.log("Session already granted, auto-clicking VR button (Quest Link)"), this.vrButton.click());
+        }, 500);
       });
     } catch (e) {
       console.error("❌ VR button creation failed:", e);
@@ -4276,7 +4282,7 @@ function fn(c, e) {
     const { type: i, touchPointNodeName: s, visualResponses: o } = t;
     if (i === L.ComponentType.TOUCHPAD)
       if (t.touchPointNode = e.getObjectByName(s), t.touchPointNode) {
-        const n = new ys(1e-3), r = new fe({ color: 255 }), A = new Qt(n, r);
+        const n = new ys(1e-3), r = new me({ color: 255 }), A = new Qt(n, r);
         t.touchPointNode.add(A);
       } else
         console.warn(`Could not find touch dot, ${t.touchPointNodeName}, in touchpad component ${t.id}`);
@@ -5851,7 +5857,7 @@ class ki extends Ss {
     let t;
     e instanceof Float32Array ? t = e : Array.isArray(e) && (t = new Float32Array(e));
     const i = new pt(t, 6, 1);
-    return this.setAttribute("instanceStart", new Ae(i, 3, 0)), this.setAttribute("instanceEnd", new Ae(i, 3, 3)), this.instanceCount = this.attributes.instanceStart.count, this.computeBoundingBox(), this.computeBoundingSphere(), this;
+    return this.setAttribute("instanceStart", new le(i, 3, 0)), this.setAttribute("instanceEnd", new le(i, 3, 3)), this.instanceCount = this.attributes.instanceStart.count, this.computeBoundingBox(), this.computeBoundingSphere(), this;
   }
   /**
    * Sets the given line colors for this geometry. The length must be a multiple of six since
@@ -5864,7 +5870,7 @@ class ki extends Ss {
     let t;
     e instanceof Float32Array ? t = e : Array.isArray(e) && (t = new Float32Array(e));
     const i = new pt(t, 6, 1);
-    return this.setAttribute("instanceColorStart", new Ae(i, 3, 0)), this.setAttribute("instanceColorEnd", new Ae(i, 3, 3)), this;
+    return this.setAttribute("instanceColorStart", new le(i, 3, 0)), this.setAttribute("instanceColorEnd", new le(i, 3, 3)), this;
   }
   /**
    * Setups this line segments geometry from the given wireframe geometry.
@@ -6474,16 +6480,16 @@ class He extends xs {
   }
 }
 const rt = new Le(), $t = new D(), ei = new D(), _ = new Le(), G = new Le(), X = new Le(), at = new D(), At = new Re(), P = new vs(), ti = new D(), ke = new Oe(), _e = new wt(), Z = new Le();
-let $, ce;
+let $, he;
 function ii(c, e, t) {
-  return Z.set(0, 0, -e, 1).applyMatrix4(c.projectionMatrix), Z.multiplyScalar(1 / Z.w), Z.x = ce / t.width, Z.y = ce / t.height, Z.applyMatrix4(c.projectionMatrixInverse), Z.multiplyScalar(1 / Z.w), Math.abs(Math.max(Z.x, Z.y));
+  return Z.set(0, 0, -e, 1).applyMatrix4(c.projectionMatrix), Z.multiplyScalar(1 / Z.w), Z.x = he / t.width, Z.y = he / t.height, Z.applyMatrix4(c.projectionMatrixInverse), Z.multiplyScalar(1 / Z.w), Math.abs(Math.max(Z.x, Z.y));
 }
 function wn(c, e) {
   const t = c.matrixWorld, i = c.geometry, s = i.attributes.instanceStart, o = i.attributes.instanceEnd, n = Math.min(i.instanceCount, s.count);
   for (let r = 0, A = n; r < A; r++) {
     P.start.fromBufferAttribute(s, r), P.end.fromBufferAttribute(o, r), P.applyMatrix4(t);
     const a = new D(), l = new D();
-    $.distanceSqToSegment(P.start, P.end, l, a), l.distanceTo(a) < ce * 0.5 && e.push({
+    $.distanceSqToSegment(P.start, P.end, l, a), l.distanceTo(a) < he * 0.5 && e.push({
       point: l,
       pointOnLine: a,
       distance: $.origin.distanceTo(l),
@@ -6511,7 +6517,7 @@ function yn(c, e, t) {
     _.applyMatrix4(i), G.applyMatrix4(i), _.multiplyScalar(1 / _.w), G.multiplyScalar(1 / G.w), _.x *= o.x / 2, _.y *= o.y / 2, G.x *= o.x / 2, G.y *= o.y / 2, P.start.copy(_), P.start.z = 0, P.end.copy(G), P.end.z = 0;
     const C = P.closestPointToPointParameter(at, !0);
     P.at(C, ti);
-    const I = It.lerp(_.z, G.z, C), f = I >= -1 && I <= 1, m = at.distanceTo(ti) < ce * 0.5;
+    const I = It.lerp(_.z, G.z, C), f = I >= -1 && I <= 1, m = at.distanceTo(ti) < he * 0.5;
     if (f && m) {
       P.start.fromBufferAttribute(A, d), P.end.fromBufferAttribute(a, d), P.start.applyMatrix4(n), P.end.applyMatrix4(n);
       const E = new D(), b = new D();
@@ -6550,7 +6556,7 @@ class Sn extends Qt {
     for (let n = 0, r = 0, A = t.count; n < A; n++, r += 2)
       $t.fromBufferAttribute(t, n), ei.fromBufferAttribute(i, n), s[r] = r === 0 ? 0 : s[r - 1], s[r + 1] = s[r] + $t.distanceTo(ei);
     const o = new pt(s, 2, 1);
-    return e.setAttribute("instanceDistanceStart", new Ae(o, 1, 0)), e.setAttribute("instanceDistanceEnd", new Ae(o, 1, 1)), this;
+    return e.setAttribute("instanceDistanceStart", new le(o, 1, 0)), e.setAttribute("instanceDistanceEnd", new le(o, 1, 1)), this;
   }
   /**
    * Computes intersection points between a casted ray and this instance.
@@ -6564,10 +6570,10 @@ class Sn extends Qt {
     const o = e.params.Line2 !== void 0 && e.params.Line2.threshold || 0;
     $ = e.ray;
     const n = this.matrixWorld, r = this.geometry, A = this.material;
-    ce = A.linewidth + o, r.boundingSphere === null && r.computeBoundingSphere(), _e.copy(r.boundingSphere).applyMatrix4(n);
+    he = A.linewidth + o, r.boundingSphere === null && r.computeBoundingSphere(), _e.copy(r.boundingSphere).applyMatrix4(n);
     let a;
     if (i)
-      a = ce * 0.5;
+      a = he * 0.5;
     else {
       const h = Math.max(s.near, _e.distanceToPoint($.origin));
       a = ii(s, h, A.resolution);
@@ -6577,7 +6583,7 @@ class Sn extends Qt {
     r.boundingBox === null && r.computeBoundingBox(), ke.copy(r.boundingBox).applyMatrix4(n);
     let l;
     if (i)
-      l = ce * 0.5;
+      l = he * 0.5;
     else {
       const h = Math.max(s.near, ke.distanceToPoint($.origin));
       l = ii(s, h, A.resolution);
