@@ -212,6 +212,8 @@ export class ModelViewer extends EventSystem {
     this.loadingMessage = '';
     this.loadingModelName = '';
     this.loadingPercentage = 0;
+    this.lastManualLoadingMessage = '';
+    this.stageOverrideActive = false;
     this.vrUpdateLoop = null;
     
     if (typeof window !== 'undefined') {
@@ -553,6 +555,10 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('model-load-progress', (data) => {
       this.emit('model-load-progress', data);
       this.updateLoadingProgress(data);
+    });
+    this.belowViewer.on('model-load-stage', (data) => {
+      this.emit('model-load-stage', data);
+      this.onModelLoadStage(data);
     });
     this.belowViewer.on('model-loaded', (data) => {
       this.emit('model-loaded', data);
@@ -1207,6 +1213,11 @@ export class ModelViewer extends EventSystem {
     }
 
     this.showLoading('Preparing to load...', modelConfig.name || modelKey);
+    const hadExistingModel = this.belowViewer?.getLoadedModels()?.length > 0;
+    const shouldAnnounceCleanup = hadExistingModel;
+    if (shouldAnnounceCleanup) {
+      this.setManualLoadingMessage('Cleaning up previous model...');
+    }
 
     document.title = `BelowJS – ${modelConfig.name || modelKey}`;
     try {
@@ -1314,9 +1325,10 @@ export class ModelViewer extends EventSystem {
   showLoading(message = 'Loading...', modelName = null) {
     // Store loading state for VR
     this.isLoading = true;
-    this.loadingMessage = message;
     this.loadingModelName = modelName || '';
     this.loadingPercentage = 0;
+    this.setManualLoadingMessage(message);
+    this.lastManualLoadingMessage = message || '';
     
     // Show desktop loading indicator
     if (this.ui.loading) {
@@ -1399,6 +1411,37 @@ export class ModelViewer extends EventSystem {
     }
   }
 
+  setManualLoadingMessage(message) {
+    this.lastManualLoadingMessage = message || '';
+    this.stageOverrideActive = false;
+    this.updateLoadingText(message);
+  }
+
+  setStageLoadingMessage(message) {
+    this.stageOverrideActive = true;
+    this.updateLoadingText(message);
+  }
+
+  restoreManualLoadingMessage() {
+    if (!this.lastManualLoadingMessage) {
+      this.stageOverrideActive = false;
+      return;
+    }
+    this.stageOverrideActive = false;
+    this.updateLoadingText(this.lastManualLoadingMessage);
+  }
+
+  updateLoadingText(message) {
+    this.loadingMessage = message || '';
+    if (this.ui.loading) {
+      const statusElement = this.ui.loading.querySelector('.loading-status');
+      if (statusElement) {
+        statusElement.textContent = this.loadingMessage;
+      }
+    }
+    this.updateVRLoadingIndicator();
+  }
+
   /**
    * Position VR loading sprite in front of user's view
    */
@@ -1442,19 +1485,17 @@ export class ModelViewer extends EventSystem {
       
       // Update loading state
       this.loadingPercentage = percent;
-      this.loadingMessage = 'Loading model';
+      if (!this.stageOverrideActive) {
+        this.setManualLoadingMessage('Loading model');
+      }
       
       // Update desktop loading indicator
       if (this.ui.loading) {
         const percentageElement = this.ui.loading.querySelector('.spinner-percentage');
-        const statusElement = this.ui.loading.querySelector('.loading-status');
         const spinnerPath = this.ui.loading.querySelector('.spinner-path');
         
         if (percentageElement) {
           percentageElement.textContent = `${percent}%`;
-        }
-        if (statusElement) {
-          statusElement.textContent = 'Loading model';
         }
         if (spinnerPath) {
           // Update the circular progress
@@ -1478,6 +1519,24 @@ export class ModelViewer extends EventSystem {
   onModelLoadError({ error }) {
     this.hideLoading();
     this.updateStatus(`Failed to load model: ${error.message}`);
+  }
+
+  onModelLoadStage({ stage }) {
+    if (!this.isLoading) return;
+
+    const stageMessages = {
+      downloading: 'Downloading model...',
+      'freeing-resources': 'Freeing GPU memory...',
+      cloning: 'Fetching from cache...',
+      processing: 'Uploading textures... almost there',
+      finalizing: 'Finalizing view...'
+    };
+
+    if (stageMessages[stage]) {
+      this.setStageLoadingMessage(stageMessages[stage]);
+    } else if (stage === 'completed') {
+      this.restoreManualLoadingMessage();
+    }
   }
   
   /**

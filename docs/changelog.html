@@ -182,7 +182,26 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.1.0</code>
+                <code>npm install belowjs@1.2.0</code>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
+                    <div class="version-number">1.2.0</div>
+                    <div class="version-tag">Minor</div>
+                    <div class="version-date">September 10, 2025</div>
+                </div>
+                
+                <p>Safari/iOS memory fixes and platform-specific loader tuning for the iOS 26 GPU crash.</p>
+                
+                <div class="changes-list">
+                    <ul>
+                        <li><span class="change-type improved">Improved</span> Draco and KTX2 worker pools are limited to a single thread on iOS to keep WebKit memory stable on iOS 26 devices.</li>
+                        <li><span class="change-type improved">Improved</span> Shared KTX2 detection now scopes per platform so desktop browsers keep their parallelism.</li>
+                        <li><span class="change-type fixed">Fixed</span> Cached GLTF scenes, textures, and parser registries are released immediately after model swaps, preventing Safari desktop/iOS 26 crashes.</li>
+                        <li><span class="change-type fixed">Fixed</span> Abort listeners and converted materials are disposed right after loads so cancelled requests can’t leak GPU resources and trip the iOS 26 GPU watchdog.</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="version-section">
