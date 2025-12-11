@@ -5,6 +5,15 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Upgraded Three.js from r179 to r182, gaining modernized shadow mapping with PCF filtering using Vogel disk sampling and IGN (Interleaved Gradient Noise)
+- Optimized shadow map sizes for significantly improved performance while maintaining or improving visual quality:
+  - Survey mode directional light: reduced from 2048x2048 to 1024x1024 (75% memory reduction)
+  - VR torch spotlight: reduced from 512/1024 to 256/512 for Quest 2/other devices (75% memory reduction)
+- Crisper, higher-quality shadows across all lighting modes due to improved shadow filtering algorithms
+
 ## [1.3.0] - 2025-11-09
 - Desktop Quest Link streaming support, best tried with the drag-and-drop viewer (<https://patrick-morrison.github.io/belowjs/examples/dragdrop/>).
 

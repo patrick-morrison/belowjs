@@ -41,9 +41,10 @@ export class DiveLighting {
         this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
         this.clearModeDirectionalLight.position.set(10, 20, 10);
         this.clearModeDirectionalLight.castShadow = true;
-        
-        this.clearModeDirectionalLight.shadow.mapSize.width = 2048;
-        this.clearModeDirectionalLight.shadow.mapSize.height = 2048;
+
+        // Reduced from 2048 to 1024 - r182 shadow improvements maintain quality at lower resolution
+        this.clearModeDirectionalLight.shadow.mapSize.width = 1024;
+        this.clearModeDirectionalLight.shadow.mapSize.height = 1024;
         this.clearModeDirectionalLight.shadow.camera.near = 0.5;
         this.clearModeDirectionalLight.shadow.camera.far = 100;
         this.clearModeDirectionalLight.shadow.camera.left = -20;

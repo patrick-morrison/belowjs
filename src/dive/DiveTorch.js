@@ -68,9 +68,10 @@ export class DiveTorch {
     this.controllerSpotlight.position.set(0, 0, 0);
     this.controllerSpotlight.visible = true;
     this.controllerSpotlight.castShadow = true;
-    
 
-    const shadowMapSize = this.isQuest2 ? 512 : 1024; // Reduce shadow quality on Quest 2
+
+    // r182 shadow improvements allow smaller maps with better quality
+    const shadowMapSize = this.isQuest2 ? 256 : 512;
     this.controllerSpotlight.shadow.mapSize.width = shadowMapSize;
     this.controllerSpotlight.shadow.mapSize.height = shadowMapSize;
     this.controllerSpotlight.shadow.camera.near = 0.1;

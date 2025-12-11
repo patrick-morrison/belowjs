@@ -187,6 +187,28 @@
 
             <div class="version-section">
                 <div class="version-header">
+                    <div class="version-number">Unreleased</div>
+                    <div class="version-tag" style="background: #6366f1;">In Development</div>
+                </div>
+
+                <p>Three.js r182 upgrade with modernized shadow rendering.</p>
+
+                <div class="changes-list">
+                    <ul>
+                        <li><span class="change-type improved">Improved</span> Upgraded Three.js from r179 to r182, gaining modernized shadow mapping with PCF filtering using Vogel disk sampling and IGN (Interleaved Gradient Noise)</li>
+                        <li><span class="change-type improved">Improved</span> Optimized shadow map sizes for significantly improved performance while maintaining or improving visual quality:
+                            <ul style="margin-top: 0.5rem;">
+                                <li>Survey mode directional light: reduced from 2048×2048 to 1024×1024 (75% memory reduction)</li>
+                                <li>VR torch spotlight: reduced from 512/1024 to 256/512 for Quest 2/other devices (75% memory reduction)</li>
+                            </ul>
+                        </li>
+                        <li><span class="change-type improved">Improved</span> Crisper, higher-quality shadows across all lighting modes due to improved shadow filtering algorithms</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
                     <div class="version-number">1.3.0</div>
                     <div class="version-tag">Minor</div>
                     <div class="version-date">November 9, 2025</div>
