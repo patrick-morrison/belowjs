@@ -3691,7 +3691,7 @@ class q {
     try {
       if (!q.sharedKTX2Loaders.has(e)) {
         const t = new z();
-        t.setTranscoderPath("https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/"), this.isIOSWebKit && typeof t.setWorkerLimit == "function" && t.setWorkerLimit(1), q.sharedKTX2Loaders.set(e, t), q.sharedKTX2SetupComplete.set(e, !1);
+        t.setTranscoderPath("https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/libs/basis/"), this.isIOSWebKit && typeof t.setWorkerLimit == "function" && t.setWorkerLimit(1), q.sharedKTX2Loaders.set(e, t), q.sharedKTX2SetupComplete.set(e, !1);
       }
       this.ktx2Loader = q.sharedKTX2Loaders.get(e), this.loader.setKTX2Loader(this.ktx2Loader), this.ktx2SetupComplete = q.sharedKTX2SetupComplete.get(e) || !1, this.renderer && !this.ktx2SetupComplete && this.ensureKTX2Support();
     } catch (t) {

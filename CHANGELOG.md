@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Survey mode directional light: reduced from 2048x2048 to 1024x1024 (75% memory reduction)
   - VR torch spotlight: reduced from 512/1024 to 256/512 for Quest 2/other devices (75% memory reduction)
 - Crisper, higher-quality shadows across all lighting modes due to improved shadow filtering algorithms
+- Updated KTX2Loader transcoder path to match Three.js version (0.182.0)
+- Automatic improvements from r181: Better energy conservation for PBR materials, improved indirect specular lighting, and GGX VNDF importance sampling for IBL
 
 ## [1.3.0] - 2025-11-09
 - Desktop Quest Link streaming support, best tried with the drag-and-drop viewer (<https://patrick-morrison.github.io/belowjs/examples/dragdrop/>).

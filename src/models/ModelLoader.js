@@ -35,7 +35,7 @@ export class ModelLoader {
     try {
       if (!ModelLoader.sharedKTX2Loaders.has(platformKey)) {
         const loader = new KTX2Loader();
-        loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
+        loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/libs/basis/');
         if (this.isIOSWebKit && typeof loader.setWorkerLimit === 'function') {
           loader.setWorkerLimit(1);
         }
