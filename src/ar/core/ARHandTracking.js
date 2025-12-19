@@ -182,15 +182,22 @@ export class ARHandTracking {
 
         if (this.onGestureStart) this.onGestureStart('two-hand');
       } else {
-        // Scale - smooth proportional scaling
+        // Scale - logarithmic scaling for symmetric up/down control
         const currentDistance = this.tempVec1.distanceTo(this.tempVec2);
-        const scaleFactor = currentDistance / this.scaleStartDistance;
-        const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, modelGroup.scale.x * scaleFactor));
+        const distanceRatio = currentDistance / this.scaleStartDistance;
+
+        // Use log scaling: same hand movement doubles or halves scale at any level
+        const currentLogScale = Math.log(modelGroup.scale.x);
+        const logScaleDelta = Math.log(distanceRatio);
+        const newLogScale = currentLogScale + logScaleDelta;
+
+        // Convert back to linear scale with clamping
+        const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(newLogScale)));
         modelGroup.scale.setScalar(newScale);
 
-        // Update inertia
+        // Update inertia in log space for consistent feel
         if (deltaSeconds > 0) {
-          const velocityDelta = (scaleFactor - 1) * modelGroup.scale.x / deltaSeconds;
+          const velocityDelta = logScaleDelta * newScale / deltaSeconds;
           this.scaleVelocity = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, velocityDelta));
         }
 

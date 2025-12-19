@@ -42,21 +42,25 @@
         import { ModelViewer } from 'belowjs';
 
         // Model configurations
+        // Easy per-model scale: 0.01 = 1%, 0.05 = 5%, 1.0 = 100%
         const models = {
           'kxi': {
             url: '../basic/models/kxi.glb',
             name: 'HNLMS K XI (1946)',
-            credit: 'WreckSploration'
+            credit: 'WreckSploration',
+            defaultScale: 0.05  // 5% - perfect for large shipwrecks
           },
           'sesa': {
             url: '../basic/models/sesa.glb',
             name: 'Sesa',
-            credit: 'WreckSploration'
+            credit: 'WreckSploration',
+            defaultScale: 0.05  // 5%
           },
           'unknown': {
             url: '../basic/models/unknown.glb',
             name: 'Unknown Wreck',
-            credit: 'WreckSploration'
+            credit: 'WreckSploration',
+            defaultScale: 0.05  // 5%
           }
         };
         const viewerContainer = document.createElement('div');
@@ -84,7 +88,7 @@
                 enableHandTracking: true,
                 enableWorldCube: true,
                 defaultScale: 0.05,        // 5% scale for models
-                worldCubeSize: 200.0,       // 200m cube
+                worldCubeSize: 1000.0,      // 1000m cube
                 worldCubeOpacity: 0.1       // 10% alpha black
               }
             }

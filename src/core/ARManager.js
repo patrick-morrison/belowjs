@@ -18,7 +18,7 @@ export class ARManager extends EventSystem {
       enableHandTracking: true,
       enableWorldCube: true,
       defaultScale: 0.05,
-      worldCubeSize: 200.0,
+      worldCubeSize: 1000.0,
       worldCubeOpacity: 0.1,
       ...config
     };
@@ -33,6 +33,7 @@ export class ARManager extends EventSystem {
     this.modelGroup.name = 'AR Model Group';
     this.scene.add(this.modelGroup);
     this.currentModel = null;
+    this.currentModelScale = this.config.defaultScale;
 
     // World cube
     this.worldCube = null;
@@ -77,10 +78,10 @@ export class ARManager extends EventSystem {
       console.log('🚀 ARManager: Session starting!');
       this.isARPresenting = true;
 
-      // Reset model to default scale
+      // Reset model to its default scale
       if (this.currentModel) {
-        console.log('✅ ARManager: Model found, resetting scale');
-        this.modelGroup.scale.setScalar(this.config.defaultScale);
+        console.log('✅ ARManager: Model found, resetting scale to', this.currentModelScale);
+        this.modelGroup.scale.setScalar(this.currentModelScale);
       } else {
         console.log('⚠️ ARManager: No model loaded yet');
       }
@@ -111,7 +112,7 @@ export class ARManager extends EventSystem {
     };
   }
 
-  setTargetModel(model) {
+  setTargetModel(model, modelConfig = null) {
     console.log('🎯 ARManager.setTargetModel: Setting model', model ? 'YES' : 'NO');
 
     if (this.currentModel) {
@@ -120,11 +121,15 @@ export class ARManager extends EventSystem {
 
     this.currentModel = model;
     if (model) {
+      // Store model-specific scale (from config or userData, fallback to global default)
+      const modelScale = modelConfig?.defaultScale || model.userData?.defaultScale || this.config.defaultScale;
+      this.currentModelScale = modelScale;
+
       this.modelGroup.add(model);
       this.modelGroup.position.set(0, 0, 0);
       this.modelGroup.rotation.set(0, 0, 0);
-      this.modelGroup.scale.setScalar(this.config.defaultScale);
-      console.log('✅ ARManager.setTargetModel: Model added to modelGroup');
+      this.modelGroup.scale.setScalar(modelScale);
+      console.log('✅ ARManager.setTargetModel: Model added at scale', modelScale);
     }
   }
 

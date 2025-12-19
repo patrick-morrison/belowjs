@@ -358,7 +358,7 @@ export class BelowViewer extends EventSystem {
       // Set current model as AR target
       if (this.loadedModels.length > 0) {
         const currentModel = this.loadedModels[this.loadedModels.length - 1];
-        this.arManager.setTargetModel(currentModel.model);
+        this.arManager.setTargetModel(currentModel.model, currentModel.options);
       }
 
       this.emit('ar-session-start');

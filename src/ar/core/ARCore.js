@@ -241,12 +241,12 @@ export class ARCore {
   applyQuestOptimizations(deviceType) {
     // Apply device-specific optimizations
     if (deviceType === 'quest2') {
-      // Quest 2: Increased far plane for large world cube
-      this.camera.far = 300;
+      // Quest 2: Large far plane for 1000m world cube and 100% scale models
+      this.camera.far = 2000;
       this.camera.updateProjectionMatrix();
     } else if (deviceType === 'quest3') {
-      // Quest 3: Increased far plane for large world cube
-      this.camera.far = 400;
+      // Quest 3: Large far plane for 1000m world cube and 100% scale models
+      this.camera.far = 2000;
       this.camera.updateProjectionMatrix();
     }
   }

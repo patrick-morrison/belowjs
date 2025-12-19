@@ -5434,7 +5434,7 @@ class vn {
     }
   }
   applyQuestOptimizations(e) {
-    e === "quest2" ? (this.camera.far = 300, this.camera.updateProjectionMatrix()) : e === "quest3" && (this.camera.far = 400, this.camera.updateProjectionMatrix());
+    e === "quest2" ? (this.camera.far = 2e3, this.camera.updateProjectionMatrix()) : e === "quest3" && (this.camera.far = 2e3, this.camera.updateProjectionMatrix());
   }
   async waitForARCSS() {
     return new Promise((e) => {
@@ -5730,15 +5730,15 @@ class Fn {
         const A = this.tempVec2.x - this.tempVec1.x, a = this.tempVec2.z - this.tempVec1.z;
         this.rotateStartAngle = Math.atan2(a, A), this.onGestureStart && this.onGestureStart("two-hand");
       } else {
-        const A = this.tempVec1.distanceTo(this.tempVec2), a = A / this.scaleStartDistance, l = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, t.scale.x * a));
-        if (t.scale.setScalar(l), e > 0) {
-          const C = (a - 1) * t.scale.x / e;
-          this.scaleVelocity = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, C));
+        const A = this.tempVec1.distanceTo(this.tempVec2), a = A / this.scaleStartDistance, l = Math.log(t.scale.x), h = Math.log(a), d = l + h, g = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(d)));
+        if (t.scale.setScalar(g), e > 0) {
+          const m = h * g / e;
+          this.scaleVelocity = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, m));
         }
         this.scaleStartDistance = A;
-        const h = this.tempVec2.x - this.tempVec1.x, d = this.tempVec2.z - this.tempVec1.z, g = Math.atan2(d, h);
-        let p = g - this.rotateStartAngle;
-        p > Math.PI && (p -= 2 * Math.PI), p < -Math.PI && (p += 2 * Math.PI), t.rotation.y -= p, e > 0 && (this.rotVelocity = -p / e, this.rotVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, this.rotVelocity))), this.rotateStartAngle = g;
+        const p = this.tempVec2.x - this.tempVec1.x, C = this.tempVec2.z - this.tempVec1.z, E = Math.atan2(C, p);
+        let f = E - this.rotateStartAngle;
+        f > Math.PI && (f -= 2 * Math.PI), f < -Math.PI && (f += 2 * Math.PI), t.rotation.y -= f, e > 0 && (this.rotVelocity = -f / e, this.rotVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, this.rotVelocity))), this.rotateStartAngle = E;
       }
   }
   onPinchEnd() {
@@ -5766,10 +5766,10 @@ class kn extends je {
       enableHandTracking: !0,
       enableWorldCube: !0,
       defaultScale: 0.05,
-      worldCubeSize: 200,
+      worldCubeSize: 1e3,
       worldCubeOpacity: 0.1,
       ...s
-    }, this.container = o, this.arCore = new vn(e, t, i, o), this.handTracking = this.config.enableHandTracking ? new Fn(e) : null, this.modelGroup = new u.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
+    }, this.container = o, this.arCore = new vn(e, t, i, o), this.handTracking = this.config.enableHandTracking ? new Fn(e) : null, this.modelGroup = new u.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
   }
   init() {
     this.arCore.init(), this.handTracking && (this.handTracking.init(this.scene), this.handTracking.onGestureStart = (e) => {
@@ -5780,13 +5780,16 @@ class kn extends je {
   }
   setupSessionLifecycle() {
     this.arCore.onSessionStart = () => {
-      console.log("🚀 ARManager: Session starting!"), this.isARPresenting = !0, this.currentModel ? (console.log("✅ ARManager: Model found, resetting scale"), this.modelGroup.scale.setScalar(this.config.defaultScale)) : console.log("⚠️ ARManager: No model loaded yet"), this.worldCube && (this.worldCube.visible = !0), console.log("🚀 ARManager: Emitting session-start event"), this.emit("session-start");
+      console.log("🚀 ARManager: Session starting!"), this.isARPresenting = !0, this.currentModel ? (console.log("✅ ARManager: Model found, resetting scale to", this.currentModelScale), this.modelGroup.scale.setScalar(this.currentModelScale)) : console.log("⚠️ ARManager: No model loaded yet"), this.worldCube && (this.worldCube.visible = !0), console.log("🚀 ARManager: Emitting session-start event"), this.emit("session-start");
     }, this.arCore.onSessionEnd = () => {
       this.isARPresenting = !1, this.worldCube && (this.worldCube.visible = !1), this.handTracking && this.handTracking.stop(), this.emit("session-end");
     };
   }
-  setTargetModel(e) {
-    console.log("🎯 ARManager.setTargetModel: Setting model", e ? "YES" : "NO"), this.currentModel && this.modelGroup.remove(this.currentModel), this.currentModel = e, e && (this.modelGroup.add(e), this.modelGroup.position.set(0, 0, 0), this.modelGroup.rotation.set(0, 0, 0), this.modelGroup.scale.setScalar(this.config.defaultScale), console.log("✅ ARManager.setTargetModel: Model added to modelGroup"));
+  setTargetModel(e, t = null) {
+    if (console.log("🎯 ARManager.setTargetModel: Setting model", e ? "YES" : "NO"), this.currentModel && this.modelGroup.remove(this.currentModel), this.currentModel = e, e) {
+      const i = t?.defaultScale || e.userData?.defaultScale || this.config.defaultScale;
+      this.currentModelScale = i, this.modelGroup.add(e), this.modelGroup.position.set(0, 0, 0), this.modelGroup.rotation.set(0, 0, 0), this.modelGroup.scale.setScalar(i), console.log("✅ ARManager.setTargetModel: Model added at scale", i);
+    }
   }
   update(e) {
     if (!this.isActive()) {
@@ -6140,7 +6143,7 @@ class _n extends je {
     ), this.arManager.on("session-start", () => {
       if (this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.loadedModels.length > 0) {
         const t = this.loadedModels[this.loadedModels.length - 1];
-        this.arManager.setTargetModel(t.model);
+        this.arManager.setTargetModel(t.model, t.options);
       }
       this.emit("ar-session-start");
     }), this.arManager.on("session-end", () => {
