@@ -6,6 +6,7 @@ import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
 import { disposeObject3D } from '../utils/ThreeCleanupUtils.js';
 import { VRManager } from './VRManager.js';
+import { ARManager } from './ARManager.js';
 import { DebugCommands } from './DebugCommands.js';
 
 /**
@@ -31,6 +32,9 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {string} [renderer.powerPreference='high-performance'] - GPU preference
  * @property {Object} [vr] - VR configuration
  * @property {boolean} [vr.enabled=true] - Enable VR support
+ * @property {Object} [ar] - AR configuration
+ * @property {boolean} [ar.enabled=false] - Enable AR support
+ * @property {Object} [ar.settings] - AR settings (hand tracking, world cube, etc.)
  */
 
 /**
@@ -145,6 +149,23 @@ export class BelowViewer extends EventSystem {
           enabled: { type: 'boolean', default: true }
         }
       },
+      ar: {
+        type: 'object',
+        default: {
+          enabled: false,
+          settings: {
+            enableHandTracking: true,
+            enableWorldCube: true,
+            defaultScale: 0.05,
+            worldCubeSize: 20.0,  // 20m cube (10x bigger)
+            worldCubeOpacity: 0.1  // 10% alpha black
+          }
+        },
+        schema: {
+          enabled: { type: 'boolean', default: false },
+          settings: { type: 'object', default: {} }
+        }
+      },
       audioPath: { type: 'string', default: './sound/' },
       enableVRAudio: { type: 'boolean', default: false }
     };
@@ -156,8 +177,10 @@ export class BelowViewer extends EventSystem {
     this.cameraManager = null;
     this.modelLoader = null;
     this.vrManager = null;
-    
+    this.arManager = null;
+
     this.isVREnabled = this.config.vr?.enabled !== false;
+    this.isAREnabled = this.config.ar?.enabled === true;
     this.dolly = null;
     
     this.isInitialized = false;
@@ -189,7 +212,11 @@ export class BelowViewer extends EventSystem {
       if (this.isVREnabled) {
         this.initVR();
       }
-      
+
+      if (this.isAREnabled) {
+        this.initAR();
+      }
+
       this.cameraManager.initControls(this.renderer.domElement);
       
       this.setupEventListeners();
@@ -307,7 +334,53 @@ export class BelowViewer extends EventSystem {
       
       this.emit('vr-session-end');
     };
-    
+
+  }
+
+  initAR() {
+    // Initialize AR Manager
+    const arSettings = this.config.ar?.settings || {};
+    this.arManager = new ARManager(
+      this.renderer,
+      this.cameraManager.camera,
+      this.sceneManager.scene,
+      arSettings,
+      this.container
+    );
+
+    // Setup AR session lifecycle callbacks
+    this.arManager.on('session-start', () => {
+      // Disable orbit controls when AR session starts
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = false;
+      }
+
+      // Set current model as AR target
+      if (this.loadedModels.length > 0) {
+        const currentModel = this.loadedModels[this.loadedModels.length - 1];
+        this.arManager.setTargetModel(currentModel.model);
+      }
+
+      this.emit('ar-session-start');
+    });
+
+    this.arManager.on('session-end', () => {
+      // Re-enable orbit controls when AR session ends
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = true;
+      }
+
+      this.emit('ar-session-end');
+    });
+
+    // Forward gesture events
+    this.arManager.on('gesture-start', (gestureType) => {
+      this.emit('ar-gesture-start', gestureType);
+    });
+
+    this.arManager.on('gesture-end', (gestureType) => {
+      this.emit('ar-gesture-end', gestureType);
+    });
   }
 
   setupEventListeners() {
@@ -502,7 +575,11 @@ export class BelowViewer extends EventSystem {
       if (this.vrManager) {
         this.vrManager.update(deltaTime);
       }
-      
+
+      if (this.arManager) {
+        this.arManager.update(deltaTime * 1000); // ARManager expects milliseconds
+      }
+
 
       if (this.cameraManager) {
         this.cameraManager.update();
@@ -684,7 +761,12 @@ export class BelowViewer extends EventSystem {
       this.vrManager.dispose();
       this.vrManager = null;
     }
-    
+
+    if (this.arManager) {
+      this.arManager.dispose();
+      this.arManager = null;
+    }
+
     if (this.renderer) {
       this.renderer.setAnimationLoop(null);
     }

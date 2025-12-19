@@ -172,6 +172,7 @@ export class ModelViewer extends EventSystem {
       showStatus: { type: 'boolean', default: false },
       showInfo: { type: 'boolean', default: false },
       enableVR: { type: 'boolean', default: false },
+      enableAR: { type: 'boolean', default: false },
       enableMeasurement: { type: 'boolean', default: true },
       measurementTheme: { type: 'string', default: 'dark' },
       showMeasurementLabels: { type: 'boolean', default: false },
@@ -226,11 +227,16 @@ export class ModelViewer extends EventSystem {
   init() {
     const viewerConfig = {
       ...this.config.viewerConfig,
-      ...(this.config.enableVR && { vr: { enabled: true } }),
+      // Enable VR only if AR is not enabled
+      ...(this.config.enableVR && !this.config.enableAR && { vr: { enabled: true } }),
+      // Enable AR if requested
+      ...(this.config.enableAR && { ar: { enabled: true, ...(this.config.viewerConfig?.ar || {}) } }),
+      // Explicitly disable VR when AR is enabled
+      ...(this.config.enableAR && { vr: { enabled: false } }),
       ...(this.config.audioPath && { audioPath: this.config.audioPath }),
       ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio })
     };
-    
+
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
 
     this.setupEventForwarding();
