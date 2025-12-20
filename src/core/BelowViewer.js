@@ -157,8 +157,8 @@ export class BelowViewer extends EventSystem {
             enableHandTracking: true,
             enableWorldCube: true,
             defaultScale: 0.05,
-            worldCubeSize: 20.0,  // 20m cube (10x bigger)
-            worldCubeOpacity: 0.1  // 10% alpha black
+            worldCubeSize: 20.0,
+            worldCubeOpacity: 0.1
           }
         },
         schema: {
@@ -338,7 +338,6 @@ export class BelowViewer extends EventSystem {
   }
 
   initAR() {
-    // Initialize AR Manager
     const arSettings = this.config.ar?.settings || {};
     this.arManager = new ARManager(
       this.renderer,
@@ -348,20 +347,15 @@ export class BelowViewer extends EventSystem {
       this.container
     );
 
-    // Setup AR session lifecycle callbacks
     this.arManager.on('session-start', () => {
-      // Disable orbit controls when AR session starts
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = false;
       }
-
-      // Model activation is handled by ARManager.activateModel()
 
       this.emit('ar-session-start');
     });
 
     this.arManager.on('session-end', () => {
-      // Re-enable orbit controls when AR session ends
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = true;
       }
@@ -369,7 +363,6 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-session-end');
     });
 
-    // Forward gesture events
     this.arManager.on('gesture-start', (gestureType) => {
       this.emit('ar-gesture-start', gestureType);
     });
@@ -378,8 +371,6 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-gesture-end', gestureType);
     });
 
-    // Update AR target whenever a model is loaded (even when AR is paused)
-    // This ensures the correct model is ready when user re-enters AR
     this.on('model-loaded', ({ model, options }) => {
       if (this.arManager) {
         this.arManager.setTargetModel(model, options);
@@ -581,7 +572,7 @@ export class BelowViewer extends EventSystem {
       }
 
       if (this.arManager) {
-        this.arManager.update(deltaTime * 1000); // ARManager expects milliseconds
+        this.arManager.update(deltaTime * 1000);
       }
 
 
@@ -720,8 +711,6 @@ export class BelowViewer extends EventSystem {
   }
 
   clearModels() {
-    // Clear AR target BEFORE disposing models to prevent texture/material issues
-    // Always clear AR reference, even if not currently presenting
     if (this.arManager) {
       this.arManager.setTargetModel(null);
     }
