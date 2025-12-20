@@ -1,5 +1,5 @@
 import * as u from "three";
-import { Controls as Hi, Vector3 as R, MOUSE as Ce, TOUCH as pe, Quaternion as Ue, Spherical as Dt, Vector2 as V, Ray as Oi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as ve, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as He, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as Oe, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as Qt, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as gs, OrthographicCamera as us, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as gi, Texture as Lt, VectorKeyframeTrack as Tt, NumberKeyframeTrack as Ft, QuaternionKeyframeTrack as kt, ColorManagement as gt, FrontSide as Cs, Interpolant as Es, Box3 as qe, Sphere as St, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as ui, NoColorSpace as _t, RGBA_BPTC_Format as ut, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as xe, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Qs, RGB_ETC1_Format as Ss, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as xs, SphereGeometry as mi, BoxGeometry as vs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ls, ShaderMaterial as Ts, ShaderLib as Pe, UniformsUtils as bi, UniformsLib as Ne, Vector4 as Le, Line3 as Fs } from "three";
+import { Controls as Oi, Vector3 as R, MOUSE as Ce, TOUCH as pe, Quaternion as Ue, Spherical as Dt, Vector2 as V, Ray as Hi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as ve, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as Oe, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as He, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as Qt, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as gs, OrthographicCamera as us, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as gi, Texture as Tt, VectorKeyframeTrack as Lt, NumberKeyframeTrack as Ft, QuaternionKeyframeTrack as kt, ColorManagement as gt, FrontSide as Cs, Interpolant as Es, Box3 as qe, Sphere as St, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as ui, NoColorSpace as _t, RGBA_BPTC_Format as ut, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as xe, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Qs, RGB_ETC1_Format as Ss, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as xs, SphereGeometry as mi, BoxGeometry as vs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ts, ShaderMaterial as Ls, ShaderLib as Pe, UniformsUtils as bi, UniformsLib as Ne, Vector4 as Te, Line3 as Fs } from "three";
 class je {
   /**
    * Creates a new EventSystem instance
@@ -164,7 +164,7 @@ class ks {
     this.scene.clear();
   }
 }
-const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, Te = new Oi(), Ht = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), k = new R(), U = 2 * Math.PI, x = {
+const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, Le = new Hi(), Ot = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), k = new R(), U = 2 * Math.PI, x = {
   NONE: -1,
   ROTATE: 0,
   DOLLY: 1,
@@ -174,7 +174,7 @@ const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, Te 
   TOUCH_DOLLY_PAN: 5,
   TOUCH_DOLLY_ROTATE: 6
 }, Je = 1e-6;
-class Gs extends Hi {
+class Gs extends Oi {
   /**
    * Constructs a new controls instance.
    *
@@ -182,7 +182,7 @@ class Gs extends Hi {
    * @param {?HTMLDOMElement} domElement - The HTML element used for event listeners.
    */
   constructor(e, t = null) {
-    super(e, t), this.state = x.NONE, this.target = new R(), this.cursor = new R(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ce.ROTATE, MIDDLE: Ce.DOLLY, RIGHT: Ce.PAN }, this.touches = { ONE: pe.ROTATE, TWO: pe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new R(), this._lastQuaternion = new Ue(), this._lastTargetPosition = new R(), this._quat = new Ue().setFromUnitVectors(e.up, new R(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new Dt(), this._sphericalDelta = new Dt(), this._scale = 1, this._panOffset = new R(), this._rotateStart = new V(), this._rotateEnd = new V(), this._rotateDelta = new V(), this._panStart = new V(), this._panEnd = new V(), this._panDelta = new V(), this._dollyStart = new V(), this._dollyEnd = new V(), this._dollyDelta = new V(), this._dollyDirection = new R(), this._mouse = new V(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Ns.bind(this), this._onPointerDown = Ps.bind(this), this._onPointerUp = Us.bind(this), this._onContextMenu = zs.bind(this), this._onMouseWheel = Os.bind(this), this._onKeyDown = qs.bind(this), this._onTouchStart = js.bind(this), this._onTouchMove = Ks.bind(this), this._onMouseDown = Vs.bind(this), this._onMouseMove = Hs.bind(this), this._interceptControlDown = Ys.bind(this), this._interceptControlUp = Js.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
+    super(e, t), this.state = x.NONE, this.target = new R(), this.cursor = new R(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ce.ROTATE, MIDDLE: Ce.DOLLY, RIGHT: Ce.PAN }, this.touches = { ONE: pe.ROTATE, TWO: pe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new R(), this._lastQuaternion = new Ue(), this._lastTargetPosition = new R(), this._quat = new Ue().setFromUnitVectors(e.up, new R(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new Dt(), this._sphericalDelta = new Dt(), this._scale = 1, this._panOffset = new R(), this._rotateStart = new V(), this._rotateEnd = new V(), this._rotateDelta = new V(), this._panStart = new V(), this._panEnd = new V(), this._panDelta = new V(), this._dollyStart = new V(), this._dollyEnd = new V(), this._dollyDelta = new V(), this._dollyDirection = new R(), this._mouse = new V(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Ns.bind(this), this._onPointerDown = Ps.bind(this), this._onPointerUp = Us.bind(this), this._onContextMenu = zs.bind(this), this._onMouseWheel = Hs.bind(this), this._onKeyDown = qs.bind(this), this._onTouchStart = js.bind(this), this._onTouchMove = Ks.bind(this), this._onMouseDown = Vs.bind(this), this._onMouseMove = Os.bind(this), this._interceptControlDown = Ys.bind(this), this._interceptControlUp = Js.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
   }
   connect(e) {
     super.connect(e), this.domElement.addEventListener("pointerdown", this._onPointerDown), this.domElement.addEventListener("pointercancel", this._onPointerUp), this.domElement.addEventListener("contextmenu", this._onContextMenu), this.domElement.addEventListener("wheel", this._onMouseWheel, { passive: !1 }), this.domElement.getRootNode().addEventListener("keydown", this._interceptControlDown, { passive: !0, capture: !0 }), this.domElement.style.touchAction = "none";
@@ -273,7 +273,7 @@ class Gs extends Hi {
         a.unproject(this.object), this.object.position.sub(a).add(r), this.object.updateMatrixWorld(), n = k.length();
       } else
         console.warn("WARNING: OrbitControls.js encountered an unknown camera type - zoom to cursor disabled."), this.zoomToCursor = !1;
-      n !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(n).add(this.object.position) : (Te.origin.copy(this.object.position), Te.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(Te.direction)) < _s ? this.object.lookAt(this.target) : (Ht.setFromNormalAndCoplanarPoint(this.object.up, this.target), Te.intersectPlane(Ht, this.target))));
+      n !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(n).add(this.object.position) : (Le.origin.copy(this.object.position), Le.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(Le.direction)) < _s ? this.object.lookAt(this.target) : (Ot.setFromNormalAndCoplanarPoint(this.object.up, this.target), Le.intersectPlane(Ot, this.target))));
     } else if (this.object.isOrthographicCamera) {
       const n = this.object.zoom;
       this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), n !== this.object.zoom && (this.object.updateProjectionMatrix(), o = !0);
@@ -530,7 +530,7 @@ function Vs(c) {
   }
   this.state !== x.NONE && this.dispatchEvent(Mt);
 }
-function Hs(c) {
+function Os(c) {
   switch (this.state) {
     case x.ROTATE:
       if (this.enableRotate === !1) return;
@@ -546,7 +546,7 @@ function Hs(c) {
       break;
   }
 }
-function Os(c) {
+function Hs(c) {
   this.enabled === !1 || this.enableZoom === !1 || this.state !== x.NONE || (c.preventDefault(), this.dispatchEvent(Mt), this._handleMouseWheel(this._customWheelEvent(c)), this.dispatchEvent(Ci));
 }
 function qs(c) {
@@ -738,7 +738,7 @@ class Ws extends je {
     this.focusAnimation && (cancelAnimationFrame(this.focusAnimation), this.focusAnimation = null), this.controls && this.controls.dispose(), this.removeAllListeners();
   }
 }
-function Ot(c, e) {
+function Ht(c, e) {
   if (e === ji)
     return console.warn("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles."), c;
   if (e === ht || e === li) {
@@ -1368,7 +1368,7 @@ class fo {
             const B = A[b];
             I.instanceColor = new Ji(B.array, B.itemSize, B.normalized);
           } else b !== "TRANSLATION" && b !== "ROTATION" && b !== "SCALE" && p.geometry.setAttribute(b, A[b]);
-        He.prototype.copy.call(I, p), this.parser.assignFinalMaterial(I), g.push(I);
+        Oe.prototype.copy.call(I, p), this.parser.assignFinalMaterial(I), g.push(I);
       }
       return l.isGroup ? (l.clear(), l.add(...g), l) : g[0];
     }));
@@ -1464,8 +1464,8 @@ class Ii extends Es {
   interpolate_(e, t, i, s) {
     const o = this.resultBuffer, n = this.sampleValues, r = this.valueSize, A = r * 2, a = r * 3, l = s - t, h = (i - t) / l, d = h * h, g = d * h, p = e * a, C = p - a, E = -2 * g + 3 * d, f = g - d, m = 1 - E, I = f - d + h;
     for (let b = 0; b !== r; b++) {
-      const B = n[C + b + r], y = n[C + b + A] * l, w = n[p + b + r], T = n[p + b] * l;
-      o[b] = m * B + I * y + E * w + f * T;
+      const B = n[C + b + r], y = n[C + b + A] * l, w = n[p + b + r], L = n[p + b] * l;
+      o[b] = m * B + I * y + E * w + f * L;
     }
     return o;
   }
@@ -1498,7 +1498,7 @@ const j = {
   9984: ts,
   9985: es,
   9986: $i,
-  9987: Oe
+  9987: He
 }, Kt = {
   33071: ss,
   33648: is,
@@ -1901,7 +1901,7 @@ class Ro {
       if (s.sparse !== void 0) {
         const f = We.SCALAR, m = Ee[s.sparse.indices.componentType], I = s.sparse.indices.byteOffset || 0, b = s.sparse.values.byteOffset || 0, B = new m(n[1], I, s.sparse.count * f), y = new a(n[2], b, s.sparse.count * A);
         r !== null && (E = new Re(E.array.slice(), E.itemSize, E.normalized)), E.normalized = !1;
-        for (let w = 0, T = B.length; w < T; w++) {
+        for (let w = 0, L = B.length; w < L; w++) {
           const D = B[w];
           if (E.setX(D, y[w * A]), A >= 2 && E.setY(D, y[w * A + 1]), A >= 3 && E.setZ(D, y[w * A + 2]), A >= 4 && E.setW(D, y[w * A + 3]), A >= 5) throw new Error("THREE.GLTFLoader: Unsupported itemSize in sparse BufferAttribute.");
         }
@@ -1933,7 +1933,7 @@ class Ro {
     const a = this.loadImageSource(t, i).then(function(l) {
       l.flipY = !1, l.name = n.name || r.name || "", l.name === "" && typeof r.uri == "string" && r.uri.startsWith("data:image/") === !1 && (l.name = r.uri);
       const d = (o.samplers || {})[n.sampler] || {};
-      return l.magFilter = jt[d.magFilter] || he, l.minFilter = jt[d.minFilter] || Oe, l.wrapS = Kt[d.wrapS] || dt, l.wrapT = Kt[d.wrapT] || dt, l.generateMipmaps = !l.isCompressedTexture && l.minFilter !== hi && l.minFilter !== he, s.associations.set(l, { textures: e }), l;
+      return l.magFilter = jt[d.magFilter] || he, l.minFilter = jt[d.minFilter] || He, l.wrapS = Kt[d.wrapS] || dt, l.wrapT = Kt[d.wrapT] || dt, l.generateMipmaps = !l.isCompressedTexture && l.minFilter !== hi && l.minFilter !== he, s.associations.set(l, { textures: e }), l;
     }).catch(function() {
       return null;
     });
@@ -1957,7 +1957,7 @@ class Ro {
       return new Promise(function(d, g) {
         let p = d;
         t.isImageBitmapLoader === !0 && (p = function(C) {
-          const E = new Lt(C);
+          const E = new Tt(C);
           E.needsUpdate = !0, d(E);
         }), t.load(ve.resolveURL(h, o.path), p, void 0, g);
       });
@@ -2126,7 +2126,7 @@ class Ro {
         let f;
         const m = a[g];
         if (E.mode === j.TRIANGLES || E.mode === j.TRIANGLE_STRIP || E.mode === j.TRIANGLE_FAN || E.mode === void 0)
-          f = o.isSkinnedMesh === !0 ? new As(C, m) : new Qt(C, m), f.isSkinnedMesh === !0 && f.normalizeSkinWeights(), E.mode === j.TRIANGLE_STRIP ? f.geometry = Ot(f.geometry, li) : E.mode === j.TRIANGLE_FAN && (f.geometry = Ot(f.geometry, ht));
+          f = o.isSkinnedMesh === !0 ? new As(C, m) : new Qt(C, m), f.isSkinnedMesh === !0 && f.normalizeSkinWeights(), E.mode === j.TRIANGLE_STRIP ? f.geometry = Ht(f.geometry, li) : E.mode === j.TRIANGLE_FAN && (f.geometry = Ht(f.geometry, ht));
         else if (E.mode === j.LINES)
           f = new ls(C, m);
         else if (E.mode === j.LINE_STRIP)
@@ -2216,10 +2216,10 @@ class Ro {
     ]).then(function(h) {
       const d = h[0], g = h[1], p = h[2], C = h[3], E = h[4], f = [];
       for (let m = 0, I = d.length; m < I; m++) {
-        const b = d[m], B = g[m], y = p[m], w = C[m], T = E[m];
+        const b = d[m], B = g[m], y = p[m], w = C[m], L = E[m];
         if (b === void 0) continue;
         b.updateMatrix && b.updateMatrix();
-        const D = i._createAnimationTracks(b, B, y, w, T);
+        const D = i._createAnimationTracks(b, B, y, w, L);
         if (D)
           for (let Q = 0; Q < D.length; Q++)
             f.push(D[Q]);
@@ -2281,7 +2281,7 @@ class Ro {
       r.push(a);
     }), this.nodeCache[e] = Promise.all(r).then(function(a) {
       let l;
-      if (o.isBone === !0 ? l = new ms() : a.length > 1 ? l = new Ye() : a.length === 1 ? l = a[0] : l = new He(), l !== a[0])
+      if (o.isBone === !0 ? l = new ms() : a.length > 1 ? l = new Ye() : a.length === 1 ? l = a[0] : l = new Oe(), l !== a[0])
         for (let h = 0, d = a.length; h < d; h++)
           l.add(a[h]);
       if (o.name && (l.userData.name = o.name, l.name = n), ie(l, o), o.extensions && ae(i, l, o), o.matrix !== void 0) {
@@ -2317,7 +2317,7 @@ class Ro {
       const a = (l) => {
         const h = /* @__PURE__ */ new Map();
         for (const [d, g] of s.associations)
-          (d instanceof ze || d instanceof Lt) && h.set(d, g);
+          (d instanceof ze || d instanceof Tt) && h.set(d, g);
         return l.traverse((d) => {
           const g = s.associations.get(d);
           g != null && h.set(d, g);
@@ -2341,7 +2341,7 @@ class Ro {
         break;
       case ne.translation:
       case ne.scale:
-        a = Tt;
+        a = Lt;
         break;
       default:
         switch (i.itemSize) {
@@ -2351,7 +2351,7 @@ class Ro {
           case 2:
           case 3:
           default:
-            a = Tt;
+            a = Lt;
             break;
         }
         break;
@@ -2448,7 +2448,7 @@ function zt(c, e, t) {
   });
 }
 const $e = /* @__PURE__ */ new WeakMap();
-class Lo extends yt {
+class To extends yt {
   /**
    * Constructs a new Draco loader.
    *
@@ -2584,7 +2584,7 @@ class Lo extends yt {
     return e ? t.push(this._loadLibrary("draco_decoder.js", "text")) : (t.push(this._loadLibrary("draco_wasm_wrapper.js", "text")), t.push(this._loadLibrary("draco_decoder.wasm", "arraybuffer"))), this.decoderPending = Promise.all(t).then((i) => {
       const s = i[0];
       e || (this.decoderConfig.wasmBinary = i[1]);
-      const o = To.toString(), n = [
+      const o = Lo.toString(), n = [
         "/* draco decoder */",
         s,
         "",
@@ -2632,7 +2632,7 @@ class Lo extends yt {
     return this.workerPool.length = 0, this.workerSourceURL !== "" && URL.revokeObjectURL(this.workerSourceURL), this;
   }
 }
-function To() {
+function Lo() {
   let c, e;
   onmessage = function(n) {
     const r = n.data;
@@ -2788,7 +2788,7 @@ class Fo {
     this.workers.forEach((e) => e.terminate()), this.workersResolve.length = 0, this.workers.length = 0, this.queue.length = 0, this.workerStatus = 0;
   }
 }
-const ko = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Qi = 22, Si = 37, Mi = 43, xi = 76, vi = 83, Ri = 97, Di = 100, Li = 103, Ti = 109, Vo = 131, Ho = 132, Oo = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, Fi = 148, ki = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, vt = 1000066e3;
+const ko = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Qi = 22, Si = 37, Mi = 43, xi = 76, vi = 83, Ri = 97, Di = 100, Ti = 103, Li = 109, Vo = 131, Oo = 132, Ho = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, Fi = 148, ki = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, vt = 1000066e3;
 class $o {
   constructor() {
     this.vkFormat = 0, this.typeSize = 1, this.pixelWidth = 0, this.pixelHeight = 0, this.pixelDepth = 0, this.layerCount = 0, this.faceCount = 1, this.supercompressionScheme = 0, this.levels = [], this.dataFormatDescriptor = [{ vendorId: 0, descriptorType: 0, descriptorBlockSize: 0, versionNumber: 2, colorModel: 0, colorPrimaries: 1, transferFunction: 2, flags: 0, texelBlockDimension: [0, 0, 0, 0], bytesPlane: [0, 0, 0, 0, 0, 0, 0, 0], samples: [] }], this.keyValue = {}, this.globalData = null;
@@ -2848,24 +2848,24 @@ function en(c) {
   for (let F = 0; F < o; F++) t.levels.push({ levelData: new Uint8Array(c.buffer, c.byteOffset + d._nextUint64(), d._nextUint64()), uncompressedByteLength: d._nextUint64() });
   const g = new Se(c, n, r, !0), p = { vendorId: g._skip(4)._nextUint16(), descriptorType: g._nextUint16(), versionNumber: g._nextUint16(), descriptorBlockSize: g._nextUint16(), colorModel: g._nextUint8(), colorPrimaries: g._nextUint8(), transferFunction: g._nextUint8(), flags: g._nextUint8(), texelBlockDimension: [g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8()], bytesPlane: [g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8()], samples: [] }, C = (p.descriptorBlockSize / 4 - 6) / 4;
   for (let F = 0; F < C; F++) {
-    const O = { bitOffset: g._nextUint16(), bitLength: g._nextUint8(), channelType: g._nextUint8(), samplePosition: [g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8()], sampleLower: -1 / 0, sampleUpper: 1 / 0 };
-    64 & O.channelType ? (O.sampleLower = g._nextInt32(), O.sampleUpper = g._nextInt32()) : (O.sampleLower = g._nextUint32(), O.sampleUpper = g._nextUint32()), p.samples[F] = O;
+    const H = { bitOffset: g._nextUint16(), bitLength: g._nextUint8(), channelType: g._nextUint8(), samplePosition: [g._nextUint8(), g._nextUint8(), g._nextUint8(), g._nextUint8()], sampleLower: -1 / 0, sampleUpper: 1 / 0 };
+    64 & H.channelType ? (H.sampleLower = g._nextInt32(), H.sampleUpper = g._nextInt32()) : (H.sampleLower = g._nextUint32(), H.sampleUpper = g._nextUint32()), p.samples[F] = H;
   }
   t.dataFormatDescriptor.length = 0, t.dataFormatDescriptor.push(p);
   const E = new Se(c, A, a, !0);
   for (; E._offset < a; ) {
-    const F = E._nextUint32(), O = E._scan(F), oe = Wt(O);
-    if (t.keyValue[oe] = E._nextUint8Array(F - O.byteLength - 1), oe.match(/^ktx/i)) {
+    const F = E._nextUint32(), H = E._scan(F), oe = Wt(H);
+    if (t.keyValue[oe] = E._nextUint8Array(F - H.byteLength - 1), oe.match(/^ktx/i)) {
       const we = Wt(t.keyValue[oe]);
       t.keyValue[oe] = we.substring(0, we.lastIndexOf("\0"));
     }
     E._skip(F % 4 ? 4 - F % 4 : 0);
   }
   if (h <= 0) return t;
-  const f = new Se(c, l, h, !0), m = f._nextUint16(), I = f._nextUint16(), b = f._nextUint32(), B = f._nextUint32(), y = f._nextUint32(), w = f._nextUint32(), T = [];
-  for (let F = 0; F < o; F++) T.push({ imageFlags: f._nextUint32(), rgbSliceByteOffset: f._nextUint32(), rgbSliceByteLength: f._nextUint32(), alphaSliceByteOffset: f._nextUint32(), alphaSliceByteLength: f._nextUint32() });
+  const f = new Se(c, l, h, !0), m = f._nextUint16(), I = f._nextUint16(), b = f._nextUint32(), B = f._nextUint32(), y = f._nextUint32(), w = f._nextUint32(), L = [];
+  for (let F = 0; F < o; F++) L.push({ imageFlags: f._nextUint32(), rgbSliceByteOffset: f._nextUint32(), rgbSliceByteLength: f._nextUint32(), alphaSliceByteOffset: f._nextUint32(), alphaSliceByteLength: f._nextUint32() });
   const D = l + f._offset, Q = D + b, v = Q + B, M = v + y, J = new Uint8Array(c.buffer, c.byteOffset + D, b), W = new Uint8Array(c.buffer, c.byteOffset + Q, B), ye = new Uint8Array(c.buffer, c.byteOffset + v, y), q = new Uint8Array(c.buffer, c.byteOffset + M, w);
-  return t.globalData = { endpointCount: m, selectorCount: I, imageDescs: T, endpointsData: J, selectorsData: W, tablesData: ye, extendedData: q }, t;
+  return t.globalData = { endpointCount: m, selectorCount: I, imageDescs: L, endpointsData: J, selectorsData: W, tablesData: ye, extendedData: q }, t;
 }
 let et, te, Et;
 const tt = { env: { emscripten_notify_memory_growth: function(c) {
@@ -3038,7 +3038,7 @@ class K extends yt {
       const d = o[0].mipmaps;
       h = t.layerCount > 1 ? new Bs(d, n, r, t.layerCount, A, a) : new ui(d, n, r, A, a);
     }
-    return h.minFilter = o[0].mipmaps.length === 1 ? he : Oe, h.magFilter = he, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = Pi(t), h.premultiplyAlpha = !!(l & _o), h;
+    return h.minFilter = o[0].mipmaps.length === 1 ? he : He, h.magFilter = he, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = Pi(t), h.premultiplyAlpha = !!(l & _o), h;
   }
   /**
    * @private
@@ -3150,7 +3150,7 @@ K.BasisWorker = function() {
       f = n.UASTC_HDR;
     else
       throw new Error("THREE.KTX2Loader: Unknown Basis encoding");
-    const m = C.getWidth(), I = C.getHeight(), b = C.getLayers() || 1, B = C.getLevels(), y = C.getFaces(), w = C.getHasAlpha(), T = C.getDFDFlags(), { transcoderFormat: D, engineFormat: Q, engineType: v } = h(f, m, I, w);
+    const m = C.getWidth(), I = C.getHeight(), b = C.getLayers() || 1, B = C.getLevels(), y = C.getFaces(), w = C.getHasAlpha(), L = C.getDFDFlags(), { transcoderFormat: D, engineFormat: Q, engineType: v } = h(f, m, I, w);
     if (!m || !I || !B)
       throw E(), new Error("THREE.KTX2Loader:	Invalid texture");
     if (!C.startTranscoding())
@@ -3160,10 +3160,10 @@ K.BasisWorker = function() {
       const ye = [];
       for (let q = 0; q < B; q++) {
         const F = [];
-        let O, oe;
+        let H, oe;
         for (let de = 0; de < b; de++) {
           const ge = C.getImageLevelInfo(q, de, W);
-          W === 0 && q === 0 && de === 0 && (ge.origWidth % 4 !== 0 || ge.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), B > 1 ? (O = ge.origWidth, oe = ge.origHeight) : (O = ge.width, oe = ge.height);
+          W === 0 && q === 0 && de === 0 && (ge.origWidth % 4 !== 0 || ge.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), B > 1 ? (H = ge.origWidth, oe = ge.origHeight) : (H = ge.width, oe = ge.height);
           let ue = new Uint8Array(C.getImageTranscodedSizeInBytes(q, de, 0, D));
           const Vi = C.transcodeImage(ue, q, de, W, D, 0, -1, -1);
           if (v === s.HalfFloatType && (ue = new Uint16Array(ue.buffer, ue.byteOffset, ue.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !Vi)
@@ -3171,11 +3171,11 @@ K.BasisWorker = function() {
           F.push(ue);
         }
         const we = g(F);
-        ye.push({ data: we, width: O, height: oe }), J.push(we.buffer);
+        ye.push({ data: we, width: H, height: oe }), J.push(we.buffer);
       }
       M.push({ mipmaps: ye, width: m, height: I, format: Q, type: v });
     }
-    return E(), { faces: M, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: T, format: Q, type: v };
+    return E(), { faces: M, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: L, format: Q, type: v };
   }
   const a = [
     {
@@ -3304,11 +3304,11 @@ K.BasisWorker = function() {
   }
 };
 const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
-  [Ti]: me,
+  [Li]: me,
   [Ri]: me,
   [Si]: me,
   [Mi]: me,
-  [Li]: xe,
+  [Ti]: xe,
   [vi]: xe,
   [wi]: xe,
   [Qi]: xe,
@@ -3323,10 +3323,10 @@ const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
   [Xo]: Ge,
   [Gi]: Nt,
   [_i]: Nt,
-  [Oo]: ft,
+  [Ho]: ft,
   [qo]: ft,
   [Vo]: Pt,
-  [Ho]: Pt,
+  [Oo]: Pt,
   [Ko]: Gt,
   [jo]: Gt,
   [Yo]: pt,
@@ -3334,11 +3334,11 @@ const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
   [Wo]: ut,
   [Jo]: ut
 }, rt = {
-  [Ti]: De,
+  [Li]: De,
   [Ri]: be,
   [Si]: z,
   [Mi]: z,
-  [Li]: De,
+  [Ti]: De,
   [vi]: be,
   [wi]: z,
   [Qi]: z,
@@ -3392,7 +3392,7 @@ async function rn(c) {
     s = c.pixelDepth === 0 ? new ys(i[0].data, c.pixelWidth, c.pixelHeight) : new ws(i[0].data, c.pixelWidth, c.pixelHeight, c.pixelDepth);
   else {
     if (c.pixelDepth > 0) throw new Error("THREE.KTX2Loader: Unsupported pixelDepth.");
-    s = new ui(i, c.pixelWidth, c.pixelHeight), s.minFilter = i.length === 1 ? he : Oe, s.magFilter = he;
+    s = new ui(i, c.pixelWidth, c.pixelHeight), s.minFilter = i.length === 1 ? he : He, s.magFilter = he;
   }
   return s.mipmaps = i, s.type = rt[e], s.format = nt[e], s.colorSpace = Pi(c), s.needsUpdate = !0, Promise.resolve(s);
 }
@@ -3532,10 +3532,10 @@ var an = function() {
     return m.buffer.slice(0, B);
   }
   function A(f, m, I, b, B, y, w) {
-    var T = f.exports.sbrk, D = b + 3 & -4, Q = T(D * B), v = T(y.length), M = new Uint8Array(f.exports.memory.buffer);
+    var L = f.exports.sbrk, D = b + 3 & -4, Q = L(D * B), v = L(y.length), M = new Uint8Array(f.exports.memory.buffer);
     M.set(y, v);
     var J = m(Q, b, B, v, y.length);
-    if (J == 0 && w && w(Q, D, B), I.set(M.subarray(Q, Q + b * B)), T(Q - T(0)), J != 0)
+    if (J == 0 && w && w(Q, D, B), I.set(M.subarray(Q, Q + b * B)), L(Q - L(0)), J != 0)
       throw new Error("Malformed buffer data: " + J);
   }
   var a = {
@@ -3569,9 +3569,9 @@ var an = function() {
   function C(f, m, I, b, B) {
     for (var y = h[0], w = 1; w < h.length; ++w)
       h[w].pending < y.pending && (y = h[w]);
-    return new Promise(function(T, D) {
+    return new Promise(function(L, D) {
       var Q = new Uint8Array(I), v = ++d;
-      y.pending += f, y.requests[v] = { resolve: T, reject: D }, y.object.postMessage({ id: v, count: f, size: m, source: Q, mode: b, filter: B }, [Q.buffer]);
+      y.pending += f, y.requests[v] = { resolve: L, reject: D }, y.object.postMessage({ id: v, count: f, size: m, source: Q, mode: b, filter: B }, [Q.buffer]);
     });
   }
   function E(f) {
@@ -3630,18 +3630,18 @@ function at(c) {
 function ln() {
   u.Cache && typeof u.Cache.clear == "function" && u.Cache.clear();
 }
-class H {
+class O {
   constructor(e = null) {
-    this.renderer = e, this.isIOSWebKit = H.isIOSWebKit(), this.platformKey = H.getPlatformKey(), this.loader = new xt(), this.dracoLoader = new Lo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
+    this.renderer = e, this.isIOSWebKit = O.isIOSWebKit(), this.platformKey = O.getPlatformKey(), this.loader = new xt(), this.dracoLoader = new To(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
   }
   setupKTX2Loader() {
     const e = this.platformKey;
     try {
-      if (!H.sharedKTX2Loaders.has(e)) {
+      if (!O.sharedKTX2Loaders.has(e)) {
         const t = new K();
-        t.setTranscoderPath("https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/"), this.isIOSWebKit && typeof t.setWorkerLimit == "function" && t.setWorkerLimit(1), H.sharedKTX2Loaders.set(e, t), H.sharedKTX2SetupComplete.set(e, !1);
+        t.setTranscoderPath("https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/"), this.isIOSWebKit && typeof t.setWorkerLimit == "function" && t.setWorkerLimit(1), O.sharedKTX2Loaders.set(e, t), O.sharedKTX2SetupComplete.set(e, !1);
       }
-      this.ktx2Loader = H.sharedKTX2Loaders.get(e), this.loader.setKTX2Loader(this.ktx2Loader), this.ktx2SetupComplete = H.sharedKTX2SetupComplete.get(e) || !1, this.renderer && !this.ktx2SetupComplete && this.ensureKTX2Support();
+      this.ktx2Loader = O.sharedKTX2Loaders.get(e), this.loader.setKTX2Loader(this.ktx2Loader), this.ktx2SetupComplete = O.sharedKTX2SetupComplete.get(e) || !1, this.renderer && !this.ktx2SetupComplete && this.ensureKTX2Support();
     } catch (t) {
       console.warn("KTX2 loader setup failed, falling back to standard textures:", t), this.ktx2Loader = null;
     }
@@ -3650,12 +3650,12 @@ class H {
     if (!this.ktx2Loader || !this.renderer)
       return;
     const e = this.platformKey;
-    if (H.sharedKTX2SetupComplete.get(e)) {
+    if (O.sharedKTX2SetupComplete.get(e)) {
       this.ktx2SetupComplete = !0;
       return;
     }
     try {
-      this.ktx2Loader.detectSupport(this.renderer), H.sharedKTX2SetupComplete.set(e, !0), this.ktx2SetupComplete = !0;
+      this.ktx2Loader.detectSupport(this.renderer), O.sharedKTX2SetupComplete.set(e, !0), this.ktx2SetupComplete = !0;
     } catch (t) {
       console.warn("Failed to set up KTX2 loader with renderer:", t);
     }
@@ -3810,11 +3810,11 @@ class H {
     return !!(/iPhone|iPad|iPod/.test(t) || t === "MacIntel" && navigator.maxTouchPoints > 1 || /AppleWebKit/.test(e) && /Mobile/.test(e) && !/Chrome|CriOS|FxiOS/.test(e));
   }
   static getPlatformKey() {
-    return H.isIOSWebKit() ? "ios" : "default";
+    return O.isIOSWebKit() ? "ios" : "default";
   }
 }
-H.sharedKTX2Loaders = /* @__PURE__ */ new Map();
-H.sharedKTX2SetupComplete = /* @__PURE__ */ new Map();
+O.sharedKTX2Loaders = /* @__PURE__ */ new Map();
+O.sharedKTX2SetupComplete = /* @__PURE__ */ new Map();
 class Be {
   /**
    * Constructs a new VR button.
@@ -4051,7 +4051,7 @@ class cn {
     this.vrButton && this.vrButton.parentNode && this.vrButton.parentNode.removeChild(this.vrButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isVRSupported = !1, this.isVRPresenting = !1;
   }
 }
-const L = {
+const T = {
   ComponentState: Object.freeze({
     DEFAULT: "default",
     TOUCHED: "touched",
@@ -4130,7 +4130,7 @@ const gn = {
   xAxis: 0,
   yAxis: 0,
   button: 0,
-  state: L.ComponentState.DEFAULT
+  state: T.ComponentState.DEFAULT
 };
 function un(c = 0, e = 0) {
   let t = c, i = e;
@@ -4145,7 +4145,7 @@ function un(c = 0, e = 0) {
 }
 class pn {
   constructor(e) {
-    this.componentProperty = e.componentProperty, this.states = e.states, this.valueNodeName = e.valueNodeName, this.valueNodeProperty = e.valueNodeProperty, this.valueNodeProperty === L.VisualResponseProperty.TRANSFORM && (this.minNodeName = e.minNodeName, this.maxNodeName = e.maxNodeName), this.value = 0, this.updateFromComponent(gn);
+    this.componentProperty = e.componentProperty, this.states = e.states, this.valueNodeName = e.valueNodeName, this.valueNodeProperty = e.valueNodeProperty, this.valueNodeProperty === T.VisualResponseProperty.TRANSFORM && (this.minNodeName = e.minNodeName, this.maxNodeName = e.maxNodeName), this.value = 0, this.updateFromComponent(gn);
   }
   /**
    * Computes the visual response's interpolation weight based on component state
@@ -4163,17 +4163,17 @@ class pn {
   }) {
     const { normalizedXAxis: o, normalizedYAxis: n } = un(e, t);
     switch (this.componentProperty) {
-      case L.ComponentProperty.X_AXIS:
+      case T.ComponentProperty.X_AXIS:
         this.value = this.states.includes(s) ? o : 0.5;
         break;
-      case L.ComponentProperty.Y_AXIS:
+      case T.ComponentProperty.Y_AXIS:
         this.value = this.states.includes(s) ? n : 0.5;
         break;
-      case L.ComponentProperty.BUTTON:
+      case T.ComponentProperty.BUTTON:
         this.value = this.states.includes(s) ? i : 0;
         break;
-      case L.ComponentProperty.STATE:
-        this.valueNodeProperty === L.VisualResponseProperty.VISIBILITY ? this.value = this.states.includes(s) : this.value = this.states.includes(s) ? 1 : 0;
+      case T.ComponentProperty.STATE:
+        this.valueNodeProperty === T.VisualResponseProperty.VISIBILITY ? this.value = this.states.includes(s) : this.value = this.states.includes(s) ? 1 : 0;
         break;
       default:
         throw new Error(`Unexpected visualResponse componentProperty ${this.componentProperty}`);
@@ -4192,7 +4192,7 @@ class fn {
       const s = new pn(t.visualResponses[i]);
       this.visualResponses[i] = s;
     }), this.gamepadIndices = Object.assign({}, t.gamepadIndices), this.values = {
-      state: L.ComponentState.DEFAULT,
+      state: T.ComponentState.DEFAULT,
       button: this.gamepadIndices.button !== void 0 ? 0 : void 0,
       xAxis: this.gamepadIndices.xAxis !== void 0 ? 0 : void 0,
       yAxis: this.gamepadIndices.yAxis !== void 0 ? 0 : void 0
@@ -4206,11 +4206,11 @@ class fn {
    * @param {Object} gamepad - The gamepad object from which the component data should be polled
    */
   updateFromGamepad(e) {
-    if (this.values.state = L.ComponentState.DEFAULT, this.gamepadIndices.button !== void 0 && e.buttons.length > this.gamepadIndices.button) {
+    if (this.values.state = T.ComponentState.DEFAULT, this.gamepadIndices.button !== void 0 && e.buttons.length > this.gamepadIndices.button) {
       const t = e.buttons[this.gamepadIndices.button];
-      this.values.button = t.value, this.values.button = this.values.button < 0 ? 0 : this.values.button, this.values.button = this.values.button > 1 ? 1 : this.values.button, t.pressed || this.values.button === 1 ? this.values.state = L.ComponentState.PRESSED : (t.touched || this.values.button > L.ButtonTouchThreshold) && (this.values.state = L.ComponentState.TOUCHED);
+      this.values.button = t.value, this.values.button = this.values.button < 0 ? 0 : this.values.button, this.values.button = this.values.button > 1 ? 1 : this.values.button, t.pressed || this.values.button === 1 ? this.values.state = T.ComponentState.PRESSED : (t.touched || this.values.button > T.ButtonTouchThreshold) && (this.values.state = T.ComponentState.TOUCHED);
     }
-    this.gamepadIndices.xAxis !== void 0 && e.axes.length > this.gamepadIndices.xAxis && (this.values.xAxis = e.axes[this.gamepadIndices.xAxis], this.values.xAxis = this.values.xAxis < -1 ? -1 : this.values.xAxis, this.values.xAxis = this.values.xAxis > 1 ? 1 : this.values.xAxis, this.values.state === L.ComponentState.DEFAULT && Math.abs(this.values.xAxis) > L.AxisTouchThreshold && (this.values.state = L.ComponentState.TOUCHED)), this.gamepadIndices.yAxis !== void 0 && e.axes.length > this.gamepadIndices.yAxis && (this.values.yAxis = e.axes[this.gamepadIndices.yAxis], this.values.yAxis = this.values.yAxis < -1 ? -1 : this.values.yAxis, this.values.yAxis = this.values.yAxis > 1 ? 1 : this.values.yAxis, this.values.state === L.ComponentState.DEFAULT && Math.abs(this.values.yAxis) > L.AxisTouchThreshold && (this.values.state = L.ComponentState.TOUCHED)), Object.values(this.visualResponses).forEach((t) => {
+    this.gamepadIndices.xAxis !== void 0 && e.axes.length > this.gamepadIndices.xAxis && (this.values.xAxis = e.axes[this.gamepadIndices.xAxis], this.values.xAxis = this.values.xAxis < -1 ? -1 : this.values.xAxis, this.values.xAxis = this.values.xAxis > 1 ? 1 : this.values.xAxis, this.values.state === T.ComponentState.DEFAULT && Math.abs(this.values.xAxis) > T.AxisTouchThreshold && (this.values.state = T.ComponentState.TOUCHED)), this.gamepadIndices.yAxis !== void 0 && e.axes.length > this.gamepadIndices.yAxis && (this.values.yAxis = e.axes[this.gamepadIndices.yAxis], this.values.yAxis = this.values.yAxis < -1 ? -1 : this.values.yAxis, this.values.yAxis = this.values.yAxis > 1 ? 1 : this.values.yAxis, this.values.state === T.ComponentState.DEFAULT && Math.abs(this.values.yAxis) > T.AxisTouchThreshold && (this.values.state = T.ComponentState.TOUCHED)), Object.values(this.visualResponses).forEach((t) => {
       t.updateFromComponent(this.values);
     });
   }
@@ -4256,7 +4256,7 @@ class mn {
   }
 }
 const bn = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles", Cn = "generic-trigger";
-class En extends He {
+class En extends Oe {
   /**
    * Constructs a new XR controller model.
    */
@@ -4285,7 +4285,7 @@ class En extends He {
     super.updateMatrixWorld(e), this.motionController && (this.motionController.updateFromGamepad(), Object.values(this.motionController.components).forEach((t) => {
       Object.values(t.visualResponses).forEach((i) => {
         const { valueNode: s, minNode: o, maxNode: n, value: r, valueNodeProperty: A } = i;
-        s && (A === L.VisualResponseProperty.VISIBILITY ? s.visible = r : A === L.VisualResponseProperty.TRANSFORM && (s.quaternion.slerpQuaternions(
+        s && (A === T.VisualResponseProperty.VISIBILITY ? s.visible = r : A === T.VisualResponseProperty.TRANSFORM && (s.quaternion.slerpQuaternions(
           o.quaternion,
           n.quaternion,
           r
@@ -4301,7 +4301,7 @@ class En extends He {
 function In(c, e) {
   Object.values(c.components).forEach((t) => {
     const { type: i, touchPointNodeName: s, visualResponses: o } = t;
-    if (i === L.ComponentType.TOUCHPAD)
+    if (i === T.ComponentType.TOUCHPAD)
       if (t.touchPointNode = e.getObjectByName(s), t.touchPointNode) {
         const n = new mi(1e-3), r = new fe({ color: 255 }), A = new Qt(n, r);
         t.touchPointNode.add(A);
@@ -4309,7 +4309,7 @@ function In(c, e) {
         console.warn(`Could not find touch dot, ${t.touchPointNodeName}, in touchpad component ${t.id}`);
     Object.values(o).forEach((n) => {
       const { valueNodeName: r, minNodeName: A, maxNodeName: a, valueNodeProperty: l } = n;
-      if (l === L.VisualResponseProperty.TRANSFORM) {
+      if (l === T.VisualResponseProperty.TRANSFORM) {
         if (n.minNode = e.getObjectByName(A), n.maxNode = e.getObjectByName(a), !n.minNode) {
           console.warn(`Could not find ${A} in the model`);
           return;
@@ -4654,7 +4654,7 @@ class wn {
       g *= Q;
     }
     const C = i.x * g, E = Math.max(i.y * g, g * 0.3), f = i.z * g, m = E / Math.abs(d), I = Math.max(m * 2.2, 1.5), b = this.teleportFloorHeight;
-    let B = null, y = !1, w = e.y, T = 0;
+    let B = null, y = !1, w = e.y, L = 0;
     const D = 8;
     for (let Q = 0; Q <= h; Q++) {
       const v = Q / h * I, M = new u.Vector3(
@@ -4662,8 +4662,8 @@ class wn {
         e.y + E * v + 0.5 * d * v * v,
         e.z + f * v
       );
-      Math.abs(M.y - e.y) > D && (M.y = e.y + Math.sign(M.y - e.y) * D), !y && M.y < w && (y = !0, T = v), l.push(M);
-      const J = y ? v - T : 0, W = y && J > 0.1;
+      Math.abs(M.y - e.y) > D && (M.y = e.y + Math.sign(M.y - e.y) * D), !y && M.y < w && (y = !0, L = v), l.push(M);
+      const J = y ? v - L : 0, W = y && J > 0.1;
       if (!B && W && M.y <= b) {
         if (Q > 0) {
           const q = l[Q - 1], F = (b - q.y) / (M.y - q.y);
@@ -5606,7 +5606,7 @@ class Dn {
     }
   }
 }
-class Ln extends He {
+class Tn extends Oe {
   /**
    * Constructs a new XR hand model.
    *
@@ -5625,7 +5625,7 @@ class Ln extends He {
     super.updateMatrixWorld(e), this.motionController && this.motionController.updateMesh();
   }
 }
-class Tn {
+class Ln {
   /**
    * Constructs a new XR hand model factory.
    *
@@ -5652,7 +5652,7 @@ class Tn {
    * @return {XRHandModel} The XR hand model.
    */
   createHandModel(e, t) {
-    const i = new Ln(e);
+    const i = new Tn(e);
     return e.addEventListener("connected", (s) => {
       const o = s.data;
       o.hand && !i.motionController && (i.xrInputSource = o, t === void 0 || t === "spheres" ? i.motionController = new ti(i, e, this.path, o.handedness, { primitive: "sphere" }) : t === "boxes" ? i.motionController = new ti(i, e, this.path, o.handedness, { primitive: "box" }) : t === "mesh" && (i.motionController = new Dn(i, e, this.path, o.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
@@ -5663,11 +5663,11 @@ class Tn {
 }
 class Fn {
   constructor(e) {
-    this.renderer = e, this.handModelFactory = new Tn(), this.hand1 = null, this.hand2 = null, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new u.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.handModelFactory = new Ln(), this.hand1 = null, this.hand2 = null, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new u.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
-    }, this.inertiaActive = !1, this.posVelocity = new u.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.INERTIA_DAMPING = 8, this.MAX_POS_VELOCITY = 2, this.MAX_ROT_VELOCITY = Math.PI * 1.2, this.MAX_SCALE_VELOCITY = 0.8, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.tempVec1 = new u.Vector3(), this.tempVec2 = new u.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
+    }, this.inertiaActive = !1, this.posVelocity = new u.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI * 1.2, this.MAX_SCALE_VELOCITY = 0.8, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.tempVec1 = new u.Vector3(), this.tempVec2 = new u.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
   }
   init(e) {
     this.hand1 = this.renderer.xr.getHand(0), this.hand1.userData.pinch = !1, this.hand1.addEventListener("pinchstart", () => {
@@ -5720,9 +5720,11 @@ class Fn {
       else {
         a.getWorldPosition(this.tempVec1);
         const l = this.tempVec1.clone().sub(this.dragStartPos);
-        t.position.add(l);
-        const h = Math.min(10, 1 / e * 0.5);
-        this.posVelocity.addScaledVector(l, h), this.posVelocity.clampLength(0, this.MAX_POS_VELOCITY), this.dragStartPos.copy(this.tempVec1);
+        if (t.position.add(l), e > 0) {
+          const h = l.clone().divideScalar(e);
+          this.posVelocity.copy(h);
+        }
+        this.dragStartPos.copy(this.tempVec1);
       }
     } else if (n && r)
       if (i.getWorldPosition(this.tempVec1), s.getWorldPosition(this.tempVec2), !this.scaling && !this.rotating) {
@@ -5744,14 +5746,14 @@ class Fn {
   onPinchEnd() {
     if (!this.hand1.userData.pinch && !this.hand2.userData.pinch) {
       const e = this.dragging || this.scaling || this.rotating;
-      this.dragging = !1, this.scaling = !1, this.rotating = !1, e && (this.onGestureEnd && this.onGestureEnd(), (this.posVelocity.lengthSq() > 0 || Math.abs(this.rotVelocity) > 0 || Math.abs(this.scaleVelocity) > 0) && (this.inertiaActive = !0));
+      this.dragging = !1, this.scaling = !1, this.rotating = !1, e && (this.onGestureEnd && this.onGestureEnd(), this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE && this.posVelocity.set(0, 0, 0), Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE && (this.rotVelocity = 0), Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE && (this.scaleVelocity = 0), (this.posVelocity.lengthSq() > 0 || Math.abs(this.rotVelocity) > 0 || Math.abs(this.scaleVelocity) > 0) && (this.inertiaActive = !0));
     } else (!this.hand1.userData.pinch || !this.hand2.userData.pinch) && (this.scaling = !1, this.rotating = !1);
   }
   applyInertia(e, t) {
-    const i = Math.exp(-this.INERTIA_DAMPING * e);
-    this.posVelocity.multiplyScalar(i), this.rotVelocity *= i, this.scaleVelocity *= i, t.position.addScaledVector(this.posVelocity, e), t.rotation.y += this.rotVelocity * e;
-    const s = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, t.scale.x + this.scaleVelocity * e));
-    t.scale.setScalar(s), this.posVelocity.lengthSq() < 1e-6 && this.posVelocity.set(0, 0, 0), Math.abs(this.rotVelocity) < 1e-6 && (this.rotVelocity = 0), Math.abs(this.scaleVelocity) < 1e-6 && (this.scaleVelocity = 0), this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0 && (this.inertiaActive = !1);
+    const i = Math.exp(-this.POSITION_DAMPING * e), s = Math.exp(-this.ROTATION_DAMPING * e), o = Math.exp(-this.SCALE_DAMPING * e);
+    this.posVelocity.multiplyScalar(i), this.rotVelocity *= s, this.scaleVelocity *= o, t.position.addScaledVector(this.posVelocity, e), t.rotation.y += this.rotVelocity * e;
+    const n = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, t.scale.x + this.scaleVelocity * e));
+    t.scale.setScalar(n), this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE && this.posVelocity.set(0, 0, 0), Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE && (this.rotVelocity = 0), Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE && (this.scaleVelocity = 0), this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0 && (this.inertiaActive = !1);
   }
   stop() {
     this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0;
@@ -6090,7 +6092,7 @@ class _n extends je {
   }
   init() {
     try {
-      this.initRenderer(), this.sceneManager = new ks(this.config.scene), this.cameraManager = new Ws(this.config.camera), this.modelLoader = new H(this.renderer), this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || !1, this.renderer?.getPixelRatio ? this.originalPixelRatio = this.renderer.getPixelRatio() : typeof window < "u" && (this.originalPixelRatio = window.devicePixelRatio || 1), this.pixelRatioBeforeThrottle = this.originalPixelRatio, this.isVREnabled && this.initVR(), this.isAREnabled && this.initAR(), this.cameraManager.initControls(this.renderer.domElement), this.setupEventListeners(), this.startRenderLoop(), this.isInitialized = !0, typeof window < "u" && ii.init(this), this.emit("initialized");
+      this.initRenderer(), this.sceneManager = new ks(this.config.scene), this.cameraManager = new Ws(this.config.camera), this.modelLoader = new O(this.renderer), this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || !1, this.renderer?.getPixelRatio ? this.originalPixelRatio = this.renderer.getPixelRatio() : typeof window < "u" && (this.originalPixelRatio = window.devicePixelRatio || 1), this.pixelRatioBeforeThrottle = this.originalPixelRatio, this.isVREnabled && this.initVR(), this.isAREnabled && this.initAR(), this.cameraManager.initControls(this.renderer.domElement), this.setupEventListeners(), this.startRenderLoop(), this.isInitialized = !0, typeof window < "u" && ii.init(this), this.emit("initialized");
     } catch (e) {
       console.error("Failed to initialize BelowViewer:", e), this.emit("error", e);
     }
@@ -6527,7 +6529,7 @@ class Ui extends Ds {
    * @return {LineSegmentsGeometry} A reference to this geometry.
    */
   fromMesh(e) {
-    return this.fromWireframeGeometry(new Ls(e.geometry)), this;
+    return this.fromWireframeGeometry(new Ts(e.geometry)), this;
   }
   /**
    * Setups this line segments geometry from the given line segments.
@@ -6954,7 +6956,7 @@ Pe.line = {
 		`
   )
 };
-class Ve extends Ts {
+class Ve extends Ls {
   /**
    * Constructs a new line segments geometry.
    *
@@ -7109,7 +7111,7 @@ class Ve extends Ts {
     this.defines && (e === !0 !== this.alphaToCoverage && (this.needsUpdate = !0), e === !0 ? this.defines.USE_ALPHA_TO_COVERAGE = "" : delete this.defines.USE_ALPHA_TO_COVERAGE);
   }
 }
-const At = new Le(), oi = new R(), ni = new R(), _ = new Le(), G = new Le(), X = new Le(), lt = new R(), ct = new Ie(), P = new Fs(), ri = new R(), ke = new qe(), _e = new St(), Z = new Le();
+const At = new Te(), oi = new R(), ni = new R(), _ = new Te(), G = new Te(), X = new Te(), lt = new R(), ct = new Ie(), P = new Fs(), ri = new R(), ke = new qe(), _e = new St(), Z = new Te();
 let $, ce;
 function ai(c, e, t) {
   return Z.set(0, 0, -e, 1).applyMatrix4(c.projectionMatrix), Z.multiplyScalar(1 / Z.w), Z.x = ce / t.width, Z.y = ce / t.height, Z.applyMatrix4(c.projectionMatrixInverse), Z.multiplyScalar(1 / Z.w), Math.abs(Math.max(Z.x, Z.y));
@@ -8285,7 +8287,7 @@ class Vn {
     this.particles && (this.scene.remove(this.particles), this.particles.geometry && this.particles.geometry.dispose(), this.particles.material && this.particles.material.dispose(), this.particles = null);
   }
 }
-class Hn {
+class On {
   constructor(e) {
     this.scene = e, this.controllerSpotlight = null, this.spotlightTarget = null, this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.createSpotlight();
   }
@@ -8392,7 +8394,7 @@ class Hn {
     this.controllerSpotlight && (this.scene.remove(this.controllerSpotlight), this.controllerSpotlight = null), this.spotlightTarget && (this.scene.remove(this.spotlightTarget), this.spotlightTarget = null);
   }
 }
-class On {
+class Hn {
   constructor(e) {
     this.scene = e, this.overheadLight = null, this.clearModeDirectionalLight = null, this.clearModeHemisphereLight = null, this.isTransitioning = !1, this.currentMode = "survey", this.pendingAnimations = /* @__PURE__ */ new Set(), this.isDisposed = !1, this.initializeLighting();
   }
@@ -8484,7 +8486,7 @@ class On {
 }
 class qn {
   constructor(e, t, i) {
-    this.scene = e, this.renderer = t, this.camera = i, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new On(e), this.particles = new Vn(e), this.torch = new Hn(e), this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.applyModeSettings();
+    this.scene = e, this.renderer = t, this.camera = i, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new Hn(e), this.particles = new Vn(e), this.torch = new On(e), this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.applyModeSettings();
   }
   /**
    * Toggle between dive and survey modes
@@ -9389,7 +9391,7 @@ export {
   Ai as Line2,
   It as LineGeometry,
   Ve as LineMaterial,
-  H as ModelLoader,
+  O as ModelLoader,
   Kn as ModelViewer,
   ks as Scene,
   Mn as VRManager

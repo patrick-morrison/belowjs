@@ -36,13 +36,15 @@ export class ARHandTracking {
     this.rotVelocity = 0;
     this.scaleVelocity = 0;
 
-    // Constants
-    this.INERTIA_DAMPING = 8;
-    this.MAX_POS_VELOCITY = 2;
+    // Constants - industry standard: NO inertia for placement, smooth for rotation/scale
+    this.POSITION_DAMPING = 100;  // Very high - effectively no inertia (Apple ARKit style)
+    this.ROTATION_DAMPING = 8;    // Medium damping for smooth rotation
+    this.SCALE_DAMPING = 8;       // Medium damping for smooth scaling
     this.MAX_ROT_VELOCITY = Math.PI * 1.2;
     this.MAX_SCALE_VELOCITY = 0.8;
     this.MIN_SCALE = 0.01;
     this.MAX_SCALE = 1.0;
+    this.VELOCITY_DEAD_ZONE = 0.001;  // Threshold to snap to zero
 
     // Temp vectors
     this.tempVec1 = new THREE.Vector3();
@@ -156,10 +158,11 @@ export class ARHandTracking {
         const delta = this.tempVec1.clone().sub(this.dragStartPos);
         modelGroup.position.add(delta);
 
-        // Update inertia
-        const impulseFactor = Math.min(10, (1 / deltaSeconds) * 0.5);
-        this.posVelocity.addScaledVector(delta, impulseFactor);
-        this.posVelocity.clampLength(0, this.MAX_POS_VELOCITY);
+        // Track velocity for minimal inertia (high damping will kill it almost instantly)
+        if (deltaSeconds > 0) {
+          const velocity = delta.clone().divideScalar(deltaSeconds);
+          this.posVelocity.copy(velocity);
+        }
 
         this.dragStartPos.copy(this.tempVec1);
       }
@@ -236,6 +239,12 @@ export class ARHandTracking {
       if (wasGesturing) {
         if (this.onGestureEnd) this.onGestureEnd();
 
+        // Apply dead zone - prevents drift from stationary release
+        if (this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE) this.posVelocity.set(0, 0, 0);
+        if (Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE) this.rotVelocity = 0;
+        if (Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE) this.scaleVelocity = 0;
+
+        // Position inertia dies almost instantly (POSITION_DAMPING=100), rotation/scale are smooth
         if (this.posVelocity.lengthSq() > 0 || Math.abs(this.rotVelocity) > 0 || Math.abs(this.scaleVelocity) > 0) {
           this.inertiaActive = true;
         }
@@ -247,11 +256,14 @@ export class ARHandTracking {
   }
 
   applyInertia(deltaSeconds, modelGroup) {
-    const decay = Math.exp(-this.INERTIA_DAMPING * deltaSeconds);
+    // Separate damping for each transformation type
+    const posDecay = Math.exp(-this.POSITION_DAMPING * deltaSeconds);
+    const rotDecay = Math.exp(-this.ROTATION_DAMPING * deltaSeconds);
+    const scaleDecay = Math.exp(-this.SCALE_DAMPING * deltaSeconds);
 
-    this.posVelocity.multiplyScalar(decay);
-    this.rotVelocity *= decay;
-    this.scaleVelocity *= decay;
+    this.posVelocity.multiplyScalar(posDecay);
+    this.rotVelocity *= rotDecay;
+    this.scaleVelocity *= scaleDecay;
 
     modelGroup.position.addScaledVector(this.posVelocity, deltaSeconds);
     modelGroup.rotation.y += this.rotVelocity * deltaSeconds;
@@ -259,9 +271,10 @@ export class ARHandTracking {
     const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, modelGroup.scale.x + this.scaleVelocity * deltaSeconds));
     modelGroup.scale.setScalar(newScale);
 
-    if (this.posVelocity.lengthSq() < 1e-6) this.posVelocity.set(0, 0, 0);
-    if (Math.abs(this.rotVelocity) < 1e-6) this.rotVelocity = 0;
-    if (Math.abs(this.scaleVelocity) < 1e-6) this.scaleVelocity = 0;
+    // Dead zone - snap very small velocities to zero for precise placement
+    if (this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE) this.posVelocity.set(0, 0, 0);
+    if (Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE) this.rotVelocity = 0;
+    if (Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE) this.scaleVelocity = 0;
 
     if (this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0) {
       this.inertiaActive = false;
