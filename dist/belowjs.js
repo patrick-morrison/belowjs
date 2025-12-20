@@ -5655,7 +5655,7 @@ class Ln {
 }
 class Fn {
   constructor(e) {
-    this.renderer = e, this.handModelFactory = new Ln(), this.hand1 = null, this.hand2 = null, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new u.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.handModelFactory = new Ln(), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new u.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
@@ -5695,7 +5695,7 @@ class Fn {
     t && (this.handleGestures(e, t, i), this.inertiaActive && !this.dragging && !this.scaling && !this.rotating && this.applyInertia(e, t));
   }
   handleGestures(e, t, i) {
-    if (!this.hand1 || !this.hand2) return;
+    if (!this.interactionEnabled || !this.hand1 || !this.hand2) return;
     const s = this.hand1.joints?.["index-finger-tip"], o = this.hand2.joints?.["index-finger-tip"];
     if (!s || !o) {
       (this.dragging || this.scaling || this.rotating) && this.onPinchEnd();
@@ -5760,6 +5760,14 @@ class Fn {
   }
   stop() {
     this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0;
+  }
+  /**
+   * Enable or disable hand gesture interactions.
+   * When disabled, all gestures are silently ignored (useful for remote scenarios).
+   * @param {boolean} enabled - true to allow interactions, false to block them
+   */
+  setInteractionEnabled(e) {
+    this.interactionEnabled = e, e || this.stop();
   }
   dispose() {
     this.hand1 && this.hand1.clear(), this.hand2 && this.hand2.clear(), this.stop();

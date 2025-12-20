@@ -14,6 +14,9 @@ export class ARHandTracking {
     this.hand1 = null;
     this.hand2 = null;
 
+    // Interaction control
+    this.interactionEnabled = true;
+
     // Gesture state
     this.dragging = false;
     this.scaling = false;
@@ -124,6 +127,7 @@ export class ARHandTracking {
   }
 
   handleGestures(deltaSeconds, modelGroup, camera) {
+    if (!this.interactionEnabled) return;
     if (!this.hand1 || !this.hand2) return;
 
     const tip1 = this.hand1.joints?.['index-finger-tip'];
@@ -305,6 +309,19 @@ export class ARHandTracking {
     this.posVelocity.set(0, 0, 0);
     this.rotVelocity = 0;
     this.scaleVelocity = 0;
+  }
+
+  /**
+   * Enable or disable hand gesture interactions.
+   * When disabled, all gestures are silently ignored (useful for remote scenarios).
+   * @param {boolean} enabled - true to allow interactions, false to block them
+   */
+  setInteractionEnabled(enabled) {
+    this.interactionEnabled = enabled;
+    if (!enabled) {
+      // Stop any active gestures when disabling
+      this.stop();
+    }
   }
 
   dispose() {

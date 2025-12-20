@@ -113,6 +113,10 @@
           console.log(`👋 Gesture ended: ${gestureType}`);
         });
 
+        // Example: Disable/enable hand interactions (useful for remote scenarios)
+        // viewer.arManager.handTracking.setInteractionEnabled(false); // Lock interactions
+        // viewer.arManager.handTracking.setInteractionEnabled(true);  // Unlock interactions
+
         // Load the initial model
         setTimeout(() => {
           console.log('📦 Loading model: kxi');
