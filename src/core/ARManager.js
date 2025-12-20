@@ -33,6 +33,8 @@ export class ARManager extends EventSystem {
     this.modelGroup.name = 'AR Model Group';
     this.scene.add(this.modelGroup);
     this.currentModel = null;
+    this.pendingModel = null;
+    this.pendingModelConfig = null;
     this.currentModelScale = this.config.defaultScale;
 
     // World cube
@@ -78,13 +80,8 @@ export class ARManager extends EventSystem {
       console.log('🚀 ARManager: Session starting!');
       this.isARPresenting = true;
 
-      // Reset model to its default scale
-      if (this.currentModel) {
-        console.log('✅ ARManager: Model found, resetting scale to', this.currentModelScale);
-        this.modelGroup.scale.setScalar(this.currentModelScale);
-      } else {
-        console.log('⚠️ ARManager: No model loaded yet');
-      }
+      // Activate the pending model (move it from main scene to AR scene)
+      this.activateModel();
 
       // Show world cube
       if (this.worldCube) {
@@ -112,25 +109,69 @@ export class ARManager extends EventSystem {
     };
   }
 
-  setTargetModel(model, modelConfig = null) {
-    console.log('🎯 ARManager.setTargetModel: Setting model', model ? 'YES' : 'NO');
+  prepareModel(model, modelConfig = null) {
+    // Store reference to model without adding it to AR scene yet
+    // This prevents affecting desktop view
+    console.log('🎯 ARManager.prepareModel: Preparing model', model ? 'YES' : 'NO', 'AR presenting:', this.isARPresenting);
 
-    if (this.currentModel) {
-      this.modelGroup.remove(this.currentModel);
+    // Stop hand tracking gestures when switching models
+    if (this.handTracking) {
+      this.handTracking.stop();
     }
 
-    this.currentModel = model;
+    // Store the pending model and config
+    this.pendingModel = model;
+    this.pendingModelConfig = modelConfig;
+
     if (model) {
-      // Store model-specific scale (from config or userData, fallback to global default)
       const modelScale = modelConfig?.defaultScale || model.userData?.defaultScale || this.config.defaultScale;
       this.currentModelScale = modelScale;
+      console.log('✅ ARManager.prepareModel: Model ready for AR at scale', modelScale);
 
-      this.modelGroup.add(model);
+      // If AR is already presenting (even if paused), activate immediately
+      if (this.isARPresenting) {
+        console.log('🔄 ARManager.prepareModel: AR is presenting, activating model now');
+        this.activateModel();
+      }
+    } else {
+      console.log('✅ ARManager.prepareModel: Cleared');
+
+      // If AR is presenting and we're clearing, clear the active model too
+      if (this.isARPresenting) {
+        this.activateModel();
+      }
+    }
+  }
+
+  activateModel() {
+    // Move the pending model into AR scene (called when AR session starts)
+    console.log('🎯 ARManager.activateModel: Activating model', this.pendingModel ? 'YES' : 'NO');
+
+    // Remove and clear previous model if it exists
+    if (this.currentModel) {
+      console.log('🗑️ ARManager.activateModel: Removing previous model');
+      this.modelGroup.remove(this.currentModel);
+      // Clear all children to ensure clean state
+      while (this.modelGroup.children.length > 0) {
+        this.modelGroup.remove(this.modelGroup.children[0]);
+      }
+    }
+
+    this.currentModel = this.pendingModel;
+    if (this.currentModel) {
+      this.modelGroup.add(this.currentModel);
       this.modelGroup.position.set(0, 0, 0);
       this.modelGroup.rotation.set(0, 0, 0);
-      this.modelGroup.scale.setScalar(modelScale);
-      console.log('✅ ARManager.setTargetModel: Model added at scale', modelScale);
+      this.modelGroup.scale.setScalar(this.currentModelScale);
+      console.log('✅ ARManager.activateModel: Model activated at scale', this.currentModelScale);
+    } else {
+      console.log('✅ ARManager.activateModel: No model to activate');
     }
+  }
+
+  // Legacy method for compatibility - now just calls prepareModel
+  setTargetModel(model, modelConfig = null) {
+    this.prepareModel(model, modelConfig);
   }
 
   update(deltaTime) {
@@ -148,7 +189,7 @@ export class ARManager extends EventSystem {
 
     if (this.handTracking) {
       console.log('✅ ARManager.update: Calling handTracking.update');
-      this.handTracking.update(deltaSeconds, this.modelGroup);
+      this.handTracking.update(deltaSeconds, this.modelGroup, this.camera);
     } else {
       console.log('❌ ARManager.update: No handTracking');
     }

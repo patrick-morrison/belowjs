@@ -355,11 +355,7 @@ export class BelowViewer extends EventSystem {
         this.cameraManager.controls.enabled = false;
       }
 
-      // Set current model as AR target
-      if (this.loadedModels.length > 0) {
-        const currentModel = this.loadedModels[this.loadedModels.length - 1];
-        this.arManager.setTargetModel(currentModel.model, currentModel.options);
-      }
+      // Model activation is handled by ARManager.activateModel()
 
       this.emit('ar-session-start');
     });
@@ -380,6 +376,14 @@ export class BelowViewer extends EventSystem {
 
     this.arManager.on('gesture-end', (gestureType) => {
       this.emit('ar-gesture-end', gestureType);
+    });
+
+    // Update AR target whenever a model is loaded (even when AR is paused)
+    // This ensures the correct model is ready when user re-enters AR
+    this.on('model-loaded', ({ model, options }) => {
+      if (this.arManager) {
+        this.arManager.setTargetModel(model, options);
+      }
     });
   }
 
@@ -716,13 +720,19 @@ export class BelowViewer extends EventSystem {
   }
 
   clearModels() {
+    // Clear AR target BEFORE disposing models to prevent texture/material issues
+    // Always clear AR reference, even if not currently presenting
+    if (this.arManager) {
+      this.arManager.setTargetModel(null);
+    }
+
     const urlsToRelease = new Set(this.loadedModels.map(({ url }) => url));
 
     this.loadedModels.forEach(({ model }) => {
       disposeObject3D(model);
       this.sceneManager.remove(model);
     });
-    
+
     this.loadedModels.length = 0;
     urlsToRelease.forEach((url) => {
       if (this.modelLoader) {

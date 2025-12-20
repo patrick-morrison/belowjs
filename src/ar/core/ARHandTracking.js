@@ -40,11 +40,19 @@ export class ARHandTracking {
     this.POSITION_DAMPING = 100;  // Very high - effectively no inertia (Apple ARKit style)
     this.ROTATION_DAMPING = 8;    // Medium damping for smooth rotation
     this.SCALE_DAMPING = 8;       // Medium damping for smooth scaling
-    this.MAX_ROT_VELOCITY = Math.PI * 1.2;
-    this.MAX_SCALE_VELOCITY = 0.8;
-    this.MIN_SCALE = 0.01;
-    this.MAX_SCALE = 1.0;
+    this.MAX_ROT_VELOCITY = Math.PI;  // 180 deg/s (industry standard)
+    this.MAX_SCALE_VELOCITY = 0.5;  // Conservative limit
+    this.MIN_SCALE = 0.01;  // 1%
+    this.MAX_SCALE = 1.0;   // 100%
     this.VELOCITY_DEAD_ZONE = 0.001;  // Threshold to snap to zero
+
+    // Distance-based translation gain (for far object retrieval)
+    this.DISTANCE_GAIN_THRESHOLD = 5.0;  // Start amplifying beyond 5m
+    this.MAX_DISTANCE_GAIN = 3.0;  // Up to 3x leverage at far distances
+    this.MAX_DELTA_PER_FRAME = 0.5;  // Clamp to prevent teleportation
+
+    // Velocity smoothing
+    this.VELOCITY_SMOOTHING = 0.3;  // 30% new velocity, 70% old (filters spikes)
 
     // Temp vectors
     this.tempVec1 = new THREE.Vector3();
@@ -73,7 +81,7 @@ export class ARHandTracking {
     scene.add(this.hand1);
 
     handModel1.addEventListener('connected', () => {
-      this.styleHandModel(handModel1, 0xff3333, 0.6); // Red, 60% opacity
+      this.styleHandModel(handModel1, 0xffffff, 0.5); // White, 50% opacity
     });
 
     // Hand 2
@@ -93,7 +101,7 @@ export class ARHandTracking {
     scene.add(this.hand2);
 
     handModel2.addEventListener('connected', () => {
-      this.styleHandModel(handModel2, 0x33ff33, 0.6); // Green, 60% opacity
+      this.styleHandModel(handModel2, 0xffffff, 0.5); // White, 50% opacity
     });
   }
 
@@ -111,11 +119,11 @@ export class ARHandTracking {
     });
   }
 
-  update(deltaSeconds, modelGroup) {
+  update(deltaSeconds, modelGroup, camera) {
     if (!modelGroup) return;
 
     // Handle gestures
-    this.handleGestures(deltaSeconds, modelGroup);
+    this.handleGestures(deltaSeconds, modelGroup, camera);
 
     // Apply inertia when not actively gesturing
     if (this.inertiaActive && !this.dragging && !this.scaling && !this.rotating) {
@@ -123,7 +131,7 @@ export class ARHandTracking {
     }
   }
 
-  handleGestures(deltaSeconds, modelGroup) {
+  handleGestures(deltaSeconds, modelGroup, camera) {
     if (!this.hand1 || !this.hand2) {
       console.log('❌ No hands');
       return;
@@ -131,7 +139,14 @@ export class ARHandTracking {
 
     const tip1 = this.hand1.joints?.['index-finger-tip'];
     const tip2 = this.hand2.joints?.['index-finger-tip'];
+
+    // Hand tracking loss protection
     if (!tip1 || !tip2) {
+      // Check if we're mid-gesture
+      if (this.dragging || this.scaling || this.rotating) {
+        console.warn('⚠️ Hand tracking lost during gesture - emergency stop');
+        this.onPinchEnd();
+      }
       console.log('❌ No finger tips - hand1 joints:', Object.keys(this.hand1.joints || {}).length, 'hand2 joints:', Object.keys(this.hand2.joints || {}).length);
       return;
     }
@@ -148,6 +163,12 @@ export class ARHandTracking {
       const indexTip = activeHand.joints['index-finger-tip'];
 
       if (!this.dragging) {
+        // Starting drag - may be transitioning from two-hand gesture
+        if (this.scaling || this.rotating) {
+          // Hand switching: clear velocities to prevent jumps
+          this.rotVelocity = 0;
+          this.scaleVelocity = 0;
+        }
         this.dragging = true;
         this.scaling = false;
         this.rotating = false;
@@ -155,13 +176,34 @@ export class ARHandTracking {
         if (this.onGestureStart) this.onGestureStart('drag');
       } else {
         indexTip.getWorldPosition(this.tempVec1);
-        const delta = this.tempVec1.clone().sub(this.dragStartPos);
+        let delta = this.tempVec1.clone().sub(this.dragStartPos);
+
+        // Delta clamping - prevent teleportation from tracking glitches
+        if (delta.length() > this.MAX_DELTA_PER_FRAME) {
+          console.warn('⚠️ Suspicious hand movement, clamping delta');
+          delta.normalize().multiplyScalar(this.MAX_DELTA_PER_FRAME);
+        }
+
+        // Distance-based translation gain for far object retrieval
+        if (camera) {
+          const distance = camera.position.distanceTo(modelGroup.position);
+          if (distance > this.DISTANCE_GAIN_THRESHOLD) {
+            // Gradual gain from 1x at 5m to 3x at 20m+
+            const gainFactor = Math.min(
+              this.MAX_DISTANCE_GAIN,
+              1.0 + (distance - this.DISTANCE_GAIN_THRESHOLD) / 7.5
+            );
+            delta.multiplyScalar(gainFactor);
+          }
+        }
+
         modelGroup.position.add(delta);
 
-        // Track velocity for minimal inertia (high damping will kill it almost instantly)
+        // Track velocity with smoothing (filters spikes)
         if (deltaSeconds > 0) {
-          const velocity = delta.clone().divideScalar(deltaSeconds);
-          this.posVelocity.copy(velocity);
+          const instantVelocity = delta.clone().divideScalar(deltaSeconds);
+          // Exponential moving average for smooth velocity
+          this.posVelocity.lerp(instantVelocity, this.VELOCITY_SMOOTHING);
         }
 
         this.dragStartPos.copy(this.tempVec1);
@@ -198,10 +240,12 @@ export class ARHandTracking {
         const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(newLogScale)));
         modelGroup.scale.setScalar(newScale);
 
-        // Update inertia in log space for consistent feel
+        // Update inertia fully in log space with smoothing
         if (deltaSeconds > 0) {
-          const velocityDelta = logScaleDelta * newScale / deltaSeconds;
-          this.scaleVelocity = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, velocityDelta));
+          const instantLogVelocity = logScaleDelta / deltaSeconds;
+          // Smooth velocity update (exponential moving average)
+          const targetVelocity = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, instantLogVelocity));
+          this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + targetVelocity * this.VELOCITY_SMOOTHING;
         }
 
         this.scaleStartDistance = currentDistance;
@@ -217,10 +261,12 @@ export class ARHandTracking {
 
         modelGroup.rotation.y -= angleDelta;
 
-        // Update inertia
+        // Update inertia with smoothing (filters noise)
         if (deltaSeconds > 0) {
-          this.rotVelocity = -angleDelta / deltaSeconds;
-          this.rotVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, this.rotVelocity));
+          const instantRotVelocity = -angleDelta / deltaSeconds;
+          // Smooth velocity update (exponential moving average)
+          const targetVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, instantRotVelocity));
+          this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + targetVelocity * this.VELOCITY_SMOOTHING;
         }
 
         this.rotateStartAngle = currentAngle;
@@ -250,8 +296,11 @@ export class ARHandTracking {
         }
       }
     } else if (!this.hand1.userData.pinch || !this.hand2.userData.pinch) {
+      // Partial hand release - clear velocities to prevent jumps on next gesture
       this.scaling = false;
       this.rotating = false;
+      this.rotVelocity = 0;
+      this.scaleVelocity = 0;
     }
   }
 
@@ -268,7 +317,10 @@ export class ARHandTracking {
     modelGroup.position.addScaledVector(this.posVelocity, deltaSeconds);
     modelGroup.rotation.y += this.rotVelocity * deltaSeconds;
 
-    const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, modelGroup.scale.x + this.scaleVelocity * deltaSeconds));
+    // Apply scale velocity in log-space for consistency with gesture scaling
+    const currentLogScale = Math.log(modelGroup.scale.x);
+    const newLogScale = currentLogScale + this.scaleVelocity * deltaSeconds;
+    const newScale = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(newLogScale)));
     modelGroup.scale.setScalar(newScale);
 
     // Dead zone - snap very small velocities to zero for precise placement
