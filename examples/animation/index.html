@@ -639,6 +639,17 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Improved scrubbing interaction */
+        .timeline-track.scrubbing {
+            cursor: grabbing;
+        }
+
+        .timeline-track.scrubbing .keyframe-marker {
+            pointer-events: none;
+            opacity: 0.6;
+            /* Visual feedback */
+        }
+
         .playhead {
             position: absolute;
             top: 0;
@@ -1249,6 +1260,24 @@
         </div>
     </div>
 
+    <!-- Save Data Modal -->
+    <div class="overlay" id="saveModal">
+        <div class="modal">
+            <h3>Save Animation</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
+                Save your current keyframes, timing, and settings to a JSON file to load later.
+            </p>
+            <div class="export-filename-row">
+                <label>Filename</label>
+                <input type="text" id="saveFilename" value="animation_data" placeholder="animation_data">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="saveCancel">Cancel</button>
+                <button class="ok" id="saveConfirm">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Export progress -->
     <div class="overlay export-progress-overlay" id="exportOverlay">
         <div style="font-size: 1.2em; font-weight: 500;" id="exportTitle">Exporting...</div>
@@ -1327,6 +1356,8 @@
         const torchPower = document.getElementById('torchPower');
         const torchWidth = document.getElementById('torchWidth');
         const torchDistance = document.getElementById('torchDistance');
+        const saveModal = document.getElementById('saveModal');
+        const saveFilename = document.getElementById('saveFilename');
 
 
         // Viewer
@@ -1357,7 +1388,36 @@
         let pointerLocked = false;
 
         document.addEventListener('keydown', (e) => {
+            // Guard: Don't trigger shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
             const key = e.key.toLowerCase();
+
+            // Playback Controls
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayback();
+                return;
+            }
+            if (key === 'k') {
+                stopPlayback();
+                return;
+            }
+            if (key === 'j') {
+                stopPlayback();
+                currentTime = Math.max(0, currentTime - 0.1);
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+                return;
+            }
+            if (key === 'l') {
+                stopPlayback();
+                currentTime = Math.min(duration, currentTime + 0.1);
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+                return;
+            }
+
             // 'i' to add keyframe (Blender style)
             if (key === 'i') {
                 addKeyframe();
@@ -1484,6 +1544,18 @@
 
         // Save/Load
         saveBtn.addEventListener('click', () => {
+            saveModal.classList.add('visible');
+        });
+
+        document.getElementById('saveCancel').addEventListener('click', () => saveModal.classList.remove('visible'));
+
+        document.getElementById('saveConfirm').addEventListener('click', () => {
+            const defaultName = 'animation_data';
+            const filename = saveFilename.value;
+
+            const finalName = filename.trim() || defaultName;
+            const cleanName = finalName.endsWith('.json') ? finalName : `${finalName}.json`;
+
             const data = {
                 version: 1,
                 duration,
@@ -1506,9 +1578,11 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'animation_data.json';
+            a.download = cleanName;
             a.click();
             URL.revokeObjectURL(url);
+
+            saveModal.classList.remove('visible');
         });
 
         loadBtn.addEventListener('click', () => loadInput.click());
@@ -1632,15 +1706,19 @@
             if (!hasModel || aspectRatio === 'none') { aspectFrame.classList.remove('visible'); return; }
             const [w, h] = aspectRatio.split(':').map(Number);
             const ratio = w / h;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight - 80;
-            let frameW, frameH;
-            if (vw / vh > ratio) { frameH = vh * 0.85; frameW = frameH * ratio; }
-            else { frameW = vw * 0.85; frameH = frameW / ratio; }
+
+            // Three.js uses fixed Vertical FOV by default.
+            // This means the Vertical content visible in the export matches the Vertical content visible on screen exactly.
+            // (Assuming the camera behaves normally and we just change the aspect ratio).
+            // So the frame height MUST match the viewport height.
+
+            const frameH = window.innerHeight;
+            const frameW = frameH * ratio;
+
             aspectFrame.style.width = `${frameW}px`;
             aspectFrame.style.height = `${frameH}px`;
-            aspectFrame.style.left = `${(vw - frameW) / 2}px`;
-            aspectFrame.style.top = `${(vh - frameH) / 2}px`;
+            aspectFrame.style.left = `${(window.innerWidth - frameW) / 2}px`;
+            aspectFrame.style.top = `${(window.innerHeight - frameH) / 2}px`;
             aspectFrame.dataset.label = `${aspectRatio} @ ${exportResolution}p`;
             aspectFrame.classList.add('visible');
         }
@@ -2001,10 +2079,16 @@
             if (e.target.classList.contains('keyframe-marker')) return;
             if (isPlaying) stopPlayback();
             isScrubbing = true;
+            timelineTrack.classList.add('scrubbing');
             updateScrub(e);
         });
         document.addEventListener('mousemove', (e) => { if (isScrubbing && !draggingKeyframe) updateScrub(e); });
-        document.addEventListener('mouseup', () => { isScrubbing = false; });
+        document.addEventListener('mouseup', () => {
+            if (isScrubbing) {
+                isScrubbing = false;
+                timelineTrack.classList.remove('scrubbing');
+            }
+        });
         function updateScrub(e) {
             const rect = timelineTrack.getBoundingClientRect();
             currentTime = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1)) * duration;
@@ -2059,10 +2143,26 @@
 
             let expW, expH;
             const res = exportResolution;
-            if (aspectRatio === '16:9') { expW = Math.round(res * 16 / 9); expH = res; }
-            else if (aspectRatio === '9:16') { expW = res; expH = Math.round(res * 16 / 9); }
-            else if (aspectRatio === '1:1') { expW = res; expH = res; }
-            else { expW = Math.round(res * 16 / 9); expH = res; }
+            const parts = aspectRatio.split(':').map(Number);
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                const ratio = parts[0] / parts[1];
+                // For landscape/square, height is reference (res). For portrait, width is reference (res).
+                // Actually, usually resolution (e.g. 2160p) refers to the shorter side (or height in landscape).
+                // Let's stick to the logic: 
+                // Landscape (ratio >= 1): Height = res, Width = res * ratio
+                // Portrait (ratio < 1): Width = res, Height = res / ratio
+                if (ratio >= 1) {
+                    expW = Math.round(res * ratio);
+                    expH = res;
+                } else {
+                    expW = res;
+                    expH = Math.round(res / ratio);
+                }
+            } else {
+                // Default to 16:9 for 'none' or invalid formats
+                expW = Math.round(res * 16 / 9);
+                expH = res;
+            }
             expW = Math.round(expW / 2) * 2;
             expH = Math.round(expH / 2) * 2;
 
@@ -2186,6 +2286,13 @@
 
                 for (let i = 0; i < totalFrames; i++) {
                     if (encoder.state === 'closed') throw new Error('Encoder closed');
+
+                    // Chrome Fix: Backpressure
+                    // Wait if encoder queue is too full to prevent memory spikes
+                    while (encoder.encodeQueueSize > 2) {
+                        await new Promise(r => setTimeout(r, 10));
+                    }
+
                     currentTime = startTime + (i / totalFrames) * rangeDuration;
                     animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
 
@@ -2196,11 +2303,23 @@
                     }
 
                     renderer.render(viewer.belowViewer.sceneManager.scene, camera);
-                    const frame = new VideoFrame(renderer.domElement, { timestamp: (i / fps) * 1_000_000 });
+
+                    // Safari Fix: Explicit duration required for addVideoChunkRaw
+                    const frameDuration = 1_000_000 / fps;
+                    const timestamp = i * frameDuration;
+
+                    const frame = new VideoFrame(renderer.domElement, {
+                        timestamp: timestamp,
+                        duration: frameDuration
+                    });
+
                     encoder.encode(frame, { keyFrame: i % 30 === 0 });
                     frame.close();
+
                     exportProgressBar.style.width = `${((i + 1) / totalFrames) * 100}%`;
                     exportStatus.textContent = `Frame ${i + 1} / ${totalFrames}`;
+
+                    // Small yield still good for UI responsiveness
                     await new Promise(r => setTimeout(r, 0));
                 }
 
