@@ -36,10 +36,19 @@
         /* Override BelowJS controls - move above timeline, hide VR/fullscreen */
         .measurement-panel {
             bottom: 100px !important;
+            transition: opacity 0.5s ease;
         }
 
         .screenshot-button {
             bottom: 170px !important;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Hide tools initially using body class */
+        body.waiting-for-model .measurement-panel,
+        body.waiting-for-model .screenshot-button {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .fullscreen-button {
@@ -429,10 +438,19 @@
             font-size: 9px;
             color: #475569;
             text-align: center;
-            padding: 6px 8px;
+            padding: 8px 8px;
             background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 6px;
             margin-top: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fly-hint:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .fly-hint kbd {
@@ -922,20 +940,153 @@
         .context-menu button.danger {
             color: #f87171;
         }
+
+        /* Onboarding Overlay */
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+            /* Below modals, above content */
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.7);
+            /* Subtle white */
+            font-family: 'Inter', sans-serif;
+        }
+
+        .onboard-hint {
+            position: absolute;
+            max-width: 220px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+            font-weight: 300;
+        }
+
+        /* Adjust positions for specific elements relative to their targets */
+        /* Panel edge is at ~240px. Hints placed closer now that arrows are gone. */
+        .hint-orbit {
+            top: 40px;
+            left: 250px;
+        }
+
+        .hint-dive {
+            top: 95px;
+            left: 250px;
+        }
+
+        .hint-export {
+            top: 310px;
+            left: 250px;
+        }
+
+        .hint-fly-pos {
+            top: 360px;
+            left: 250px;
+        }
+
+        /* Bottom Shelf Elements */
+        .hint-br {
+            bottom: 90px;
+            right: 24px;
+            text-align: right;
+        }
+
+        /* Add Frame - placed directly above the button area, moved left to avoid markers */
+        .hint-add {
+            bottom: 90px;
+            right: 220px;
+            text-align: right;
+        }
+
+        /* Duration - near the time display */
+        .hint-time {
+            bottom: 90px;
+            left: 80px;
+            text-align: left;
+        }
+
+        /* Duration */
+
+        .onboard-footer {
+            position: absolute;
+            bottom: 160px;
+            /* Above timeline */
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 11px;
+            opacity: 0.9;
+            z-index: 1000;
+            pointer-events: auto;
+            line-height: 1.6;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            width: 100%;
+        }
     </style>
 </head>
 
-<body>
+<body class="waiting-for-model">
     <div class="empty-state" id="emptyState">
         <h2>🎬 BelowJS Animations</h2>
         <p>Drag & drop a .glb file to start</p>
-        <p style="font-size: 0.9em; opacity: 0.6;">Create camera flythroughs • Export as MP4</p>
-        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose file</button>
+        <p style="font-size: 0.9em; opacity: 0.6;">Focused for shipwreck visualisation, it should feel a bit like
+            Blender. Exports MP4.</p>
+        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose
+            file</button>
         <input type="file" id="fileInput" accept=".glb" />
     </div>
 
     <div class="drag-drop-overlay" id="dragOverlay">
         <div class="panel">Drop .glb file to load</div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div id="onboardingOverlay" class="onboarding-overlay">
+        <!-- 1) Orbit Mode -->
+        <div class="onboard-hint hint-orbit">
+            Double-click feature to focus
+        </div>
+
+        <!-- 2) Dive Mode -->
+        <div class="onboard-hint hint-dive">
+            Lighting controls
+        </div>
+
+        <!-- 3) Export Settings -->
+        <div class="onboard-hint hint-export">
+            Render video (MP4)
+        </div>
+
+        <!-- 4) Fly Mode Hint -->
+        <div class="onboard-hint hint-fly-pos">
+            Fly mode to position
+        </div>
+
+        <!-- 7) Save / Load -->
+        <div class="onboard-hint hint-br">
+            Save/Load settings
+        </div>
+
+        <!-- 4) Timeline Duration -->
+        <div class="onboard-hint hint-time">
+            Double-click numbers for duration
+        </div>
+
+        <!-- 5) Add Frame -->
+        <div class="onboard-hint hint-add">
+            Capture keyframe (i)
+        </div>
+
+        <div class="onboard-footer">
+            <a href="https://belowjs.com" target="_blank"
+                style="color: #60a5fa; text-decoration: underline; font-weight: 500;">BelowJS</a> is a tool to share
+            your shipwreck models on the web and in VR.<br>
+            This example is built to demonstrate adding advanced features.<br>
+            Designed by Patrick Morrison 2025. Open Source.
+        </div>
     </div>
 
     <div class="anim-panel" id="animPanel">
@@ -1019,7 +1170,7 @@
 
         <button class="export-btn" id="exportBtn" disabled title="Add some keyframes first">Export</button>
 
-        <div class="fly-hint">
+        <div class="fly-hint" id="runtimeFlyHint">
             <kbd>Shift</kbd>+<kbd>`</kbd> fly • <kbd>Click</kbd> exit
         </div>
     </div>
@@ -1248,6 +1399,14 @@
             if (controls) controls.enabled = !pointerLocked;
             flyControlsEnabled = pointerLocked;
             flyModeIndicator.classList.toggle('visible', pointerLocked);
+        });
+
+        // Interactive sidebar fly hint
+        const runtimeFlyHint = document.getElementById('runtimeFlyHint');
+        runtimeFlyHint.addEventListener('click', () => {
+            if (hasModel && !isPlaying && !pointerLocked) {
+                viewerContainer.requestPointerLock();
+            }
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -2124,8 +2283,18 @@
             try {
                 if (hasModel) viewer.belowViewer.clearModels();
                 await viewer.belowViewer.loadModel(url, { autoFrame: true });
-                emptyState.style.display = 'none';
-                animPanel.classList.add('visible');
+
+                // Stop playback if it was active
+                isPlaying = false;
+
+                // Show tools
+                document.body.classList.remove('waiting-for-model');
+
+                // Hide empty state and splash overlay
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('onboardingOverlay').style.display = 'none';
+
+                // Enable UI panels
                 animPanel.classList.remove('disabled');
                 timelineShelf.classList.add('visible');
                 timelineShelf.classList.remove('disabled');
