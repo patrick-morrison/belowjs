@@ -1433,7 +1433,13 @@
             showLoadingIndicator: true,
             viewerConfig: {
                 scene: { background: { value: '#001122' } },
-                renderer: { antialias: true, logarithmicDepthBuffer: true }
+                renderer: { antialias: true, logarithmicDepthBuffer: true },
+                camera: {
+                    near: 0.001,
+                    desktop: {
+                        minDistance: 0.001
+                    }
+                }
             }
         });
 
@@ -1451,15 +1457,6 @@
                 moveEl('.measurement-panel');
                 moveEl('.screenshot-button');
                 // Note: Fullscreen button is hidden by CSS, no need to move
-
-                // Allow zooming in much closer (5x closer: 0.5 -> 0.1)
-                const controls = getControls();
-                const camera = getCamera();
-                if (controls && camera) {
-                    controls.minDistance = 0.1;
-                    camera.near = 0.01;
-                    camera.updateProjectionMatrix();
-                }
             }, 100);
         });
 
@@ -2447,8 +2444,8 @@
                     exportProgressBar.style.width = `${((i + 1) / totalFrames) * 100}%`;
                     exportStatus.textContent = `Frame ${i + 1} / ${totalFrames}`;
 
-                    // Small yield still good for UI responsiveness
-                    await new Promise(r => setTimeout(r, 0));
+                    // Force DOM repaint for progress bar
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
                 }
 
                 exportStatus.textContent = 'Finalizing...';
@@ -2518,10 +2515,28 @@
 
         // File Loading
         let dragCounter = 0;
-        window.addEventListener('dragenter', (e) => { e.preventDefault(); dragCounter++; dragOverlay.classList.add('visible'); });
+        window.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            // Don't show overlay if model already loaded
+            if (hasModel) return;
+            dragCounter++;
+            dragOverlay.classList.add('visible');
+        });
         window.addEventListener('dragover', (e) => e.preventDefault());
-        window.addEventListener('dragleave', (e) => { e.preventDefault(); dragCounter--; if (!dragCounter) dragOverlay.classList.remove('visible'); });
-        window.addEventListener('drop', async (e) => { e.preventDefault(); dragCounter = 0; dragOverlay.classList.remove('visible'); if (e.dataTransfer.files[0]) await loadModelFile(e.dataTransfer.files[0]); });
+        window.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!hasModel) {
+                dragCounter--;
+                if (!dragCounter) dragOverlay.classList.remove('visible');
+            }
+        });
+        window.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dragOverlay.classList.remove('visible');
+            // Only process if no model yet, or if you want replacement, keep the load call
+            if (e.dataTransfer.files[0]) await loadModelFile(e.dataTransfer.files[0]);
+        });
         fileInput.addEventListener('change', async (e) => { if (e.target.files[0]) await loadModelFile(e.target.files[0]); });
 
         async function loadModelFile(file) {
