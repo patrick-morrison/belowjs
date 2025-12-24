@@ -983,17 +983,19 @@
             </div>
             <div class="torch-row">
                 <label>Dist</label>
-                <input type="range" id="torchDistance" min="10" max="100" step="1" value="35">
+                <input type="range" id="torchDistance" min="10" max="200" step="1" value="50">
             </div>
         </div>
 
         <div class="panel-row">
             <label>Frame</label>
-            <select id="aspectSelect">
-                <option value="none">None</option>
-                <option value="16:9" selected>16:9</option>
+            <select class="shelf-select" id="aspectSelect" title="Aspect Ratio">
+                <option value="16:9">16:9</option>
                 <option value="9:16">9:16</option>
+                <option value="4:3">4:3</option>
+                <option value="3:4">3:4</option>
                 <option value="1:1">1:1</option>
+                <option value="none">None</option>
             </select>
         </div>
 
@@ -1002,15 +1004,16 @@
             <select id="resolutionSelect">
                 <option value="1080">1080p</option>
                 <option value="1440">1440p</option>
-                <option value="2160">4K</option>
+                <option value="2160" selected>4K</option>
             </select>
         </div>
 
         <div class="panel-row" id="easingRow">
             <label>Easing</label>
             <select id="interpSelect">
-                <option value="smooth">Smooth</option>
                 <option value="linear" selected>Linear</option>
+                <option value="ease">Ease</option>
+                <option value="smooth">Smooth</option>
             </select>
         </div>
 
@@ -1124,9 +1127,11 @@
         let animationId = null;
         let lastFrameTime = 0;
         let defaultInterpolation = 'linear';
+        let positionCurve = null;
+        let targetCurve = null;
         let animationMode = 'timeline';
         let aspectRatio = '16:9';
-        let exportResolution = 1080;
+        let exportResolution = 2160;
         let draggingKeyframe = null;
 
         // Camera rotation state for fly mode
@@ -1202,6 +1207,11 @@
 
         document.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
+            // 'i' to add keyframe (Blender style)
+            if (key === 'i') {
+                addKeyframe();
+                return;
+            }
             if (key in keys) keys[key] = true;
             if (e.shiftKey) keys.shift = true;
             if (e.shiftKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
@@ -1398,10 +1408,18 @@
                         updateAspectFrame();
                     }
 
+                    // Ensure keyframes are sorted
+                    keyframes.sort((a, b) => a.time - b.time);
+
                     currentTime = 0;
                     renderKeyframes();
                     updateTimeDisplay();
                     updateExportButton();
+
+                    // Jump to first keyframe immediately
+                    if (keyframes.length > 0) {
+                        goToKeyframe(0);
+                    }
                 }
             } catch (err) { alert('Failed to load: ' + err.message); }
             loadInput.value = '';
@@ -1478,6 +1496,10 @@
                 if (diveSystem) {
                     diveSystem.enableDiveMode();
                     torchControls.classList.add('visible');
+                    // Sync values from sliders
+                    torchPower.dispatchEvent(new Event('input'));
+                    torchWidth.dispatchEvent(new Event('input'));
+                    torchDistance.dispatchEvent(new Event('input'));
                 }
             } else {
                 if (diveSystem) {
@@ -1635,7 +1657,27 @@
             updateTimeDisplay();
         }
 
+        function updateSplines() {
+            if (keyframes.length < 2) {
+                positionCurve = null;
+                targetCurve = null;
+                return;
+            }
+
+            const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+            const positions = sorted.map(k => new THREE.Vector3(k.position.x, k.position.y, k.position.z));
+            const targets = sorted.map(k => new THREE.Vector3(k.target.x, k.target.y, k.target.z));
+
+            // Create Catmull-Rom splines
+            positionCurve = new THREE.CatmullRomCurve3(positions);
+            targetCurve = new THREE.CatmullRomCurve3(targets);
+            // Centripetal prevents loops/overshoot better than default
+            positionCurve.curveType = 'centripetal';
+            targetCurve.curveType = 'centripetal';
+        }
+
         function renderKeyframes() {
+            updateSplines();
             document.querySelectorAll('.keyframe-marker').forEach(el => el.remove());
             keyframes.forEach((kf, i) => {
                 const marker = document.createElement('div');
@@ -1647,7 +1689,9 @@
                 marker.addEventListener('mousedown', (e) => {
                     if (e.button === 0) {
                         e.stopPropagation();
-                        draggingKeyframe = { index: i, marker };
+                        // Jump to frame immediately on click/drag start
+                        goToKeyframe(i);
+                        draggingKeyframe = { index: i, marker, startX: e.clientX, moved: false };
                         marker.classList.add('dragging');
                     }
                 });
@@ -1662,6 +1706,12 @@
         // Keyframe dragging
         document.addEventListener('mousemove', (e) => {
             if (draggingKeyframe) {
+                // Drag threshold check (5px)
+                if (!draggingKeyframe.moved) {
+                    if (Math.abs(e.clientX - draggingKeyframe.startX) < 5) return;
+                    draggingKeyframe.moved = true;
+                }
+
                 const rect = timelineTrack.getBoundingClientRect();
                 const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
                 const newTime = (x / rect.width) * duration;
@@ -1684,15 +1734,53 @@
         function interpolateKeyframes(time) {
             if (keyframes.length === 0) return null;
             if (keyframes.length === 1) return { position: keyframes[0].position, target: keyframes[0].target };
+
             const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+
+            // Spline Interpolation (Smooth)
+            if (defaultInterpolation === 'smooth' && positionCurve && targetCurve) {
+                // Find segment index
+                let i = 0;
+                for (let j = 0; j < sorted.length - 1; j++) {
+                    if (time >= sorted[j].time && time <= sorted[j + 1].time) {
+                        i = j;
+                        break;
+                    }
+                }
+                // Handle end of timeline case
+                if (time >= sorted[sorted.length - 1].time) i = sorted.length - 2;
+
+                const prev = sorted[i];
+                const next = sorted[i + 1];
+                const segmentDuration = next.time - prev.time;
+                // Map time to u (0..1) within segment
+                const localT = Math.max(0, Math.min(1, (time - prev.time) / segmentDuration));
+
+                // Map to global U for CatmullRomCurve3
+                // CatmullRomCurve3 assumes points are at u = 0, 1/(n-1), 2/(n-1), ... 1
+                const n = sorted.length;
+                const globalU = (i + localT) / (n - 1);
+
+                const pos = positionCurve.getPoint(globalU);
+                const tgt = targetCurve.getPoint(globalU);
+
+                return {
+                    position: { x: pos.x, y: pos.y, z: pos.z },
+                    target: { x: tgt.x, y: tgt.y, z: tgt.z }
+                };
+            }
+
+            // Linear or Ease (Old Smooth)
             if (time <= sorted[0].time) return { position: sorted[0].position, target: sorted[0].target };
             if (time >= sorted[sorted.length - 1].time) return { position: sorted[sorted.length - 1].position, target: sorted[sorted.length - 1].target };
+
             let prev = sorted[0], next = sorted[sorted.length - 1];
             for (let i = 0; i < sorted.length - 1; i++) {
                 if (time >= sorted[i].time && time <= sorted[i + 1].time) { prev = sorted[i]; next = sorted[i + 1]; break; }
             }
             const t = (time - prev.time) / (next.time - prev.time);
-            const eased = defaultInterpolation === 'smooth' ? smoothstep(t) : t;
+            // Map 'ease' to smoothstep, default to linear
+            const eased = defaultInterpolation === 'ease' ? smoothstep(t) : t;
             return {
                 position: {
                     x: prev.position.x + (next.position.x - prev.position.x) * eased,
@@ -1720,8 +1808,16 @@
         // Playback
         function startPlayback() {
             if (animationMode === 'timeline' && keyframes.length < 2) return;
-            if (animationMode === 'orbit') captureOrbitSetup();
-            isPlaying = true; currentTime = 0;
+
+            // Wrap around if at end
+            if (currentTime >= duration) currentTime = 0;
+
+            if (animationMode === 'orbit') {
+                // Only capture setup if starting new (or reset)
+                if (currentTime === 0 || !orbitStartPos) captureOrbitSetup();
+            }
+
+            isPlaying = true;
             playBtn.textContent = '⏸';
             addFrameBtn.disabled = true;
             if (document.pointerLockElement) document.exitPointerLock();
@@ -2002,7 +2098,17 @@
             renderKeyframes();
             updateExportButton();
         });
-        interpSelect.addEventListener('change', () => { defaultInterpolation = interpSelect.value; });
+        interpSelect.addEventListener('change', () => {
+            defaultInterpolation = interpSelect.value;
+            // Update splines immediately if switching to/from Smooth
+            // Force re-render of keyframe markers (optional, but good for state)
+            renderKeyframes();
+            // Trigger camera update to preview new interpolation
+            if (!isPlaying) {
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+            }
+        });
 
         // File Loading
         let dragCounter = 0;
