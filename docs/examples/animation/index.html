@@ -1560,14 +1560,16 @@
             }
             if (key === 'j') {
                 stopPlayback();
-                currentTime = Math.max(0, currentTime - 0.1);
+                const frameTime = 1 / 30; // One frame at 30fps
+                currentTime = Math.max(0, currentTime - frameTime);
                 animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
                 updateTimeDisplay();
                 return;
             }
             if (key === 'l') {
                 stopPlayback();
-                currentTime = Math.min(duration, currentTime + 0.1);
+                const frameTime = 1 / 30; // One frame at 30fps
+                currentTime = Math.min(duration, currentTime + frameTime);
                 animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
                 updateTimeDisplay();
                 return;
