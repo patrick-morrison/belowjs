@@ -1580,9 +1580,21 @@
             }
             if (key in keys) keys[key] = true;
             if (e.shiftKey) keys.shift = true;
+            // Toggle fly mode with Shift+` or F key
             if (e.shiftKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
                 e.preventDefault();
                 if (hasModel && !isPlaying && !pointerLocked) viewerContainer.requestPointerLock();
+            }
+            if (key === 'f') {
+                e.preventDefault();
+                if (hasModel && !isPlaying) {
+                    if (pointerLocked) {
+                        document.exitPointerLock();
+                    } else {
+                        viewerContainer.requestPointerLock();
+                    }
+                }
+                return;
             }
             // ESC to exit fly mode
             if (e.key === 'Escape' && pointerLocked) {
