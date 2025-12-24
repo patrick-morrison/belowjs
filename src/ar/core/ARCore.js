@@ -25,6 +25,9 @@ export class ARCore {
     // AR button reference
     this.arButton = null;
 
+    // DOM observer for cleanup
+    this.buttonObserver = null;
+
     // Callbacks
     this.onSessionStart = null;
     this.onSessionEnd = null;
@@ -33,9 +36,6 @@ export class ARCore {
   init() {
     // Enable XR on renderer
     this.renderer.xr.enabled = true;
-
-    // Check AR support
-    this.checkARSupported();
 
     // Remove any existing AR buttons
     this.removeExistingARButtons();
@@ -129,16 +129,10 @@ export class ARCore {
     return ['hand-tracking'];
   }
 
-  supportsPassthrough() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    return userAgent.includes('quest 3') || userAgent.includes('meta quest 3');
-  }
-
   styleARButton() {
     const applyStyles = () => {
       const arBtn = document.querySelector('button.ar-button--glass') ||
-                   document.querySelector('button') ||
-                   this.arButton;
+        this.arButton;
       if (!arBtn) return false;
 
       arBtn.style.display = 'flex';
@@ -188,15 +182,15 @@ export class ARCore {
       const userAgent = navigator.userAgent.toLowerCase();
 
       if (userAgent.includes('quest 2') ||
-          userAgent.includes('oculus quest 2') ||
-          (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
+        userAgent.includes('oculus quest 2') ||
+        (userAgent.includes('oculus') && userAgent.includes('android') && !userAgent.includes('quest 3'))) {
         this.isQuest2 = true;
         return 'quest2';
       }
 
       if (userAgent.includes('quest 3') ||
-          userAgent.includes('oculus quest 3') ||
-          userAgent.includes('meta quest 3')) {
+        userAgent.includes('oculus quest 3') ||
+        userAgent.includes('meta quest 3')) {
         this.isQuest3 = true;
         return 'quest3';
       }
@@ -224,7 +218,7 @@ export class ARCore {
 
         const computed = window.getComputedStyle(testElement);
         const hasARCSS = computed.getPropertyValue('--ar-css-loaded') === 'true' ||
-                         computed.opacity === '0.998';
+          computed.opacity === '0.998';
 
         this.container.removeChild(testElement);
 
@@ -249,14 +243,16 @@ export class ARCore {
   }
 
   startARButtonMonitoring() {
-    const observer = new MutationObserver((mutations) => {
+    if (this.buttonObserver) return; // Already monitoring
+
+    this.buttonObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const arButtons = node.querySelectorAll ?
               node.querySelectorAll('button.legacy-ar-button, a[href="#AR"]') : [];
             if (arButtons.length > 0 ||
-                (node.tagName === 'BUTTON' && node.classList.contains('legacy-ar-button'))) {
+              (node.tagName === 'BUTTON' && node.classList.contains('legacy-ar-button'))) {
               const buttonToHide = arButtons.length > 0 ? arButtons[0] : node;
               buttonToHide.style.display = 'none';
             }
@@ -264,7 +260,7 @@ export class ARCore {
         });
       });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    this.buttonObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   getARStatus() {
@@ -277,6 +273,11 @@ export class ARCore {
   }
 
   dispose() {
+    if (this.buttonObserver) {
+      this.buttonObserver.disconnect();
+      this.buttonObserver = null;
+    }
+
     if (this.arButton && this.arButton.parentNode) {
       this.arButton.parentNode.removeChild(this.arButton);
     }

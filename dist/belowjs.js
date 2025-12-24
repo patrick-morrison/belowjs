@@ -5352,10 +5352,10 @@ class xn {
 }
 class vn {
   constructor(e, t, i, s = null) {
-    this.renderer = e, this.camera = t, this.scene = i, this.container = s || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.onSessionStart = null, this.onSessionEnd = null;
+    this.renderer = e, this.camera = t, this.scene = i, this.container = s || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null;
   }
   init() {
-    this.renderer.xr.enabled = !0, this.checkARSupported(), this.removeExistingARButtons(), this.checkARSupported().then(() => {
+    this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
       this.isARSupported && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
         this.createARButton();
       }) : this.createARButton());
@@ -5401,13 +5401,9 @@ class vn {
   getOptionalFeatures() {
     return ["hand-tracking"];
   }
-  supportsPassthrough() {
-    const e = navigator.userAgent.toLowerCase();
-    return e.includes("quest 3") || e.includes("meta quest 3");
-  }
   styleARButton() {
     const e = () => {
-      const t = document.querySelector("button.ar-button--glass") || document.querySelector("button") || this.arButton;
+      const t = document.querySelector("button.ar-button--glass") || this.arButton;
       return t ? (t.style.display = "flex", t.style.visibility = "visible", t.style.opacity = "1", t.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', t.classList.contains("ar-button--glass") || t.classList.add("ar-button--glass"), t.disabled = !1, t.classList.remove("ar-generic-disabled"), !0) : !1;
     };
     e() || (setTimeout(e, 100), setTimeout(e, 300), setTimeout(e, 500));
@@ -5449,19 +5445,19 @@ class vn {
     });
   }
   startARButtonMonitoring() {
-    new MutationObserver((t) => {
-      t.forEach((i) => {
-        i.addedNodes.forEach((s) => {
-          if (s.nodeType === Node.ELEMENT_NODE) {
-            const o = s.querySelectorAll ? s.querySelectorAll('button.legacy-ar-button, a[href="#AR"]') : [];
-            if (o.length > 0 || s.tagName === "BUTTON" && s.classList.contains("legacy-ar-button")) {
-              const n = o.length > 0 ? o[0] : s;
-              n.style.display = "none";
+    this.buttonObserver || (this.buttonObserver = new MutationObserver((e) => {
+      e.forEach((t) => {
+        t.addedNodes.forEach((i) => {
+          if (i.nodeType === Node.ELEMENT_NODE) {
+            const s = i.querySelectorAll ? i.querySelectorAll('button.legacy-ar-button, a[href="#AR"]') : [];
+            if (s.length > 0 || i.tagName === "BUTTON" && i.classList.contains("legacy-ar-button")) {
+              const o = s.length > 0 ? s[0] : i;
+              o.style.display = "none";
             }
           }
         });
       });
-    }).observe(document.body, { childList: !0, subtree: !0 });
+    }), this.buttonObserver.observe(document.body, { childList: !0, subtree: !0 }));
   }
   getARStatus() {
     return {
@@ -5472,7 +5468,7 @@ class vn {
     };
   }
   dispose() {
-    this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const $t = new Ie(), ei = new R();
@@ -5662,23 +5658,19 @@ class Fn {
     }, this.inertiaActive = !1, this.posVelocity = new u.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new u.Vector3(), this.tempVec2 = new u.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
   }
   init(e) {
-    this.hand1 = this.renderer.xr.getHand(0), this.hand1.userData.pinch = !1, this.hand1.addEventListener("pinchstart", () => {
-      this.hand1.userData.pinch = !0, this.pinchIntent.hand1Start = performance.now();
-    }), this.hand1.addEventListener("pinchend", () => {
-      this.hand1.userData.pinch = !1, this.onPinchEnd();
+    this.hand1 = this.setupHand(e, 0, "hand1Start"), this.hand2 = this.setupHand(e, 1, "hand2Start");
+  }
+  setupHand(e, t, i) {
+    const s = this.renderer.xr.getHand(t);
+    s.userData.pinch = !1, s.addEventListener("pinchstart", () => {
+      s.userData.pinch = !0, this.pinchIntent[i] = performance.now();
+    }), s.addEventListener("pinchend", () => {
+      s.userData.pinch = !1, this.onPinchEnd();
     });
-    const t = this.handModelFactory.createHandModel(this.hand1, "mesh");
-    this.hand1.add(t), e.add(this.hand1), t.addEventListener("connected", () => {
-      this.styleHandModel(t, 16777215, 0.5);
-    }), this.hand2 = this.renderer.xr.getHand(1), this.hand2.userData.pinch = !1, this.hand2.addEventListener("pinchstart", () => {
-      this.hand2.userData.pinch = !0, this.pinchIntent.hand2Start = performance.now();
-    }), this.hand2.addEventListener("pinchend", () => {
-      this.hand2.userData.pinch = !1, this.onPinchEnd();
-    });
-    const i = this.handModelFactory.createHandModel(this.hand2, "mesh");
-    this.hand2.add(i), e.add(this.hand2), i.addEventListener("connected", () => {
-      this.styleHandModel(i, 16777215, 0.5);
-    });
+    const o = this.handModelFactory.createHandModel(s, "mesh");
+    return s.add(o), e.add(s), o.addEventListener("connected", () => {
+      this.styleHandModel(o, 16777215, 0.5);
+    }), s;
   }
   styleHandModel(e, t, i) {
     e.traverse((s) => {

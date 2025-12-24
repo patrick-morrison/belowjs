@@ -63,43 +63,33 @@ export class ARHandTracking {
   }
 
   init(scene) {
-    this.hand1 = this.renderer.xr.getHand(0);
-    this.hand1.userData.pinch = false;
-    this.hand1.addEventListener('pinchstart', () => {
-      this.hand1.userData.pinch = true;
-      this.pinchIntent.hand1Start = performance.now();
+    this.hand1 = this.setupHand(scene, 0, 'hand1Start');
+    this.hand2 = this.setupHand(scene, 1, 'hand2Start');
+  }
+
+  setupHand(scene, index, intentKey) {
+    const hand = this.renderer.xr.getHand(index);
+    hand.userData.pinch = false;
+
+    hand.addEventListener('pinchstart', () => {
+      hand.userData.pinch = true;
+      this.pinchIntent[intentKey] = performance.now();
     });
-    this.hand1.addEventListener('pinchend', () => {
-      this.hand1.userData.pinch = false;
+
+    hand.addEventListener('pinchend', () => {
+      hand.userData.pinch = false;
       this.onPinchEnd();
     });
 
-    const handModel1 = this.handModelFactory.createHandModel(this.hand1, 'mesh');
-    this.hand1.add(handModel1);
-    scene.add(this.hand1);
+    const handModel = this.handModelFactory.createHandModel(hand, 'mesh');
+    hand.add(handModel);
+    scene.add(hand);
 
-    handModel1.addEventListener('connected', () => {
-      this.styleHandModel(handModel1, 0xffffff, 0.5);
+    handModel.addEventListener('connected', () => {
+      this.styleHandModel(handModel, 0xffffff, 0.5);
     });
 
-    this.hand2 = this.renderer.xr.getHand(1);
-    this.hand2.userData.pinch = false;
-    this.hand2.addEventListener('pinchstart', () => {
-      this.hand2.userData.pinch = true;
-      this.pinchIntent.hand2Start = performance.now();
-    });
-    this.hand2.addEventListener('pinchend', () => {
-      this.hand2.userData.pinch = false;
-      this.onPinchEnd();
-    });
-
-    const handModel2 = this.handModelFactory.createHandModel(this.hand2, 'mesh');
-    this.hand2.add(handModel2);
-    scene.add(this.hand2);
-
-    handModel2.addEventListener('connected', () => {
-      this.styleHandModel(handModel2, 0xffffff, 0.5);
-    });
+    return hand;
   }
 
   styleHandModel(handModel, color, opacity) {
