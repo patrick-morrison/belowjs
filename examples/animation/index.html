@@ -755,6 +755,23 @@
             box-shadow: 0 4px 16px rgba(245, 158, 11, 0.6);
         }
 
+        /* Cut keyframes - squares instead of diamonds */
+        .keyframe-marker.cut {
+            transform: translate(-50%, -50%) rotate(0deg);
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #f87171;
+            border-radius: 2px;
+        }
+
+        .keyframe-marker.cut:hover {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1.15);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+        }
+
+        .keyframe-marker.cut.dragging {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1.25);
+        }
+
         /* Action buttons */
         .shelf-actions {
             display: flex;
@@ -2022,6 +2039,44 @@
         // Try to set up listener after a delay (controls may not exist yet)
         setTimeout(setupOrbitResetListener, 1000);
 
+        // Snap keyframes that are close together to exactly one frame apart (hard cuts)
+        function snapKeyframesToCuts() {
+            const frameTime = 1 / 30;
+            const snapThreshold = 3 * frameTime; // Within 3 frames
+
+            keyframes.sort((a, b) => a.time - b.time);
+
+            for (let i = 0; i < keyframes.length - 1; i++) {
+                const current = keyframes[i];
+                const next = keyframes[i + 1];
+                const timeDiff = next.time - current.time;
+
+                // If close but not already exactly one frame apart
+                if (timeDiff > 0 && timeDiff < snapThreshold && Math.abs(timeDiff - frameTime) > 0.001) {
+                    // Snap to exactly one frame apart
+                    next.time = current.time + frameTime;
+                }
+            }
+        }
+
+        // Detect which keyframes are part of cuts (one frame apart)
+        function detectCutKeyframes() {
+            const frameTime = 1 / 30;
+            const cutThreshold = frameTime + 0.001; // Slightly more than one frame
+
+            const cutIndices = new Set();
+
+            for (let i = 0; i < keyframes.length - 1; i++) {
+                const timeDiff = keyframes[i + 1].time - keyframes[i].time;
+                if (timeDiff > 0 && timeDiff < cutThreshold) {
+                    cutIndices.add(i);
+                    cutIndices.add(i + 1);
+                }
+            }
+
+            return cutIndices;
+        }
+
         // Keyframes
         function addKeyframe() {
             const camera = getCamera();
@@ -2045,6 +2100,7 @@
                 });
             }
             keyframes.sort((a, b) => a.time - b.time);
+            snapKeyframesToCuts(); // Snap close keyframes to exactly one frame apart
             renderKeyframes();
             updateExportButton();
         }
@@ -2093,12 +2149,22 @@
 
         function renderKeyframes() {
             updateSplines();
+            const cutIndices = detectCutKeyframes();
+
             document.querySelectorAll('.keyframe-marker').forEach(el => el.remove());
             keyframes.forEach((kf, i) => {
                 const marker = document.createElement('div');
                 marker.className = 'keyframe-marker';
+
+                // Apply cut class if this keyframe is part of a cut
+                if (cutIndices.has(i)) {
+                    marker.classList.add('cut');
+                    marker.title = `${kf.time.toFixed(2)}s (CUT)`;
+                } else {
+                    marker.title = `${kf.time.toFixed(2)}s`;
+                }
+
                 marker.style.left = `${(kf.time / duration) * 100}%`;
-                marker.title = `${kf.time.toFixed(2)}s`;
                 if (animationMode === 'orbit') marker.style.display = 'none';
                 marker.dataset.index = i;
 
@@ -2107,7 +2173,13 @@
                         e.stopPropagation();
                         // Jump to frame immediately on click/drag start
                         goToKeyframe(i);
-                        draggingKeyframe = { index: i, marker, startX: e.clientX, moved: false };
+                        draggingKeyframe = {
+                            index: i,
+                            marker,
+                            startX: e.clientX,
+                            moved: false,
+                            lastTime: kf.time // Track last position for direction detection
+                        };
                         marker.classList.add('dragging');
                     }
                 });
@@ -2132,22 +2204,85 @@
 
                 const rect = timelineTrack.getBoundingClientRect();
                 const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-                const newTime = (x / rect.width) * duration;
+                let newTime = (x / rect.width) * duration;
+
+                // No snapping during drag - move freely
                 keyframes[draggingKeyframe.index].time = newTime;
                 draggingKeyframe.marker.style.left = `${(newTime / duration) * 100}%`;
 
-                // Update live time display and camera view
+                // Visual preview: Check if we're in snap zone and show squares
+                const frameTime = 1 / 30;
+                const snapDistance = 3 * frameTime;
+                let inSnapZone = false;
+
+                for (let i = 0; i < keyframes.length; i++) {
+                    if (i === draggingKeyframe.index) continue;
+                    const distance = Math.abs(newTime - keyframes[i].time);
+                    if (distance < snapDistance) {
+                        inSnapZone = true;
+                        break;
+                    }
+                }
+
+                // Toggle cut class for visual preview (not committed)
+                if (inSnapZone) {
+                    draggingKeyframe.marker.classList.add('cut');
+                } else {
+                    draggingKeyframe.marker.classList.remove('cut');
+                }
+
+                // Update time display only (no camera or snap during drag)
                 currentTime = newTime;
                 updateTimeDisplay();
-                updateCameraFromKeyframes();
             }
         });
 
         document.addEventListener('mouseup', () => {
             if (draggingKeyframe) {
                 draggingKeyframe.marker.classList.remove('dragging');
+
+                const frameTime = 1 / 30;
+                const snapDistance = 3 * frameTime;
+                const draggedIndex = draggingKeyframe.index;
+                const finalTime = keyframes[draggedIndex].time;
+                const initialTime = draggingKeyframe.lastTime; // Where we started
+
+                // Check each other keyframe for potential snap
+                for (let i = 0; i < keyframes.length; i++) {
+                    if (i === draggedIndex) continue;
+
+                    const otherTime = keyframes[i].time;
+                    const distance = Math.abs(finalTime - otherTime);
+
+                    // Only snap if within 3 frames
+                    if (distance < snapDistance) {
+                        // Determine initial approach direction
+                        const startedOnLeft = initialTime < otherTime;
+
+                        // Check if we "escaped" by going more than 3 frames past
+                        const crossedOver = startedOnLeft ? (finalTime > otherTime) : (finalTime < otherTime);
+                        const distancePast = crossedOver ? Math.abs(finalTime - otherTime) : 0;
+
+                        if (distancePast > snapDistance) {
+                            // Escaped - don't snap
+                            continue;
+                        }
+
+                        // Snap to 1 frame apart based on which side we're on now
+                        const currentlyOnLeft = finalTime < otherTime;
+                        if (currentlyOnLeft) {
+                            keyframes[draggedIndex].time = otherTime - frameTime;
+                        } else {
+                            keyframes[draggedIndex].time = otherTime + frameTime;
+                        }
+                        break;
+                    }
+                }
+
                 keyframes.sort((a, b) => a.time - b.time);
+                snapKeyframesToCuts(); // Refine any close pairs
                 renderKeyframes();
+                updateCameraFromKeyframes();
                 draggingKeyframe = null;
             }
         });
@@ -2159,6 +2294,21 @@
             if (keyframes.length === 1) return { position: keyframes[0].position, target: keyframes[0].target };
 
             const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+
+            // Check for cuts - if we're between two keyframes that form a cut, jump to the second one
+            const frameTime = 1 / 30;
+            const cutThreshold = frameTime + 0.001;
+
+            for (let i = 0; i < sorted.length - 1; i++) {
+                const timeDiff = sorted[i + 1].time - sorted[i].time;
+                if (timeDiff > 0 && timeDiff < cutThreshold) {
+                    // This is a cut pair
+                    if (time >= sorted[i].time && time <= sorted[i + 1].time) {
+                        // We're in the cut zone - jump to the second keyframe instantly
+                        return { position: sorted[i + 1].position, target: sorted[i + 1].target };
+                    }
+                }
+            }
 
             // Spline Interpolation (Smooth)
             if (defaultInterpolation === 'smooth' && positionCurve && targetCurve) {
