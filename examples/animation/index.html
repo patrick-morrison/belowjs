@@ -2033,7 +2033,7 @@
                 document.exitPointerLock();
             }
 
-            const existing = keyframes.findIndex(k => Math.abs(k.time - currentTime) < 0.1);
+            const existing = keyframes.findIndex(k => Math.abs(k.time - currentTime) < 0.01);
             if (existing >= 0) {
                 keyframes[existing].position = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
                 keyframes[existing].target = { x: controls.target.x, y: controls.target.y, z: controls.target.z };
