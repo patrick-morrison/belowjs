@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS Animations</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "belowjs": "/dist/belowjs.js"
+        }
+    }
+    </script>
+
+    <link rel="stylesheet" href="/dist/belowjs.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #001122;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Override BelowJS controls - move above timeline, hide VR/fullscreen */
+        .measurement-panel {
+            bottom: 100px !important;
+        }
+
+        .screenshot-button {
+            bottom: 170px !important;
+        }
+
+        .fullscreen-button {
+            display: none !important;
+        }
+
+        .vr-button--glass,
+        .vr-button-glass,
+        [class*="vr-button"] {
+            display: none !important;
+        }
+
+        .empty-state {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #e2e8f0;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .empty-state h2 {
+            font-size: 2.5em;
+            margin: 0 0 16px 0;
+            font-weight: 300;
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
+            margin: 8px 0;
+            opacity: 0.8;
+        }
+
+        .file-select-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .file-select-button:hover {
+            background: rgba(59, 130, 246, 1);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .drag-drop-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 17, 34, 0.95);
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drag-drop-overlay.visible {
+            opacity: 1;
+        }
+
+        .drag-drop-overlay .panel {
+            border: 2px dashed #3b82f6;
+            border-radius: 16px;
+            padding: 48px;
+            font-size: 1.5em;
+        }
+
+        .anim-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(0, 17, 34, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(20px);
+            min-width: 200px;
+        }
+
+        .anim-panel.visible {
+            display: flex;
+        }
+
+        /* Disabled state for panel/timeline before model loads */
+        .anim-panel.disabled,
+        .timeline-shelf.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .anim-panel.disabled *,
+        .timeline-shelf.disabled * {
+            cursor: not-allowed !important;
+        }
+
+        /* Torch controls for dive mode */
+        .torch-controls {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+            margin-top: -4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .torch-controls.visible {
+            display: flex;
+        }
+
+        .torch-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .torch-row label {
+            font-size: 10px;
+            color: #64748b;
+            min-width: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .torch-row input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #334155;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .torch-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Film Toggle (Timeline/Orbit) */
+        .film-toggle-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .film-toggle {
+            position: relative;
+            width: 180px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .film-toggle input {
+            display: none;
+        }
+
+        .film-option {
+            position: absolute;
+            top: 0;
+            width: 90px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .film-option.left {
+            left: 0;
+        }
+
+        .film-option.right {
+            right: 0;
+        }
+
+        .film-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .film-text {
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .film-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 84px;
+            height: 44px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 22px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .film-toggle input:checked~.film-slider {
+            transform: translateX(90px);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .film-toggle input:not(:checked)~.film-option.left .film-text,
+        .film-toggle input:checked~.film-option.right .film-text {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Light Toggle (Survey/Dive) */
+        .light-toggle-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .light-toggle {
+            position: relative;
+            width: 180px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .light-toggle input {
+            display: none;
+        }
+
+        .light-option {
+            position: absolute;
+            top: 0;
+            width: 90px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .light-option.left {
+            left: 0;
+        }
+
+        .light-option.right {
+            right: 0;
+        }
+
+        .light-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .light-text {
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .light-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 84px;
+            height: 44px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #64748b, #475569);
+            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light-toggle input:checked~.light-slider {
+            transform: translateX(90px);
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+        }
+
+        .light-toggle input:not(:checked)~.light-option.left .light-text,
+        .light-toggle input:checked~.light-option.right .light-text {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Export button */
+        .export-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+
+        .export-btn:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .panel-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .panel-row label {
+            font-size: 10px;
+            color: #64748b;
+            min-width: 52px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-row select {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .panel-row select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .panel-row button.icon-btn {
+            flex: 0;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .fly-hint {
+            font-size: 9px;
+            color: #475569;
+            text-align: center;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            margin-top: 2px;
+        }
+
+        .fly-hint kbd {
+            background: #334155;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .fly-mode-indicator {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            display: none;
+            pointer-events: none;
+        }
+
+        .fly-mode-indicator.visible {
+            display: block;
+        }
+
+        .fly-mode-indicator .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+        }
+
+        .fly-mode-indicator .crosshair::before,
+        .fly-mode-indicator .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .fly-mode-indicator .crosshair::before {
+            width: 8px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .fly-mode-indicator .crosshair::after {
+            width: 2px;
+            height: 8px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .fly-mode-indicator .hint {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .fly-mode-indicator kbd {
+            background: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+
+        .aspect-frame {
+            position: fixed;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            z-index: 999;
+            display: none;
+        }
+
+        .aspect-frame.visible {
+            display: block;
+        }
+
+        .aspect-frame::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* === BEAUTIFUL TIMELINE SHELF === */
+        .timeline-shelf {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, rgba(0, 17, 34, 0.98), rgba(0, 17, 34, 0.95));
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 1001;
+            backdrop-filter: blur(20px);
+        }
+
+        .timeline-shelf.visible {
+            display: block;
+        }
+
+        .shelf-content {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding: 0 24px;
+            gap: 16px;
+        }
+
+        /* Play button - larger, prominent */
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .play-btn:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Time display */
+        .time-display {
+            color: #e2e8f0;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+            min-width: 100px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .time-display:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Timeline track */
+        .timeline-track {
+            flex: 1;
+            height: 40px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 2px;
+        }
+
+        .playhead::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 11px;
+            height: 11px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+        }
+
+        .keyframe-marker {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: 2px solid #34d399;
+            border-radius: 4px;
+            transform: translate(-50%, -50%) rotate(45deg);
+            cursor: grab;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .keyframe-marker:hover {
+            transform: translate(-50%, -50%) rotate(45deg) scale(1.15);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .keyframe-marker.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) rotate(45deg) scale(1.25);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #fbbf24;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.6);
+        }
+
+        /* Action buttons */
+        .shelf-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .shelf-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .shelf-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .shelf-btn.primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: transparent;
+        }
+
+        .shelf-btn.primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .shelf-btn.export {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-color: transparent;
+        }
+
+        .shelf-btn.export:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+        }
+
+        .shelf-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 280px;
+            max-width: 90vw;
+        }
+
+        .modal h3 {
+            margin: 0 0 16px 0;
+            color: #e2e8f0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-row {
+            margin-bottom: 12px;
+        }
+
+        .modal-row label {
+            display: block;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .modal-row input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .modal-btns .cancel {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .modal-btns .ok {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .export-filename-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .export-filename-row label {
+            font-size: 12px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        .export-filename-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+
+        .export-option {
+            padding: 16px;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-option.full-option {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .export-option.full-option:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .export-option.segments-option {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .export-option.segments-option:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .export-option strong {
+            color: #e2e8f0;
+            font-size: 14px;
+            display: block;
+        }
+
+        .export-option .desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .export-progress-overlay {
+            flex-direction: column;
+            gap: 20px;
+            color: #e2e8f0;
+        }
+
+        .export-progress {
+            width: 300px;
+            height: 10px;
+            background: #1e293b;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .export-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: width 0.1s;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 6px 0;
+            min-width: 150px;
+            z-index: 4000;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .context-menu.visible {
+            display: block;
+        }
+
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #e2e8f0;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .context-menu button:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .context-menu button.danger {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="empty-state" id="emptyState">
+        <h2>🎬 BelowJS Animations</h2>
+        <p>Drag & drop a .glb file to start</p>
+        <p style="font-size: 0.9em; opacity: 0.6;">Create camera flythroughs • Export as MP4</p>
+        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose file</button>
+        <input type="file" id="fileInput" accept=".glb" />
+    </div>
+
+    <div class="drag-drop-overlay" id="dragOverlay">
+        <div class="panel">Drop .glb file to load</div>
+    </div>
+
+    <div class="anim-panel" id="animPanel">
+        <!-- Timeline/Orbit Toggle -->
+        <div class="film-toggle-wrapper">
+            <label class="film-toggle">
+                <input type="checkbox" id="modeToggle">
+                <div class="film-slider"></div>
+                <div class="film-option left">
+                    <span class="film-icon">🎥</span>
+                    <span class="film-text">Timeline</span>
+                </div>
+                <div class="film-option right">
+                    <span class="film-icon">🔄</span>
+                    <span class="film-text">Orbit</span>
+                </div>
+            </label>
+        </div>
+
+        <!-- Dive Mode Toggle -->
+        <div class="light-toggle-wrapper">
+            <label class="light-toggle">
+                <input type="checkbox" id="diveToggle">
+                <div class="light-slider"></div>
+                <div class="light-option left">
+                    <span class="light-icon">🔍</span>
+                    <span class="light-text">Survey</span>
+                </div>
+                <div class="light-option right">
+                    <span class="light-icon">🔦</span>
+                    <span class="light-text">Dive</span>
+                </div>
+            </label>
+        </div>
+
+        <!-- Torch Controls (visible when dive mode enabled) -->
+        <div class="torch-controls" id="torchControls">
+            <div class="torch-row">
+                <label>Power</label>
+                <input type="range" id="torchPower" min="1" max="20" step="0.5" value="8">
+            </div>
+            <div class="torch-row">
+                <label>Width</label>
+                <input type="range" id="torchWidth" min="15" max="90" step="1" value="40">
+            </div>
+            <div class="torch-row">
+                <label>Dist</label>
+                <input type="range" id="torchDistance" min="10" max="100" step="1" value="35">
+            </div>
+        </div>
+
+        <div class="panel-row">
+            <label>Frame</label>
+            <select id="aspectSelect">
+                <option value="none">None</option>
+                <option value="16:9" selected>16:9</option>
+                <option value="9:16">9:16</option>
+                <option value="1:1">1:1</option>
+            </select>
+        </div>
+
+        <div class="panel-row">
+            <label>Quality</label>
+            <select id="resolutionSelect">
+                <option value="1080">1080p</option>
+                <option value="1440">1440p</option>
+                <option value="2160">4K</option>
+            </select>
+        </div>
+
+        <div class="panel-row" id="easingRow">
+            <label>Easing</label>
+            <select id="interpSelect">
+                <option value="smooth">Smooth</option>
+                <option value="linear" selected>Linear</option>
+            </select>
+        </div>
+
+        <button class="export-btn" id="exportBtn" disabled title="Add some keyframes first">Export</button>
+
+        <div class="fly-hint">
+            <kbd>Shift</kbd>+<kbd>`</kbd> fly • <kbd>Click</kbd> exit
+        </div>
+    </div>
+
+    <div class="fly-mode-indicator" id="flyModeIndicator">
+        <div class="crosshair"></div>
+        <div class="hint">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move
+            <kbd>Q</kbd><kbd>E</kbd> Up/Down
+            <kbd>Shift</kbd> Fast<br>
+            <span style="opacity:0.8;font-size:12px;">Click to confirm spot • ESC to exit</span>
+        </div>
+    </div>
+
+    <div class="aspect-frame" id="aspectFrame" data-label="16:9"></div>
+
+    <!-- Beautiful Timeline Shelf -->
+    <div class="timeline-shelf" id="timelineShelf">
+        <div class="shelf-content">
+            <button class="play-btn" id="playBtn" title="Play/Pause">▶</button>
+            <div class="time-display" id="timeDisplay" title="Double-click to edit">0.00 / 10.00</div>
+
+            <div class="timeline-track" id="timelineTrack">
+                <div class="playhead" id="playhead" style="left: 0%;"></div>
+            </div>
+
+            <div class="shelf-actions">
+                <button class="shelf-btn primary" id="addFrameBtn">+ Frame</button>
+                <button class="shelf-btn" id="clearBtn">Clear</button>
+                <button class="shelf-btn" id="saveBtn" title="Save keyframes">💾</button>
+                <button class="shelf-btn" id="loadBtn" title="Load keyframes">📂</button>
+                <input type="file" id="loadInput" accept=".json" style="display:none">
+            </div>
+        </div>
+    </div>
+
+    <!-- Time input modal -->
+    <div class="overlay" id="timeModal">
+        <div class="modal">
+            <h3>Edit Time</h3>
+            <div class="modal-row">
+                <label>Current Time (seconds)</label>
+                <input type="number" id="timeInputCurrent" step="0.01" min="0">
+            </div>
+            <div class="modal-row">
+                <label>Duration (seconds)</label>
+                <input type="number" id="timeInputDuration" step="1" min="1" max="300">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="timeInputCancel">Cancel</button>
+                <button class="ok" id="timeInputOk">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export options modal -->
+    <div class="overlay" id="exportModal">
+        <div class="modal">
+            <h3>Export Options</h3>
+            <div class="export-filename-row">
+                <label>Filename</label>
+                <input type="text" id="exportFilename" value="animation_belowjs" placeholder="animation_belowjs">
+            </div>
+            <div class="export-option full-option" id="exportFull">
+                <strong>🎬 Full Animation</strong>
+                <div class="desc">Export entire timeline as one continuous video</div>
+            </div>
+            <div class="export-option segments-option" id="exportSegments">
+                <strong>📑 Segments</strong>
+                <div class="desc">Export each keyframe pair as separate videos.<br><em style="opacity: 0.7;">Great for
+                        PowerPoint presentations and virtual tours!</em></div>
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="exportCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export progress -->
+    <div class="overlay export-progress-overlay" id="exportOverlay">
+        <div style="font-size: 1.2em; font-weight: 500;" id="exportTitle">Exporting...</div>
+        <div class="export-progress">
+            <div class="export-progress-bar" id="exportProgressBar" style="width: 0%;"></div>
+        </div>
+        <div id="exportStatus" style="color: #94a3b8;">Preparing...</div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <button id="goToKeyframe">Go to Position</button>
+        <button id="deleteKeyframe" class="danger">Delete Keyframe</button>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { ModelViewer } from 'belowjs';
+
+        // State
+        let hasModel = false;
+        let isPlaying = false;
+        let currentTime = 0;
+        let duration = 10;
+        let keyframes = [];
+        let selectedKeyframeIndex = null;
+        let flyControlsEnabled = false;
+        let animationId = null;
+        let lastFrameTime = 0;
+        let defaultInterpolation = 'linear';
+        let animationMode = 'timeline';
+        let aspectRatio = '16:9';
+        let exportResolution = 1080;
+        let draggingKeyframe = null;
+
+        // Camera rotation state for fly mode
+        let cameraYaw = 0;
+        let cameraPitch = 0;
+
+        // Elements
+        const emptyState = document.getElementById('emptyState');
+        const dragOverlay = document.getElementById('dragOverlay');
+        const animPanel = document.getElementById('animPanel');
+        const modeToggle = document.getElementById('modeToggle');
+        const aspectSelect = document.getElementById('aspectSelect');
+        const resolutionSelect = document.getElementById('resolutionSelect');
+        const interpSelect = document.getElementById('interpSelect');
+        const flyModeIndicator = document.getElementById('flyModeIndicator');
+        const aspectFrame = document.getElementById('aspectFrame');
+        const timelineShelf = document.getElementById('timelineShelf');
+        const playBtn = document.getElementById('playBtn');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const timelineTrack = document.getElementById('timelineTrack');
+        const playhead = document.getElementById('playhead');
+        const addFrameBtn = document.getElementById('addFrameBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const exportModal = document.getElementById('exportModal');
+        const exportOverlay = document.getElementById('exportOverlay');
+        const exportProgressBar = document.getElementById('exportProgressBar');
+        const exportStatus = document.getElementById('exportStatus');
+        const exportTitle = document.getElementById('exportTitle');
+        const contextMenu = document.getElementById('contextMenu');
+        const fileInput = document.getElementById('fileInput');
+        const timeModal = document.getElementById('timeModal');
+        const timeInputCurrent = document.getElementById('timeInputCurrent');
+        const timeInputDuration = document.getElementById('timeInputDuration');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const loadInput = document.getElementById('loadInput');
+        const easingRow = document.getElementById('easingRow');
+        const exportSegments = document.getElementById('exportSegments');
+        const diveToggle = document.getElementById('diveToggle');
+        const torchControls = document.getElementById('torchControls');
+        const torchPower = document.getElementById('torchPower');
+        const torchWidth = document.getElementById('torchWidth');
+        const torchDistance = document.getElementById('torchDistance');
+
+
+        // Viewer
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.cssText = 'position:fixed;inset:0;z-index:0;';
+        document.body.appendChild(viewerContainer);
+
+        const viewer = new ModelViewer(viewerContainer, {
+            models: {},
+            autoLoadFirst: false,
+            showDiveToggle: false,
+            enableDiveSystem: true,
+            enableVR: false,
+            enableFullscreen: false,
+            enableScreenshot: true,
+            enableMeasurement: true,
+            showInfo: false,
+            showLoadingIndicator: true,
+            viewerConfig: { scene: { background: { type: 'color', value: '#001122' } } }
+        });
+
+        const getCamera = () => viewer?.belowViewer?.cameraManager?.getCamera?.();
+        const getControls = () => viewer?.belowViewer?.cameraManager?.getControls?.();
+        const getRenderer = () => viewer?.belowViewer?.renderer;
+
+        // Fly Controls - using yaw/pitch directly
+        const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
+        let pointerLocked = false;
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = true;
+            if (e.shiftKey) keys.shift = true;
+            if (e.shiftKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
+                e.preventDefault();
+                if (hasModel && !isPlaying && !pointerLocked) viewerContainer.requestPointerLock();
+            }
+            // ESC to exit fly mode
+            if (e.key === 'Escape' && pointerLocked) {
+                document.exitPointerLock();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = false;
+            if (!e.shiftKey) keys.shift = false;
+        });
+
+        viewerContainer.addEventListener('click', () => { if (pointerLocked) document.exitPointerLock(); });
+
+        document.addEventListener('pointerlockchange', () => {
+            const wasLocked = pointerLocked;
+            pointerLocked = document.pointerLockElement === viewerContainer;
+            const controls = getControls();
+            const camera = getCamera();
+
+            if (pointerLocked && !wasLocked && camera) {
+                // Get current camera rotation as yaw/pitch
+                const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+                cameraYaw = euler.y;
+                cameraPitch = euler.x;
+            }
+
+            if (controls) controls.enabled = !pointerLocked;
+            flyControlsEnabled = pointerLocked;
+            flyModeIndicator.classList.toggle('visible', pointerLocked);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!pointerLocked) return;
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera) return;
+
+            // Update yaw and pitch based on mouse movement
+            cameraYaw -= e.movementX * 0.002;
+            cameraPitch -= e.movementY * 0.002;
+
+            // Clamp pitch
+            cameraPitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, cameraPitch));
+
+            // Apply rotation using YXZ order (yaw then pitch)
+            const euler = new THREE.Euler(cameraPitch, cameraYaw, 0, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+            // CRITICAL: Update OrbitControls target to match camera look direction
+            // This prevents OrbitControls.update() from overriding our rotation
+            if (controls) {
+                const forward = new THREE.Vector3(0, 0, -5).applyQuaternion(camera.quaternion);
+                controls.target.copy(camera.position).add(forward);
+            }
+        });
+
+        function updateFlyControls(delta) {
+            if (!flyControlsEnabled || isPlaying) return;
+            const camera = getCamera();
+            if (!camera) return;
+
+            const speed = keys.shift ? 20 : 6;
+            const direction = new THREE.Vector3();
+
+            if (keys.w) direction.z -= 1;
+            if (keys.s) direction.z += 1;
+            if (keys.a) direction.x -= 1;
+            if (keys.d) direction.x += 1;
+            if (keys.q) direction.y -= 1;
+            if (keys.e) direction.y += 1;
+
+            if (direction.lengthSq() > 0) {
+                direction.normalize();
+                direction.applyQuaternion(camera.quaternion);
+                camera.position.addScaledVector(direction, speed * delta);
+
+                const controls = getControls();
+                if (controls) {
+                    const forward = new THREE.Vector3(0, 0, -5).applyQuaternion(camera.quaternion);
+                    controls.target.copy(camera.position).add(forward);
+                }
+            }
+        }
+
+
+
+        // Time display double-click
+        timeDisplay.addEventListener('dblclick', () => {
+            timeInputCurrent.value = currentTime.toFixed(2);
+            timeInputDuration.value = duration;
+            timeModal.classList.add('visible');
+        });
+
+        document.getElementById('timeInputCancel').addEventListener('click', () => timeModal.classList.remove('visible'));
+        document.getElementById('timeInputOk').addEventListener('click', () => {
+            const newTime = parseFloat(timeInputCurrent.value) || 0;
+            const newDur = Math.max(1, Math.min(300, parseFloat(timeInputDuration.value) || 10));
+            duration = newDur;
+            currentTime = Math.max(0, Math.min(newTime, duration));
+            renderKeyframes();
+            updateTimeDisplay();
+            timeModal.classList.remove('visible');
+        });
+
+        // Save/Load
+        saveBtn.addEventListener('click', () => {
+            const data = {
+                version: 1,
+                duration,
+                interpolation: defaultInterpolation,
+                keyframes,
+                // Save settings
+                settings: {
+                    aspectRatio,
+                    resolution: exportResolution,
+                    diveMode: diveToggle.checked,
+                    torch: {
+                        enabled: torchPower.value > 0, // Inferred
+                        intensity: parseFloat(torchPower.value),
+                        width: parseFloat(torchWidth.value),
+                        distance: parseFloat(torchDistance.value)
+                    }
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animation_data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        loadBtn.addEventListener('click', () => loadInput.click());
+        loadInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Handle legacy format (just properties on root)
+                if (data.keyframes && Array.isArray(data.keyframes)) {
+                    if (keyframes.length > 0 && !confirm('Replace existing animation data?')) return;
+
+                    // Restore keyframes and basic settings
+                    keyframes = data.keyframes;
+                    duration = data.duration || 10;
+                    defaultInterpolation = data.interpolation || 'smooth';
+                    interpSelect.value = defaultInterpolation;
+
+                    // Restore extended settings if present
+                    if (data.settings) {
+                        // Aspect & Resolution
+                        if (data.settings.aspectRatio) {
+                            aspectRatio = data.settings.aspectRatio;
+                            aspectSelect.value = aspectRatio;
+                        }
+                        if (data.settings.resolution) {
+                            exportResolution = data.settings.resolution;
+                            resolutionSelect.value = exportResolution;
+                        }
+
+                        // Dive Mode & Torch
+                        if (data.settings.diveMode !== undefined) {
+                            diveToggle.checked = data.settings.diveMode;
+                            // Trigger change event to apply effects
+                            diveToggle.dispatchEvent(new Event('change'));
+                        }
+
+                        // Torch Settings
+                        if (data.settings.torch) {
+                            if (data.settings.torch.intensity !== undefined) {
+                                torchPower.value = data.settings.torch.intensity;
+                                torchPower.dispatchEvent(new Event('input'));
+                            }
+                            if (data.settings.torch.width !== undefined) {
+                                torchWidth.value = data.settings.torch.width;
+                                torchWidth.dispatchEvent(new Event('input'));
+                            }
+                            if (data.settings.torch.distance !== undefined) {
+                                torchDistance.value = data.settings.torch.distance;
+                                torchDistance.dispatchEvent(new Event('input'));
+                            }
+                        }
+
+                        updateAspectFrame();
+                    }
+
+                    currentTime = 0;
+                    renderKeyframes();
+                    updateTimeDisplay();
+                    updateExportButton();
+                }
+            } catch (err) { alert('Failed to load: ' + err.message); }
+            loadInput.value = '';
+        });
+
+        // Mode Toggle Logic
+        function updateModeUI() {
+            // Updated directly in listener below, but could be refactored here
+        }
+
+        modeToggle.addEventListener('change', (e) => {
+            const newMode = e.target.checked ? 'orbit' : 'timeline';
+
+            // Warn if there are keyframes
+            if (keyframes.length > 0 && newMode !== animationMode) {
+                if (!confirm(`Switching to ${newMode} mode. Your keyframes will be preserved but won't apply in ${newMode} mode. Continue?`)) {
+                    e.preventDefault();
+                    modeToggle.checked = animationMode === 'orbit';
+                    return;
+                }
+            }
+
+            animationMode = newMode;
+
+            // Hide/Show keyframe specific controls
+            addFrameBtn.style.display = animationMode === 'orbit' ? 'none' : '';
+            clearBtn.style.display = animationMode === 'orbit' ? 'none' : '';
+
+            // Hide segment export for orbit (always full loop)
+            const exportSegments = document.getElementById('exportSegments');
+            if (exportSegments) {
+                exportSegments.style.display = animationMode === 'orbit' ? 'none' : '';
+            }
+
+            // Hide keyframe markers on track
+            const markers = document.querySelectorAll('.keyframe-marker');
+            markers.forEach(m => m.style.display = animationMode === 'orbit' ? 'none' : '');
+
+            // Reset orbit setup if entering orbit mode
+            if (animationMode === 'orbit') {
+                if (captureOrbitSetup) captureOrbitSetup();
+            }
+            updateExportButton();
+            // Trigger render to update view immediately
+            renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+        });
+
+        // Aspect Ratio
+        function updateAspectFrame() {
+            // Only show frame when model is loaded and aspect ratio is set
+            if (!hasModel || aspectRatio === 'none') { aspectFrame.classList.remove('visible'); return; }
+            const [w, h] = aspectRatio.split(':').map(Number);
+            const ratio = w / h;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight - 80;
+            let frameW, frameH;
+            if (vw / vh > ratio) { frameH = vh * 0.85; frameW = frameH * ratio; }
+            else { frameW = vw * 0.85; frameH = frameW / ratio; }
+            aspectFrame.style.width = `${frameW}px`;
+            aspectFrame.style.height = `${frameH}px`;
+            aspectFrame.style.left = `${(vw - frameW) / 2}px`;
+            aspectFrame.style.top = `${(vh - frameH) / 2}px`;
+            aspectFrame.dataset.label = `${aspectRatio} @ ${exportResolution}p`;
+            aspectFrame.classList.add('visible');
+        }
+        aspectSelect.addEventListener('change', () => { aspectRatio = aspectSelect.value; updateAspectFrame(); });
+        resolutionSelect.addEventListener('change', () => { exportResolution = parseInt(resolutionSelect.value); updateAspectFrame(); });
+        window.addEventListener('resize', updateAspectFrame);
+
+        // Dive Mode Toggle
+        diveToggle.addEventListener('change', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveToggle.checked) {
+                if (diveSystem) {
+                    diveSystem.enableDiveMode();
+                    torchControls.classList.add('visible');
+                }
+            } else {
+                if (diveSystem) {
+                    diveSystem.disableDiveMode();
+                    torchControls.classList.remove('visible');
+                }
+            }
+        });
+
+        // Torch Controls
+        torchPower.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setIntensity(parseFloat(torchPower.value));
+            }
+        });
+
+        torchWidth.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setBeamWidth(parseFloat(torchWidth.value));
+            }
+        });
+
+        torchDistance.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setDistance(parseFloat(torchDistance.value));
+            }
+        });
+
+        // Initialize aspect frame for default 16:9
+        updateAspectFrame();
+
+        // Animation Loop
+        function animate(time) {
+            animationId = requestAnimationFrame(animate);
+            const delta = Math.min((time - lastFrameTime) / 1000, 0.1);
+            lastFrameTime = time;
+            if (isPlaying) {
+                currentTime += delta;
+                if (currentTime >= duration) { currentTime = duration; stopPlayback(); }
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+            } else {
+                updateFlyControls(delta);
+            }
+        }
+        animationId = requestAnimationFrame(animate);
+
+        // Orbit
+        let orbitStartPos = null, orbitTarget = null, orbitRadius = 10, orbitHeight = 5;
+        function captureOrbitSetup() {
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            orbitTarget = controls.target.clone();
+            const offset = camera.position.clone().sub(orbitTarget);
+            orbitRadius = Math.sqrt(offset.x * offset.x + offset.z * offset.z);
+            orbitHeight = camera.position.y;
+            orbitStartPos = camera.position.clone();
+        }
+        function updateCameraFromOrbit() {
+            if (!orbitTarget) return;
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            const progress = currentTime / duration;
+            const startOffset = orbitStartPos.clone().sub(orbitTarget);
+            const startAngle = Math.atan2(startOffset.x, startOffset.z);
+            const currentAngle = startAngle + progress * Math.PI * 2;
+            camera.position.x = orbitTarget.x + Math.sin(currentAngle) * orbitRadius;
+            camera.position.z = orbitTarget.z + Math.cos(currentAngle) * orbitRadius;
+            camera.position.y = orbitHeight;
+            controls.target.copy(orbitTarget);
+            camera.lookAt(orbitTarget);
+        }
+
+        // Reset orbit setup when user interacts with canvas
+        function resetOrbitSetup() {
+            orbitStartPos = null;
+            orbitTarget = null;
+        }
+
+        // Listen for control changes to reset orbit when user manipulates viewport
+        let orbitListenerAdded = false;
+        function setupOrbitResetListener() {
+            const controls = getControls();
+            if (controls && !orbitListenerAdded) {
+                controls.addEventListener('start', () => {
+                    // Only reset if not currently playing or scrubbing
+                    if (!isPlaying && !isScrubbing) {
+                        resetOrbitSetup();
+                        // In orbit mode, reset timeline to zero since this is the new start point
+                        if (animationMode === 'orbit') {
+                            currentTime = 0;
+                            updateTimeDisplay();
+                        }
+                    }
+                });
+                orbitListenerAdded = true;
+            }
+        }
+
+        // Try to set up listener after a delay (controls may not exist yet)
+        setTimeout(setupOrbitResetListener, 1000);
+
+        // Keyframes
+        function addKeyframe() {
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+
+            // If in fly mode, exit it first (this saves the current spot)
+            if (pointerLocked) {
+                document.exitPointerLock();
+            }
+
+            const existing = keyframes.findIndex(k => Math.abs(k.time - currentTime) < 0.1);
+            if (existing >= 0) {
+                keyframes[existing].position = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+                keyframes[existing].target = { x: controls.target.x, y: controls.target.y, z: controls.target.z };
+            } else {
+                keyframes.push({
+                    time: currentTime,
+                    position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+                    target: { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+                });
+            }
+            keyframes.sort((a, b) => a.time - b.time);
+            renderKeyframes();
+            updateExportButton();
+        }
+
+        function deleteKeyframe(index) {
+            if (!confirm(`Delete keyframe at ${keyframes[index].time.toFixed(1)}s?`)) return;
+            keyframes.splice(index, 1);
+            renderKeyframes();
+            updateExportButton();
+        }
+
+        function goToKeyframe(index) {
+            const kf = keyframes[index];
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls || !kf) return;
+            camera.position.set(kf.position.x, kf.position.y, kf.position.z);
+            controls.target.set(kf.target.x, kf.target.y, kf.target.z);
+            camera.lookAt(controls.target);
+            // Update fly mode state
+            const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+            cameraYaw = euler.y;
+            cameraPitch = euler.x;
+            currentTime = kf.time;
+            updateTimeDisplay();
+        }
+
+        function renderKeyframes() {
+            document.querySelectorAll('.keyframe-marker').forEach(el => el.remove());
+            keyframes.forEach((kf, i) => {
+                const marker = document.createElement('div');
+                marker.className = 'keyframe-marker';
+                marker.style.left = `${(kf.time / duration) * 100}%`;
+                marker.title = `${kf.time.toFixed(2)}s`;
+                marker.dataset.index = i;
+
+                marker.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) {
+                        e.stopPropagation();
+                        draggingKeyframe = { index: i, marker };
+                        marker.classList.add('dragging');
+                    }
+                });
+
+                marker.addEventListener('click', (e) => { e.stopPropagation(); goToKeyframe(i); });
+                marker.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); showContextMenu(e.clientX, e.clientY, i); });
+
+                timelineTrack.appendChild(marker);
+            });
+        }
+
+        // Keyframe dragging
+        document.addEventListener('mousemove', (e) => {
+            if (draggingKeyframe) {
+                const rect = timelineTrack.getBoundingClientRect();
+                const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+                const newTime = (x / rect.width) * duration;
+                keyframes[draggingKeyframe.index].time = newTime;
+                draggingKeyframe.marker.style.left = `${(newTime / duration) * 100}%`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (draggingKeyframe) {
+                draggingKeyframe.marker.classList.remove('dragging');
+                keyframes.sort((a, b) => a.time - b.time);
+                renderKeyframes();
+                draggingKeyframe = null;
+            }
+        });
+
+        // Interpolation
+        function smoothstep(t) { return t * t * (3 - 2 * t); }
+        function interpolateKeyframes(time) {
+            if (keyframes.length === 0) return null;
+            if (keyframes.length === 1) return { position: keyframes[0].position, target: keyframes[0].target };
+            const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+            if (time <= sorted[0].time) return { position: sorted[0].position, target: sorted[0].target };
+            if (time >= sorted[sorted.length - 1].time) return { position: sorted[sorted.length - 1].position, target: sorted[sorted.length - 1].target };
+            let prev = sorted[0], next = sorted[sorted.length - 1];
+            for (let i = 0; i < sorted.length - 1; i++) {
+                if (time >= sorted[i].time && time <= sorted[i + 1].time) { prev = sorted[i]; next = sorted[i + 1]; break; }
+            }
+            const t = (time - prev.time) / (next.time - prev.time);
+            const eased = defaultInterpolation === 'smooth' ? smoothstep(t) : t;
+            return {
+                position: {
+                    x: prev.position.x + (next.position.x - prev.position.x) * eased,
+                    y: prev.position.y + (next.position.y - prev.position.y) * eased,
+                    z: prev.position.z + (next.position.z - prev.position.z) * eased
+                },
+                target: {
+                    x: prev.target.x + (next.target.x - prev.target.x) * eased,
+                    y: prev.target.y + (next.target.y - prev.target.y) * eased,
+                    z: prev.target.z + (next.target.z - prev.target.z) * eased
+                }
+            };
+        }
+        function updateCameraFromKeyframes() {
+            const result = interpolateKeyframes(currentTime);
+            if (!result) return;
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            camera.position.set(result.position.x, result.position.y, result.position.z);
+            controls.target.set(result.target.x, result.target.y, result.target.z);
+            camera.lookAt(controls.target);
+        }
+
+        // Playback
+        function startPlayback() {
+            if (animationMode === 'timeline' && keyframes.length < 2) return;
+            if (animationMode === 'orbit') captureOrbitSetup();
+            isPlaying = true; currentTime = 0;
+            playBtn.textContent = '⏸';
+            addFrameBtn.disabled = true;
+            if (document.pointerLockElement) document.exitPointerLock();
+        }
+        function stopPlayback() { isPlaying = false; playBtn.textContent = '▶'; addFrameBtn.disabled = false; }
+        function togglePlayback() { isPlaying ? stopPlayback() : startPlayback(); }
+        function updateTimeDisplay() {
+            playhead.style.left = `${(currentTime / duration) * 100}%`;
+            timeDisplay.textContent = `${currentTime.toFixed(2)} / ${duration.toFixed(2)}`;
+        }
+        function updateExportButton() {
+            const canExport = animationMode === 'timeline' ? keyframes.length >= 2 : true;
+            exportBtn.disabled = !canExport;
+
+            // Update tooltip directly on button since container is gone
+            exportBtn.title = canExport ? (animationMode === 'timeline' ? 'Export video options' : 'Export orbit video') : 'Add some keyframes first';
+        }
+
+        // Timeline scrubbing (pauses playback)
+        let isScrubbing = false;
+        timelineTrack.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('keyframe-marker')) return;
+            if (isPlaying) stopPlayback();
+            isScrubbing = true;
+            updateScrub(e);
+        });
+        document.addEventListener('mousemove', (e) => { if (isScrubbing && !draggingKeyframe) updateScrub(e); });
+        document.addEventListener('mouseup', () => { isScrubbing = false; });
+        function updateScrub(e) {
+            const rect = timelineTrack.getBoundingClientRect();
+            currentTime = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1)) * duration;
+            updateTimeDisplay();
+
+            // Update camera based on mode
+            if (animationMode === 'timeline') {
+                updateCameraFromKeyframes();
+            } else if (animationMode === 'orbit') {
+                // Capture orbit setup if not already set up
+                if (!orbitTarget || !orbitStartPos) {
+                    captureOrbitSetup();
+                }
+                updateCameraFromOrbit();
+            }
+        }
+
+        // Context menu
+        function showContextMenu(x, y, index) { selectedKeyframeIndex = index; contextMenu.style.left = `${x}px`; contextMenu.style.top = `${y}px`; contextMenu.classList.add('visible'); }
+        function hideContextMenu() { contextMenu.classList.remove('visible'); selectedKeyframeIndex = null; }
+        document.addEventListener('click', hideContextMenu);
+        document.getElementById('goToKeyframe').addEventListener('click', () => { if (selectedKeyframeIndex !== null) goToKeyframe(selectedKeyframeIndex); hideContextMenu(); });
+        document.getElementById('deleteKeyframe').addEventListener('click', () => { if (selectedKeyframeIndex !== null) deleteKeyframe(selectedKeyframeIndex); hideContextMenu(); });
+
+        // Export button - shows modal with options
+        exportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            exportModal.classList.add('visible');
+        });
+
+        document.getElementById('exportCancel').addEventListener('click', () => exportModal.classList.remove('visible'));
+        document.getElementById('exportFull').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('full'); });
+        document.getElementById('exportSegments').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('segments'); });
+
+        async function exportVideo(mode) {
+            const fps = 30;
+            const renderer = getRenderer();
+            const camera = getCamera();
+            const controls = getControls();
+
+            // Save complete state for restoration
+            const savedCameraPos = camera.position.clone();
+            const savedCameraQuat = camera.quaternion.clone();
+            const savedTarget = controls ? controls.target.clone() : null;
+            const savedCurrentTime = currentTime;
+
+            // Save OrbitControls internal state so we can reset it exactly
+            if (controls && controls.saveState) {
+                controls.saveState();
+            }
+
+            let expW, expH;
+            const res = exportResolution;
+            if (aspectRatio === '16:9') { expW = Math.round(res * 16 / 9); expH = res; }
+            else if (aspectRatio === '9:16') { expW = res; expH = Math.round(res * 16 / 9); }
+            else if (aspectRatio === '1:1') { expW = res; expH = res; }
+            else { expW = Math.round(res * 16 / 9); expH = res; }
+            expW = Math.round(expW / 2) * 2;
+            expH = Math.round(expH / 2) * 2;
+
+            if (animationMode === 'orbit') captureOrbitSetup();
+
+            const origW = renderer.domElement.width;
+            const origH = renderer.domElement.height;
+
+            // Disable controls during export to prevent any interference
+            const wasEnabled = controls ? controls.enabled : false;
+            if (controls) controls.enabled = false;
+
+            // Get filename from modal input or use default
+            const filenameInput = document.getElementById('exportFilename');
+            const baseName = (filenameInput && filenameInput.value.trim()) || 'animation_belowjs';
+
+            if (mode === 'full') {
+                await exportRange(0, duration, baseName, expW, expH, fps, renderer, camera, controls);
+            } else {
+                const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    await exportRange(sorted[i].time, sorted[i + 1].time, `${baseName}_segment_${i + 1}`, expW, expH, fps, renderer, camera, controls);
+                }
+            }
+
+            // Restore currentTime first
+            currentTime = savedCurrentTime;
+            updateTimeDisplay();
+
+            // Restore camera EXACTLY as it was
+            camera.position.copy(savedCameraPos);
+            camera.quaternion.copy(savedCameraQuat);
+
+            if (controls && savedTarget) {
+                controls.target.copy(savedTarget);
+            }
+
+            // Trigger resize event to let viewer naturally restore its size
+            // This is cleaner than manually setting renderer dimensions
+            window.dispatchEvent(new Event('resize'));
+
+            // Re-enable controls after resize
+            if (controls) {
+                controls.enabled = wasEnabled;
+                controls.update();
+            }
+
+            // Reset fly mode state to match restored camera
+            const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+            cameraYaw = euler.y;
+            cameraPitch = euler.x;
+        }
+
+        async function exportRange(startTime, endTime, name, expW, expH, fps, renderer, camera, controls) {
+            const rangeDuration = endTime - startTime;
+            const totalFrames = Math.ceil(rangeDuration * fps);
+
+            exportOverlay.classList.add('visible');
+            exportProgressBar.style.width = '0%';
+            exportTitle.textContent = `Exporting ${name}...`;
+            exportStatus.textContent = 'Loading encoder...';
+
+            // Save current pixel ratio and force to 1 for consistent export resolution
+            const savedPixelRatio = renderer.getPixelRatio();
+            renderer.setPixelRatio(1);
+
+            let encoder = null, muxer = null;
+
+            try {
+                const { Muxer, ArrayBufferTarget } = await import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/+esm');
+                muxer = new Muxer({ target: new ArrayBufferTarget(), video: { codec: 'avc', width: expW, height: expH }, fastStart: 'in-memory' });
+                encoder = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: (e) => console.error('Encoder error:', e) });
+
+                // Select appropriate AVC level based on resolution
+                // 4K (2160p) requires Level 5.1 or higher
+                const is4K = expW >= 3840 || expH >= 2160;
+                // Use Level 5.1 for 4K, Level 4.2 for 1080p
+                encoder.configure({
+                    codec: is4K ? 'avc1.4d0033' : 'avc1.4d002a',
+                    width: expW,
+                    height: expH,
+                    bitrate: is4K ? 20_000_000 : 8_000_000,
+                    framerate: fps
+                });
+
+                // Set styles to maintain aspect ratio in preview (letterboxing)
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                const winAspect = winW / winH;
+                const expAspect = expW / expH;
+
+                let renderW, renderH;
+                if (winAspect > expAspect) {
+                    renderH = winH;
+                    renderW = renderH * expAspect;
+                } else {
+                    renderW = winW;
+                    renderH = renderW / expAspect;
+                }
+
+                // Save original styles (we'll capture these before modifying)
+                const canvas = renderer.domElement;
+                canvas.dataset.savedWidth = canvas.style.width;
+                canvas.dataset.savedHeight = canvas.style.height;
+                canvas.dataset.savedLeft = canvas.style.left;
+                canvas.dataset.savedTop = canvas.style.top;
+                canvas.dataset.savedPosition = canvas.style.position;
+
+                // Center the preview
+                canvas.style.width = `${renderW}px`;
+                canvas.style.height = `${renderH}px`;
+                canvas.style.position = 'fixed';
+                canvas.style.left = `${(winW - renderW) / 2}px`;
+                canvas.style.top = `${(winH - renderH) / 2}px`;
+
+                renderer.setSize(expW, expH, false); // Update buffer size only
+                camera.aspect = expW / expH;
+                camera.updateProjectionMatrix();
+
+                exportStatus.textContent = 'Rendering...';
+
+                for (let i = 0; i < totalFrames; i++) {
+                    if (encoder.state === 'closed') throw new Error('Encoder closed');
+                    currentTime = startTime + (i / totalFrames) * rangeDuration;
+                    animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+
+                    // Update dive system torch position to match camera
+                    // Use updateCameraPosition which directly syncs torch with camera
+                    if (viewer.diveSystem && viewer.diveSystem.torch) {
+                        viewer.diveSystem.torch.updateCameraPosition(camera);
+                    }
+
+                    renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+                    const frame = new VideoFrame(renderer.domElement, { timestamp: (i / fps) * 1_000_000 });
+                    encoder.encode(frame, { keyFrame: i % 30 === 0 });
+                    frame.close();
+                    exportProgressBar.style.width = `${((i + 1) / totalFrames) * 100}%`;
+                    exportStatus.textContent = `Frame ${i + 1} / ${totalFrames}`;
+                    await new Promise(r => setTimeout(r, 0));
+                }
+
+                exportStatus.textContent = 'Finalizing...';
+                await encoder.flush();
+                muxer.finalize();
+
+                const blob = new Blob([muxer.target.buffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Export failed:\n' + err.message);
+            } finally {
+                // Restore pixel ratio
+                renderer.setPixelRatio(savedPixelRatio);
+
+                // Restore original canvas styles
+                const canvas = renderer.domElement;
+                if (canvas) {
+                    canvas.style.width = canvas.dataset.savedWidth || '';
+                    canvas.style.height = canvas.dataset.savedHeight || '';
+                    canvas.style.left = canvas.dataset.savedLeft || '';
+                    canvas.style.top = canvas.dataset.savedTop || '';
+                    canvas.style.position = canvas.dataset.savedPosition || '';
+
+                    // Clean up dataset
+                    delete canvas.dataset.savedWidth;
+                    delete canvas.dataset.savedHeight;
+                    delete canvas.dataset.savedLeft;
+                    delete canvas.dataset.savedTop;
+                    delete canvas.dataset.savedPosition;
+                }
+
+                if (encoder && encoder.state !== 'closed') encoder.close();
+                exportOverlay.classList.remove('visible');
+            }
+
+            currentTime = 0;
+            updateTimeDisplay();
+        }
+
+        // Event Listeners
+        playBtn.addEventListener('click', togglePlayback);
+        addFrameBtn.addEventListener('click', addKeyframe);
+        clearBtn.addEventListener('click', () => {
+            if (keyframes.length === 0) return;
+            if (!confirm('Delete all keyframes?')) return;
+            keyframes = [];
+            renderKeyframes();
+            updateExportButton();
+        });
+        interpSelect.addEventListener('change', () => { defaultInterpolation = interpSelect.value; });
+
+        // File Loading
+        let dragCounter = 0;
+        window.addEventListener('dragenter', (e) => { e.preventDefault(); dragCounter++; dragOverlay.classList.add('visible'); });
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('dragleave', (e) => { e.preventDefault(); dragCounter--; if (!dragCounter) dragOverlay.classList.remove('visible'); });
+        window.addEventListener('drop', async (e) => { e.preventDefault(); dragCounter = 0; dragOverlay.classList.remove('visible'); if (e.dataTransfer.files[0]) await loadModelFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', async (e) => { if (e.target.files[0]) await loadModelFile(e.target.files[0]); });
+
+        async function loadModelFile(file) {
+            if (!file.name.toLowerCase().endsWith('.glb')) { alert('Please select a .glb file'); return; }
+            const url = URL.createObjectURL(file);
+            try {
+                if (hasModel) viewer.belowViewer.clearModels();
+                await viewer.belowViewer.loadModel(url, { autoFrame: true });
+                emptyState.style.display = 'none';
+                animPanel.classList.add('visible');
+                animPanel.classList.remove('disabled');
+                timelineShelf.classList.add('visible');
+                timelineShelf.classList.remove('disabled');
+                hasModel = true;
+
+                // Initialize fly mode rotation from camera
+                const camera = getCamera();
+                if (camera) {
+                    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+                    cameraYaw = euler.y;
+                    cameraPitch = euler.x;
+                }
+
+                keyframes = []; currentTime = 0;
+                renderKeyframes(); updateTimeDisplay(); updateExportButton();
+                updateAspectFrame();  // Show aspect frame now that model is loaded
+            } catch (err) { alert('Failed to load: ' + err.message); }
+            finally { URL.revokeObjectURL(url); }
+        }
+
+        // Show UI greyed out initially
+        animPanel.classList.add('visible', 'disabled');
+        timelineShelf.classList.add('visible', 'disabled');
+    </script>
+</body>
+
+</html>
