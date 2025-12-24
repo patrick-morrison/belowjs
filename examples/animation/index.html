@@ -35,12 +35,22 @@
 
         /* Override BelowJS controls - move above timeline, hide VR/fullscreen */
         .measurement-panel {
-            bottom: 100px !important;
+            position: fixed !important;
+            /* Fixed to escape container context if moved, or just to align with window */
+            z-index: 2001 !important;
+            /* High enough */
+            bottom: 90px !important;
+            /* Above timeline (80px) */
+            right: 20px !important;
             transition: opacity 0.5s ease;
         }
 
         .screenshot-button {
-            bottom: 170px !important;
+            position: fixed !important;
+            z-index: 2001 !important;
+            bottom: 160px !important;
+            /* Gap above measurement panel */
+            right: 20px !important;
             transition: opacity 0.5s ease;
         }
 
@@ -650,6 +660,49 @@
             /* Visual feedback */
         }
 
+        /* Timeline Toast Notification */
+        .timeline-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            color: white;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .timeline-toast.visible {
+            opacity: 1;
+        }
+
+        @keyframes btn-shimmer {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+                border-color: rgba(59, 130, 246, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+                border-color: rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+                border-color: rgba(59, 130, 246, 0);
+            }
+        }
+
+        .btn-shimmer {
+            animation: btn-shimmer 2s infinite;
+        }
+
         .playhead {
             position: absolute;
             top: 0;
@@ -1202,9 +1255,10 @@
     <div class="timeline-shelf" id="timelineShelf">
         <div class="shelf-content">
             <button class="play-btn" id="playBtn" title="Play/Pause">▶</button>
-            <div class="time-display" id="timeDisplay" title="Double-click to edit">0.00 / 10.00</div>
+            <div class="time-display" id="timeDisplay" title="Click to edit time/duration">0.00 / 10.00</div>
 
             <div class="timeline-track" id="timelineTrack">
+                <div class="timeline-toast" id="timelineToast">Add keyframes to play</div>
                 <div class="playhead" id="playhead" style="left: 0%;"></div>
             </div>
 
@@ -1243,7 +1297,7 @@
             <h3>Export Options</h3>
             <div class="export-filename-row">
                 <label>Filename</label>
-                <input type="text" id="exportFilename" value="animation_belowjs" placeholder="animation_belowjs">
+                <input type="text" id="exportFilename" placeholder="animation_belowjs">
             </div>
             <div class="export-option full-option" id="exportFull">
                 <strong>🎬 Full Animation</strong>
@@ -1374,9 +1428,39 @@
             enableFullscreen: false,
             enableScreenshot: true,
             enableMeasurement: true,
+            showMeasurementLabels: false,
             showInfo: false,
             showLoadingIndicator: true,
-            viewerConfig: { scene: { background: { type: 'color', value: '#001122' } } }
+            viewerConfig: {
+                scene: { background: { value: '#001122' } },
+                renderer: { antialias: true, logarithmicDepthBuffer: true }
+            }
+        });
+
+        // Move UI elements to body to escape viewerContainer's z-index context (z=0)
+        // This ensures they can sit ABOVE the aspect-frame overlay (z=999)
+        viewer.on('initialized', () => {
+            setTimeout(() => {
+                const moveEl = (sel) => {
+                    const el = viewerContainer.querySelector(sel) || document.querySelector(sel);
+                    if (el) {
+                        el.remove(); // Safety
+                        document.body.appendChild(el);
+                    }
+                };
+                moveEl('.measurement-panel');
+                moveEl('.screenshot-button');
+                // Note: Fullscreen button is hidden by CSS, no need to move
+
+                // Allow zooming in much closer (5x closer: 0.5 -> 0.1)
+                const controls = getControls();
+                const camera = getCamera();
+                if (controls && camera) {
+                    controls.minDistance = 0.1;
+                    camera.near = 0.01;
+                    camera.updateProjectionMatrix();
+                }
+            }, 100);
         });
 
         const getCamera = () => viewer?.belowViewer?.cameraManager?.getCamera?.();
@@ -1524,12 +1608,18 @@
 
 
 
-        // Time display double-click
-        timeDisplay.addEventListener('dblclick', () => {
+        // Time display click
+        timeDisplay.addEventListener('click', () => {
             timeInputCurrent.value = currentTime.toFixed(2);
             timeInputDuration.value = duration;
             timeModal.classList.add('visible');
+            setTimeout(() => timeInputCurrent.focus(), 50); // Focus for convenience
         });
+
+        // Enter key support for time inputs
+        function handleTimeEnter(e) { if (e.key === 'Enter') document.getElementById('timeInputOk').click(); }
+        timeInputCurrent.addEventListener('keydown', handleTimeEnter);
+        timeInputDuration.addEventListener('keydown', handleTimeEnter);
 
         document.getElementById('timeInputCancel').addEventListener('click', () => timeModal.classList.remove('visible'));
         document.getElementById('timeInputOk').addEventListener('click', () => {
@@ -1539,12 +1629,20 @@
             currentTime = Math.max(0, Math.min(newTime, duration));
             renderKeyframes();
             updateTimeDisplay();
+            // Update camera to reflect jump
+            animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
             timeModal.classList.remove('visible');
         });
 
         // Save/Load
         saveBtn.addEventListener('click', () => {
             saveModal.classList.add('visible');
+            setTimeout(() => saveFilename.focus(), 50);
+        });
+
+        // Enter key support for save filename
+        saveFilename.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveConfirm').click();
         });
 
         document.getElementById('saveCancel').addEventListener('click', () => saveModal.classList.remove('visible'));
@@ -1707,18 +1805,20 @@
             const [w, h] = aspectRatio.split(':').map(Number);
             const ratio = w / h;
 
-            // Three.js uses fixed Vertical FOV by default.
-            // This means the Vertical content visible in the export matches the Vertical content visible on screen exactly.
-            // (Assuming the camera behaves normally and we just change the aspect ratio).
-            // So the frame height MUST match the viewport height.
+            // Frame is based on the visible viewport height (which is smaller when timeline is open)
+            const viewportH = viewerContainer.clientHeight;
+            const viewportW = viewerContainer.clientWidth; // Should match window.innerWidth usually
 
-            const frameH = window.innerHeight;
+            const frameH = viewportH;
             const frameW = frameH * ratio;
 
             aspectFrame.style.width = `${frameW}px`;
             aspectFrame.style.height = `${frameH}px`;
-            aspectFrame.style.left = `${(window.innerWidth - frameW) / 2}px`;
-            aspectFrame.style.top = `${(window.innerHeight - frameH) / 2}px`;
+            // Center horizontally in window (viewportW)
+            aspectFrame.style.left = `${(viewportW - frameW) / 2}px`;
+            // Center vertically in the VIEWPORT (not window), which starts at top:0
+            aspectFrame.style.top = `${(viewportH - frameH) / 2}px`;
+
             aspectFrame.dataset.label = `${aspectRatio} @ ${exportResolution}p`;
             aspectFrame.classList.add('visible');
         }
@@ -2060,14 +2160,30 @@
             if (document.pointerLockElement) document.exitPointerLock();
         }
         function stopPlayback() { isPlaying = false; playBtn.textContent = '▶'; addFrameBtn.disabled = false; }
-        function togglePlayback() { isPlaying ? stopPlayback() : startPlayback(); }
+        function togglePlayback() {
+            if (keyframes.length === 0 && animationMode === 'timeline') {
+                const toast = document.getElementById('timelineToast');
+                toast.classList.add('visible');
+                setTimeout(() => toast.classList.remove('visible'), 2000);
+                return;
+            }
+            isPlaying ? stopPlayback() : startPlayback();
+        }
         function updateTimeDisplay() {
             playhead.style.left = `${(currentTime / duration) * 100}%`;
             timeDisplay.textContent = `${currentTime.toFixed(2)} / ${duration.toFixed(2)}`;
         }
         function updateExportButton() {
+            const hasKeyframes = keyframes.length > 0;
             const canExport = animationMode === 'timeline' ? keyframes.length >= 2 : true;
             exportBtn.disabled = !canExport;
+
+            // Empty state shimmer
+            if (!hasKeyframes && animationMode === 'timeline') {
+                addFrameBtn.classList.add('btn-shimmer');
+            } else {
+                addFrameBtn.classList.remove('btn-shimmer');
+            }
 
             // Update tooltip directly on button since container is gone
             exportBtn.title = canExport ? (animationMode === 'timeline' ? 'Export video options' : 'Export orbit video') : 'Add some keyframes first';
@@ -2118,7 +2234,17 @@
             e.preventDefault();
             e.stopPropagation();
             exportModal.classList.add('visible');
+            const fileInput = document.getElementById('exportFilename');
+            if (fileInput) setTimeout(() => fileInput.focus(), 50);
         });
+
+        // Enter key on export filename triggers Full Export
+        const exportFilenameInput = document.getElementById('exportFilename');
+        if (exportFilenameInput) {
+            exportFilenameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') document.getElementById('exportFull').click();
+            });
+        }
 
         document.getElementById('exportCancel').addEventListener('click', () => exportModal.classList.remove('visible'));
         document.getElementById('exportFull').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('full'); });
@@ -2177,7 +2303,8 @@
 
             // Get filename from modal input or use default
             const filenameInput = document.getElementById('exportFilename');
-            const baseName = (filenameInput && filenameInput.value.trim()) || 'animation_belowjs';
+            let baseName = (filenameInput && filenameInput.value.trim());
+            if (!baseName) baseName = (filenameInput && filenameInput.placeholder) || 'animation_belowjs';
 
             if (mode === 'full') {
                 await exportRange(0, duration, baseName, expW, expH, fps, renderer, camera, controls);
@@ -2295,6 +2422,7 @@
 
                     currentTime = startTime + (i / totalFrames) * rangeDuration;
                     animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                    updateTimeDisplay(); // Update playhead UI
 
                     // Update dive system torch position to match camera
                     // Use updateCameraPosition which directly syncs torch with camera
@@ -2417,6 +2545,12 @@
                 animPanel.classList.remove('disabled');
                 timelineShelf.classList.add('visible');
                 timelineShelf.classList.remove('disabled');
+
+                // Adjust viewer layout to make room for timeline
+                viewerContainer.style.bottom = '80px';
+                // Trigger resize to update camera projection
+                window.dispatchEvent(new Event('resize'));
+
                 hasModel = true;
 
                 // Initialize fly mode rotation from camera
@@ -2430,8 +2564,92 @@
                 keyframes = []; currentTime = 0;
                 renderKeyframes(); updateTimeDisplay(); updateExportButton();
                 updateAspectFrame();  // Show aspect frame now that model is loaded
+
+                // Override screenshot button behavior for High Res capture
+                setTimeout(() => {
+                    const btn = document.getElementById('screenshotButton');
+                    if (btn) {
+                        // Clone to remove existing listeners
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        // Store ref
+                        viewer.screenshotButton = newBtn;
+                        newBtn.addEventListener('click', captureHighResScreenshot);
+                    }
+                }, 500);
             } catch (err) { alert('Failed to load: ' + err.message); }
             finally { URL.revokeObjectURL(url); }
+        }
+
+        // High Res Screenshot
+        async function captureHighResScreenshot() {
+            const renderer = getRenderer();
+            const camera = getCamera();
+            if (!renderer || !camera) return;
+
+            // Calculate dimensions based on settings (reusing export logic)
+            let expW, expH;
+            const res = exportResolution;
+            const parts = aspectRatio.split(':').map(Number);
+
+            if (aspectRatio !== 'none' && parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                const ratio = parts[0] / parts[1];
+                if (ratio >= 1) {
+                    expW = Math.round(res * ratio);
+                    expH = res;
+                } else {
+                    expW = res;
+                    expH = Math.round(res / ratio);
+                }
+            } else {
+                // If Aspect Ratio is 'None', use current viewport size but scaled to match resolution height roughly
+                // OR just grab pure canvas. Let's do pure canvas if 'none'.
+                viewer.takeScreenshot();
+                return;
+            }
+
+            expW = Math.round(expW / 2) * 2;
+            expH = Math.round(expH / 2) * 2;
+
+            const savedPixelRatio = renderer.getPixelRatio();
+            renderer.setPixelRatio(1);
+
+            // Resize
+            const origSize = new THREE.Vector2();
+            renderer.getSize(origSize);
+
+            renderer.setSize(expW, expH, false);
+            camera.aspect = expW / expH;
+            camera.updateProjectionMatrix();
+
+            // Update torch if needed
+            if (viewer.diveSystem && viewer.diveSystem.torch) {
+                viewer.diveSystem.torch.updateCameraPosition(camera);
+            }
+
+            // Render
+            renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+
+            // Save
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, -5);
+            const filename = `screenshot_${(aspectRatio || 'view').replace(':', 'x')}_${expH}p_${timestamp}.png`;
+
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Restore
+            renderer.setPixelRatio(savedPixelRatio);
+            renderer.setSize(origSize.width, origSize.height, false);
+            camera.aspect = origSize.width / origSize.height;
+            camera.updateProjectionMatrix();
+
+            // Re-render immediately to fix view
+            renderer.render(viewer.belowViewer.sceneManager.scene, camera);
         }
 
         // Show UI greyed out initially
