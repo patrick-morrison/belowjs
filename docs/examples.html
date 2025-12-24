@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examples - BelowJS</title>
     <meta name="description" content="Interactive examples and demos of BelowJS underwater VR viewer">
     <meta name="theme-color" content="#0d3b66">
-    
+
     <!-- Analytics -->
-    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7" src="https://umami.padmorrison.com/umami.js"></script>
-    
+    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/umami.js"></script>
+
     <!-- Site styles -->
     <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/docs.css">
@@ -20,31 +22,37 @@
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             margin: 2rem 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             display: block;
         }
+
         .demo-iframe.small {
             height: 400px;
         }
+
         /* Fix iframe gaps */
         iframe {
             display: block;
             border: none;
         }
+
         .demo-caption {
             text-align: center;
             font-size: 0.85em;
             color: #666;
             margin-top: 0.5rem;
         }
+
         .example-section {
             margin: 3rem 0;
             padding: 2rem 0;
             border-bottom: 1px solid #f1f5f9;
         }
+
         .example-section:last-child {
             border-bottom: none;
         }
+
         /* Totally new button styles for example page - override global styles */
         .example-links .button {
             display: inline-block;
@@ -59,32 +67,40 @@
             margin-right: 0.8em;
             background: #f4f7fa;
             color: #183153 !important;
-            box-shadow: 0 1px 4px rgba(24,49,83,0.07);
+            box-shadow: 0 1px 4px rgba(24, 49, 83, 0.07);
             transition: background 0.18s, color 0.18s, box-shadow 0.18s;
         }
+
         .example-links .button:last-child {
             margin-right: 0;
         }
+
         .example-links .demo-btn {
             background: #183153 !important;
             color: #fff !important;
         }
-        .example-links .demo-btn:hover, .example-links .demo-btn:focus {
+
+        .example-links .demo-btn:hover,
+        .example-links .demo-btn:focus {
             background: #25407a !important;
             color: #fff !important;
-            box-shadow: 0 2px 8px rgba(24,49,83,0.13);
+            box-shadow: 0 2px 8px rgba(24, 49, 83, 0.13);
         }
+
         .example-links .source-btn {
             background: #f4f7fa !important;
             color: #25407a !important;
             border: 2px solid #25407a !important;
         }
-        .example-links .source-btn:hover, .example-links .source-btn:focus {
+
+        .example-links .source-btn:hover,
+        .example-links .source-btn:focus {
             background: #e9eef5 !important;
             color: #183153 !important;
             border-color: #183153 !important;
-            box-shadow: 0 2px 8px rgba(24,49,83,0.10);
+            box-shadow: 0 2px 8px rgba(24, 49, 83, 0.10);
         }
+
         .example-links {
             display: flex;
             gap: 1rem;
@@ -94,6 +110,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="nav">
@@ -108,12 +125,14 @@
                 <div class="social-links">
                     <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
                     </a>
                     <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                            <path
+                                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
                         </svg>
                     </a>
                 </div>
@@ -135,13 +154,15 @@
         <a href="changelog.html">Changelog</a>
         <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                <path
+                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
             </svg>
             GitHub
         </a>
         <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                <path
+                    d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
             </svg>
             NPM
         </a>
@@ -151,55 +172,102 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Examples</h1>
-            <p>Explore live interactive demos to see BelowJS in action. Take these open examples and have your own site up and running in minutes.</p>
+            <p>Explore live interactive demos to see BelowJS in action. Take these open examples and have your own site
+                up and running in minutes.</p>
 
             <div style="margin: 2rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <iframe 
-                    src="examples/embed/viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa" 
-                    width="100%" 
-                    height="500" 
-                    frameborder="0"
-                    style="display: block; border: none;"
-                    title="BelowJS Embed Demo - SS Timaru 3D Model"
-                    loading="lazy">
+                <iframe
+                    src="examples/embed/viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa"
+                    width="100%" height="500" frameborder="0" style="display: block; border: none;"
+                    title="BelowJS Embed Demo - SS Timaru 3D Model" loading="lazy">
                 </iframe>
             </div>
-            <p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ Live embed viewer with measurement tools - SS Timaru (CND4) model. Credit: <a href="https://wrecksploration.au/projects/timaru/" target="_blank">WreckSploration</a></p>
+            <p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ Live embed viewer with
+                measurement tools - SS Timaru (CND4) model. Credit: <a
+                    href="https://wrecksploration.au/projects/timaru/" target="_blank">WreckSploration</a></p>
 
             <h2>Basic Viewer</h2>
             <p>Full-featured multi-model viewer with VR support, measurement tools, and dive mode.</p>
-            <p class="example-note"><strong>Note:</strong> Copy this one to make your own viewer. This and a handful of model files is all you need.</p>
+            <p class="example-note"><strong>Note:</strong> Copy this one to make your own viewer. This and a handful of
+                model files is all you need.</p>
             <div class="example-links">
                 <a href="examples/basic/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/basic" target="_blank" class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/basic/index.html" target="_blank" class="button source-btn">View HTML</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/basic" target="_blank"
+                    class="button source-btn">Source Code</a>
+                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/basic/index.html"
+                    target="_blank" class="button source-btn">View HTML</a>
             </div>
             <pre><code>npm run dev        # or npm run dev:basic</code></pre>
 
             <h2>Drag & Drop Loader</h2>
             <p>File loader with drag-and-drop GLB support, a screenshot button, and custom UI elements.</p>
-            <div style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+            <div
+                style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
                 <p style="margin: 0 0 1rem 0; color: #374151; line-height: 1.5;">
-                    <strong>Note:</strong> Use this to test your own models and get the initial camera positions for making your own viewer. Includes a screenshot button for capturing clean images of your models.
+                    <strong>Note:</strong> Use this to test your own models and get the initial camera positions for
+                    making your own viewer. Includes a screenshot button for capturing clean images of your models.
                 </p>
-                    <p><strong>Quest Link tip:</strong> Use the <a href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" target="_blank" rel="noopener">drag-and-drop viewer</a> when you want to stream larger desktop models over Link. Drop a GLB, toggle VR, and you’re in.</p>
+                <p><strong>Quest Link tip:</strong> Use the <a
+                        href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" target="_blank"
+                        rel="noopener">drag-and-drop viewer</a> when you want to stream larger desktop models over Link.
+                    Drop a GLB, toggle VR, and you’re in.</p>
             </div>
             <div class="example-links">
                 <a href="examples/dragdrop/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/dragdrop" target="_blank" class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/dragdrop/index.html" target="_blank" class="button source-btn">View HTML</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/dragdrop" target="_blank"
+                    class="button source-btn">Source Code</a>
+                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/dragdrop/index.html"
+                    target="_blank" class="button source-btn">View HTML</a>
             </div>
             <pre><code>npm run dev:dragdrop</code></pre>
 
             <h2>Embed Viewer</h2>
             <p>Lightweight viewer designed for iframe embedding with URL parameter configuration.</p>
-            <p class="example-note"><strong>Note:</strong> You can use this on your own site to share models among other text. No more external embeds—just a single HTML file pointing to your models, under your control, with full VR support.</p>
+            <p class="example-note"><strong>Note:</strong> You can use this on your own site to share models among other
+                text. No more external embeds—just a single HTML file pointing to your models, under your control, with
+                full VR support.</p>
             <div class="example-links">
                 <a href="examples/embed/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/embed" target="_blank" class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/embed/index.html" target="_blank" class="button source-btn">View HTML</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/embed" target="_blank"
+                    class="button source-btn">Source Code</a>
+                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/embed/index.html"
+                    target="_blank" class="button source-btn">View HTML</a>
             </div>
             <pre><code>npm run dev:embed</code></pre>
+
+            <h2>Animation Example</h2>
+            <p>Keyframe animation tool for producing shipwreck visualisations in seconds. Designed to mirror our Blender
+                workflow, with timeline controls, orbit and flight modes, and video export.</p>
+            <div
+                style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #374151; line-height: 1.5;">
+                    <strong>Note:</strong> This is an advanced example demonstrating how to build sophisticated tools on
+                    top of the core BelowJS viewer. Includes local save/load of keyframes and settings.
+                </p>
+            </div>
+            <div class="example-links">
+                <a href="examples/animation/" target="_blank" class="button demo-btn">View Live Demo</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/animation" target="_blank"
+                    class="button source-btn">Source Code</a>
+            </div>
+            <pre><code>npm run dev:animation</code></pre>
+
+            <h2>AR Viewer (Experimental)</h2>
+            <p>Passthrough AR viewing with hand tracking gestures for rotating, scaling, and moving 3D models in your
+                physical space. Uses the same studio lighting system as the desktop viewer.</p>
+            <div
+                style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #92400e; line-height: 1.5;">
+                    <strong>⚠️ Experimental:</strong> AR support is under active development and may change in future
+                    releases. Optimised for Meta Quest 2/3 with passthrough. Being co-developed with a networked
+                    multi-user viewer.
+                </p>
+            </div>
+            <div class="example-links">
+                <a href="examples/ar/" target="_blank" class="button demo-btn">View Live Demo</a>
+                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/ar" target="_blank"
+                    class="button source-btn">Source Code</a>
+            </div>
 
             <h2>Running locally</h2>
 
@@ -216,12 +284,12 @@ npm run dev</code></pre>
     &lt;script type="importmap"&gt;
     {
         "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.3.0/dist/belowjs.js"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.4.0/dist/belowjs.js"
         }
     }
     &lt;/script&gt;
-    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.3.0/dist/belowjs.css"&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.4.0/dist/belowjs.css"&gt;
     &lt;style&gt;
         body, html { margin: 0; padding: 0; overflow: hidden; }
     &lt;/style&gt;
@@ -246,7 +314,8 @@ npm run dev</code></pre>
 &lt;/iframe&gt;</code></pre>
 
             <h2>Static deployment</h2>
-            <p>Deploy on GitHub Pages, <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a>, or any static hosting:</p>
+            <p>Deploy on GitHub Pages, <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify
+                    Drop</a>, or any static hosting:</p>
 
             <pre><code>shipwrecks-vr/
 ├── index.html          # Main HTML with BelowJS
@@ -256,16 +325,24 @@ npm run dev</code></pre>
     ├── kxi.glb
     └── kozvii.glb</code></pre>
 
-            <p>Push to GitHub, enable Pages in Settings → live in minutes. Or drag-and-drop this folder onto <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a> for instant hosting.</p>
+            <p>Push to GitHub, enable Pages in Settings → live in minutes. Or drag-and-drop this folder onto <a
+                    href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a> for instant
+                hosting.</p>
 
             <h2>Prepare Your Models for BelowJS</h2>
-            <p>These examples work best with quality data and savvy processing. The <a href="guides.html">guides</a> show the complete workflow we have developed that ensures models are ready to take full advantage of the research and VR capabilities within BelowJS. The hard work is your photogrammetry, sharing it in VR is now easy.</p>
-            
-            <div style="background: #f8f9fa; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+            <p>These examples work best with quality data and savvy processing. The <a href="guides.html">guides</a>
+                show the complete workflow we have developed that ensures models are ready to take full advantage of the
+                research and VR capabilities within BelowJS. The hard work is your photogrammetry, sharing it in VR is
+                now easy.</p>
+
+            <div
+                style="background: #f8f9fa; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
                 <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
-                    <strong>Complete workflow guides:</strong> Photogrammetry processing, model scaling and orientation, performance optimization for VR, headset setup, and integrating existing Sketchfab models.
+                    <strong>Complete workflow guides:</strong> Photogrammetry processing, model scaling and orientation,
+                    performance optimization for VR, headset setup, and integrating existing Sketchfab models.
                 </p>
-                <a href="guides.html" style="display: inline-block; background: #0d3b66; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                <a href="guides.html"
+                    style="display: inline-block; background: #0d3b66; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
                     View Guides →
                 </a>
             </div>
@@ -283,4 +360,5 @@ npm run dev</code></pre>
     <!-- Navigation JavaScript -->
     <script src="assets/navigation.js"></script>
 </body>
+
 </html>

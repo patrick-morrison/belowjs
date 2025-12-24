@@ -11,13 +11,13 @@
     <script type="importmap">
     {
         "imports": {
-            "three": "/node_modules/three/build/three.module.js",
-            "belowjs": "/dist/belowjs.js"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.4.0/dist/belowjs.js"
         }
     }
     </script>
 
-    <link rel="stylesheet" href="/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.4.0/dist/belowjs.css">
 
     <style>
         * {
@@ -1088,68 +1088,6 @@
             letter-spacing: 0.5px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
             width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .timeline-shelf {
-                height: 140px;
-                padding-bottom: 0px;
-            }
-
-            .shelf-content {
-                flex-wrap: wrap;
-                padding: 12px 12px 0 12px;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-            }
-
-            .timeline-track {
-                order: -1;
-                flex: 0 0 100%;
-                margin-bottom: 8px;
-                width: 100%;
-            }
-
-            /* Compact controls for mobile */
-            .shelf-actions {
-                gap: 4px;
-            }
-
-            .shelf-btn {
-                padding: 6px 10px;
-                font-size: 11px;
-            }
-
-            .time-display {
-                min-width: 70px;
-                font-size: 11px;
-                padding: 6px 8px;
-            }
-
-            .play-btn {
-                width: 40px;
-                height: 40px;
-            }
-
-            /* Push UI up to avoid overlap with taller shelf */
-            .measurement-panel {
-                bottom: 150px !important;
-            }
-
-            .screenshot-button {
-                bottom: 220px !important;
-            }
-
-            .fly-mode-indicator .hint {
-                bottom: 160px;
-            }
-
-            /* Hide splash/onboarding tips on small screens */
-            .onboarding-overlay,
-            #onboardingOverlay {
-                display: none !important;
-            }
         }
     </style>
 </head>

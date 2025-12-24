@@ -5,6 +5,32 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-12-24
+
+### Added
+
+#### Animation Example
+New [animation example](https://patrick-morrison.github.io/belowjs/examples/animation/) for producing shipwreck visualisations in seconds. Designed to mirror our Blender workflow, this demonstrates advanced features built on top of the core viewer:
+- Timeline-based keyframe animation with easing
+- Orbit mode for quick feature visualisations
+- Flight mode navigation, as well as orbit
+- Controls on the custom dive lighting system
+- Local save and load of keyframes and settings
+- Video export as MP4s
+
+#### AR Support (Experimental)
+Implements passthrough for AR viewing of 3D models with sensible defaults, natural-feeling hand tracking control and the same studio lighting system used in desktop mode:
+- **Hand tracking gestures**: Single-hand movement, two-hand rotate and scale with logarithmic scaling and inertia
+- **Quest 2/3 optimisation**: Automatic device detection and far-plane adjustments
+- **Designed with shared spaces in mind**: `setInteractionEnabled()` method to lock/unlock hand interactions for remote collaboration scenarios
+
+> **Note**: AR support is experimental and may change in future releases, it is being co-developed with a networked viewer.
+
+### Fixed
+- VR audio assets now copied losslessly in docs examples
+
+---
+
 ## [1.3.0] - 2025-11-09
 - Desktop Quest Link streaming support, best tried with the drag-and-drop viewer (<https://patrick-morrison.github.io/belowjs/examples/dragdrop/>).
 

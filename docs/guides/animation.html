@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipwreck Animations and Visualisations - BelowJS</title>
+    <meta name="description"
+        content="Create professional shipwreck flythrough videos using the BelowJS Animation example">
+    <meta name="theme-color" content="#0d3b66">
+    <meta property="og:title" content="Shipwreck Animations and Visualisations - BelowJS">
+    <meta property="og:description"
+        content="Create professional shipwreck flythrough videos using the BelowJS Animation example">
+    <meta property="og:image" content="https://belowjs.com/guides/screenshots/animation-sesa.gif">
+    <meta property="og:url" content="https://belowjs.com/guides/animation.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://belowjs.com/guides/screenshots/animation-sesa.gif">
+
+    <!-- Analytics -->
+    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/umami.js"></script>
+
+    <!-- Site styles -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="../installation.html">Installation</a>
+                <a href="../examples.html">Examples</a>
+                <a href="../guides.html">Guides</a>
+                <a href="../implementations.html">Implementations</a>
+                <a href="../changelog.html">Changelog</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="../installation.html">Installation</a>
+        <a href="../examples.html">Examples</a>
+        <a href="../guides.html">Guides</a>
+        <a href="../implementations.html">Implementations</a>
+        <a href="../changelog.html">Changelog</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                    d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Page Content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Shipwreck Animations and Visualisations</h1>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 26 December 2025</em>
+            </p>
+
+            <p>Typically we use Blender to create shipwreck flythrough animations: import the model, keyframe some
+                camera views, and wait for it to render. The <a href="../examples/animation/">BelowJS Animation
+                    example</a> does this
+                in seconds, right in the browser, with the same studio lighting system used in all BelowJS viewers.</p>
+
+            <p>This example serves two purposes: first, to show what can be built on top of the core viewer (<a
+                    href="https://github.com/patrick-morrison/belowjs/blob/main/examples/animation/index.html"
+                    target="_blank">see code</a>).
+                Second, to
+                provide something genuinely useful, replacing the unflattering Sketchfab screen recordings that
+                sometimes
+                end up on
+                TV.</p>
+
+            <video autoplay loop muted playsinline style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+                <source src="screenshots/animation-demo.mp4" type="video/mp4">
+            </video>
+
+            <p style="font-size: 0.9rem; color: #64748b; text-align: center; margin-top: -1rem;">1440p, 4:3, linear,
+                timeline and orbit of K XI Submarine. Models from
+                <a href="../implementations.html">WrecksplorationVR</a>.
+            </p>
+
+            <h2>1. Prepare Your Model</h2>
+            <p>If you want accurate measurements, make sure your model is scaled properly. Follow the <a
+                    href="model-setup.html">Model Setup guide</a> and <a href="optimisation.html">Model Optimisation
+                    guide</a> to prepare your .glb file. Otherwise, you can probably just <a
+                    href="sketchfab-models.html">download a .glb from Sketchfab</a> and go from there.</p>
+
+            <p>The Animation example uses the same studio lighting system as all BelowJS viewers, so your model will
+                look
+                exactly the same as in the main viewer or VR.</p>
+
+            <h2>2. Load Your Model</h2>
+            <p>Open the <a href="../examples/animation/">Animation example</a> and drag your .glb file onto the viewer,
+                or use the file picker. The model loads with dive mode lighting by default.</p>
+
+            <p>Click and drag to orbit, scroll to zoom. Double-click on a feature to focus on it.</p>
+
+            <img src="screenshots/animation-load.gif" alt="Loading a model into the animation viewer"
+                style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+
+            <h2>3. Add Keyframes</h2>
+            <p>Position the camera where you want and click the <strong>+</strong> button to add a keyframe. The
+                timeline shows your keyframes as markers. Click on them to jump to that view, or drag to reorder.</p>
+
+            <p>You can navigate using either mode:</p>
+            <ul>
+                <li><strong>Orbit mode:</strong> Click and drag to rotate around a point. Use the scroll wheel to zoom.
+                </li>
+                <li><strong>Flight mode:</strong> Press <kbd>F</kbd> to toggle. Use WASD or arrow keys to fly through
+                    the scene freely.</li>
+            </ul>
+
+            <img src="screenshots/animation-sesa.gif" alt="Adding keyframes to the timeline"
+                style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+
+            <div
+                style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #166534; line-height: 1.5;">
+                    <strong>Tip:</strong> The most professional-looking visualisations are often the simplest: slow,
+                    steady movements with linear interpolation. Fast, floaty camera work makes sites feel small and too
+                    "CGI." Cinema is full of slow, sweeping shots with purpose.
+                </p>
+            </div>
+
+            <h2>4. Or, Orbit Mode for Features</h2>
+            <p>For quick 360° feature shots, double-click on a point of interest to focus on it. The camera will
+                smoothly orbit around that feature in a seamless loop. Perfect for highlighting specific details or
+                artifacts.</p>
+
+            <img src="screenshots/animation-orbit.gif" alt="Orbit mode focusing on a feature"
+                style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+
+            <h2>5. Export Settings</h2>
+            <p>Click <strong>Export</strong> to render and download your animation as an MP4. The progress bar shows
+                render progress in real-time.</p>
+
+            <p>Aspect ratio and resolution are separate settings. Use 4K unless you have a reason not to, like if it's
+                just going on Instagram or you need to email a long file.</p>
+
+            <table style="border-collapse: collapse; width: 100%; margin: 1rem 0;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Aspect Ratio</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>16:9</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Most visualisations, YouTube, presentations
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>9:16</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Instagram Reels, TikTok, mobile-first content
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>4:3</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">More immersive feel, PowerPoint/Keynote slides
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>1:1</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Instagram posts, thumbnails, small video
+                            embeds in articles</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <img src="screenshots/animation-exporting.gif" alt="Exporting an animation"
+                style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+
+            <h2>Other Options</h2>
+
+            <h3>Lighting</h3>
+            <p>Swap into dive mode to access the lighting options, giving you control over the underwater atmosphere.
+                Adjust the torch beam width, intensity, and distance falloff to create different moods, from a focused
+                survey light to a diffuse ambient glow. This is the same lighting system used across all BelowJS
+                viewers, matching what VR users will see.</p>
+
+            <img src="screenshots/animation-dive.gif" alt="Lighting options"
+                style="width: 100%; border-radius: 8px; margin: 2rem 0;">
+
+            <h3>Measurements</h3>
+            <p>Use the measurement tools to add scale references or highlight dimensions. This is useful for
+                archaeological documentation or when you want to communicate the size of features in your visualisation.
+                The export doesn't show the measurement number, leaving you freedom in editing and captions.</p>
+
+            <h3>Exporting Segments for Presentations</h3>
+            <p>For PowerPoint or Keynote presentations, you can export each segment separately in the export screen
+                rather than one long video. Short clips (2-3 seconds) between features work well as auto-playing videos
+                in slides. You can design a slide for the rest at the end of each movement, annotating features and
+                explaining key points to the audience.
+            </p>
+
+            <div
+                style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #374151; line-height: 1.5;">
+                    <strong>Tip:</strong> <strong>Linear</strong> interpolation is a nice default, good for single
+                    movements.
+                    <strong>Ease</strong> gives a pleasant start and stop between keyframes, good for segmented
+                    presentations.
+                    <strong>Smooth</strong> is traditional bezier interpolation, moving seamlessly through the whole
+                    animation. Use smooth with care to avoid a nauseating flythrough and the overused "3D model" effect.
+                </p>
+            </div>
+
+            <h2>Save and Load</h2>
+            <p>Keyframes and settings are lost on reload, so you can save. Click <strong>Save</strong> to download a
+                JSON file with your keyframes and settings (not the model) that you can load later or share with
+                colleagues.</p>
+
+            <h2>Next Steps</h2>
+            <p>Ready to create your first animation? Open the <a href="../examples/animation/">Animation example</a> and
+                load a model. For the best results, start with a <a href="optimisation.html">properly optimised .glb
+                    file</a>.</p>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+                <p><a href="../examples/animation/">→ Try the Animation Example</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="../assets/navigation.js"></script>
+</body>
+
+</html>

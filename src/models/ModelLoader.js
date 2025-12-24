@@ -113,7 +113,7 @@ export class ModelLoader {
       }
       return executeLoad();
     });
-    this.loadQueue = queuedPromise.catch(() => {});
+    this.loadQueue = queuedPromise.catch(() => { });
     return queuedPromise;
   }
 
@@ -138,7 +138,7 @@ export class ModelLoader {
       if (signal) {
         abortHandler = rejectWithCancellation;
         signal.addEventListener('abort', abortHandler);
-        
+
         if (signal.aborted) {
           rejectWithCancellation();
           return;
@@ -163,9 +163,9 @@ export class ModelLoader {
             cleanup();
             return;
           }
-          
+
           this.cache.set(url, gltf);
-          
+
           const model = this.processModel(gltf);
           if (onStageChange) {
             onStageChange('finalizing');
@@ -241,7 +241,7 @@ export class ModelLoader {
               newMaterial.normalMap = material.normalMap;
               newMaterial.normalScale = material.normalScale || new THREE.Vector2(1, 1);
             }
-            
+
 
             if (newMaterial.map && maxAnisotropy !== null) {
               newMaterial.map.anisotropy = maxAnisotropy;
@@ -251,7 +251,7 @@ export class ModelLoader {
               newMaterial.normalMap.anisotropy = maxAnisotropy;
               newMaterial.normalMap.needsUpdate = true;
             }
-            
+
             newMaterial.needsUpdate = true;
             if (Array.isArray(obj.material)) {
               obj.material[idx] = newMaterial;
@@ -263,6 +263,16 @@ export class ModelLoader {
               material.dispose();
             }
           } else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
+            // Apply anisotropic filtering to standard/physical materials to prevent mipmap striping
+            if (maxAnisotropy !== null) {
+              const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
+              textureSlots.forEach(slot => {
+                if (material[slot]) {
+                  material[slot].anisotropy = maxAnisotropy;
+                  material[slot].needsUpdate = true;
+                }
+              });
+            }
             material.needsUpdate = true;
           }
 
@@ -275,7 +285,7 @@ export class ModelLoader {
         if (obj.geometry) {
           obj.geometry.computeVertexNormals();
           obj.geometry.normalizeNormals();
-          
+
 
           const hasNormalMaps = materials.some(mat => mat.normalMap);
           if (hasNormalMaps) {

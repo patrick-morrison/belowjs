@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BelowJS - View underwater photogrammetry models in VR</title>
     <meta name="description" content="A Three.js library for maritime archaeology and underwater heritage">
     <meta name="theme-color" content="#0d3b66">
-    
+
     <!-- Analytics -->
-    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7" src="https://umami.padmorrison.com/umami.js"></script>
-    
+    <script async defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/umami.js"></script>
+
     <!-- Site styles -->
     <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/homepage.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="nav">
@@ -28,12 +31,14 @@
                 <div class="social-links">
                     <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
                     </a>
                     <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                            <path
+                                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
                         </svg>
                     </a>
                 </div>
@@ -55,13 +60,15 @@
         <a href="changelog.html">Changelog</a>
         <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                <path
+                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
             </svg>
             GitHub
         </a>
         <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z"/>
+                <path
+                    d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
             </svg>
             NPM
         </a>
@@ -74,27 +81,26 @@
             <h1>BelowJS</h1>
             <div class="tagline">View underwater photogrammetry models in VR</div>
             <div class="description">
-                Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams can dive together.
+                Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on
+                GitHub Pages, or power dynamic systems where teams can dive together.
             </div>
             <div class="cta-buttons">
                 <a href="examples/basic/index.html" class="cta-button cta-primary">Try Demo</a>
                 <a href="installation.html" class="cta-button cta-secondary">Get Started</a>
             </div>
         </div>
-        
+
         <div class="demo-section">
-            <iframe 
-                src="demo.html"
-                class="demo-viewer"
-                title="BelowJS Interactive Demo"
-                loading="lazy">
+            <iframe src="demo.html" class="demo-viewer" title="BelowJS Interactive Demo" loading="lazy">
             </iframe>
             <div class="demo-controls">
                 <div class="demo-controls-instructions">
-                    <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR (supported devices)
+                    <strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom • <strong>VR:</strong> Enter VR
+                    (supported devices)
                 </div>
                 <div class="demo-controls-credit">
-                    Model: Sesa 1928, credit: <a href="https://wrecksploration.au/projects/site03/" target="_blank">WreckSploration</a>
+                    Model: Sesa 1928, credit: <a href="https://wrecksploration.au/projects/site03/"
+                        target="_blank">WreckSploration</a>
                 </div>
             </div>
             <div class="cta-buttons cta-buttons-mobile">
@@ -102,70 +108,77 @@
                 <a href="installation.html" class="cta-button cta-secondary">Get Started</a>
             </div>
             <div class="description description-mobile">
-                Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on GitHub Pages, or power dynamic systems where teams can dive together.
+                Teams use BelowJS to share underwater photogrammetry models on the web and in VR. Deploy statically on
+                GitHub Pages, or power dynamic systems where teams can dive together.
             </div>
         </div>
-    
-    <!-- Hero Feature Section - Desktop Only -->
-    <div class="hero-feature-section">
-        <div class="hero-feature-container">
-            <div class="hero-feature-content">
-                <div class="hero-feature-text">
-                    <h2>VR and desktop, together</h2>
-                    <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to step inside the same scene.</p>
-                </div>
-                <div class="hero-feature-image">
-                    <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Feature Cards Section - Outside landing-page container -->
-    <div class="feature-cards-section">
-        <div class="feature-cards-container">
-            <div class="feature-card-item feature-card-first">
-                <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
-                <div class="feature-card-content">
-                    <h3>VR and desktop, together</h3>
-                    <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to step inside the same scene.</p>
-                </div>
-            </div>
-            
-            <div class="feature-card-item">
-                <img src="assets/measurement.jpg" alt="Research-grade measurement tools" loading="lazy">
-                <div class="feature-card-content">
-                    <h3>Research‑grade measurement</h3>
-                    <p>Built‑in tools that archaeologists actually use: measure sites to identify and quantify features, whether on desktop or in VR.</p>
-                </div>
-            </div>
-            
-            <div class="feature-card-item">
-                <img src="assets/divemode.jpeg" alt="Dive mode in VR" loading="lazy">
-                <div class="feature-card-content">
-                    <h3>Dive mode in VR</h3>
-                    <p>A comfort‑friendly WebXR mode tuned for Quest—lighting, movement, and UI that feels like a real dive.</p>
-                </div>
-            </div>
-            
-            <div class="feature-card-item">
-                <img src="assets/hosting.jpeg" alt="Flexible hosting options" loading="lazy">
-                <div class="feature-card-content">
-                    <h3>Share on your own terms</h3>
-                    <p>Host models anywhere—GitHub Pages, your site or your own app—using just HTML and your *.glb model files.</p>
-                </div>
-            </div>
-            
-            <div class="feature-card-item">
-                <img src="assets/extensible.png" alt="Extensible and customizable" loading="lazy">
-                <div class="feature-card-content">
-                    <h3>Extensible (GPL‑3.0)</h3>
-                    <p>Customize workflows, add buttons, brand the UI—keep your improvements. Share the code so everyone benefits.</p>
+        <!-- Hero Feature Section - Desktop Only -->
+        <div class="hero-feature-section">
+            <div class="hero-feature-container">
+                <div class="hero-feature-content">
+                    <div class="hero-feature-text">
+                        <h2>VR and desktop, together</h2>
+                        <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to
+                            step inside the same scene.</p>
+                    </div>
+                    <div class="hero-feature-image">
+                        <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-        
+
+        <!-- Feature Cards Section - Outside landing-page container -->
+        <div class="feature-cards-section">
+            <div class="feature-cards-container">
+                <div class="feature-card-item feature-card-first">
+                    <img src="assets/vr-desktop.jpeg" alt="VR and Desktop viewing modes" loading="lazy">
+                    <div class="feature-card-content">
+                        <h3>VR and desktop, together</h3>
+                        <p>One viewer for both modes. Teach and review on a laptop; hand the headset to your audience to
+                            step inside the same scene.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card-item">
+                    <img src="assets/measurement.jpg" alt="Research-grade measurement tools" loading="lazy">
+                    <div class="feature-card-content">
+                        <h3>Research‑grade measurement</h3>
+                        <p>Built‑in tools that archaeologists actually use: measure sites to identify and quantify
+                            features, whether on desktop or in VR.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card-item">
+                    <img src="assets/divemode.jpeg" alt="Dive mode in VR" loading="lazy">
+                    <div class="feature-card-content">
+                        <h3>Dive mode in VR</h3>
+                        <p>A comfort‑friendly WebXR mode tuned for Quest—lighting, movement, and UI that feels like a
+                            real dive.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card-item">
+                    <img src="assets/hosting.jpeg" alt="Flexible hosting options" loading="lazy">
+                    <div class="feature-card-content">
+                        <h3>Share on your own terms</h3>
+                        <p>Host models anywhere—GitHub Pages, your site or your own app—using just HTML and your *.glb
+                            model files.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card-item">
+                    <img src="assets/extensible.png" alt="Extensible and customizable" loading="lazy">
+                    <div class="feature-card-content">
+                        <h3>Extensible (GPL‑3.0)</h3>
+                        <p>Customize workflows, add buttons, brand the UI—keep your improvements. Share the code so
+                            everyone benefits.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="features-section">
             <div class="features-split">
                 <div class="features-main">
@@ -214,7 +227,7 @@
                         <div class="stat-label">From model to web</div>
                     </a>
                     <a href="examples.html" class="stat-item">
-                        <div class="stat-number">3</div>
+                        <div class="stat-number">5</div>
                         <div class="stat-label">Production-ready examples</div>
                     </a>
                     <a href="https://github.com/patrick-morrison/belowjs" class="stat-item">
@@ -251,19 +264,24 @@
                 </div>
                 <div class="faq-item">
                     <h3>Do I need a VR headset?</h3>
-                    <p>No, it works on any device through the web. It will make you want to buy one though. We recommend the Meta Quest 3.</p>
+                    <p>No, it works on any device through the web. It will make you want to buy one though. We recommend
+                        the Meta Quest 3.</p>
                 </div>
                 <div class="faq-item">
                     <h3>How do I get my models on there?</h3>
-                    <p>Use any photogrammetry software to process, scale and orient your model, then export as GLB. Check the examples for details.</p>
+                    <p>Use any photogrammetry software to process, scale and orient your model, then export as GLB.
+                        Check the examples for details.</p>
                 </div>
                 <div class="faq-item">
                     <h3>How big can it be?</h3>
-                    <p>We recommend models around 50 MB for ease of use, and we have a tutorial on how to optimise them. We have tested up to 1.2 million polygon models with 4×4k textures on Quest 3—this is extremely detailed even on a large site.</p>
+                    <p>We recommend models around 50 MB for ease of use, and we have a tutorial on how to optimise them.
+                        We have tested up to 1.2 million polygon models with 4×4k textures on Quest 3—this is extremely
+                        detailed even on a large site.</p>
                 </div>
                 <div class="faq-item">
                     <h3>Can I change the code / UI?</h3>
-                    <p>Yes, it's open and designed to be interchangeable. There are sensible defaults to make your work look beautiful, but it's yours under GPL3, as long as you share!</p>
+                    <p>Yes, it's open and designed to be interchangeable. There are sensible defaults to make your work
+                        look beautiful, but it's yours under GPL3, as long as you share!</p>
                 </div>
                 <div class="faq-item">
                     <h3>Do I need to be good at coding?</h3>
@@ -277,7 +295,8 @@
     <div class="final-cta-section">
         <div class="final-cta-container">
             <h2>Ready to see your models in VR?</h2>
-            <p>Take some underwater photos, turn them into a 3D model, and share it with the world. 3D models are meant to be seen in VR.</p>
+            <p>Take some underwater photos, turn them into a 3D model, and share it with the world. 3D models are meant
+                to be seen in VR.</p>
             <div class="final-cta-buttons">
                 <a href="examples/basic/index.html" class="btn btn-primary btn-large">Explore the Demo</a>
                 <a href="installation.html" class="btn btn-secondary btn-large">Get BelowJS</a>
@@ -299,4 +318,5 @@
     <!-- Navigation JavaScript -->
     <script src="assets/navigation.js"></script>
 </body>
+
 </html>

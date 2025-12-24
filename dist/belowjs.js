@@ -3726,7 +3726,9 @@ class O {
               flatShading: !1
             });
             r.map && (l.map = r.map), r.alphaMap && (l.alphaMap = r.alphaMap), r.aoMap && (l.aoMap = r.aoMap), typeof r.aoMapIntensity == "number" && (l.aoMapIntensity = r.aoMapIntensity), r.envMap && (l.envMap = r.envMap), typeof r.reflectivity == "number" && (l.reflectivity = r.reflectivity), typeof r.refractionRatio == "number" && (l.refractionRatio = r.refractionRatio), r.combine !== void 0 && (l.combine = r.combine), r.transparent !== void 0 && (l.transparent = r.transparent), typeof r.opacity == "number" && (l.opacity = r.opacity), r.normalMap && (l.normalMap = r.normalMap, l.normalScale = r.normalScale || new u.Vector2(1, 1)), l.map && i !== null && (l.map.anisotropy = i, l.map.needsUpdate = !0), l.normalMap && i !== null && (l.normalMap.anisotropy = i, l.normalMap.needsUpdate = !0), l.needsUpdate = !0, Array.isArray(o.material) ? o.material[A] = l : o.material = l, r !== l && typeof r?.dispose == "function" && r.dispose();
-          } else (r.type === "MeshStandardMaterial" || r.type === "MeshPhysicalMaterial") && (r.needsUpdate = !0);
+          } else (r.type === "MeshStandardMaterial" || r.type === "MeshPhysicalMaterial") && (i !== null && ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap", "emissiveMap"].forEach((h) => {
+            r[h] && (r[h].anisotropy = i, r[h].needsUpdate = !0);
+          }), r.needsUpdate = !0);
           const a = Array.isArray(o.material) ? o.material[A] : o.material;
           a && a.needsUpdate !== void 0 && (a.needsUpdate = !0);
         }), o.geometry && (o.geometry.computeVertexNormals(), o.geometry.normalizeNormals(), n.some((A) => A.normalMap) && o.geometry.computeTangents());
