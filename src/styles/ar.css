@@ -1,175 +1,100 @@
-/**
- * AR-specific styles with modern glassmorphism and tasteful shimmer
- * Premium design for AR button with polished visual effects
+/* BelowJS - AR Controls
+ * Same restraint. Consistent language.
  */
 
-/* Modern Glassmorphism AR Button with Shimmer */
+/* AR Button: Text-forward, minimal */
 .ar-button--glass,
-.ar-button-glass {
-  /* Positioning - higher than VR button */
-  position: fixed !important;
-  bottom: 140px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 100 !important;
+.ar-button-glass,
+.ar-button-available {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
 
-  /* Sizing */
-  padding: 16px 32px !important;
-  min-width: 160px !important;
-  height: 56px !important;
-
-  /* Modern Glassmorphism Design - AR blue theme */
-  background: rgba(100, 200, 255, 0.12) !important;
-  backdrop-filter: blur(20px) saturate(140%) !important;
-  border: 1px solid rgba(100, 200, 255, 0.3) !important;
-  border-radius: 16px !important;
+  /* Minimal styling */
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--below-radius-md, 8px);
 
   /* Typography */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 300 !important;
-  color: #ffffff !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.1em !important;
-  white-space: nowrap !important;
-  text-align: center !important;
-  line-height: 1.2 !important;
+  font-family: var(--below-font-family, -apple-system, BlinkMacSystemFont, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-align: center;
+  text-decoration: none;
 
   /* Layout */
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
-  /* Premium Effects - AR cyan glow */
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(100, 200, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  cursor: pointer !important;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  outline: none !important;
-  text-decoration: none !important;
-
-  /* Shimmer Effect Setup */
-  position: relative !important;
-  overflow: hidden !important;
+  /* Interaction */
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  outline: none;
 }
 
-/* Shimmer overlay - occasional inviting sweep every 4 seconds */
-.ar-button--glass::before,
-.ar-button-glass::before,
-.ar-button-available::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: -100% !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(100, 200, 255, 0.2),
-    rgba(100, 200, 255, 0.4),
-    rgba(100, 200, 255, 0.2),
-    transparent
-  ) !important;
-  animation: arShimmerInviting 4s ease-in-out infinite !important;
-  border-radius: 16px !important;
-  pointer-events: none !important;
-}
-
-/* Inviting shimmer animation - every 4 seconds with pause */
-@keyframes arShimmerInviting {
-  0%, 80% { left: -100% !important; opacity: 0 !important; }
-  85%     { left: -50% !important; opacity: 0.5 !important; }
-  90%     { left: 0 !important;    opacity: 1 !important; }
-  95%     { left: 50% !important;  opacity: 0.5 !important; }
-  100%    { left: 100% !important; opacity: 0 !important; }
-}
-
-/* Hover State - Enhanced glassmorphism */
+/* Hover: Subtle reveal */
 .ar-button--glass:hover,
 .ar-button-glass:hover,
 .ar-button-available:hover {
-  background: rgba(100, 200, 255, 0.18) !important;
-  border-color: rgba(100, 200, 255, 0.4) !important;
-  transform: translateX(-50%) translateY(-2px) !important;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 4px 12px rgba(100, 200, 255, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Shimmer on hover */
-.ar-button--glass:hover::before,
-.ar-button-glass:hover::before,
-.ar-button-available:hover::before {
-  animation: arShimmer 1.5s ease-in-out infinite !important; /* Faster shimmer on hover */
-}
-
-/* Active State - Premium press feedback */
+/* Active: Minimal feedback */
 .ar-button--glass:active,
 .ar-button-glass:active,
 .ar-button-available:active {
-  transform: translateX(-50%) translateY(-1px) !important;
-  background: rgba(100, 200, 255, 0.25) !important;
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.4),
-    0 2px 6px rgba(100, 200, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  transition: all 0.1s ease !important; /* Quick response */
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Disabled state */
 .ar-button-disabled,
 button.ar-button-disabled {
-  background: rgba(156, 163, 175, 0.1) !important;
-  border: 1px solid rgba(156, 163, 175, 0.3) !important;
-  color: #9ca3af !important;
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
-  pointer-events: none !important;
-}
-.ar-button-disabled::before,
-button.ar-button-disabled::before {
-  display: none !important;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.25);
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
-/* Keyframes for hover shimmer */
-@keyframes arShimmer {
-  0%   { left: -100% !important; opacity: 0 !important; }
-  50%  { left: 0 !important;     opacity: 1 !important; }
-  100% { left: 100% !important;  opacity: 0 !important; }
+/* Remove shimmer */
+.ar-button--glass::before,
+.ar-button-glass::before,
+.ar-button-available::before,
+.ar-button-disabled::before {
+  display: none;
 }
 
-/* Mobile tweaks */
+/* Mobile */
 @media (max-width: 768px) {
   .ar-button--glass,
-  .ar-button-glass {
-    bottom: 120px !important;
-    padding: 12px 24px !important;
-    min-width: 140px !important;
-    height: 48px !important;
-    font-size: 12px !important;
+  .ar-button-glass,
+  .ar-button-available {
+    bottom: 80px;
+    padding: 10px 20px;
+    font-size: 11px;
   }
-
-  .ar-icon { font-size: 14px !important; }
 }
 
-/* AR-specific UI positioning when in AR mode */
-.ar-mode .info-panel { display: none !important; }
-.ar-mode .model-selector { pointer-events: none; opacity: 0.5; }
+/* AR mode active states */
+.ar-mode .info-panel {
+  display: none;
+}
 
-/* AR mode active marker */
-.ar-mode-active { --ar-css-loaded: true; opacity: 0.998; }
+.ar-mode .model-selector {
+  pointer-events: none;
+  opacity: 0.3;
+}
 
-/* Safari-specific fixes - backdrop filter support */
-@supports (-webkit-appearance: none) {
-  .ar-button--glass,
-  .ar-button-glass {
-    backdrop-filter: blur(20px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
-  }
+.ar-mode-active {
+  --ar-css-loaded: true;
 }

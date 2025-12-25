@@ -1,60 +1,82 @@
 /* BelowJS - Info Panel
- * Styling for information displays and branding
+ * Quiet presence. Information when needed.
  */
 
-/* Info Panel */
- .info-panel {
+.info-panel {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: var(--below-space-lg);
+  left: var(--below-space-lg);
   z-index: 10;
-  padding: 20px 24px;
-  max-width: 340px;
-  backdrop-filter: var(--below-panel-backdrop);
+  padding: var(--below-space-md) var(--below-space-lg);
+  max-width: 280px;
   background: var(--below-panel-bg);
+  backdrop-filter: var(--below-panel-backdrop);
+  -webkit-backdrop-filter: var(--below-panel-backdrop);
   border: 1px solid var(--below-panel-border);
-  border-radius: 16px;
-  box-shadow: var(--below-panel-shadow);
-  transition: all 0.3s ease;
+  border-radius: var(--below-radius-md);
+  transition: border-color var(--below-transition);
 }
 
- .info-panel:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+.info-panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
- .info-panel__title {
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  background: linear-gradient(135deg, #ffffff, #f5f5f5);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
-}
-
- .info-panel__controls {
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #b0b0b0;
-}
-
- .info-panel__controls strong {
+.info-panel__title {
   color: var(--below-text-color);
+  font-size: 13px;
   font-weight: 600;
+  margin-bottom: var(--below-space-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-/* Responsive Design */
+.info-panel__controls {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--below-text-muted);
+}
+
+.info-panel__controls strong {
+  color: var(--below-text-color);
+  font-weight: 500;
+}
+
+/* Light theme */
+.info-panel.light-theme {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.info-panel.light-theme:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.info-panel.light-theme .info-panel__title {
+  color: #000000;
+}
+
+.info-panel.light-theme .info-panel__controls {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.info-panel.light-theme .info-panel__controls strong {
+  color: #000000;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .info-panel {
-    top: 10px;
-    left: 10px;
-    padding: 16px;
-    max-width: 280px;
+    top: var(--below-space-md);
+    left: var(--below-space-md);
+    padding: var(--below-space-sm) var(--below-space-md);
+    max-width: 220px;
+  }
+
+  .info-panel__title {
+    font-size: 12px;
+  }
+
+  .info-panel__controls {
+    font-size: 11px;
   }
 }

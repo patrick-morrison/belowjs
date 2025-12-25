@@ -1,81 +1,86 @@
+/* BelowJS - Measurement Panel
+ * Precision tools. Quiet confidence.
+ */
+
 .measurement-panel {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  font-size: 14px;
+  bottom: var(--below-space-lg, 24px);
+  right: var(--below-space-lg, 24px);
+  background: var(--below-panel-bg, rgba(255, 255, 255, 0.03));
+  backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  -webkit-backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  border: 1px solid var(--below-panel-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--below-radius-md, 8px);
+  color: var(--below-text-muted, rgba(255, 255, 255, 0.5));
+  padding: 10px 16px;
+  font-family: var(--below-font-family, -apple-system, BlinkMacSystemFont, system-ui, sans-serif);
+  font-size: 12px;
   font-weight: 500;
+  letter-spacing: 0.02em;
   z-index: 100;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  min-width: 100px;
+  min-width: 80px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-.measurement-panel:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 1);
-  transform: scale(1.02);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-.measurement-panel .disabled {
-  color: rgba(255, 255, 255, 0.4);
-  border-color: rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.02);
-}
-.measurement-panel .active {
-  color: #4ade80;
-  border-color: rgba(74, 222, 128, 0.3);
-  background: rgba(74, 222, 128, 0.1);
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.1);
-}
-.measurement-panel .measured {
-  color: #60a5fa;
-  border-color: rgba(96, 165, 250, 0.3);
-  background: rgba(96, 165, 250, 0.1);
-  box-shadow: 0 0 20px rgba(96, 165, 250, 0.1);
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Light theme for measurement panel */
+.measurement-panel:hover {
+  color: var(--below-text-color, rgba(255, 255, 255, 0.9));
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* States: Minimal differentiation through opacity and subtle color */
+.measurement-panel.disabled {
+  color: rgba(255, 255, 255, 0.25);
+  cursor: default;
+}
+
+.measurement-panel.active {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.measurement-panel.measured {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--below-font-mono, 'SF Mono', Monaco, monospace);
+  letter-spacing: -0.02em;
+}
+
+/* Light theme */
 .measurement-panel.light-theme {
-  background: rgba(0, 0, 0, 0.8);
-  color: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .measurement-panel.light-theme:hover {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 1);
-  transform: scale(1.02);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  color: rgba(0, 0, 0, 0.7);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .measurement-panel.light-theme.disabled {
-  color: rgba(255, 255, 255, 0.5);
-  border-color: rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.2);
 }
 
 .measurement-panel.light-theme.active {
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.2);
+  color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .measurement-panel.light-theme.measured {
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.4);
-  background: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 0 24px rgba(59, 130, 246, 0.2);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .measurement-panel {
+    bottom: var(--below-space-md, 16px);
+    right: var(--below-space-md, 16px);
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: 70px;
+  }
 }

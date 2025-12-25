@@ -1,16 +1,43 @@
 /* BelowJS - Base Styles
- * Core styling for the 3D viewer container and basic layout
+ * Minimal. Modern. The object is sacred.
+ *
+ * Philosophy: In a museum, the art commands attention.
+ * The walls recede. The lighting serves the piece.
+ * Here, the 3D model is the masterpiece.
  */
 
 :root {
-  --below-bg-color: #0a0a0a;
-  --below-text-color: #e8e8e8;
-  --below-accent-color: #64B5F6;
-  --below-panel-bg: rgba(255, 255, 255, 0.08);
-  --below-panel-border: rgba(255, 255, 255, 0.12);
+  /* The Palette: Restraint as confidence */
+  --below-bg-color: #000000;
+  --below-text-color: #ffffff;
+  --below-text-muted: rgba(255, 255, 255, 0.5);
+  --below-accent-color: #ffffff;
+
+  /* Panels: Nearly invisible */
+  --below-panel-bg: rgba(255, 255, 255, 0.03);
+  --below-panel-border: rgba(255, 255, 255, 0.08);
   --below-panel-backdrop: blur(20px);
-  --below-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --below-font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --below-panel-shadow: none;
+
+  /* Typography: Clarity above all */
+  --below-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --below-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+
+  /* Spacing: Generous, considered */
+  --below-space-xs: 0.25rem;
+  --below-space-sm: 0.5rem;
+  --below-space-md: 1rem;
+  --below-space-lg: 1.5rem;
+  --below-space-xl: 2rem;
+
+  /* Timing: Subtle, unhurried */
+  --below-transition: 0.2s ease;
+  --below-transition-slow: 0.4s ease;
+
+  /* Radius: Minimal, refined */
+  --below-radius-sm: 4px;
+  --below-radius-md: 8px;
+  --below-radius-lg: 12px;
 }
 
 html, body {
@@ -21,6 +48,10 @@ html, body {
   background: var(--below-bg-color);
   color: var(--below-text-color);
   font-family: var(--below-font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Base container for the 3D scene */
@@ -30,18 +61,18 @@ html, body {
   position: relative;
 }
 
-/* Ensure renderer canvas fills the container without gaps */
+/* Ensure renderer canvas fills the container */
 .below-viewer-container canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-/* Base panel styling with glassmorphism effect */
+/* Base panel: Recede, don't compete */
 .below-panel {
   background: var(--below-panel-bg);
   backdrop-filter: var(--below-panel-backdrop);
+  -webkit-backdrop-filter: var(--below-panel-backdrop);
   border: 1px solid var(--below-panel-border);
-  border-radius: 16px;
-  box-shadow: var(--below-panel-shadow);
+  border-radius: var(--below-radius-md);
 }

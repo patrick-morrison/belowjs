@@ -1,76 +1,64 @@
 /* BelowJS - UI Components
- * Styling for interactive UI elements like dropdowns, buttons, etc.
+ * Minimal controls that recede until needed.
+ * Every element earns its place.
  */
 
-/* Model Selector Dropdown */
- .model-selector {
+/* Model Selector: Understated presence */
+.model-selector {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: var(--below-space-lg);
+  right: var(--below-space-lg);
   z-index: 50;
   background: var(--below-panel-bg);
   backdrop-filter: var(--below-panel-backdrop);
+  -webkit-backdrop-filter: var(--below-panel-backdrop);
   border: 1px solid var(--below-panel-border);
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 220px;
-  box-shadow: var(--below-panel-shadow);
-  transition: all 0.3s ease;
+  border-radius: var(--below-radius-md);
+  padding: var(--below-space-md);
+  min-width: 180px;
+  transition: border-color var(--below-transition);
 }
 
- .model-selector:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+.model-selector:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
- .model-selector__dropdown {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+.model-selector__dropdown {
+  background: transparent;
   color: var(--below-text-color);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 16px 20px;
-  font-size: 23px;
+  border: none;
+  padding: var(--below-space-sm) 0;
+  font-size: 13px;
   font-weight: 500;
   font-family: inherit;
+  letter-spacing: 0.02em;
   cursor: pointer;
   outline: none;
-  transition: all 0.3s ease;
-  min-width: 100%;
-  border-radius: 12px;
+  width: 100%;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: opacity var(--below-transition);
 }
 
- .model-selector__dropdown:focus {
-  border-color: var(--below-accent-color);
-  box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.1);
+.model-selector__dropdown:focus {
+  opacity: 0.8;
 }
 
- .model-selector__dropdown:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
- .model-selector__dropdown:disabled {
+.model-selector__dropdown:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
- .model-selector__dropdown option {
-  background: #1a1a1a;
+.model-selector__dropdown option {
+  background: #0a0a0a;
   color: var(--below-text-color);
-  padding: 12px;
-  font-size: 14px;
+  padding: var(--below-space-sm);
+  font-size: 13px;
 }
 
-/* Loading Indicator */
- .loading-indicator {
+/* Loading Indicator: Minimal, focused */
+.loading-indicator {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -79,7 +67,7 @@
   display: none;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: var(--below-space-lg);
   text-align: center;
 }
 
@@ -92,8 +80,8 @@
 
 .spinner-circle {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
 }
 
 .spinner-path {
@@ -102,10 +90,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  border: 3px solid rgba(255, 255, 255, 0.15);
-  border-top: 3px solid #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  animation: spinner-rotate 1.5s ease-in-out infinite;
+  animation: spinner-rotate 1s linear infinite;
 }
 
 .spinner-percentage {
@@ -113,191 +101,164 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  letter-spacing: -0.5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--below-text-color);
+  letter-spacing: -0.02em;
 }
 
 .loading-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--below-space-xs);
   align-items: center;
 }
 
 .loading-model-name {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  letter-spacing: 0.3px;
+  color: var(--below-text-color);
+  letter-spacing: 0.01em;
 }
 
 .loading-status {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  color: var(--below-text-muted);
 }
 
 @keyframes spinner-rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Light theme overrides for loading indicator */
+/* Light theme loading indicator */
 .loading-indicator.light-theme .loading-model-name {
-  color: #1a1a1a !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  color: #000000;
 }
 
 .loading-indicator.light-theme .loading-status {
-  color: rgba(26, 26, 26, 0.8) !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .loading-indicator.light-theme .spinner-percentage {
-  color: #1a1a1a !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  color: #000000;
 }
 
 .loading-indicator.light-theme .spinner-path {
-  border-color: rgba(26, 26, 26, 0.15) !important;
-  border-top-color: #1a1a1a !important;
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: rgba(0, 0, 0, 0.8);
 }
 
 /* Status Indicator */
 .status {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 12px;
+  bottom: var(--below-space-lg);
+  right: var(--below-space-lg);
+  padding: var(--below-space-sm) var(--below-space-md);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--below-text-muted);
   z-index: 10;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-}
-
-/* Screenshot Button */
-.screenshot-button {
+/* Action Buttons: Minimal, circular */
+.screenshot-button,
+.fullscreen-button {
   position: absolute;
-  bottom: 140px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
+  right: var(--below-space-lg);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--below-panel-bg);
+  backdrop-filter: var(--below-panel-backdrop);
+  -webkit-backdrop-filter: var(--below-panel-backdrop);
   border: 1px solid var(--below-panel-border);
-  color: var(--below-text-color);
+  color: var(--below-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 120;
-  backdrop-filter: var(--below-panel-backdrop);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   user-select: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: color var(--below-transition), border-color var(--below-transition);
 }
 
-.screenshot-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+.screenshot-button {
+  bottom: 120px;
 }
 
-.screenshot-button svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.2;
+.fullscreen-button {
+  bottom: 76px;
+}
+
+.screenshot-button:hover,
+.fullscreen-button:hover {
+  color: var(--below-text-color);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.screenshot-button svg,
+.fullscreen-button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.5;
+}
+
+/* Light theme action buttons */
+.screenshot-button.light-theme,
+.fullscreen-button.light-theme {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .screenshot-button.light-theme {
-  background: rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  top: 76px !important;
-  bottom: auto !important;
-  right: 20px !important;
+  top: 72px;
+  bottom: auto;
 }
 
-.screenshot-button.light-theme:hover {
-  background: rgba(0, 0, 0, 0.9) !important;
-  border-color: rgba(0, 0, 0, 0.3) !important;
-  color: rgba(255, 255, 255, 1) !important;
-  transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
-}
-
-.screenshot-button.light-theme svg {
-  stroke-width: 2.2;
-}
-
-.screenshot-button.no-measurement {
-  bottom: 70px !important;
-}
-
-/* Fullscreen Button */
-.fullscreen-button {
-  position: absolute;
-  bottom: 90px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--below-panel-bg);
-  border: 1px solid var(--below-panel-border);
-  color: var(--below-text-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 120;
-  backdrop-filter: var(--below-panel-backdrop);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  user-select: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.fullscreen-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-/* Light theme style to exactly match measurement panel and position top-right */
 .fullscreen-button.light-theme {
-  background: rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  top: 20px !important;
-  bottom: auto !important;
-  right: 20px !important;
+  top: var(--below-space-lg);
+  bottom: auto;
 }
 
+.screenshot-button.light-theme:hover,
 .fullscreen-button.light-theme:hover {
-  background: rgba(0, 0, 0, 0.9) !important;
-  border-color: rgba(0, 0, 0, 0.3) !important;
-  color: rgba(255, 255, 255, 1) !important;
-  transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+  color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
-/* Sketchfab-style bottom-right positioning when no measurement system */
+/* Adjust when no measurement panel */
+.screenshot-button.no-measurement {
+  bottom: 76px;
+}
+
 .fullscreen-button.no-measurement {
-  bottom: 20px !important;
+  bottom: 32px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .model-selector {
+    top: var(--below-space-md);
+    right: var(--below-space-md);
+    min-width: 150px;
+  }
+
+  .screenshot-button,
+  .fullscreen-button {
+    right: var(--below-space-md);
+    width: 28px;
+    height: 28px;
+  }
+
+  .screenshot-button svg,
+  .fullscreen-button svg {
+    width: 12px;
+    height: 12px;
+  }
 }

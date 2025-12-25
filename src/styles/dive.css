@@ -1,22 +1,23 @@
-/* Dive System UI Styles */
+/* BelowJS - Dive System UI
+ * Mode switching. Minimal ceremony.
+ */
 
 /* Mode Toggle Container */
-/* Mode Toggle Container (BEM) */
 .mode-toggle-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--below-space-md, 16px);
 }
 
-/* Semantic Toggle Switch */
+/* Semantic Toggle Switch: Understated */
 .semantic-toggle {
   position: relative;
-  width: 180px;
-  height: 60px;
+  width: 160px;
+  height: 44px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--below-panel-bg, rgba(255, 255, 255, 0.03));
+  border-radius: 22px;
+  border: 1px solid var(--below-panel-border, rgba(255, 255, 255, 0.08));
   overflow: hidden;
 }
 
@@ -30,18 +31,18 @@
 .toggle-option {
   position: absolute;
   top: 0;
-  width: 90px;
-  height: 60px;
+  width: 80px;
+  height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 11px;
-  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 10px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .toggle-option.left {
@@ -53,175 +54,154 @@
 }
 
 .toggle-icon {
-  font-size: 20px;
-  margin-bottom: 4px;
-  transition: all 0.3s ease;
+  font-size: 16px;
+  margin-bottom: 2px;
+  transition: opacity 0.3s ease;
 }
 
 .toggle-text {
-  color: #888;
-  transition: all 0.3s ease;
-  font-size: 12px;
+  color: var(--below-text-muted, rgba(255, 255, 255, 0.4));
+  transition: color 0.3s ease;
+  font-size: 10px;
 }
 
-/* Active State Slider */
+/* Active State Slider: Minimal */
 .toggle-slider-bg {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 82px;
-  height: 52px;
-  background: linear-gradient(135deg, #4CAF50, #388E3C);
-  border-radius: 26px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  top: 3px;
+  left: 3px;
+  width: 74px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 19px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Toggle States */
 .semantic-toggle input:checked + .toggle-slider-bg {
-  transform: translateX(90px);
-  background: linear-gradient(135deg, #64B5F6, #42A5F5);
-  box-shadow: 0 4px 16px rgba(100, 181, 246, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateX(80px);
 }
 
 .semantic-toggle input:not(:checked) ~ .toggle-option.left .toggle-icon {
-  color: #fff;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+  color: var(--below-text-color, #fff);
+  opacity: 1;
 }
 
 .semantic-toggle input:not(:checked) ~ .toggle-option.left .toggle-text {
-  color: #fff;
-  font-weight: 700;
+  color: var(--below-text-color, #fff);
 }
 
 .semantic-toggle input:checked ~ .toggle-option.right .toggle-icon {
-  color: #fff;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+  color: var(--below-text-color, #fff);
+  opacity: 1;
 }
 
 .semantic-toggle input:checked ~ .toggle-option.right .toggle-text {
-  color: #fff;
-  font-weight: 700;
+  color: var(--below-text-color, #fff);
 }
 
 /* Hover Effects */
-.semantic-toggle:hover .toggle-slider-bg {
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5), 0 2px 12px rgba(0, 0, 0, 0.3);
+.semantic-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.semantic-toggle input:checked:hover + .toggle-slider-bg {
-  box-shadow: 0 6px 20px rgba(100, 181, 246, 0.5), 0 2px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Dive Mode Indicator */
-.dive-mode-indicator {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 15;
-  background: rgba(100, 181, 246, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(100, 181, 246, 0.3);
-  border-radius: 12px;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64B5F6;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-}
-
-.dive-mode-indicator.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Survey Mode Indicator */
+/* Mode Indicator: Simple text */
+.dive-mode-indicator,
 .survey-mode-indicator {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: var(--below-space-lg, 24px);
+  right: var(--below-space-lg, 24px);
   z-index: 15;
-  background: rgba(76, 175, 80, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  border-radius: 12px;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #4CAF50;
+  background: var(--below-panel-bg, rgba(255, 255, 255, 0.03));
+  backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  -webkit-backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  border: 1px solid var(--below-panel-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--below-radius-md, 8px);
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--below-text-muted, rgba(255, 255, 255, 0.5));
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   transition: all 0.3s ease;
 }
 
+.dive-mode-indicator.active,
 .survey-mode-indicator.active {
   opacity: 1;
   transform: translateY(0);
+  color: var(--below-text-color, rgba(255, 255, 255, 0.9));
 }
 
-/* Dive System Control Panel */
+/* Dive Control Panel: Minimal container */
 .dive-control-panel {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: var(--below-space-lg, 24px);
+  right: var(--below-space-lg, 24px);
   z-index: 10;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 24px;
+  background: var(--below-panel-bg, rgba(255, 255, 255, 0.03));
+  backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  -webkit-backdrop-filter: var(--below-panel-backdrop, blur(20px));
+  border: 1px solid var(--below-panel-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--below-radius-lg, 12px);
+  padding: var(--below-space-lg, 24px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  min-width: 220px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  gap: var(--below-space-md, 16px);
+  min-width: 180px;
 }
 
 .dive-control-title {
-  color: #64B5F6;
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--below-text-muted, rgba(255, 255, 255, 0.5));
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   text-align: center;
-  margin-bottom: 8px;
 }
 
-/* Responsive Design */
-
-/* Animation for mode transitions */
-@keyframes diveTransition {
+/* Mode transitions */
+@keyframes modeTransition {
   0% {
-    opacity: 0;
-    transform: scale(0.9);
+    opacity: 0.8;
   }
   100% {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
-@keyframes surveyTransition {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.dive-mode-active .dive-control-panel {
-  animation: diveTransition 0.3s ease-out;
-}
-
+.dive-mode-active .dive-control-panel,
 .survey-mode-active .dive-control-panel {
-  animation: surveyTransition 0.3s ease-out;
+  animation: modeTransition 0.2s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .semantic-toggle {
+    width: 140px;
+    height: 40px;
+  }
+
+  .toggle-option {
+    width: 70px;
+    height: 40px;
+  }
+
+  .toggle-slider-bg {
+    width: 64px;
+    height: 34px;
+  }
+
+  .semantic-toggle input:checked + .toggle-slider-bg {
+    transform: translateX(70px);
+  }
+
+  .dive-control-panel {
+    top: var(--below-space-md, 16px);
+    right: var(--below-space-md, 16px);
+    padding: var(--below-space-md, 16px);
+    min-width: 160px;
+  }
 }
