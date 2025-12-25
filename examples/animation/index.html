@@ -2700,12 +2700,30 @@
                 muxer.finalize();
 
                 const blob = new Blob([muxer.target.buffer], { type: 'video/mp4' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                const filename = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
+
+                // iOS Safari doesn't support programmatic downloads via anchor.click()
+                // Use Web Share API on iOS (which works reliably) with fallback
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+                if (isIOS && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'video/mp4' })] })) {
+                    // Use Web Share API on iOS - opens native share sheet
+                    const file = new File([blob], filename, { type: 'video/mp4' });
+                    try {
+                        await navigator.share({ files: [file], title: filename });
+                    } catch (shareErr) {
+                        // User cancelled share - still success, video was rendered
+                        if (shareErr.name !== 'AbortError') throw shareErr;
+                    }
+                } else {
+                    // Standard download for desktop browsers
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
             } catch (err) {
                 console.error('Export failed:', err);
                 alert('Export failed:\n' + err.message);
