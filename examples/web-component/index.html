@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&lt;below-viewer&gt; Web Component Examples</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #041729;
+            margin-bottom: 0.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 2em;
+        }
+
+        .example-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .example-section h2 {
+            margin-top: 0;
+            color: #041729;
+            font-size: 1.3em;
+        }
+
+        .example-section p {
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        /* Style the below-viewer elements */
+        below-viewer {
+            display: block;
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .code-block .tag {
+            color: #569cd6;
+        }
+
+        .code-block .attr {
+            color: #9cdcfe;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            below-viewer {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>&lt;below-viewer&gt; Web Component</h1>
+        <p class="subtitle">
+            Embed 3D models easily with a simple HTML element, similar to &lt;model-viewer&gt;
+        </p>
+
+        <!-- Example 1: Basic Usage -->
+        <div class="example-section">
+            <h2>Basic Usage</h2>
+            <p>Just add a src attribute to load a model. That's it!</p>
+
+            <below-viewer
+                src="../basic/models/unknown.glb"
+                name="Unknown Wreck"
+            ></below-viewer>
+
+            <div class="code-block">
+<span class="tag">&lt;below-viewer</span>
+    <span class="attr">src</span>=<span class="string">"model.glb"</span>
+    <span class="attr">name</span>=<span class="string">"My Model"</span>
+<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+            </div>
+        </div>
+
+        <!-- Example 2: With Measurement -->
+        <div class="example-section">
+            <h2>With Measurement Tools</h2>
+            <p>Add the <code>measurement</code> attribute to enable precise measurement capabilities.</p>
+
+            <below-viewer
+                src="../basic/models/unknown.glb"
+                name="Measurable Model"
+                measurement
+                theme="light"
+                background="#f8f9fa"
+            ></below-viewer>
+
+            <div class="code-block">
+<span class="tag">&lt;below-viewer</span>
+    <span class="attr">src</span>=<span class="string">"model.glb"</span>
+    <span class="attr">measurement</span>
+    <span class="attr">theme</span>=<span class="string">"light"</span>
+    <span class="attr">background</span>=<span class="string">"#f8f9fa"</span>
+<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+            </div>
+        </div>
+
+        <!-- Example 3: Full Featured -->
+        <div class="example-section">
+            <h2>Full Featured</h2>
+            <p>Enable all features: VR, measurement, dive mode, fullscreen, and screenshot.</p>
+
+            <below-viewer
+                src="../basic/models/unknown.glb"
+                name="Historic Shipwreck"
+                credit="Maritime Museum"
+                vr
+                measurement
+                dive
+                fullscreen
+                screenshot
+            ></below-viewer>
+
+            <div class="code-block">
+<span class="tag">&lt;below-viewer</span>
+    <span class="attr">src</span>=<span class="string">"shipwreck.glb"</span>
+    <span class="attr">name</span>=<span class="string">"Historic Shipwreck"</span>
+    <span class="attr">credit</span>=<span class="string">"Maritime Museum"</span>
+    <span class="attr">vr</span>
+    <span class="attr">measurement</span>
+    <span class="attr">dive</span>
+    <span class="attr">fullscreen</span>
+    <span class="attr">screenshot</span>
+<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+            </div>
+        </div>
+
+        <!-- Example 4: Custom Camera Position -->
+        <div class="example-section">
+            <h2>Custom Camera Position</h2>
+            <p>Set initial camera position and target using attributes.</p>
+
+            <below-viewer
+                src="../basic/models/unknown.glb"
+                name="Custom View"
+                camera-x="20"
+                camera-y="15"
+                camera-z="25"
+                target-x="5"
+                target-y="0"
+                target-z="0"
+                background="#1a365d"
+            ></below-viewer>
+
+            <div class="code-block">
+<span class="tag">&lt;below-viewer</span>
+    <span class="attr">src</span>=<span class="string">"model.glb"</span>
+    <span class="attr">camera-x</span>=<span class="string">"20"</span>
+    <span class="attr">camera-y</span>=<span class="string">"15"</span>
+    <span class="attr">camera-z</span>=<span class="string">"25"</span>
+    <span class="attr">target-x</span>=<span class="string">"5"</span>
+    <span class="attr">target-y</span>=<span class="string">"0"</span>
+    <span class="attr">target-z</span>=<span class="string">"0"</span>
+<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+            </div>
+        </div>
+
+        <!-- Example 5: JavaScript API -->
+        <div class="example-section">
+            <h2>JavaScript API</h2>
+            <p>Access the underlying viewer and Three.js objects programmatically.</p>
+
+            <below-viewer
+                id="api-demo"
+                src="../basic/models/unknown.glb"
+                name="API Demo"
+                measurement
+            ></below-viewer>
+
+            <div style="margin-top: 16px;">
+                <button onclick="resetCamera()">Reset Camera</button>
+                <button onclick="takeScreenshot()">Screenshot</button>
+                <button onclick="logInfo()">Log Info</button>
+            </div>
+
+            <div class="code-block" style="margin-top: 16px;">
+<span style="color: #6a9955;">// Get the element</span>
+<span style="color: #569cd6;">const</span> viewer = document.querySelector(<span class="string">'below-viewer'</span>);
+
+<span style="color: #6a9955;">// Listen for events</span>
+viewer.addEventListener(<span class="string">'load'</span>, (e) => {
+    console.log(<span class="string">'Model loaded!'</span>, e.detail);
+});
+
+<span style="color: #6a9955;">// Access methods</span>
+viewer.resetCamera();
+viewer.takeScreenshot();
+viewer.focusOn({ x: 0, y: 0, z: 0 }, 10);
+
+<span style="color: #6a9955;">// Access Three.js objects</span>
+<span style="color: #569cd6;">const</span> camera = viewer.getCamera();
+<span style="color: #569cd6;">const</span> scene = viewer.getScene();
+<span style="color: #569cd6;">const</span> model = viewer.getModel();
+            </div>
+        </div>
+
+        <!-- Attributes Reference -->
+        <div class="example-section">
+            <h2>Attributes Reference</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0;">
+                        <th style="text-align: left; padding: 8px;">Attribute</th>
+                        <th style="text-align: left; padding: 8px;">Type</th>
+                        <th style="text-align: left; padding: 8px;">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>src</code></td>
+                        <td style="padding: 8px;">string</td>
+                        <td style="padding: 8px;">URL to GLB/GLTF model file</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>name</code></td>
+                        <td style="padding: 8px;">string</td>
+                        <td style="padding: 8px;">Display name for the model</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>credit</code></td>
+                        <td style="padding: 8px;">string</td>
+                        <td style="padding: 8px;">Attribution/credit text</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>background</code></td>
+                        <td style="padding: 8px;">color</td>
+                        <td style="padding: 8px;">Background color (default: #041729)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>theme</code></td>
+                        <td style="padding: 8px;">"dark" | "light"</td>
+                        <td style="padding: 8px;">UI theme for measurement panel</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>vr</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Enable VR support</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>ar</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Enable AR support</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>measurement</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Enable measurement tools</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>dive</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Enable dive mode effects</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>fullscreen</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Show fullscreen button</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>screenshot</code></td>
+                        <td style="padding: 8px;">boolean</td>
+                        <td style="padding: 8px;">Show screenshot button</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>camera-x/y/z</code></td>
+                        <td style="padding: 8px;">number</td>
+                        <td style="padding: 8px;">Initial camera position</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px;"><code>target-x/y/z</code></td>
+                        <td style="padding: 8px;">number</td>
+                        <td style="padding: 8px;">Initial camera target</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><code>poster</code></td>
+                        <td style="padding: 8px;">string</td>
+                        <td style="padding: 8px;">Poster image shown while loading</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Load BelowJS (includes the web component) -->
+    <script type="module">
+        import 'belowjs';
+
+        // Make demo functions available globally
+        window.resetCamera = () => {
+            document.getElementById('api-demo').resetCamera();
+        };
+
+        window.takeScreenshot = () => {
+            document.getElementById('api-demo').takeScreenshot();
+        };
+
+        window.logInfo = () => {
+            const viewer = document.getElementById('api-demo');
+            console.log('Viewer element:', viewer);
+            console.log('Model loaded:', viewer.loaded);
+            console.log('Camera:', viewer.getCamera());
+            console.log('Scene:', viewer.getScene());
+            console.log('Model:', viewer.getModel());
+        };
+
+        // Log when models load
+        document.querySelectorAll('below-viewer').forEach(viewer => {
+            viewer.addEventListener('load', (e) => {
+                console.log(`Model loaded in ${viewer.getAttribute('name') || 'viewer'}:`, e.detail);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -66,3 +66,6 @@ export { ConfigValidator } from './utils/ConfigValidator.js';
 
 
 export { Line2, LineMaterial, LineGeometry } from './measurement/ThickLine.js';
+
+// Web Component
+export { BelowViewerElement, registerBelowViewer } from './components/BelowViewerElement.js';
