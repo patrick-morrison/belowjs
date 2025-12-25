@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>&lt;below-viewer&gt; Web Component Examples</title>
+    <title>&lt;below&gt; Web Component Examples</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
 
     <style>
@@ -55,8 +55,8 @@
             margin-bottom: 16px;
         }
 
-        /* Style the below-viewer elements */
-        below-viewer {
+        /* Style the below elements */
+        below {
             display: block;
             width: 100%;
             height: 400px;
@@ -110,7 +110,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>&lt;below-viewer&gt; Web Component</h1>
+        <h1>&lt;below&gt; Web Component</h1>
         <p class="subtitle">
             Embed 3D models easily with a simple HTML element, similar to &lt;model-viewer&gt;
         </p>
@@ -120,16 +120,16 @@
             <h2>Basic Usage</h2>
             <p>Just add a src attribute to load a model. That's it!</p>
 
-            <below-viewer
+            <below
                 src="../basic/models/unknown.glb"
                 name="Unknown Wreck"
-            ></below-viewer>
+            ></below>
 
             <div class="code-block">
-<span class="tag">&lt;below-viewer</span>
+<span class="tag">&lt;below</span>
     <span class="attr">src</span>=<span class="string">"model.glb"</span>
     <span class="attr">name</span>=<span class="string">"My Model"</span>
-<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+<span class="tag">&gt;&lt;/below&gt;</span>
             </div>
         </div>
 
@@ -138,21 +138,21 @@
             <h2>With Measurement Tools</h2>
             <p>Add the <code>measurement</code> attribute to enable precise measurement capabilities.</p>
 
-            <below-viewer
+            <below
                 src="../basic/models/unknown.glb"
                 name="Measurable Model"
                 measurement
                 theme="light"
                 background="#f8f9fa"
-            ></below-viewer>
+            ></below>
 
             <div class="code-block">
-<span class="tag">&lt;below-viewer</span>
+<span class="tag">&lt;below</span>
     <span class="attr">src</span>=<span class="string">"model.glb"</span>
     <span class="attr">measurement</span>
     <span class="attr">theme</span>=<span class="string">"light"</span>
     <span class="attr">background</span>=<span class="string">"#f8f9fa"</span>
-<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+<span class="tag">&gt;&lt;/below&gt;</span>
             </div>
         </div>
 
@@ -161,7 +161,7 @@
             <h2>Full Featured</h2>
             <p>Enable all features: VR, measurement, dive mode, fullscreen, and screenshot.</p>
 
-            <below-viewer
+            <below
                 src="../basic/models/unknown.glb"
                 name="Historic Shipwreck"
                 credit="Maritime Museum"
@@ -170,19 +170,18 @@
                 dive
                 fullscreen
                 screenshot
-            ></below-viewer>
+            ></below>
 
             <div class="code-block">
-<span class="tag">&lt;below-viewer</span>
+<span class="tag">&lt;below</span>
     <span class="attr">src</span>=<span class="string">"shipwreck.glb"</span>
     <span class="attr">name</span>=<span class="string">"Historic Shipwreck"</span>
-    <span class="attr">credit</span>=<span class="string">"Maritime Museum"</span>
     <span class="attr">vr</span>
     <span class="attr">measurement</span>
     <span class="attr">dive</span>
     <span class="attr">fullscreen</span>
     <span class="attr">screenshot</span>
-<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+<span class="tag">&gt;&lt;/below&gt;</span>
             </div>
         </div>
 
@@ -191,7 +190,7 @@
             <h2>Custom Camera Position</h2>
             <p>Set initial camera position and target using attributes.</p>
 
-            <below-viewer
+            <below
                 src="../basic/models/unknown.glb"
                 name="Custom View"
                 camera-x="20"
@@ -201,10 +200,10 @@
                 target-y="0"
                 target-z="0"
                 background="#1a365d"
-            ></below-viewer>
+            ></below>
 
             <div class="code-block">
-<span class="tag">&lt;below-viewer</span>
+<span class="tag">&lt;below</span>
     <span class="attr">src</span>=<span class="string">"model.glb"</span>
     <span class="attr">camera-x</span>=<span class="string">"20"</span>
     <span class="attr">camera-y</span>=<span class="string">"15"</span>
@@ -212,7 +211,7 @@
     <span class="attr">target-x</span>=<span class="string">"5"</span>
     <span class="attr">target-y</span>=<span class="string">"0"</span>
     <span class="attr">target-z</span>=<span class="string">"0"</span>
-<span class="tag">&gt;&lt;/below-viewer&gt;</span>
+<span class="tag">&gt;&lt;/below&gt;</span>
             </div>
         </div>
 
@@ -221,12 +220,12 @@
             <h2>JavaScript API</h2>
             <p>Access the underlying viewer and Three.js objects programmatically.</p>
 
-            <below-viewer
+            <below
                 id="api-demo"
                 src="../basic/models/unknown.glb"
                 name="API Demo"
                 measurement
-            ></below-viewer>
+            ></below>
 
             <div style="margin-top: 16px;">
                 <button onclick="resetCamera()">Reset Camera</button>
@@ -236,7 +235,7 @@
 
             <div class="code-block" style="margin-top: 16px;">
 <span style="color: #6a9955;">// Get the element</span>
-<span style="color: #569cd6;">const</span> viewer = document.querySelector(<span class="string">'below-viewer'</span>);
+<span style="color: #569cd6;">const</span> viewer = document.querySelector(<span class="string">'below'</span>);
 
 <span style="color: #6a9955;">// Listen for events</span>
 viewer.addEventListener(<span class="string">'load'</span>, (e) => {
@@ -365,7 +364,7 @@ viewer.focusOn({ x: 0, y: 0, z: 0 }, 10);
         };
 
         // Log when models load
-        document.querySelectorAll('below-viewer').forEach(viewer => {
+        document.querySelectorAll('below').forEach(viewer => {
             viewer.addEventListener('load', (e) => {
                 console.log(`Model loaded in ${viewer.getAttribute('name') || 'viewer'}:`, e.detail);
             });

@@ -9,7 +9,7 @@
  */
 
 /**
- * @fileoverview <below-viewer> Web Component
+ * @fileoverview <below> Web Component
  *
  * A custom HTML element for embedding 3D models with minimal configuration.
  * Similar to Google's <model-viewer>, this provides a drop-in solution for
@@ -17,21 +17,17 @@
  *
  * @example
  * <!-- Basic usage -->
- * <below-viewer src="model.glb"></below-viewer>
+ * <below src="model.glb"></below>
  *
  * @example
  * <!-- Full featured -->
- * <below-viewer
+ * <below
  *   src="shipwreck.glb"
  *   name="Historic Shipwreck"
- *   credit="Maritime Museum"
- *   background="#041729"
  *   vr
  *   measurement
  *   dive
- *   fullscreen
- *   screenshot
- * ></below-viewer>
+ * ></below>
  *
  * @since 1.5.0
  */
@@ -673,8 +669,15 @@ export class BelowViewerElement extends HTMLElement {
  * This is called automatically when the module is imported
  */
 export function registerBelowViewer() {
-  if (typeof customElements !== 'undefined' && !customElements.get('below-viewer')) {
-    customElements.define('below-viewer', BelowViewerElement);
+  if (typeof customElements !== 'undefined') {
+    // Register as <below>
+    if (!customElements.get('below')) {
+      customElements.define('below', BelowViewerElement);
+    }
+    // Also register as <below-viewer> for backwards compatibility
+    if (!customElements.get('below-viewer')) {
+      customElements.define('below-viewer', BelowViewerElement);
+    }
   }
 }
 
