@@ -32,10 +32,10 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 4) Bump version: `npm version minor` (or appropriate)
 5) Build + lint: `npm run build && npm run lint`
 6) Regenerate docs examples (CDN vX.Y.Z): `node docs/copy-examples.js`
-7) Verify CDN references in:
-   - `docs/examples.html`, `docs/installation.html`, `docs/demo.html`
-   - `docs/examples/**/index.html`
-   - `README.md`
+7) Manually update CDN references (copy-examples only updates docs/examples/):
+   - `README.md` (version badge text + CDN URLs)
+   - `docs/installation.html`, `docs/demo.html`, `docs/examples.html`
+   - `AGENTS.md` (Current version section)
 8) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -85,7 +85,6 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.4.0)
-- New: Animation example for keyframing and video export
-- New: Experimental AR support with hand tracking
-- Fixed: VR audio assets copied losslessly in docs examples
+## Current (1.4.1)
+- New: `setDensity()` method on DiveParticles for dynamic particle control
+- Improved: Animation example with demo model link and mobile UI polish
