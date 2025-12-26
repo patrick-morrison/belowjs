@@ -22,6 +22,20 @@
     <style>
         * {
             box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Allow text selection in input fields */
+        input,
+        textarea,
+        [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
 
         body,
@@ -1550,6 +1564,8 @@
         const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
         let exportResolution = isIOSDevice ? 1080 : 2160;
         let draggingKeyframe = null;
+        let longPressTimeout = null;
+        let longPressKeyframeIndex = null;
 
         // Camera rotation state for fly mode
         let cameraYaw = 0;
@@ -2458,6 +2474,20 @@
                 marker.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     const touch = e.touches[0];
+
+                    // Set up long-press detection for mobile delete
+                    longPressKeyframeIndex = i;
+                    longPressTimeout = setTimeout(() => {
+                        // Long press detected - ask to delete
+                        if (longPressKeyframeIndex !== null) {
+                            deleteKeyframe(longPressKeyframeIndex);
+                            longPressKeyframeIndex = null;
+                            longPressTimeout = null;
+                            // Clear dragging state since we're deleting instead
+                            draggingKeyframe = null;
+                        }
+                    }, 500); // 500ms long press
+
                     startMarkerDrag(e, touch.clientX);
                 }, { passive: false });
 
@@ -2478,6 +2508,12 @@
             if (!draggingKeyframe.moved) {
                 if (Math.abs(clientX - draggingKeyframe.startX) < 5) return;
                 draggingKeyframe.moved = true;
+                // Clear long-press timeout since user is dragging
+                if (longPressTimeout) {
+                    clearTimeout(longPressTimeout);
+                    longPressTimeout = null;
+                    longPressKeyframeIndex = null;
+                }
             }
 
             const rect = timelineTrack.getBoundingClientRect();
@@ -2515,6 +2551,13 @@
         }
 
         function handleKeyframeDragEnd() {
+            // Clear long-press timeout if it's still active
+            if (longPressTimeout) {
+                clearTimeout(longPressTimeout);
+                longPressTimeout = null;
+                longPressKeyframeIndex = null;
+            }
+
             if (!draggingKeyframe) return;
 
             draggingKeyframe.marker.classList.remove('dragging');
