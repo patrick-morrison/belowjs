@@ -1343,7 +1343,7 @@
         <div class="torch-controls" id="torchControls">
             <div class="torch-row">
                 <label>Power</label>
-                <input type="range" id="torchPower" min="1" max="20" step="0.5" value="8">
+                <input type="range" id="torchPower" min="0.5" max="20" step="0.5" value="8">
             </div>
             <div class="torch-row">
                 <label>Width</label>
@@ -1352,6 +1352,10 @@
             <div class="torch-row">
                 <label>Dist</label>
                 <input type="range" id="torchDistance" min="10" max="200" step="1" value="50">
+            </div>
+            <div class="torch-row">
+                <label>Particles</label>
+                <input type="range" id="particleDensity" min="0" max="2.0" step="0.05" value="1.0">
             </div>
         </div>
 
@@ -1383,6 +1387,14 @@
                 <option value="ease">Ease</option>
                 <option value="smooth">Smooth</option>
             </select>
+        </div>
+
+        <div class="panel-row">
+            <label>BG</label>
+            <div style="display: flex; gap: 6px; flex: 1;">
+                <input type="color" id="fogColorPicker" value="#041729" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: transparent; cursor: pointer; padding: 2px;">
+                <input type="text" id="fogColorHex" value="#041729" maxlength="7" style="flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e2e8f0; font-size: 13px; font-family: monospace; text-transform: uppercase; min-width: 0; max-width: 90px; height: 32px; box-sizing: border-box;">
+            </div>
         </div>
 
         <button class="export-btn" id="exportBtn" disabled title="Add some keyframes first">Export</button>
@@ -1584,6 +1596,9 @@
         const torchPower = document.getElementById('torchPower');
         const torchWidth = document.getElementById('torchWidth');
         const torchDistance = document.getElementById('torchDistance');
+        const particleDensity = document.getElementById('particleDensity');
+        const fogColorPicker = document.getElementById('fogColorPicker');
+        const fogColorHex = document.getElementById('fogColorHex');
         const saveModal = document.getElementById('saveModal');
         const saveFilename = document.getElementById('saveFilename');
         const panelCollapseToggle = document.getElementById('panelCollapseToggle');
@@ -1920,7 +1935,9 @@
                         intensity: parseFloat(torchPower.value),
                         width: parseFloat(torchWidth.value),
                         distance: parseFloat(torchDistance.value)
-                    }
+                    },
+                    particleDensity: parseFloat(particleDensity.value),
+                    fogColor: fogColorPicker.value
                 }
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1987,6 +2004,18 @@
                             }
                         }
 
+                        // Particle Density
+                        if (data.settings.particleDensity !== undefined) {
+                            particleDensity.value = data.settings.particleDensity;
+                            particleDensity.dispatchEvent(new Event('input'));
+                        }
+
+                        // Fog Color
+                        if (data.settings.fogColor !== undefined) {
+                            fogColorPicker.value = data.settings.fogColor;
+                            fogColorPicker.dispatchEvent(new Event('input'));
+                        }
+
                         updateAspectFrame();
                     }
 
@@ -2039,7 +2068,11 @@
             }
             updateExportButton();
             // Trigger render to update view immediately
-            renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+            const renderer = getRenderer();
+            const camera = getCamera();
+            if (renderer && camera) {
+                renderer.render(viewer.belowViewer.sceneManager.scene, camera);
+            }
         });
 
         // Aspect Ratio
@@ -2085,6 +2118,8 @@
                     torchPower.dispatchEvent(new Event('input'));
                     torchWidth.dispatchEvent(new Event('input'));
                     torchDistance.dispatchEvent(new Event('input'));
+                    particleDensity.dispatchEvent(new Event('input'));
+                    fogColorPicker.dispatchEvent(new Event('input'));
                 }
             } else {
                 if (diveSystem) {
@@ -2113,6 +2148,45 @@
             const diveSystem = viewer.diveSystem;
             if (diveSystem?.torch) {
                 diveSystem.torch.setDistance(parseFloat(torchDistance.value));
+            }
+        });
+
+        particleDensity.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.particles) {
+                diveSystem.particles.setDensity(parseFloat(particleDensity.value));
+            }
+        });
+
+        fogColorPicker.addEventListener('input', () => {
+            fogColorHex.value = fogColorPicker.value.toUpperCase();
+            const scene = viewer.getScene();
+            if (scene) {
+                scene.background = new THREE.Color(fogColorPicker.value);
+                // Update particle fog color if in dive mode
+                const diveSystem = viewer.diveSystem;
+                if (diveSystem?.particles) {
+                    const fog = { color: new THREE.Color(fogColorPicker.value), density: 0.0 };
+                    diveSystem.particles.updateFog(fog);
+                }
+            }
+        });
+
+        fogColorHex.addEventListener('input', () => {
+            // Validate hex color format
+            const hex = fogColorHex.value.trim();
+            if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                fogColorPicker.value = hex;
+                const scene = viewer.getScene();
+                if (scene) {
+                    scene.background = new THREE.Color(hex);
+                    // Update particle fog color if in dive mode
+                    const diveSystem = viewer.diveSystem;
+                    if (diveSystem?.particles) {
+                        const fog = { color: new THREE.Color(hex), density: 0.0 };
+                        diveSystem.particles.updateFog(fog);
+                    }
+                }
             }
         });
 
