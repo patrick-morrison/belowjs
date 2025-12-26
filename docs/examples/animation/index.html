@@ -1524,8 +1524,30 @@
                 <strong>Export Video</strong>
                 <div class="desc">Render your animation as a video file</div>
             </div>
+            <div class="export-option full-option" id="saveBlenderOption">
+                <strong>Transfer to Blender</strong>
+                <div class="desc">Export scene as a Blender Python script (.py)</div>
+            </div>
             <div class="modal-btns">
                 <button class="cancel" id="saveCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blender Export Filename Modal -->
+    <div class="overlay" id="blenderFilenameModal">
+        <div class="modal">
+            <h3>Transfer to Blender</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
+                Generate a Python script that recreates your scene in Blender with camera animation, lighting, and import instructions.
+            </p>
+            <div class="export-filename-row">
+                <label>Filename</label>
+                <input type="text" id="blenderFilename" value="belowjs_scene" placeholder="belowjs_scene">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="blenderFilenameCancel">Cancel</button>
+                <button class="ok" id="blenderConfirm">Export</button>
             </div>
         </div>
     </div>
@@ -1596,9 +1618,11 @@
     <script type="module">
         import * as THREE from 'three';
         import { ModelViewer } from 'belowjs';
+        import { downloadBlenderScript } from './blender-export.js';
 
         // State
         let hasModel = false;
+        let currentModelFilename = 'model.glb';
         let isPlaying = false;
         let currentTime = 0;
         let duration = 20;
@@ -1999,6 +2023,51 @@
 
         document.getElementById('saveCancel').addEventListener('click', () => saveModal.classList.remove('visible'));
         document.getElementById('saveFilenameCancel').addEventListener('click', () => saveFilenameModal.classList.remove('visible'));
+
+        // Blender export handlers
+        const blenderFilenameModal = document.getElementById('blenderFilenameModal');
+        const blenderFilename = document.getElementById('blenderFilename');
+
+        document.getElementById('saveBlenderOption').addEventListener('click', () => {
+            saveModal.classList.remove('visible');
+            blenderFilenameModal.classList.add('visible');
+            setTimeout(() => blenderFilename.focus(), 50);
+        });
+
+        blenderFilename.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('blenderConfirm').click();
+        });
+
+        document.getElementById('blenderFilenameCancel').addEventListener('click', () => {
+            blenderFilenameModal.classList.remove('visible');
+        });
+
+        document.getElementById('blenderConfirm').addEventListener('click', () => {
+            const defaultName = 'belowjs_scene';
+            const filename = blenderFilename.value.trim() || defaultName;
+
+            downloadBlenderScript({
+                keyframes,
+                duration,
+                interpolation: defaultInterpolation,
+                settings: {
+                    aspectRatio,
+                    resolution: exportResolution,
+                    diveMode: diveToggle.checked,
+                    torch: {
+                        enabled: torchPower.value > 0,
+                        intensity: parseFloat(torchPower.value),
+                        width: parseFloat(torchWidth.value),
+                        distance: parseFloat(torchDistance.value)
+                    },
+                    particleDensity: parseFloat(particleDensity.value),
+                    fogColor: fogColorPicker.value
+                },
+                modelFilename: currentModelFilename
+            }, filename);
+
+            blenderFilenameModal.classList.remove('visible');
+        });
 
         document.getElementById('saveConfirm').addEventListener('click', () => {
             const defaultName = 'animation_data';
@@ -3335,6 +3404,7 @@
         async function loadModelFile(file) {
             if (!file.name.toLowerCase().endsWith('.glb')) { alert('Please select a .glb file'); return; }
             const url = URL.createObjectURL(file);
+            currentModelFilename = file.name; // Track the model filename
             try {
                 if (hasModel) viewer.belowViewer.clearModels();
                 await viewer.belowViewer.loadModel(url, { autoFrame: true });
@@ -3399,6 +3469,7 @@
         // Load demo model from URL
         async function loadDemoModel() {
             const url = '/examples/basic/models/sesa.glb';
+            currentModelFilename = 'sesa.glb'; // Track the demo model filename
             const linkEl = document.querySelector('[onclick*="loadDemoModel"]');
             const originalText = linkEl ? linkEl.innerHTML : '';
             if (linkEl) linkEl.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> loading <em>Sesa</em>...';
