@@ -1263,13 +1263,15 @@
     <div class="empty-state" id="emptyState">
         <h2>BelowJS Animations</h2>
         <p>Drag & drop a .glb file to start</p>
-        <p style="font-size: 0.9em; opacity: 0.6;">Focused for shipwreck visualisation, it should feel a bit like
-            Blender. Exports MP4.</p>
+        <p style="font-size: 0.9em; opacity: 0.6;">Focused for shipwreck visualisation, exports MP4.</p>
         <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose
             file</button>
         <input type="file" id="fileInput" accept=".glb" />
-        <p style="font-size: 0.75em; opacity: 0.5; margin-top: 20px;">
+        <p style="font-size: 0.75em; opacity: 0.5; margin-top: 20px; pointer-events: auto;">
             <a href="https://belowjs.com" target="_blank" style="color: #60a5fa; text-decoration: none;">BelowJS</a> by Patrick Morrison 2025
+        </p>
+        <p style="font-size: 0.85em; opacity: 0.7; margin-top: 12px; pointer-events: auto;">
+            Don't have a model ready? Try <a href="#" onclick="loadDemoModel(); return false;" style="color: #60a5fa; text-decoration: underline;">WreckSporation's <em>Sesa 1928</em></a>
         </p>
     </div>
 
@@ -1318,8 +1320,7 @@
             <a href="https://belowjs.com" target="_blank"
                 style="color: #60a5fa; text-decoration: underline; font-weight: 500;">BelowJS</a> is a tool to share
             your shipwreck models on the web and in VR.<br>
-            This example is built to demonstrate adding advanced features.<br>
-            Designed by Patrick Morrison 2025. Open Source.
+            This example is built to demonstrate adding advanced features.
         </div>
     </div>
 
@@ -3376,6 +3377,57 @@
             } catch (err) { alert('Failed to load: ' + err.message); }
             finally { URL.revokeObjectURL(url); }
         }
+
+        // Load demo model from URL
+        async function loadDemoModel() {
+            const url = '/examples/basic/models/sesa.glb';
+            try {
+                if (hasModel) viewer.belowViewer.clearModels();
+                await viewer.belowViewer.loadModel(url, { autoFrame: true });
+
+                isPlaying = false;
+                document.body.classList.remove('waiting-for-model');
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('onboardingOverlay').style.display = 'none';
+
+                animPanel.classList.remove('disabled');
+                timelineShelf.classList.add('visible');
+                timelineShelf.classList.remove('disabled');
+
+                viewerContainer.style.bottom = '80px';
+                window.dispatchEvent(new Event('resize'));
+
+                hasModel = true;
+
+                if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.remove('collapsed');
+                    panelCollapseToggle.textContent = 'Hide Settings';
+                    panelCollapseToggle.title = 'Hide settings';
+                }
+
+                const camera = getCamera();
+                if (camera) {
+                    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+                    cameraYaw = euler.y;
+                    cameraPitch = euler.x;
+                }
+
+                keyframes = []; currentTime = 0;
+                renderKeyframes(); updateTimeDisplay(); updateExportButton();
+                setAspectRatio(aspectRatio);
+
+                setTimeout(() => {
+                    const btn = document.getElementById('screenshotButton');
+                    if (btn) {
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        viewer.screenshotButton = newBtn;
+                        newBtn.addEventListener('click', captureHighResScreenshot);
+                    }
+                }, 500);
+            } catch (err) { alert('Failed to load demo model: ' + err.message); }
+        }
+        window.loadDemoModel = loadDemoModel;
 
         // High Res Screenshot
         async function captureHighResScreenshot() {
