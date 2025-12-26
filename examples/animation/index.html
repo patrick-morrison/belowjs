@@ -2993,14 +2993,18 @@
                 });
 
                 // Select appropriate AVC level based on resolution
-                // 4K (2160p) requires Level 5.1 or higher
+                // Level 4.2 (avc1.4d002a): up to 1080p
+                // Level 5.0 (avc1.4d0032): up to 1440p (2560x1440)
+                // Level 5.1 (avc1.4d0033): up to 4K (3840x2160)
                 const is4K = expW >= 3840 || expH >= 2160;
-                // Use Level 5.1 for 4K, Level 4.2 for 1080p
+                const isQHD = expW >= 2560 || expH >= 1440;
+                const codec = is4K ? 'avc1.4d0033' : isQHD ? 'avc1.4d0032' : 'avc1.4d002a';
+                const bitrate = is4K ? 20_000_000 : isQHD ? 12_000_000 : 8_000_000;
                 encoder.configure({
-                    codec: is4K ? 'avc1.4d0033' : 'avc1.4d002a',
+                    codec,
                     width: expW,
                     height: expH,
-                    bitrate: is4K ? 20_000_000 : 8_000_000,
+                    bitrate,
                     framerate: fps
                 });
 
