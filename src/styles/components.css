@@ -186,6 +186,24 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Make model selector more compact on mobile */
+  .model-selector {
+    min-width: 150px;
+    padding: 14px;
+    gap: 14px;
+    border-radius: 16px;
+  }
+
+  .model-selector__dropdown {
+    padding: 10px 14px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+
+  .model-selector__dropdown option {
+    font-size: 13px;
+    padding: 10px;
+  }
 }
 
 /* Screenshot Button */

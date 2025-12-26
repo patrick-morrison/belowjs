@@ -194,6 +194,41 @@
 }
 
 /* Responsive Design */
+@media (max-width: 768px) {
+  /* Make toggle ~17% smaller on mobile */
+  .semantic-toggle {
+    width: 150px;
+    height: 50px;
+    border-radius: 25px;
+  }
+
+  .toggle-option {
+    width: 75px;
+    height: 50px;
+    font-size: 9px;
+  }
+
+  .toggle-icon {
+    font-size: 17px;
+    margin-bottom: 3px;
+  }
+
+  .toggle-text {
+    font-size: 10px;
+  }
+
+  .toggle-slider-bg {
+    top: 3px;
+    left: 3px;
+    width: 69px;
+    height: 44px;
+    border-radius: 22px;
+  }
+
+  .semantic-toggle input:checked + .toggle-slider-bg {
+    transform: translateX(75px);
+  }
+}
 
 /* Animation for mode transitions */
 @keyframes diveTransition {
