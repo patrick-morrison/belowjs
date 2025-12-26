@@ -1444,7 +1444,11 @@
     <!-- Beautiful Timeline Shelf -->
     <div class="timeline-shelf" id="timelineShelf">
         <div class="shelf-content">
-            <button class="play-btn" id="playBtn" title="Play/Pause">▶</button>
+            <button class="play-btn" id="playBtn" title="Play/Pause">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
             <div class="time-display" id="timeDisplay" title="Click to edit time/duration">0.00 / 10.00</div>
 
             <div class="timeline-track" id="timelineTrack">
@@ -2807,11 +2811,11 @@
             }
 
             isPlaying = true;
-            playBtn.textContent = '⏸';
+            playBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
             addFrameBtn.disabled = true;
             if (document.pointerLockElement) document.exitPointerLock();
         }
-        function stopPlayback() { isPlaying = false; playBtn.textContent = '▶'; addFrameBtn.disabled = false; }
+        function stopPlayback() { isPlaying = false; playBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; addFrameBtn.disabled = false; }
         function togglePlayback() {
             if (keyframes.length === 0 && animationMode === 'timeline') {
                 const toast = document.getElementById('timelineToast');
