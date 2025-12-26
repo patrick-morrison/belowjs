@@ -1393,7 +1393,7 @@
             <label>BG</label>
             <div style="display: flex; gap: 6px; flex: 1;">
                 <input type="color" id="fogColorPicker" value="#041729" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: transparent; cursor: pointer; padding: 2px;">
-                <input type="text" id="fogColorHex" value="#041729" maxlength="7" style="flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e2e8f0; font-size: 13px; font-family: monospace; text-transform: uppercase; min-width: 0; max-width: 90px; height: 32px; box-sizing: border-box;">
+                <input type="text" id="fogColorHex" value="#041729" maxlength="7" style="flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e2e8f0; font-size: 13px; font-family: monospace; text-transform: uppercase; min-width: 0; max-width: 80px; height: 32px; box-sizing: border-box;">
             </div>
         </div>
 
@@ -1680,7 +1680,8 @@
                 camera: {
                     near: 0.001,
                     desktop: {
-                        minDistance: 0.001
+                        minDistance: 0.001,
+                        maxDistance: 1000
                     }
                 }
             }
@@ -2016,7 +2017,7 @@
                             fogColorPicker.dispatchEvent(new Event('input'));
                         }
 
-                        updateAspectFrame();
+                        setAspectRatio(aspectRatio);
                     }
 
                     // Ensure keyframes are sorted
@@ -2076,30 +2077,72 @@
         });
 
         // Aspect Ratio
+        let isUpdatingAspect = false;
         function updateAspectFrame() {
-            // Only show frame when model is loaded and aspect ratio is set
-            if (!hasModel || aspectRatio === 'none') { aspectFrame.classList.remove('visible'); return; }
+            if (isUpdatingAspect) return;
+            isUpdatingAspect = true;
+
+            // Account for timeline shelf height
+            const shelfHeight = timelineShelf.classList.contains('visible') ? timelineShelf.offsetHeight : 0;
+
+            // Reset to full viewport (above timeline) when no aspect lock
+            if (!hasModel || aspectRatio === 'none') {
+                aspectFrame.classList.remove('visible');
+                viewerContainer.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:${shelfHeight}px;z-index:0;`;
+                isUpdatingAspect = false;
+                return;
+            }
+
             const [w, h] = aspectRatio.split(':').map(Number);
             const ratio = w / h;
 
-            // Frame is based on the visible viewport height (which is smaller when timeline is open)
-            const viewportH = viewerContainer.clientHeight;
-            const viewportW = viewerContainer.clientWidth; // Should match window.innerWidth usually
+            // Available space is window minus timeline
+            const windowW = window.innerWidth;
+            const availableH = window.innerHeight - shelfHeight;
 
-            const frameH = viewportH;
-            const frameW = frameH * ratio;
+            // Fit the frame within available space while maintaining aspect ratio
+            let frameW = availableH * ratio;
+            let frameH = availableH;
 
+            if (frameW > windowW) {
+                // Width-constrained (portrait/narrow screens) - fit by width instead
+                frameW = windowW;
+                frameH = windowW / ratio;
+            }
+
+            // Center in available space (above timeline)
+            const topOffset = (availableH - frameH) / 2;
+            const leftOffset = (windowW - frameW) / 2;
+
+            // Resize viewer container to match frame - camera aspect will match automatically
+            viewerContainer.style.cssText = `
+                position: fixed;
+                width: ${frameW}px;
+                height: ${frameH}px;
+                left: ${leftOffset}px;
+                top: ${topOffset}px;
+                z-index: 0;
+            `;
+
+            // Position frame overlay to match
             aspectFrame.style.width = `${frameW}px`;
             aspectFrame.style.height = `${frameH}px`;
-            // Center horizontally in window (viewportW)
-            aspectFrame.style.left = `${(viewportW - frameW) / 2}px`;
-            // Center vertically in the VIEWPORT (not window), which starts at top:0
-            aspectFrame.style.top = `${(viewportH - frameH) / 2}px`;
+            aspectFrame.style.left = `${leftOffset}px`;
+            aspectFrame.style.top = `${topOffset}px`;
 
             aspectFrame.dataset.label = `${aspectRatio} @ ${exportResolution}p`;
             aspectFrame.classList.add('visible');
+
+            isUpdatingAspect = false;
         }
-        aspectSelect.addEventListener('change', () => { aspectRatio = aspectSelect.value; updateAspectFrame(); });
+        // Separate handler for manual aspect updates (not from window resize)
+        function setAspectRatio(value) {
+            aspectRatio = value;
+            updateAspectFrame();
+            // Trigger viewer to update camera for new container size
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
+        }
+        aspectSelect.addEventListener('change', () => setAspectRatio(aspectSelect.value));
         resolutionSelect.addEventListener('change', () => { exportResolution = parseInt(resolutionSelect.value); updateAspectFrame(); });
         // Set initial resolution select value for iOS
         if (isIOSDevice) {
@@ -3196,7 +3239,7 @@
 
                 keyframes = []; currentTime = 0;
                 renderKeyframes(); updateTimeDisplay(); updateExportButton();
-                updateAspectFrame();  // Show aspect frame now that model is loaded
+                setAspectRatio(aspectRatio);  // Initialize aspect frame now that model is loaded
 
                 // Override screenshot button behavior for High Res capture
                 setTimeout(() => {
