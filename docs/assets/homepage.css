@@ -1299,3 +1299,73 @@
         padding: 0 1rem;
     }
 }
+
+/* Animation promo section - responsive */
+.animation-promo {
+    display: block;
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 1100px) {
+    .animation-promo .cta-button {
+        padding: 10px 10px !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+@media (max-width: 960px) {
+    .animation-promo {
+        margin: 1rem !important;
+    }
+
+    .animation-promo-content {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+
+    .animation-promo-text {
+        text-align: center;
+    }
+
+    .animation-promo-text > div {
+        justify-content: center !important;
+    }
+
+    .animation-promo-video {
+        max-width: 700px !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .animation-promo {
+        margin: 0.5rem !important;
+        padding: 1.5rem 1rem 1rem 1rem !important;
+        border-radius: 12px !important;
+    }
+
+    .animation-promo-content {
+        gap: 1rem !important;
+    }
+
+    .animation-promo h2 {
+        font-size: 1.25rem !important;
+    }
+
+    .animation-promo p {
+        font-size: 0.9rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .animation-promo .cta-button {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .animation-promo-video {
+        border-radius: 6px !important;
+        height: 300px !important;
+        object-fit: cover !important;
+    }
+}
