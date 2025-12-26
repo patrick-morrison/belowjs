@@ -2584,6 +2584,10 @@
             if (isPlaying) stopPlayback();
             isScrubbing = true;
             timelineTrack.classList.add('scrubbing');
+            // Make panel transparent during scrubbing on mobile
+            if (window.innerWidth <= 600 && hasModel && !animPanel.classList.contains('collapsed')) {
+                animPanel.classList.add('interacting');
+            }
             updateScrub(e);
         }
 
@@ -2595,6 +2599,8 @@
             if (isScrubbing) {
                 isScrubbing = false;
                 timelineTrack.classList.remove('scrubbing');
+                // Remove transparency when scrubbing ends
+                animPanel.classList.remove('interacting');
             }
         }
 
