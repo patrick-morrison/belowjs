@@ -1487,6 +1487,20 @@
         </div>
     </div>
 
+    <!-- Export Complete Modal (iOS) -->
+    <div class="overlay" id="exportCompleteModal">
+        <div class="modal">
+            <h3>✅ Export Complete!</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
+                Your video has been successfully rendered. Tap Share to open the native share sheet, or Done to close.
+            </p>
+            <div class="modal-btns">
+                <button class="ok" id="exportShareAction">Share</button>
+                <button class="cancel" id="exportDoneAction">Done</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Export progress -->
     <div class="overlay export-progress-overlay" id="exportOverlay">
         <div style="font-size: 1.2em; font-weight: 500;" id="exportTitle">Exporting...</div>
@@ -1548,6 +1562,9 @@
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         const exportModal = document.getElementById('exportModal');
+        const exportCompleteModal = document.getElementById('exportCompleteModal');
+        const exportShareAction = document.getElementById('exportShareAction');
+        const exportDoneAction = document.getElementById('exportDoneAction');
         const exportOverlay = document.getElementById('exportOverlay');
         const exportProgressBar = document.getElementById('exportProgressBar');
         const exportStatus = document.getElementById('exportStatus');
@@ -2690,6 +2707,34 @@
         document.getElementById('exportFull').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('full'); });
         document.getElementById('exportSegments').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('segments'); });
 
+        // Store blob for iOS share
+        let pendingExportBlob = null;
+        let pendingExportFilename = null;
+
+        // Export complete modal handlers (iOS)
+        exportShareAction.addEventListener('click', async () => {
+            if (!pendingExportBlob || !pendingExportFilename) return;
+            const file = new File([pendingExportBlob], pendingExportFilename, { type: 'video/mp4' });
+            try {
+                await navigator.share({ files: [file], title: pendingExportFilename });
+                exportCompleteModal.classList.remove('visible');
+                pendingExportBlob = null;
+                pendingExportFilename = null;
+            } catch (shareErr) {
+                if (shareErr.name !== 'AbortError') {
+                    console.error('Share failed:', shareErr);
+                    alert('Share failed: ' + shareErr.message);
+                }
+                // User cancelled or error - keep modal open
+            }
+        });
+
+        exportDoneAction.addEventListener('click', () => {
+            exportCompleteModal.classList.remove('visible');
+            pendingExportBlob = null;
+            pendingExportFilename = null;
+        });
+
         async function exportVideo(mode) {
             const fps = 30;
             const renderer = getRenderer();
@@ -2934,13 +2979,20 @@
                 const blob = new Blob([finalBuffer], { type: 'video/mp4' });
                 const filename = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
 
-                // Download video for all platforms
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                // iOS: Show share modal with fresh user gesture
+                if (isIOSDevice && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'video/mp4' })] })) {
+                    pendingExportBlob = blob;
+                    pendingExportFilename = filename;
+                    exportCompleteModal.classList.add('visible');
+                } else {
+                    // Desktop/Android: Direct download
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
             } catch (err) {
                 console.error('Export failed:', err);
                 alert('Export failed:\n' + err.message);
