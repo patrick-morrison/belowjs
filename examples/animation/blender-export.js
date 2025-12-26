@@ -1,14 +1,241 @@
 /**
  * Below.js to Blender Scene Exporter
  *
- * Generates a Blender Python script that recreates a Below.js animation scene
- * including camera keyframes, lighting setup, and GLB model import instructions.
+ * Exports Below.js animation scenes in two formats:
+ * 1. GLB file - Direct import into Blender with camera animation, lights, and model
+ * 2. Python script - For manual scene setup with full control
  *
  * Coordinate System Note:
  * - Three.js/Below.js: Y-up, right-handed
- * - Blender: Z-up, right-handed
- * Transform: (x, y, z) -> (x, z, -y)
+ * - Blender (when importing glTF): Handles conversion automatically
  */
+
+import * as THREE from 'three';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+/**
+ * Export scene as GLB file for direct Blender import
+ *
+ * @param {Object} options - Export options
+ * @param {Array} options.keyframes - Array of keyframe objects with time, position, target
+ * @param {number} options.duration - Animation duration in seconds
+ * @param {string} options.interpolation - Interpolation mode ('linear', 'ease', 'smooth')
+ * @param {Object} options.settings - Scene settings (diveMode, torch, fogColor, etc.)
+ * @param {THREE.Scene} options.scene - The Three.js scene to export (includes model)
+ * @param {THREE.Camera} options.camera - The current camera
+ * @param {string} options.modelFilename - Original model filename (for reference)
+ * @param {Function} onComplete - Callback when export is complete
+ */
+export async function exportToGLB(options, filename = 'belowjs_scene.glb') {
+    const {
+        keyframes = [],
+        duration = 20,
+        interpolation = 'linear',
+        settings = {},
+        scene,
+        camera
+    } = options;
+
+    const fps = 30;
+
+    // Create a new scene for export
+    const exportScene = new THREE.Scene();
+    exportScene.name = 'BelowJS_Scene';
+
+    // Clone the model from the original scene
+    if (scene) {
+        scene.traverse((child) => {
+            // Clone meshes (the model)
+            if (child.isMesh) {
+                const clonedMesh = child.clone();
+                // Clone materials to avoid sharing
+                if (clonedMesh.material) {
+                    if (Array.isArray(clonedMesh.material)) {
+                        clonedMesh.material = clonedMesh.material.map(m => m.clone());
+                    } else {
+                        clonedMesh.material = clonedMesh.material.clone();
+                    }
+                }
+                exportScene.add(clonedMesh);
+            }
+        });
+    }
+
+    // Create camera for export
+    const exportCamera = new THREE.PerspectiveCamera(65, 16/9, 0.05, 2000);
+    exportCamera.name = 'BelowJS_Camera';
+
+    // Create camera target (empty object)
+    const cameraTarget = new THREE.Object3D();
+    cameraTarget.name = 'Camera_Target';
+
+    // Set initial camera position from first keyframe
+    if (keyframes.length > 0) {
+        const firstKF = keyframes[0];
+        exportCamera.position.set(firstKF.position.x, firstKF.position.y, firstKF.position.z);
+        cameraTarget.position.set(firstKF.target.x, firstKF.target.y, firstKF.target.z);
+        exportCamera.lookAt(cameraTarget.position);
+    } else if (camera) {
+        exportCamera.position.copy(camera.position);
+        exportCamera.quaternion.copy(camera.quaternion);
+    }
+
+    exportScene.add(exportCamera);
+    exportScene.add(cameraTarget);
+
+    // Create animation clips for camera and target
+    if (keyframes.length > 0) {
+        const cameraClip = createCameraAnimationClip(keyframes, 'CameraAnimation', interpolation);
+        const targetClip = createTargetAnimationClip(keyframes, 'TargetAnimation', interpolation);
+
+        // Attach animations to objects
+        exportCamera.animations = [cameraClip];
+        cameraTarget.animations = [targetClip];
+    }
+
+    // Add lights based on settings
+    addLightsToScene(exportScene, settings, exportCamera);
+
+    // Export using GLTFExporter
+    const exporter = new GLTFExporter();
+
+    try {
+        const glb = await exporter.parseAsync(exportScene, {
+            binary: true,
+            animations: [
+                ...(exportCamera.animations || []),
+                ...(cameraTarget.animations || [])
+            ],
+            includeCustomExtensions: true
+        });
+
+        // Download the GLB file
+        const blob = new Blob([glb], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename.endsWith('.glb') ? filename : `${filename}.glb`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        return true;
+    } catch (error) {
+        console.error('GLB export failed:', error);
+        throw error;
+    }
+}
+
+/**
+ * Create animation clip for camera position
+ */
+function createCameraAnimationClip(keyframes, name, interpolation) {
+    const times = [];
+    const positionValues = [];
+
+    keyframes.forEach(kf => {
+        times.push(kf.time);
+        positionValues.push(kf.position.x, kf.position.y, kf.position.z);
+    });
+
+    const positionTrack = new THREE.VectorKeyframeTrack(
+        '.position',
+        times,
+        positionValues,
+        getInterpolationType(interpolation)
+    );
+
+    return new THREE.AnimationClip(name, -1, [positionTrack]);
+}
+
+/**
+ * Create animation clip for camera target position
+ */
+function createTargetAnimationClip(keyframes, name, interpolation) {
+    const times = [];
+    const positionValues = [];
+
+    keyframes.forEach(kf => {
+        times.push(kf.time);
+        positionValues.push(kf.target.x, kf.target.y, kf.target.z);
+    });
+
+    const positionTrack = new THREE.VectorKeyframeTrack(
+        '.position',
+        times,
+        positionValues,
+        getInterpolationType(interpolation)
+    );
+
+    return new THREE.AnimationClip(name, -1, [positionTrack]);
+}
+
+/**
+ * Get Three.js interpolation type from string
+ */
+function getInterpolationType(interpolation) {
+    switch (interpolation) {
+        case 'smooth':
+            return THREE.InterpolateSmooth;
+        case 'ease':
+        case 'linear':
+        default:
+            return THREE.InterpolateLinear;
+    }
+}
+
+/**
+ * Add lights to the export scene
+ */
+function addLightsToScene(scene, settings, camera) {
+    const isDiveMode = settings.diveMode === true;
+
+    if (isDiveMode) {
+        // Dive mode - torch/spotlight
+        const torchIntensity = settings.torch?.intensity || 1;
+        const torchWidth = settings.torch?.width || 45;
+
+        const torch = new THREE.SpotLight(0xfff2e6, torchIntensity * 5);
+        torch.name = 'Torch';
+        torch.angle = THREE.MathUtils.degToRad(torchWidth / 2);
+        torch.penumbra = 0.5;
+        torch.position.set(0, 0, 0);
+
+        // Parent to camera
+        camera.add(torch);
+        torch.target.position.set(0, 0, -1);
+        camera.add(torch.target);
+    } else {
+        // Survey mode lighting
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        ambient.name = 'Ambient';
+        scene.add(ambient);
+
+        const sunMain = new THREE.DirectionalLight(0xffffff, 1.2);
+        sunMain.name = 'Sun_Main';
+        sunMain.position.set(10, 20, 10);
+        scene.add(sunMain);
+
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        fillLight.name = 'Fill_Light';
+        fillLight.position.set(-10, 10, -10);
+        scene.add(fillLight);
+
+        const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        bottomLight.name = 'Bottom_Fill';
+        bottomLight.position.set(0, -10, 0);
+        scene.add(bottomLight);
+
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+        hemiLight.name = 'Hemisphere';
+        scene.add(hemiLight);
+    }
+}
+
+// ============================================================================
+// Python Script Export (fallback/alternative)
+// ============================================================================
 
 /**
  * Convert Three.js coordinates to Blender coordinates
@@ -20,14 +247,6 @@ function toBlenderCoords(x, y, z) {
 
 /**
  * Generate Blender Python script from Below.js animation data
- *
- * @param {Object} options - Export options
- * @param {Array} options.keyframes - Array of keyframe objects with time, position, target
- * @param {number} options.duration - Animation duration in seconds
- * @param {string} options.interpolation - Interpolation mode ('linear', 'ease', 'smooth')
- * @param {Object} options.settings - Scene settings (diveMode, torch, fogColor, etc.)
- * @param {string} options.modelFilename - Original GLB model filename
- * @returns {string} - Python script content
  */
 export function generateBlenderScript(options) {
     const {
@@ -40,13 +259,10 @@ export function generateBlenderScript(options) {
 
     const fps = 30;
     const totalFrames = Math.ceil(duration * fps);
-
-    // Camera settings from Below.js
     const cameraFov = 65;
     const cameraNear = 0.05;
     const cameraFar = 2000;
 
-    // Build the Python script
     let script = `"""
 Below.js to Blender Scene Import Script
 Generated by Below.js Animation Editor
@@ -71,33 +287,19 @@ from mathutils import Vector
 def clear_scene():
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
-
-    # Clear orphan data
     for block in bpy.data.meshes:
-        if block.users == 0:
-            bpy.data.meshes.remove(block)
+        if block.users == 0: bpy.data.meshes.remove(block)
     for block in bpy.data.cameras:
-        if block.users == 0:
-            bpy.data.cameras.remove(block)
+        if block.users == 0: bpy.data.cameras.remove(block)
     for block in bpy.data.lights:
-        if block.users == 0:
-            bpy.data.lights.remove(block)
+        if block.users == 0: bpy.data.lights.remove(block)
 
-# Uncomment to clear scene before import:
-# clear_scene()
+# Uncomment to clear scene: clear_scene()
 
-# ============================================================================
-# SCENE SETTINGS
-# ============================================================================
-
-# Set frame range
+# Scene settings
 bpy.context.scene.frame_start = 1
 bpy.context.scene.frame_end = ${totalFrames}
 bpy.context.scene.render.fps = ${fps}
-
-# ============================================================================
-# CAMERA SETUP
-# ============================================================================
 
 # Create camera
 cam_data = bpy.data.cameras.new(name='BelowJS_Camera')
@@ -109,42 +311,25 @@ cam_data.clip_end = ${cameraFar}
 camera = bpy.data.objects.new('BelowJS_Camera', cam_data)
 bpy.context.collection.objects.link(camera)
 
-# Create camera target (empty object for look-at)
+# Create camera target
 target = bpy.data.objects.new('Camera_Target', None)
 target.empty_display_type = 'SPHERE'
 target.empty_display_size = 0.5
 bpy.context.collection.objects.link(target)
 
-# Add Track To constraint to camera
+# Track To constraint
 track_constraint = camera.constraints.new(type='TRACK_TO')
 track_constraint.target = target
 track_constraint.track_axis = 'TRACK_NEGATIVE_Z'
 track_constraint.up_axis = 'UP_Y'
 
-# Set as active camera
 bpy.context.scene.camera = camera
-
-# ============================================================================
-# CAMERA KEYFRAMES
-# ============================================================================
 
 ${generateKeyframeSection(keyframes, fps, interpolation)}
 
-# ============================================================================
-# LIGHTING SETUP
-# ============================================================================
-
 ${generateLightingSection(settings)}
 
-# ============================================================================
-# WORLD SETTINGS
-# ============================================================================
-
 ${generateWorldSettings(settings)}
-
-# ============================================================================
-# FINAL SETUP
-# ============================================================================
 
 # Set viewport to camera view
 for area in bpy.context.screen.areas:
@@ -154,50 +339,28 @@ for area in bpy.context.screen.areas:
                 space.region_3d.view_perspective = 'CAMERA'
                 break
 
-# Go to frame 1
 bpy.context.scene.frame_set(1)
-
-print("Below.js scene imported successfully!")
-print(f"Animation: {${totalFrames}} frames at ${fps} fps ({${duration}} seconds)")
-print(f"Keyframes: ${keyframes.length}")
-print("")
-print("Next steps:")
-print("1. Import your GLB model: File > Import > glTF 2.0")
-print(f"   Model file: ${modelFilename}")
-print("2. Press Space to play the animation")
-print("3. Render with: Render > Render Animation")
+print("Below.js scene imported!")
+print(f"Animation: ${totalFrames} frames at ${fps} fps")
+print("Import your GLB model: File > Import > glTF 2.0")
 `;
 
     return script;
 }
 
-/**
- * Generate the keyframe animation section of the Python script
- */
 function generateKeyframeSection(keyframes, fps, interpolation) {
     if (keyframes.length === 0) {
         return '# No keyframes defined\npass';
     }
 
-    let section = `# Interpolation mode: ${interpolation}\n`;
-
-    // Determine Blender interpolation type
-    let blenderInterp = 'LINEAR';
-    if (interpolation === 'ease') {
-        blenderInterp = 'BEZIER';
-    } else if (interpolation === 'smooth') {
-        blenderInterp = 'BEZIER';  // Catmull-Rom approximated with bezier
-    }
-
-    section += `\n# Camera position keyframes\n`;
+    let section = `# Keyframes (${interpolation} interpolation)\n`;
 
     keyframes.forEach((kf, index) => {
-        const frame = Math.round(kf.time * fps) + 1; // Blender frames are 1-indexed
+        const frame = Math.round(kf.time * fps) + 1;
         const pos = toBlenderCoords(kf.position.x, kf.position.y, kf.position.z);
         const tgt = toBlenderCoords(kf.target.x, kf.target.y, kf.target.z);
 
         section += `
-# Keyframe ${index + 1} at ${kf.time.toFixed(2)}s (frame ${frame})
 bpy.context.scene.frame_set(${frame})
 camera.location = (${pos.x.toFixed(4)}, ${pos.y.toFixed(4)}, ${pos.z.toFixed(4)})
 camera.keyframe_insert(data_path="location", frame=${frame})
@@ -206,173 +369,82 @@ target.keyframe_insert(data_path="location", frame=${frame})
 `;
     });
 
-    // Set interpolation mode for all keyframes
+    const interpType = interpolation === 'linear' ? 'LINEAR' : 'BEZIER';
     section += `
-# Set interpolation mode for keyframes
-def set_interpolation(obj, interp_type):
+def set_interpolation(obj, interp):
     if obj.animation_data and obj.animation_data.action:
-        for fcurve in obj.animation_data.action.fcurves:
-            for keyframe in fcurve.keyframe_points:
-                keyframe.interpolation = interp_type
-`;
+        for fc in obj.animation_data.action.fcurves:
+            for kf in fc.keyframe_points:
+                kf.interpolation = interp
+                ${interpolation === 'smooth' ? "kf.handle_left_type = 'AUTO'\n                kf.handle_right_type = 'AUTO'" : ''}
 
-    if (interpolation === 'smooth') {
-        // For smooth (Catmull-Rom), we use Bezier with auto handles
-        section += `
-set_interpolation(camera, 'BEZIER')
-set_interpolation(target, 'BEZIER')
-
-# Set handles to AUTO for smooth curves
-for obj in [camera, target]:
-    if obj.animation_data and obj.animation_data.action:
-        for fcurve in obj.animation_data.action.fcurves:
-            for keyframe in fcurve.keyframe_points:
-                keyframe.handle_left_type = 'AUTO'
-                keyframe.handle_right_type = 'AUTO'
+set_interpolation(camera, '${interpType}')
+set_interpolation(target, '${interpType}')
 `;
-    } else if (interpolation === 'ease') {
-        section += `
-set_interpolation(camera, 'BEZIER')
-set_interpolation(target, 'BEZIER')
-`;
-    } else {
-        section += `
-set_interpolation(camera, 'LINEAR')
-set_interpolation(target, 'LINEAR')
-`;
-    }
 
     return section;
 }
 
-/**
- * Generate the lighting section of the Python script
- */
 function generateLightingSection(settings) {
     const isDiveMode = settings.diveMode === true;
 
     if (isDiveMode) {
-        // Dive mode - minimal lighting, mainly torch
         const torchIntensity = settings.torch?.intensity || 1;
         const torchWidth = settings.torch?.width || 45;
 
-        return `# Dive Mode Lighting (minimal ambient, spotlight for torch)
-
-# Torch/Spotlight attached to camera
+        return `
+# Dive Mode - Torch
 torch_data = bpy.data.lights.new(name='Torch', type='SPOT')
-torch_data.energy = ${(torchIntensity * 500).toFixed(1)}  # Adjusted for Blender
+torch_data.energy = ${(torchIntensity * 500).toFixed(1)}
 torch_data.spot_size = math.radians(${torchWidth})
 torch_data.spot_blend = 0.5
-torch_data.color = (1.0, 0.95, 0.9)  # Warm torch light
-
 torch = bpy.data.objects.new('Torch', torch_data)
 bpy.context.collection.objects.link(torch)
-
-# Parent torch to camera
 torch.parent = camera
-torch.location = (0, 0, 0)
-torch.rotation_euler = (0, 0, 0)
 `;
     }
 
-    // Survey mode lighting
-    return `# Survey Mode Lighting (matching Below.js DiveLighting)
+    return `
+# Survey Mode Lighting
+sun = bpy.data.lights.new(name='Sun_Main', type='SUN')
+sun.energy = 1.2
+sun_obj = bpy.data.objects.new('Sun_Main', sun)
+bpy.context.collection.objects.link(sun_obj)
+sun_obj.rotation_euler = (math.radians(45), math.radians(25), math.radians(45))
 
-# Ambient Light
-# Note: Blender doesn't have direct ambient light, using world background instead
-# See World Settings section below
+fill = bpy.data.lights.new(name='Fill', type='SUN')
+fill.energy = 0.8
+fill_obj = bpy.data.objects.new('Fill', fill)
+bpy.context.collection.objects.link(fill_obj)
+fill_obj.rotation_euler = (math.radians(45), math.radians(-135), 0)
 
-# Main Directional Light (Key Light)
-sun_data = bpy.data.lights.new(name='Sun_Main', type='SUN')
-sun_data.energy = 1.2
-sun_data.color = (1.0, 1.0, 1.0)
-
-sun_main = bpy.data.objects.new('Sun_Main', sun_data)
-bpy.context.collection.objects.link(sun_main)
-# Position (10, 20, 10) in Three.js -> rotation in Blender
-sun_main.rotation_euler = (math.radians(45), math.radians(25), math.radians(45))
-
-# Shadow settings
-sun_data.use_shadow = True
-
-# Fill Light (from opposite direction)
-fill_data = bpy.data.lights.new(name='Fill_Light', type='SUN')
-fill_data.energy = 0.8
-fill_data.color = (1.0, 1.0, 1.0)
-
-fill_light = bpy.data.objects.new('Fill_Light', fill_data)
-bpy.context.collection.objects.link(fill_light)
-# Position (-10, 10, -10) in Three.js
-fill_light.rotation_euler = (math.radians(45), math.radians(-135), 0)
-
-# Bottom Fill Light
-bottom_data = bpy.data.lights.new(name='Bottom_Fill', type='SUN')
-bottom_data.energy = 0.3
-bottom_data.color = (1.0, 1.0, 1.0)
-
-bottom_light = bpy.data.objects.new('Bottom_Fill', bottom_data)
-bpy.context.collection.objects.link(bottom_light)
-# Coming from below
-bottom_light.rotation_euler = (math.radians(-90), 0, 0)
-
-# Hemisphere Light approximation using two area lights
-# Sky color (top)
-hemi_sky_data = bpy.data.lights.new(name='Hemi_Sky', type='AREA')
-hemi_sky_data.energy = 50  # Area lights need more energy
-hemi_sky_data.color = (1.0, 1.0, 1.0)
-hemi_sky_data.size = 20
-
-hemi_sky = bpy.data.objects.new('Hemi_Sky', hemi_sky_data)
-bpy.context.collection.objects.link(hemi_sky)
-hemi_sky.location = (0, 0, 50)
-hemi_sky.rotation_euler = (math.radians(180), 0, 0)
-
-# Ground color (bottom)
-hemi_ground_data = bpy.data.lights.new(name='Hemi_Ground', type='AREA')
-hemi_ground_data.energy = 15
-hemi_ground_data.color = (0.27, 0.27, 0.27)  # 0x444444
-hemi_ground_data.size = 20
-
-hemi_ground = bpy.data.objects.new('Hemi_Ground', hemi_ground_data)
-bpy.context.collection.objects.link(hemi_ground)
-hemi_ground.location = (0, 0, -50)
+bottom = bpy.data.lights.new(name='Bottom', type='SUN')
+bottom.energy = 0.3
+bottom_obj = bpy.data.objects.new('Bottom', bottom)
+bpy.context.collection.objects.link(bottom_obj)
+bottom_obj.rotation_euler = (math.radians(-90), 0, 0)
 `;
 }
 
-/**
- * Generate world/environment settings
- */
 function generateWorldSettings(settings) {
-    // Parse fog color from hex
     let fogColor = settings.fogColor || '#001122';
-    if (fogColor.startsWith('#')) {
-        fogColor = fogColor.slice(1);
-    }
+    if (fogColor.startsWith('#')) fogColor = fogColor.slice(1);
     const r = parseInt(fogColor.slice(0, 2), 16) / 255;
     const g = parseInt(fogColor.slice(2, 4), 16) / 255;
     const b = parseInt(fogColor.slice(4, 6), 16) / 255;
-
     const isDiveMode = settings.diveMode === true;
 
-    return `# World background color
-world = bpy.data.worlds.get('World')
-if world is None:
-    world = bpy.data.worlds.new('World')
+    const bgColor = isDiveMode
+        ? `(${r.toFixed(4)}, ${g.toFixed(4)}, ${b.toFixed(4)}, 1.0)`
+        : '(0.05, 0.05, 0.05, 1.0)';
+
+    return `
+# World
+world = bpy.data.worlds.get('World') or bpy.data.worlds.new('World')
 bpy.context.scene.world = world
-
 world.use_nodes = True
-bg_node = world.node_tree.nodes.get('Background')
-if bg_node:
-    ${isDiveMode ?
-        `# Dive mode - dark underwater background\n    bg_node.inputs['Color'].default_value = (${r.toFixed(4)}, ${g.toFixed(4)}, ${b.toFixed(4)}, 1.0)` :
-        `# Survey mode - neutral background\n    bg_node.inputs['Color'].default_value = (0.05, 0.05, 0.05, 1.0)`
-    }
-    bg_node.inputs['Strength'].default_value = 1.0
-
-# Optional: Add mist/fog effect in compositor
-# bpy.context.scene.world.mist_settings.use_mist = True
-# bpy.context.scene.world.mist_settings.start = 0
-# bpy.context.scene.world.mist_settings.depth = 100
+bg = world.node_tree.nodes.get('Background')
+if bg: bg.inputs['Color'].default_value = ${bgColor}
 `;
 }
 

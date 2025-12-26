@@ -1534,20 +1534,23 @@
         </div>
     </div>
 
-    <!-- Blender Export Filename Modal -->
+    <!-- Blender Export Modal -->
     <div class="overlay" id="blenderFilenameModal">
         <div class="modal">
             <h3>Transfer to Blender</h3>
-            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
-                Generate a Python script that recreates your scene in Blender with camera animation, lighting, and import instructions.
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0; line-height: 1.4;">
+                Export your scene for Blender with camera animation, lights, and model.
             </p>
             <div class="export-filename-row">
                 <label>Filename</label>
                 <input type="text" id="blenderFilename" value="belowjs_scene" placeholder="belowjs_scene">
             </div>
-            <div class="modal-btns">
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                <button class="ok" id="blenderExportGLB" style="width: 100%;">Export as GLB (recommended)</button>
+                <button class="cancel" id="blenderExportPython" style="width: 100%; background: #334155;">Export as Python Script</button>
+            </div>
+            <div class="modal-btns" style="margin-top: 12px;">
                 <button class="cancel" id="blenderFilenameCancel">Cancel</button>
-                <button class="ok" id="blenderConfirm">Export</button>
             </div>
         </div>
     </div>
@@ -1618,7 +1621,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { ModelViewer } from 'belowjs';
-        import { downloadBlenderScript } from './blender-export.js';
+        import { exportToGLB, downloadBlenderScript } from './blender-export.js';
 
         // State
         let hasModel = false;
@@ -2035,18 +2038,16 @@
         });
 
         blenderFilename.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') document.getElementById('blenderConfirm').click();
+            if (e.key === 'Enter') document.getElementById('blenderExportGLB').click();
         });
 
         document.getElementById('blenderFilenameCancel').addEventListener('click', () => {
             blenderFilenameModal.classList.remove('visible');
         });
 
-        document.getElementById('blenderConfirm').addEventListener('click', () => {
-            const defaultName = 'belowjs_scene';
-            const filename = blenderFilename.value.trim() || defaultName;
-
-            downloadBlenderScript({
+        // Helper to get export options
+        function getBlenderExportOptions() {
+            return {
                 keyframes,
                 duration,
                 interpolation: defaultInterpolation,
@@ -2063,9 +2064,29 @@
                     particleDensity: parseFloat(particleDensity.value),
                     fogColor: fogColorPicker.value
                 },
-                modelFilename: currentModelFilename
-            }, filename);
+                modelFilename: currentModelFilename,
+                scene: viewer.belowViewer.getScene(),
+                camera: getCamera()
+            };
+        }
 
+        // Export as GLB (includes model, camera animation, lights)
+        document.getElementById('blenderExportGLB').addEventListener('click', async () => {
+            const filename = blenderFilename.value.trim() || 'belowjs_scene';
+            blenderFilenameModal.classList.remove('visible');
+
+            try {
+                await exportToGLB(getBlenderExportOptions(), filename);
+            } catch (err) {
+                alert('GLB export failed: ' + err.message);
+                console.error(err);
+            }
+        });
+
+        // Export as Python script (manual import workflow)
+        document.getElementById('blenderExportPython').addEventListener('click', () => {
+            const filename = blenderFilename.value.trim() || 'belowjs_scene';
+            downloadBlenderScript(getBlenderExportOptions(), filename);
             blenderFilenameModal.classList.remove('visible');
         });
 
