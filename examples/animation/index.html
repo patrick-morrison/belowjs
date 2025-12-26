@@ -1494,6 +1494,11 @@
             <div class="export-progress-bar" id="exportProgressBar" style="width: 0%;"></div>
         </div>
         <div id="exportStatus" style="color: #94a3b8;">Preparing...</div>
+        <div id="exportActions" style="display: none; margin-top: 20px; gap: 10px; flex-direction: column;">
+            <button id="exportShareBtn" class="shelf-btn primary" style="padding: 12px 24px; font-size: 16px;">Share Video</button>
+            <button id="exportDownloadBtn" class="shelf-btn" style="padding: 12px 24px; font-size: 16px;">Download Video</button>
+            <button id="exportDoneBtn" class="shelf-btn" style="padding: 12px 24px; font-size: 14px;">Done</button>
+        </div>
     </div>
 
     <div class="context-menu" id="contextMenu">
@@ -1550,6 +1555,10 @@
         const exportProgressBar = document.getElementById('exportProgressBar');
         const exportStatus = document.getElementById('exportStatus');
         const exportTitle = document.getElementById('exportTitle');
+        const exportActions = document.getElementById('exportActions');
+        const exportShareBtn = document.getElementById('exportShareBtn');
+        const exportDownloadBtn = document.getElementById('exportDownloadBtn');
+        const exportDoneBtn = document.getElementById('exportDoneBtn');
         const contextMenu = document.getElementById('contextMenu');
         const fileInput = document.getElementById('fileInput');
         const timeModal = document.getElementById('timeModal');
@@ -2676,6 +2685,52 @@
         document.getElementById('exportFull').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('full'); });
         document.getElementById('exportSegments').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('segments'); });
 
+        // Store current export for iOS share handling
+        let currentExportBlob = null;
+        let currentExportFilename = null;
+
+        // Export action handlers for iOS
+        exportShareBtn.addEventListener('click', async () => {
+            if (!currentExportBlob || !currentExportFilename) return;
+            const file = new File([currentExportBlob], currentExportFilename, { type: 'video/mp4' });
+            try {
+                await navigator.share({ files: [file], title: currentExportFilename });
+                // Share successful - clean up
+                exportOverlay.classList.remove('visible');
+                exportActions.style.display = 'none';
+                currentExportBlob = null;
+                currentExportFilename = null;
+            } catch (shareErr) {
+                if (shareErr.name !== 'AbortError') {
+                    console.error('Share failed:', shareErr);
+                    alert('Share failed. Try using the Download button instead.');
+                }
+                // User cancelled or error - keep overlay open so they can try download
+            }
+        });
+
+        exportDownloadBtn.addEventListener('click', () => {
+            if (!currentExportBlob || !currentExportFilename) return;
+            const url = URL.createObjectURL(currentExportBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentExportFilename;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            // Download initiated - clean up
+            exportOverlay.classList.remove('visible');
+            exportActions.style.display = 'none';
+            currentExportBlob = null;
+            currentExportFilename = null;
+        });
+
+        exportDoneBtn.addEventListener('click', () => {
+            exportOverlay.classList.remove('visible');
+            exportActions.style.display = 'none';
+            currentExportBlob = null;
+            currentExportFilename = null;
+        });
+
         async function exportVideo(mode) {
             const fps = 30;
             const renderer = getRenderer();
@@ -2777,6 +2832,7 @@
             exportProgressBar.style.width = '0%';
             exportTitle.textContent = `Exporting ${name}...`;
             exportStatus.textContent = 'Loading encoder...';
+            exportActions.style.display = 'none'; // Hide action buttons during export
 
             // Save current pixel ratio and force to 1 for consistent export resolution
             const savedPixelRatio = renderer.getPixelRatio();
@@ -2923,17 +2979,16 @@
                 const blob = new Blob([finalBuffer], { type: 'video/mp4' });
                 const filename = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
 
-                // iOS Safari doesn't support programmatic downloads via anchor.click()
-                // Use Web Share API on iOS (which works reliably) with fallback
+                // iOS: Show share/download buttons (requires fresh user gesture for share)
                 if (isIOSDevice && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'video/mp4' })] })) {
-                    // Use Web Share API on iOS - opens native share sheet
-                    const file = new File([blob], filename, { type: 'video/mp4' });
-                    try {
-                        await navigator.share({ files: [file], title: filename });
-                    } catch (shareErr) {
-                        // User cancelled share - still success, video was rendered
-                        if (shareErr.name !== 'AbortError') throw shareErr;
-                    }
+                    // Store blob for later sharing
+                    currentExportBlob = blob;
+                    currentExportFilename = filename;
+
+                    // Show success message with action buttons
+                    exportStatus.textContent = 'Export complete! Choose an action:';
+                    exportProgressBar.style.width = '100%';
+                    exportActions.style.display = 'flex';
                 } else {
                     // Standard download for desktop browsers
                     const url = URL.createObjectURL(blob);
@@ -2968,7 +3023,11 @@
                 }
 
                 if (encoder && encoder.state !== 'closed') encoder.close();
-                exportOverlay.classList.remove('visible');
+
+                // Only hide overlay if not showing iOS action buttons
+                if (exportActions.style.display !== 'flex') {
+                    exportOverlay.classList.remove('visible');
+                }
             }
 
             currentTime = 0;
