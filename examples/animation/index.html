@@ -1444,7 +1444,14 @@
     <!-- Beautiful Timeline Shelf -->
     <div class="timeline-shelf" id="timelineShelf">
         <div class="shelf-content">
-            <button class="play-btn" id="playBtn" title="Play/Pause">▶</button>
+            <button class="play-btn" id="playBtn" title="Play/Pause">
+                <svg class="play-icon" width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 2l10 6-10 6V2z"/>
+                </svg>
+                <svg class="pause-icon" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" style="display:none;">
+                    <path d="M3.5 3h2.5v10H3.5V3zm6.5 0h2.5v10H10V3z"/>
+                </svg>
+            </button>
             <div class="time-display" id="timeDisplay" title="Click to edit time/duration">0.00 / 10.00</div>
 
             <div class="timeline-track" id="timelineTrack">
@@ -2807,11 +2814,17 @@
             }
 
             isPlaying = true;
-            playBtn.textContent = '⏸';
+            playBtn.querySelector('.play-icon').style.display = 'none';
+            playBtn.querySelector('.pause-icon').style.display = 'block';
             addFrameBtn.disabled = true;
             if (document.pointerLockElement) document.exitPointerLock();
         }
-        function stopPlayback() { isPlaying = false; playBtn.textContent = '▶'; addFrameBtn.disabled = false; }
+        function stopPlayback() {
+            isPlaying = false;
+            playBtn.querySelector('.play-icon').style.display = 'block';
+            playBtn.querySelector('.pause-icon').style.display = 'none';
+            addFrameBtn.disabled = false;
+        }
         function togglePlayback() {
             if (keyframes.length === 0 && animationMode === 'timeline') {
                 const toast = document.getElementById('timelineToast');
