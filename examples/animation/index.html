@@ -154,6 +154,7 @@
             gap: 12px;
             backdrop-filter: blur(20px);
             min-width: 200px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .anim-panel.visible {
@@ -163,30 +164,39 @@
         /* Panel collapse toggle for mobile */
         .panel-collapse-toggle {
             display: none;
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 28px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
+            margin: 10px -16px -16px -16px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0 0 14px 14px;
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: calc(100% + 32px);
+            box-sizing: border-box;
+            line-height: 1.2;
         }
 
         .panel-collapse-toggle:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
             color: #fff;
         }
 
+        /* Transparent state during 3D interaction */
+        .anim-panel.interacting {
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
         .anim-panel.collapsed {
-            padding: 8px;
+            padding: 0;
             min-width: auto;
             width: auto;
+            border-radius: 20px;
         }
 
         .anim-panel.collapsed > *:not(.panel-collapse-toggle) {
@@ -195,6 +205,14 @@
 
         .anim-panel.collapsed .panel-collapse-toggle {
             position: static;
+            width: auto;
+            height: auto;
+            font-size: 13px;
+            padding: 10px 18px;
+            margin: 0;
+            border-radius: 20px;
+            border: none;
+            border-top: none;
         }
 
         @media (max-width: 600px) {
@@ -202,7 +220,6 @@
                 top: 10px;
                 left: 10px;
                 padding: 12px;
-                padding-top: 36px;
                 min-width: 180px;
             }
 
@@ -213,8 +230,7 @@
             }
 
             .anim-panel.collapsed {
-                padding: 8px;
-                padding-top: 8px;
+                padding: 10px 14px;
             }
         }
 
@@ -1291,7 +1307,6 @@
     </div>
 
     <div class="anim-panel" id="animPanel">
-        <button class="panel-collapse-toggle" id="panelCollapseToggle" title="Collapse panel">−</button>
         <!-- Timeline/Orbit Toggle -->
         <div class="film-toggle-wrapper">
             <label class="film-toggle">
@@ -1343,10 +1358,10 @@
         <div class="panel-row">
             <label>Frame</label>
             <select class="shelf-select" id="aspectSelect" title="Aspect Ratio">
-                <option value="16:9">16:9</option>
-                <option value="9:16">9:16</option>
-                <option value="4:3">4:3</option>
-                <option value="3:4">3:4</option>
+                <option value="16:9">16:9 (H)</option>
+                <option value="9:16">9:16 (V)</option>
+                <option value="4:3">4:3 (H)</option>
+                <option value="3:4">3:4 (V)</option>
                 <option value="1:1">1:1</option>
                 <option value="none">None</option>
             </select>
@@ -1375,6 +1390,8 @@
         <div class="fly-hint" id="runtimeFlyHint">
             <kbd>Shift</kbd>+<kbd>`</kbd> fly • <kbd>Click</kbd> exit
         </div>
+
+        <button class="panel-collapse-toggle" id="panelCollapseToggle" title="Toggle settings">Settings</button>
     </div>
 
     <div class="fly-mode-indicator" id="flyModeIndicator">
@@ -1555,14 +1572,53 @@
         // Panel collapse toggle for mobile
         panelCollapseToggle.addEventListener('click', () => {
             const isCollapsed = animPanel.classList.toggle('collapsed');
-            panelCollapseToggle.textContent = isCollapsed ? '+' : '−';
-            panelCollapseToggle.title = isCollapsed ? 'Expand panel' : 'Collapse panel';
+            panelCollapseToggle.textContent = isCollapsed ? 'Settings' : 'Hide Settings';
+            panelCollapseToggle.title = isCollapsed ? 'Show settings' : 'Hide settings';
         });
+
+        // Default to 9:16 aspect ratio on small screens (portrait mobile)
+        if (window.innerWidth <= 600) {
+            aspectRatio = '9:16';
+            aspectSelect.value = '9:16';
+        }
 
         // Viewer
         const viewerContainer = document.createElement('div');
         viewerContainer.style.cssText = 'position:fixed;inset:0;z-index:0;';
         document.body.appendChild(viewerContainer);
+
+        // Start with panel collapsed on small screens
+        if (window.innerWidth <= 600) {
+            animPanel.classList.add('collapsed');
+            panelCollapseToggle.textContent = 'Settings';
+            panelCollapseToggle.title = 'Show settings';
+        }
+
+        // Make panel transparent during 3D interaction (mobile only)
+        if (window.innerWidth <= 600) {
+            let isPointerDown = false;
+
+            viewerContainer.addEventListener('pointerdown', (e) => {
+                isPointerDown = true;
+            });
+
+            viewerContainer.addEventListener('pointermove', (e) => {
+                // Make panel transparent when dragging
+                if (isPointerDown && hasModel && !animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.add('interacting');
+                }
+            });
+
+            viewerContainer.addEventListener('pointerup', () => {
+                isPointerDown = false;
+                animPanel.classList.remove('interacting');
+            });
+
+            viewerContainer.addEventListener('pointercancel', () => {
+                isPointerDown = false;
+                animPanel.classList.remove('interacting');
+            });
+        }
 
         const viewer = new ModelViewer(viewerContainer, {
             models: {},
@@ -2989,6 +3045,13 @@
                 window.dispatchEvent(new Event('resize'));
 
                 hasModel = true;
+
+                // Expand panel on small screens when model loads
+                if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.remove('collapsed');
+                    panelCollapseToggle.textContent = 'Hide Settings';
+                    panelCollapseToggle.title = 'Hide settings';
+                }
 
                 // Initialize fly mode rotation from camera
                 const camera = getCamera();
