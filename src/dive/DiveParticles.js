@@ -8,6 +8,7 @@ export class DiveParticles {
       max: new THREE.Vector3(50, 25, 50)
     };
     this.particleCount = 1750;
+    this.densityMultiplier = 1.0; // Default density
     this.createParticleSystem();
   }
   calculateParticleCount(bounds) {
@@ -16,11 +17,39 @@ export class DiveParticles {
     const expansion = 2.5;
     const expandedSize = size.clone().multiplyScalar(expansion);
     const volume = expandedSize.x * expandedSize.y * expandedSize.z;
-    const calculatedCount = Math.round(volume * 0.01);
+    const calculatedCount = Math.round(volume * 0.01 * this.densityMultiplier);
     const minParticles = 100;
     const maxParticles = 16000;
     const finalCount = Math.max(minParticles, Math.min(maxParticles, calculatedCount));
     return finalCount;
+  }
+
+  /**
+   * Set particle density multiplier and recreate system
+   */
+  setDensity(multiplier) {
+    this.densityMultiplier = Math.max(0, Math.min(2.0, multiplier));
+
+    // If density is 0, just hide particles
+    if (this.densityMultiplier === 0) {
+      this.disable();
+      return;
+    }
+
+    // Recreate particle system with new density
+    const bounds = new THREE.Box3(this.particleBounds.min, this.particleBounds.max);
+    const newParticleCount = this.calculateParticleCount(bounds);
+
+    if (this.particles) {
+      this.scene.remove(this.particles);
+      if (this.particles.geometry) this.particles.geometry.dispose();
+      if (this.particles.material) this.particles.material.dispose();
+      this.particles = null;
+    }
+
+    this.particleCount = newParticleCount;
+    this.createParticleSystem();
+    this.enable();
   }
   
   createParticleSystem() {

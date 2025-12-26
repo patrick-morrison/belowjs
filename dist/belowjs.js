@@ -8106,13 +8106,24 @@ class Vn {
     this.scene = e, this.particleBounds = {
       min: new u.Vector3(-50, -25, -50),
       max: new u.Vector3(50, 25, 50)
-    }, this.particleCount = 1750, this.createParticleSystem();
+    }, this.particleCount = 1750, this.densityMultiplier = 1, this.createParticleSystem();
   }
   calculateParticleCount(e) {
     const t = new u.Vector3();
     e.getSize(t);
-    const s = t.clone().multiplyScalar(2.5), o = s.x * s.y * s.z, n = Math.round(o * 0.01);
+    const s = t.clone().multiplyScalar(2.5), o = s.x * s.y * s.z, n = Math.round(o * 0.01 * this.densityMultiplier);
     return Math.max(100, Math.min(16e3, n));
+  }
+  /**
+   * Set particle density multiplier and recreate system
+   */
+  setDensity(e) {
+    if (this.densityMultiplier = Math.max(0, Math.min(2, e)), this.densityMultiplier === 0) {
+      this.disable();
+      return;
+    }
+    const t = new u.Box3(this.particleBounds.min, this.particleBounds.max), i = this.calculateParticleCount(t);
+    this.particles && (this.scene.remove(this.particles), this.particles.geometry && this.particles.geometry.dispose(), this.particles.material && this.particles.material.dispose(), this.particles = null), this.particleCount = i, this.createParticleSystem(), this.enable();
   }
   createParticleSystem() {
     const e = new Float32Array(this.particleCount * 3), t = new Float32Array(this.particleCount * 3), i = new Float32Array(this.particleCount);

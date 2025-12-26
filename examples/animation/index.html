@@ -1343,7 +1343,7 @@
         <div class="torch-controls" id="torchControls">
             <div class="torch-row">
                 <label>Power</label>
-                <input type="range" id="torchPower" min="1" max="20" step="0.5" value="8">
+                <input type="range" id="torchPower" min="0.5" max="20" step="0.5" value="8">
             </div>
             <div class="torch-row">
                 <label>Width</label>
@@ -1352,6 +1352,10 @@
             <div class="torch-row">
                 <label>Dist</label>
                 <input type="range" id="torchDistance" min="10" max="200" step="1" value="50">
+            </div>
+            <div class="torch-row">
+                <label>Particles</label>
+                <input type="range" id="particleDensity" min="0" max="2.0" step="0.05" value="1.0">
             </div>
         </div>
 
@@ -1584,6 +1588,7 @@
         const torchPower = document.getElementById('torchPower');
         const torchWidth = document.getElementById('torchWidth');
         const torchDistance = document.getElementById('torchDistance');
+        const particleDensity = document.getElementById('particleDensity');
         const saveModal = document.getElementById('saveModal');
         const saveFilename = document.getElementById('saveFilename');
         const panelCollapseToggle = document.getElementById('panelCollapseToggle');
@@ -1920,7 +1925,8 @@
                         intensity: parseFloat(torchPower.value),
                         width: parseFloat(torchWidth.value),
                         distance: parseFloat(torchDistance.value)
-                    }
+                    },
+                    particleDensity: parseFloat(particleDensity.value)
                 }
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1985,6 +1991,12 @@
                                 torchDistance.value = data.settings.torch.distance;
                                 torchDistance.dispatchEvent(new Event('input'));
                             }
+                        }
+
+                        // Particle Density
+                        if (data.settings.particleDensity !== undefined) {
+                            particleDensity.value = data.settings.particleDensity;
+                            particleDensity.dispatchEvent(new Event('input'));
                         }
 
                         updateAspectFrame();
@@ -2113,6 +2125,13 @@
             const diveSystem = viewer.diveSystem;
             if (diveSystem?.torch) {
                 diveSystem.torch.setDistance(parseFloat(torchDistance.value));
+            }
+        });
+
+        particleDensity.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.particles) {
+                diveSystem.particles.setDensity(parseFloat(particleDensity.value));
             }
         });
 
