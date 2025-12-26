@@ -1501,11 +1501,11 @@
         <div class="modal">
             <h3>Save Menu</h3>
             <div class="export-option full-option" id="saveDataOption">
-                <strong>💾 Save Data</strong>
+                <strong>Save Data</strong>
                 <div class="desc">Save your keyframes, timing, and settings to a JSON file</div>
             </div>
             <div class="export-option full-option" id="saveExportOption">
-                <strong>🎬 Export Video</strong>
+                <strong>Export Video</strong>
                 <div class="desc">Render your animation as a video file</div>
             </div>
             <div class="modal-btns">
@@ -1537,63 +1537,15 @@
         <div class="modal">
             <h3>Load Menu</h3>
             <div class="export-option full-option" id="loadDataOption">
-                <strong>📂 Load Animation Data</strong>
+                <strong>Load Animation Data</strong>
                 <div class="desc">Load saved keyframes, timing, and settings from a JSON file</div>
             </div>
             <div class="export-option full-option" id="loadModelOption">
-                <strong>🗿 Load Different Model</strong>
+                <strong>Load Different Model</strong>
                 <div class="desc">Load a new 3D model (.glb file) to replace the current one</div>
-            </div>
-            <div class="export-option full-option" id="viewSettingsOption">
-                <strong>⚙️ View Current Settings</strong>
-                <div class="desc">View all current animation and rendering settings</div>
             </div>
             <div class="modal-btns">
                 <button class="cancel" id="loadCancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Current Settings Display Modal -->
-    <div class="overlay" id="settingsViewModal">
-        <div class="modal" style="max-height: 80vh; overflow-y: auto;">
-            <h3>Current Settings</h3>
-            <div style="color: #94a3b8; font-size: 13px; line-height: 1.6;">
-                <div style="margin-bottom: 16px;">
-                    <strong style="color: #e2e8f0;">Animation</strong>
-                    <div style="margin-top: 4px;">
-                        Mode: <span id="settingsMode">Timeline</span><br>
-                        Duration: <span id="settingsDuration">10</span>s<br>
-                        Interpolation: <span id="settingsInterpolation">Smooth</span><br>
-                        Keyframes: <span id="settingsKeyframes">0</span>
-                    </div>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <strong style="color: #e2e8f0;">Export</strong>
-                    <div style="margin-top: 4px;">
-                        Aspect Ratio: <span id="settingsAspect">16:9</span><br>
-                        Resolution: <span id="settingsResolution">2160p</span>
-                    </div>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <strong style="color: #e2e8f0;">Effects</strong>
-                    <div style="margin-top: 4px;">
-                        Dive Mode: <span id="settingsDiveMode">Off</span><br>
-                        Particle Density: <span id="settingsParticleDensity">0.5</span><br>
-                        Fog Color: <span id="settingsFogColor">#87ceeb</span>
-                    </div>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <strong style="color: #e2e8f0;">Torch</strong>
-                    <div style="margin-top: 4px;">
-                        Intensity: <span id="settingsTorchIntensity">0</span><br>
-                        Width: <span id="settingsTorchWidth">30</span>°<br>
-                        Distance: <span id="settingsTorchDistance">10</span>m
-                    </div>
-                </div>
-            </div>
-            <div class="modal-btns">
-                <button class="ok" id="settingsViewClose">Close</button>
             </div>
         </div>
     </div>
@@ -1692,7 +1644,6 @@
         const loadInput = document.getElementById('loadInput');
         const modelInput = document.getElementById('modelInput');
         const loadModal = document.getElementById('loadModal');
-        const settingsViewModal = document.getElementById('settingsViewModal');
         const easingRow = document.getElementById('easingRow');
         const exportSegments = document.getElementById('exportSegments');
         const diveToggle = document.getElementById('diveToggle');
@@ -2086,30 +2037,7 @@
             modelInput.click();
         });
 
-        document.getElementById('viewSettingsOption').addEventListener('click', () => {
-            loadModal.classList.remove('visible');
-            updateSettingsView();
-            settingsViewModal.classList.add('visible');
-        });
-
         document.getElementById('loadCancel').addEventListener('click', () => loadModal.classList.remove('visible'));
-        document.getElementById('settingsViewClose').addEventListener('click', () => settingsViewModal.classList.remove('visible'));
-
-        // Function to update the settings view modal
-        function updateSettingsView() {
-            document.getElementById('settingsMode').textContent = animationMode === 'timeline' ? 'Timeline' : 'Orbit';
-            document.getElementById('settingsDuration').textContent = duration;
-            document.getElementById('settingsInterpolation').textContent = defaultInterpolation.charAt(0).toUpperCase() + defaultInterpolation.slice(1);
-            document.getElementById('settingsKeyframes').textContent = keyframes.length;
-            document.getElementById('settingsAspect').textContent = aspectRatio;
-            document.getElementById('settingsResolution').textContent = exportResolution + 'p';
-            document.getElementById('settingsDiveMode').textContent = diveToggle.checked ? 'On' : 'Off';
-            document.getElementById('settingsParticleDensity').textContent = particleDensity.value;
-            document.getElementById('settingsFogColor').textContent = fogColorPicker.value;
-            document.getElementById('settingsTorchIntensity').textContent = torchPower.value;
-            document.getElementById('settingsTorchWidth').textContent = torchWidth.value;
-            document.getElementById('settingsTorchDistance').textContent = torchDistance.value;
-        }
         loadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
