@@ -2543,6 +2543,9 @@
             };
         }
         function updateCameraFromKeyframes() {
+            // Don't snap camera when there's only 1 keyframe - let user explore freely
+            if (keyframes.length < 2) return;
+
             const result = interpolateKeyframes(currentTime);
             if (!result) return;
             const camera = getCamera();
