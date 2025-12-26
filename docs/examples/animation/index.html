@@ -791,6 +791,11 @@
             animation: btn-shimmer 2s infinite;
         }
 
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .playhead {
             position: absolute;
             top: 0;
@@ -1262,7 +1267,7 @@
 <body class="waiting-for-model">
     <div class="empty-state" id="emptyState">
         <h2>BelowJS Animations</h2>
-        <p>Drag & drop a .glb file to start</p>
+        <p style="pointer-events: auto;">Drag & drop a .glb file to start (<a href="https://patrick-morrison.github.io/belowjs/guides/animation.html" target="_blank" style="color: #60a5fa;">see guide</a>)</p>
         <p style="font-size: 0.9em; opacity: 0.6;">Focused for shipwreck visualisation, it should feel a bit like Blender. Exports MP4.</p>
         <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose
             file</button>
@@ -3381,6 +3386,9 @@
         // Load demo model from URL
         async function loadDemoModel() {
             const url = '/examples/basic/models/sesa.glb';
+            const linkEl = document.querySelector('[onclick*="loadDemoModel"]');
+            const originalText = linkEl ? linkEl.innerHTML : '';
+            if (linkEl) linkEl.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> loading <em>Sesa</em>...';
             try {
                 if (hasModel) viewer.belowViewer.clearModels();
                 await viewer.belowViewer.loadModel(url, { autoFrame: true });
@@ -3425,7 +3433,10 @@
                         newBtn.addEventListener('click', captureHighResScreenshot);
                     }
                 }, 500);
-            } catch (err) { alert('Failed to load demo model: ' + err.message); }
+            } catch (err) {
+                if (linkEl) linkEl.innerHTML = originalText;
+                alert('Failed to load demo model: ' + err.message);
+            }
         }
         window.loadDemoModel = loadDemoModel;
 
