@@ -1882,6 +1882,9 @@
             if (controls) controls.enabled = !pointerLocked;
             flyControlsEnabled = pointerLocked;
             flyModeIndicator.classList.toggle('visible', pointerLocked);
+
+            // Update aspect frame when exiting fly mode to prevent offset
+            updateAspectFrame();
         });
 
         // Interactive sidebar fly hint
@@ -2250,6 +2253,12 @@
             resolutionSelect.value = '1080';
         }
         window.addEventListener('resize', updateAspectFrame);
+
+        // Update aspect frame on fullscreen changes to prevent offset
+        document.addEventListener('fullscreenchange', updateAspectFrame);
+        document.addEventListener('webkitfullscreenchange', updateAspectFrame); // Safari
+        document.addEventListener('mozfullscreenchange', updateAspectFrame); // Firefox
+        document.addEventListener('MSFullscreenChange', updateAspectFrame); // IE/Edge
 
         // Dive Mode Toggle
         diveToggle.addEventListener('change', () => {
