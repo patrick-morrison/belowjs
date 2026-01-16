@@ -211,6 +211,32 @@ export class DiveLighting {
   isTransitionInProgress() {
     return this.isTransitioning;
   }
+
+  setSurveyBrightness(multiplier = 1.0) {
+    // Clamp multiplier between 0.5 and 5.0
+    const brightness = Math.max(0.5, Math.min(5.0, multiplier));
+
+    // Update all survey mode lights with the brightness multiplier
+    if (this.overheadLight) {
+      this.overheadLight.intensity = 0.6 * brightness;
+    }
+
+    if (this.clearModeDirectionalLight) {
+      this.clearModeDirectionalLight.intensity = 1.2 * brightness;
+    }
+
+    if (this.clearModeHemisphereLight) {
+      this.clearModeHemisphereLight.intensity = 0.7 * brightness;
+    }
+
+    if (this.fillLight) {
+      this.fillLight.intensity = 0.8 * brightness;
+    }
+
+    if (this.bottomLight) {
+      this.bottomLight.intensity = 0.3 * brightness;
+    }
+  }
   
   dispose() {
     

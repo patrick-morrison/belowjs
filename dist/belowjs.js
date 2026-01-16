@@ -8490,6 +8490,10 @@ class Hn {
   isTransitionInProgress() {
     return this.isTransitioning;
   }
+  setSurveyBrightness(e = 1) {
+    const t = Math.max(0.5, Math.min(5, e));
+    this.overheadLight && (this.overheadLight.intensity = 0.6 * t), this.clearModeDirectionalLight && (this.clearModeDirectionalLight.intensity = 1.2 * t), this.clearModeHemisphereLight && (this.clearModeHemisphereLight.intensity = 0.7 * t), this.fillLight && (this.fillLight.intensity = 0.8 * t), this.bottomLight && (this.bottomLight.intensity = 0.3 * t);
+  }
   dispose() {
     this.isDisposed = !0, this.cancelActiveAnimations(), requestAnimationFrame(() => {
       try {
