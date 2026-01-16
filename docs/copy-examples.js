@@ -104,8 +104,9 @@ function updateDocumentationReferences(version) {
   const docsDir = path.join(rootDir, 'docs');
   const filesToUpdate = [
     'examples.html',
-    'installation.html', 
-    'demo.html'
+    'installation.html',
+    'demo.html',
+    'changelog.html'
   ];
   
   console.log(`Updating CDN references to v${version} in documentation pages...`);
@@ -117,7 +118,7 @@ function updateDocumentationReferences(version) {
       
       // Update belowjs CDN URLs (both JS and CSS)
       content = content.replace(
-        /belowjs@1\.0\.0-rc\.\d+/g,
+        /belowjs@[\d]+\.[\d]+\.[\d]+/g,
         `belowjs@${version}`
       );
       

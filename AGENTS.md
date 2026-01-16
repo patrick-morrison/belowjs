@@ -29,17 +29,21 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 1) Merge feature branch → `main`
 2) Update root changelog: `CHANGELOG.md`
 3) Update docs changelog: `docs/changelog.html`
-4) Bump version: `npm version minor` (or appropriate)
+4) Bump version in `package.json` (manually or via `npm version patch|minor|major`)
 5) Build + lint: `npm run build && npm run lint`
-6) Regenerate docs examples (CDN vX.Y.Z): `node docs/copy-examples.js`
-7) Manually update CDN references (copy-examples only updates docs/examples/):
-   - `README.md` (version badge text + CDN URLs)
-   - `docs/installation.html`, `docs/demo.html`, `docs/examples.html`
-   - `AGENTS.md` (Current version section)
-8) Commit, tag, and push:
+6) **CRITICAL**: Run `node docs/copy-examples.js` to sync docs examples with new version
+   - This script reads version from package.json and updates ALL CDN references automatically
+   - Updates: docs/examples/, docs/installation.html, docs/demo.html, docs/examples.html, docs/changelog.html
+7) Manually update remaining CDN references:
+   - `README.md` (version badge text + CDN URLs in Quick Start section)
+   - `AGENTS.md` (Current version section below)
+8) **VERIFY**: Check all docs files have correct version
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.4.2"` (should be empty)
+9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
-9) Publish: `npm publish`
+9) Login to npm (if needed): `npm login`
+10) Publish: `npm publish`
 
 ## Versioning & Changelogs
 - Use SemVer.
@@ -85,6 +89,6 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.4.1)
-- New: `setDensity()` method on DiveParticles for dynamic particle control
-- Improved: Animation example with demo model link and mobile UI polish
+## Current (1.4.2)
+- New: `setSurveyBrightness(multiplier)` method on DiveLighting
+- Improved: Animation example for smaller and darker objects

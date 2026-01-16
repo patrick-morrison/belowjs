@@ -12,12 +12,12 @@
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.4.1/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.4.2/dist/belowjs.js"
         }
     }
     </script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.4.1/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.4.2/dist/belowjs.css">
 
     <style>
         * {
@@ -246,6 +246,10 @@
             .anim-panel.collapsed {
                 padding: 10px 14px;
             }
+
+            .fly-hint {
+                display: none;
+            }
         }
 
         /* Disabled state for panel/timeline before model loads */
@@ -286,6 +290,12 @@
             min-width: 40px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .torch-row label:hover {
+            color: #94a3b8;
         }
 
         .torch-row input[type="range"] {
@@ -307,6 +317,20 @@
             background: #0ea5e9;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Survey controls for survey mode */
+        .survey-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+            margin-top: -4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .survey-controls.hidden {
+            display: none;
         }
 
         /* Film Toggle (Timeline/Orbit) */
@@ -1362,22 +1386,30 @@
             </label>
         </div>
 
+        <!-- Survey Brightness Controls (visible when survey mode enabled) -->
+        <div class="survey-controls" id="surveyControls">
+            <div class="torch-row">
+                <label id="brightnessLabel" title="Click to reset">Brightness</label>
+                <input type="range" id="surveyBrightness" min="-0.693" max="1.609" step="0.01" value="0">
+            </div>
+        </div>
+
         <!-- Torch Controls (visible when dive mode enabled) -->
         <div class="torch-controls" id="torchControls">
             <div class="torch-row">
-                <label>Power</label>
+                <label id="powerLabel" title="Click to reset">Power</label>
                 <input type="range" id="torchPower" min="0.5" max="20" step="0.5" value="8">
             </div>
             <div class="torch-row">
-                <label>Width</label>
+                <label id="widthLabel" title="Click to reset">Width</label>
                 <input type="range" id="torchWidth" min="15" max="90" step="1" value="40">
             </div>
             <div class="torch-row">
-                <label>Dist</label>
+                <label id="distLabel" title="Click to reset">Dist</label>
                 <input type="range" id="torchDistance" min="10" max="200" step="1" value="50">
             </div>
             <div class="torch-row">
-                <label>Particles</label>
+                <label id="particlesLabel" title="Click to reset">Particles</label>
                 <input type="range" id="particleDensity" min="0" max="2.0" step="0.05" value="1.0">
             </div>
         </div>
@@ -1623,6 +1655,7 @@
         // Camera rotation state for fly mode
         let cameraYaw = 0;
         let cameraPitch = 0;
+        let modelSize = 100; // Default reference size in meters
 
         // Elements
         const emptyState = document.getElementById('emptyState');
@@ -1664,6 +1697,8 @@
         const exportSegments = document.getElementById('exportSegments');
         const diveToggle = document.getElementById('diveToggle');
         const torchControls = document.getElementById('torchControls');
+        const surveyControls = document.getElementById('surveyControls');
+        const surveyBrightness = document.getElementById('surveyBrightness');
         const torchPower = document.getElementById('torchPower');
         const torchWidth = document.getElementById('torchWidth');
         const torchDistance = document.getElementById('torchDistance');
@@ -1882,6 +1917,9 @@
             if (controls) controls.enabled = !pointerLocked;
             flyControlsEnabled = pointerLocked;
             flyModeIndicator.classList.toggle('visible', pointerLocked);
+
+            // Update aspect frame when exiting fly mode to prevent offset
+            updateAspectFrame();
         });
 
         // Interactive sidebar fly hint
@@ -1922,7 +1960,10 @@
             const camera = getCamera();
             if (!camera) return;
 
-            const speed = keys.shift ? 20 : 6;
+            // Scale speed linearly with model size (tuned for 100m, 10m is 10x slower)
+            const sizeMultiplier = modelSize / 100;
+            const baseSpeed = keys.shift ? 20 : 6;
+            const speed = baseSpeed * sizeMultiplier;
             const direction = new THREE.Vector3();
 
             if (keys.w) direction.z -= 1;
@@ -2017,6 +2058,7 @@
                     aspectRatio,
                     resolution: exportResolution,
                     diveMode: diveToggle.checked,
+                    surveyBrightness: Math.exp(parseFloat(surveyBrightness.value)),
                     torch: {
                         enabled: torchPower.value > 0, // Inferred
                         intensity: parseFloat(torchPower.value),
@@ -2090,8 +2132,20 @@
                             diveToggle.dispatchEvent(new Event('change'));
                         }
 
-                        // Torch Settings
-                        if (data.settings.torch) {
+                        // Survey Brightness (only apply if in survey mode)
+                        if (data.settings.surveyBrightness !== undefined && !diveToggle.checked) {
+                            const brightness = parseFloat(data.settings.surveyBrightness);
+                            // Validate: must be positive number within range
+                            if (!isNaN(brightness) && brightness > 0) {
+                                const clampedBrightness = Math.max(0.5, Math.min(5.0, brightness));
+                                // Convert from linear multiplier to log scale for slider
+                                surveyBrightness.value = Math.log(clampedBrightness);
+                                surveyBrightness.dispatchEvent(new Event('input'));
+                            }
+                        }
+
+                        // Torch Settings (only apply if in dive mode)
+                        if (data.settings.torch && diveToggle.checked) {
                             if (data.settings.torch.intensity !== undefined) {
                                 torchPower.value = data.settings.torch.intensity;
                                 torchPower.dispatchEvent(new Event('input'));
@@ -2106,8 +2160,8 @@
                             }
                         }
 
-                        // Particle Density
-                        if (data.settings.particleDensity !== undefined) {
+                        // Particle Density (only apply if in dive mode)
+                        if (data.settings.particleDensity !== undefined && diveToggle.checked) {
                             particleDensity.value = data.settings.particleDensity;
                             particleDensity.dispatchEvent(new Event('input'));
                         }
@@ -2251,6 +2305,12 @@
         }
         window.addEventListener('resize', updateAspectFrame);
 
+        // Update aspect frame on fullscreen changes to prevent offset
+        document.addEventListener('fullscreenchange', updateAspectFrame);
+        document.addEventListener('webkitfullscreenchange', updateAspectFrame); // Safari
+        document.addEventListener('mozfullscreenchange', updateAspectFrame); // Firefox
+        document.addEventListener('MSFullscreenChange', updateAspectFrame); // IE/Edge
+
         // Dive Mode Toggle
         diveToggle.addEventListener('change', () => {
             const diveSystem = viewer.diveSystem;
@@ -2258,6 +2318,7 @@
                 if (diveSystem) {
                     diveSystem.enableDiveMode();
                     torchControls.classList.add('visible');
+                    surveyControls.classList.add('hidden');
                     // Sync values from sliders
                     torchPower.dispatchEvent(new Event('input'));
                     torchWidth.dispatchEvent(new Event('input'));
@@ -2269,7 +2330,20 @@
                 if (diveSystem) {
                     diveSystem.disableDiveMode();
                     torchControls.classList.remove('visible');
+                    surveyControls.classList.remove('hidden');
+                    // Sync survey brightness
+                    surveyBrightness.dispatchEvent(new Event('input'));
                 }
+            }
+        });
+
+        // Survey Brightness Control (logarithmic scale)
+        surveyBrightness.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.lighting) {
+                // Convert from log scale to linear (0.5x to 10x, centered at 1x)
+                const multiplier = Math.exp(parseFloat(surveyBrightness.value));
+                diveSystem.lighting.setSurveyBrightness(multiplier);
             }
         });
 
@@ -2332,6 +2406,32 @@
                     }
                 }
             }
+        });
+
+        // Click-to-reset handlers for slider labels
+        document.getElementById('brightnessLabel').addEventListener('click', () => {
+            surveyBrightness.value = 0; // Log scale for 1.0x
+            surveyBrightness.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('powerLabel').addEventListener('click', () => {
+            torchPower.value = 8;
+            torchPower.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('widthLabel').addEventListener('click', () => {
+            torchWidth.value = 40;
+            torchWidth.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('distLabel').addEventListener('click', () => {
+            torchDistance.value = 50;
+            torchDistance.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('particlesLabel').addEventListener('click', () => {
+            particleDensity.value = 1.0;
+            particleDensity.dispatchEvent(new Event('input'));
         });
 
         // Initialize aspect frame for default 16:9
@@ -3361,6 +3461,20 @@
 
                 hasModel = true;
 
+                // Calculate model size for fly speed scaling
+                const scene = viewer?.belowViewer?.sceneManager?.getScene();
+                if (scene) {
+                    const box = new THREE.Box3().setFromObject(scene);
+                    if (!box.isEmpty()) {
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxSize = Math.max(size.x, size.y, size.z);
+                        // Clamp to reasonable range: 1m to 10,000m
+                        if (maxSize > 0 && isFinite(maxSize)) {
+                            modelSize = Math.max(1, Math.min(10000, maxSize));
+                        }
+                    }
+                }
+
                 // Expand panel on small screens when model loads
                 if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
                     animPanel.classList.remove('collapsed');
@@ -3419,6 +3533,20 @@
                 window.dispatchEvent(new Event('resize'));
 
                 hasModel = true;
+
+                // Calculate model size for fly speed scaling
+                const scene = viewer?.belowViewer?.sceneManager?.getScene();
+                if (scene) {
+                    const box = new THREE.Box3().setFromObject(scene);
+                    if (!box.isEmpty()) {
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxSize = Math.max(size.x, size.y, size.z);
+                        // Clamp to reasonable range: 1m to 10,000m
+                        if (maxSize > 0 && isFinite(maxSize)) {
+                            modelSize = Math.max(1, Math.min(10000, maxSize));
+                        }
+                    }
+                }
 
                 if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
                     animPanel.classList.remove('collapsed');
