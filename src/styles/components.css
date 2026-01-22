@@ -319,3 +319,92 @@
 .fullscreen-button.no-measurement {
   bottom: 20px !important;
 }
+
+/* Fly mode overlay */
+.fly-mode-indicator {
+  position: absolute;
+  inset: 0;
+  z-index: 1002;
+  display: none;
+  pointer-events: none;
+}
+
+.fly-mode-indicator.visible {
+  display: block;
+}
+
+.fly-mode-indicator .crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+.fly-mode-indicator .crosshair::before,
+.fly-mode-indicator .crosshair::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.fly-mode-indicator .crosshair::before {
+  width: 8px;
+  height: 2px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fly-mode-indicator .crosshair::after {
+  width: 2px;
+  height: 8px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fly-mode-indicator .hint {
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #e2e8f0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.fly-mode-indicator .fly-exit {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.fly-mode-indicator kbd {
+  background: #334155;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  margin: 0 2px;
+}
+
+@media (max-width: 768px) {
+  .fly-mode-indicator .hint {
+    bottom: 90px;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .fly-mode-indicator .fly-exit {
+    font-size: 10px;
+  }
+}

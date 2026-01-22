@@ -5,6 +5,7 @@ import { EventSystem } from '../utils/EventSystem.js';
 import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
 import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 import { DiveSystem } from '../dive/DiveSystem.js';
+import { FlyControls } from '../core/FlyControls.js';
 
 /**
  * @typedef {Object} ModelConfig
@@ -73,6 +74,13 @@ import { DiveSystem } from '../dive/DiveSystem.js';
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
  * @property {boolean} [enableFullscreen=false] - Show fullscreen toggle button
  * @property {boolean} [enableScreenshot=false] - Show screenshot button
+ * @property {boolean} [enableFlyControls=true] - Enable keyboard/mouse fly mode (pointer lock)
+ * @property {Object} [flyControls] - Fly controls configuration
+ * @property {number} [flyControls.baseSpeed=6] - Base fly movement speed
+ * @property {number} [flyControls.boostSpeed=20] - Boosted fly speed (shift held)
+ * @property {number} [flyControls.speedScale=100] - Reference size for speed scaling
+ * @property {number} [flyControls.mouseSensitivity=0.002] - Mouse sensitivity for fly mode
+ * @property {boolean} [flyControls.clickToExit=true] - Exit fly mode on click
  * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
  * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
@@ -102,6 +110,7 @@ import { DiveSystem } from '../dive/DiveSystem.js';
  * @fires ModelViewer#camera-reset - Fired when camera is reset to initial position
  * @fires ModelViewer#vr-session-start - Fired when VR session begins
  * @fires ModelViewer#vr-session-end - Fired when VR session ends
+ * @fires ModelViewer#fly-mode-change - Fired when fly mode is toggled
  * 
  * @example
  * // Basic usage with single model
@@ -181,6 +190,8 @@ export class ModelViewer extends EventSystem {
       showDiveToggle: { type: 'boolean', default: true },
       enableFullscreen: { type: 'boolean', default: false },
       enableScreenshot: { type: 'boolean', default: false },
+      enableFlyControls: { type: 'boolean', default: true },
+      flyControls: { type: 'object', default: {} },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
       viewerConfig: {
@@ -206,7 +217,9 @@ export class ModelViewer extends EventSystem {
     this.diveSystem = null;
     this.fullscreenButton = null;
     this.screenshotButton = null;
+    this.flyControls = null;
     this.lastComfortMode = null;
+    this._vrButtonWasVisible = false;
     
     // VR loading state
     this.isLoading = false;
@@ -249,6 +262,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachDiveSystem();
       this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
+      this._maybeAttachFlyControls();
     });
 
 
@@ -259,6 +273,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachDiveSystem();
       this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
+      this._maybeAttachFlyControls();
     }
 
     if (Object.keys(this.config.models).length > 0) {
@@ -468,6 +483,98 @@ export class ModelViewer extends EventSystem {
     this.updateFullscreenButton();
   }
 
+  _maybeAttachFlyControls() {
+    if (!this.config.enableFlyControls || this.flyControls) return;
+    if (!this.belowViewer?.cameraManager || !this.belowViewer?.renderer) return;
+
+    this.flyControls = new FlyControls({
+      domElement: this.belowViewer.renderer.domElement,
+      camera: this.belowViewer.cameraManager.camera,
+      controls: this.belowViewer.cameraManager.controls,
+      renderer: this.belowViewer.renderer,
+      ...this.config.flyControls
+    });
+
+    this._ensureFlyModeIndicator();
+
+    this.flyControls.on('fly-mode-change', (data) => {
+      this.emit('fly-mode-change', data);
+      if (this.ui.flyIndicator) {
+        this.ui.flyIndicator.classList.toggle('visible', data.active);
+      }
+
+      // Hide/show VR button when entering/exiting fly mode
+      this._handleVRButtonVisibility(data.active);
+    });
+
+    const update = (delta) => {
+      if (this.flyControls) {
+        this.flyControls.update(delta);
+      }
+    };
+
+    if (this.belowViewer.onAfterRender) {
+      this.belowViewer.onAfterRender(update);
+    } else {
+      this.belowViewer.on('before-render', update);
+    }
+  }
+
+  _ensureFlyModeIndicator() {
+    if (this.ui.flyIndicator || typeof document === 'undefined') return;
+
+    const existing = document.getElementById('flyModeIndicator');
+    if (existing) {
+      this.ui.flyIndicator = existing;
+      return;
+    }
+
+    const indicator = document.createElement('div');
+    indicator.className = 'fly-mode-indicator';
+
+    const exitHint = this.flyControls?.clickToExit
+      ? 'Click to exit or press Esc'
+      : 'Press Esc to exit';
+
+    indicator.innerHTML = `
+      <div class="crosshair"></div>
+      <div class="hint">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move
+        <kbd>Q</kbd><kbd>E</kbd> Up/Down
+        <kbd>Shift</kbd> Fast<br>
+        <span class="fly-exit">${exitHint}</span>
+      </div>
+    `;
+
+    this.container.appendChild(indicator);
+    this.ui.flyIndicator = indicator;
+  }
+
+  _handleVRButtonVisibility(flyModeActive) {
+    const vrButton = this.belowViewer?.vrManager?.vrCore?.vrButton;
+    if (!vrButton) return;
+
+    if (flyModeActive) {
+      // Entering fly mode - hide VR button if it's showing
+      const currentVisibility = window.getComputedStyle(vrButton).visibility;
+      if (currentVisibility !== 'hidden') {
+        this._vrButtonWasVisible = true;
+        // Use setProperty with 'important' to override inline !important styles
+        vrButton.style.setProperty('visibility', 'hidden', 'important');
+        vrButton.style.setProperty('opacity', '0', 'important');
+        vrButton.style.setProperty('pointer-events', 'none', 'important');
+      }
+    } else {
+      // Exiting fly mode - restore VR button if it was visible before
+      if (this._vrButtonWasVisible) {
+        vrButton.style.setProperty('visibility', 'visible', 'important');
+        vrButton.style.setProperty('opacity', '1', 'important');
+        vrButton.style.setProperty('pointer-events', 'auto', 'important');
+        this._vrButtonWasVisible = false;
+      }
+    }
+  }
+
   toggleFullscreen() {
     if (this.isFullscreen()) {
       const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
@@ -598,6 +705,9 @@ export class ModelViewer extends EventSystem {
 
 
   onVRSessionStart() {
+    if (this.flyControls) {
+      this.flyControls.exitFlyMode();
+    }
     if (this.ui.info) {
       this.ui.info.style.display = 'none';
     }
@@ -1520,6 +1630,9 @@ export class ModelViewer extends EventSystem {
     if (this.measurementSystem) {
       this.measurementSystem.setRaycastTargets(model);
     }
+    if (this.flyControls) {
+      this.flyControls.setModelSizeFromObject(model);
+    }
   }
   
   onModelLoadError({ error }) {
@@ -1659,6 +1772,61 @@ export class ModelViewer extends EventSystem {
         this.emit('camera-reset', { modelKey: this.currentModelKey, position: initialPos });
       }
     }
+  }
+
+  /**
+   * Enable or disable fly controls.
+   *
+   * @method setFlyControlsEnabled
+   * @param {boolean} enabled - Whether fly controls should be enabled
+   */
+  setFlyControlsEnabled(enabled) {
+    if (this.flyControls) {
+      this.flyControls.setEnabled(enabled);
+    }
+  }
+
+  /**
+   * Enter fly mode (pointer lock).
+   *
+   * @method enterFlyMode
+   */
+  enterFlyMode() {
+    if (this.flyControls) {
+      this.flyControls.enterFlyMode();
+    }
+  }
+
+  /**
+   * Exit fly mode (pointer lock).
+   *
+   * @method exitFlyMode
+   */
+  exitFlyMode() {
+    if (this.flyControls) {
+      this.flyControls.exitFlyMode();
+    }
+  }
+
+  /**
+   * Toggle fly mode (pointer lock).
+   *
+   * @method toggleFlyMode
+   */
+  toggleFlyMode() {
+    if (this.flyControls) {
+      this.flyControls.toggleFlyMode();
+    }
+  }
+
+  /**
+   * Check if fly mode is currently active.
+   *
+   * @method isFlyModeActive
+   * @returns {boolean} True if fly mode is active
+   */
+  isFlyModeActive() {
+    return this.flyControls ? this.flyControls.isActive() : false;
   }
   
 
