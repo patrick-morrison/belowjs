@@ -134,18 +134,31 @@
     viewerContainer.style.zIndex = '0';
     document.body.appendChild(viewerContainer);
 
+    const models = {
+      kxi: {
+        url: '/examples/basic/models/kxi.glb',
+        name: 'HNLMS K XI (1946)',
+        credit: 'WreckSploration'
+      },
+      sesa: {
+        url: '/examples/basic/models/sesa.glb',
+        name: 'Sesa',
+        credit: 'WreckSploration'
+      },
+      unknown: {
+        url: '/examples/basic/models/unknown.glb',
+        name: 'Unknown Wreck',
+        credit: 'WreckSploration'
+      }
+    };
+
     const viewer = new ModelViewer(viewerContainer, {
       enableVR: false,
       showInfo: true,
       enableFullscreen: true,
       enableScreenshot: true,
-      models: {
-        kxi: {
-          url: '/examples/basic/models/kxi.glb',
-          name: 'HNLMS K XI (1946)',
-          credit: 'WreckSploration'
-        }
-      },
+      models: models,
+      autoLoadFirst: false,
       viewerConfig: {
         scene: {
           background: '#001122'
