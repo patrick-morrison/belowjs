@@ -368,10 +368,6 @@ export class ModelViewer extends EventSystem {
         event.preventDefault();
         if (this.comfortGlyph) this.comfortGlyph.toggle();
       }
-      if (event.code === 'KeyZ' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
-        event.preventDefault();
-        if (this.diveSystem) this.diveSystem.toggleDiveMode();
-      }
     });
 
     window.addEventListener('beforeunload', () => this.comfortGlyph && this.comfortGlyph.dispose());
@@ -389,6 +385,13 @@ export class ModelViewer extends EventSystem {
     setTimeout(() => {
       this.diveSystem.initializeToggleSwitch();
     }, 100);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'KeyZ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        if (this.diveSystem) this.diveSystem.toggleDiveMode();
+      }
+    });
 
 
     const update = (deltaTime) => {

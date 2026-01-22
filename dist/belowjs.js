@@ -9024,7 +9024,7 @@ class zn extends Te {
         };
       }
       document.addEventListener("keydown", (e) => {
-        e.code === "KeyC" && (e.ctrlKey || e.metaKey) && (e.preventDefault(), this.comfortGlyph && this.comfortGlyph.toggle()), e.code === "KeyZ" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode());
+        e.code === "KeyC" && (e.ctrlKey || e.metaKey) && (e.preventDefault(), this.comfortGlyph && this.comfortGlyph.toggle());
       }), window.addEventListener("beforeunload", () => this.comfortGlyph && this.comfortGlyph.dispose());
     }
   }
@@ -9036,7 +9036,9 @@ class zn extends Te {
       this.belowViewer.cameraManager.camera
     ), setTimeout(() => {
       this.diveSystem.initializeToggleSwitch();
-    }, 100);
+    }, 100), document.addEventListener("keydown", (t) => {
+      t.code === "KeyZ" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode());
+    });
     const e = (t) => {
       if (this.diveSystem) {
         const i = performance.now();
