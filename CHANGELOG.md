@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Fly mode controls with F key or Shift+~ to activate - port from animation example into core library
-- Stereoscopic viewing mode with UI mirroring for immersive stereo displays
+- **Stereoscopic viewing mode (Experimental)**: UI mirroring for immersive stereo displays
 - Stereo example demonstrating cylindrical projection for VR headset displays
 
 ### Changed

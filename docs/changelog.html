@@ -199,25 +199,26 @@
                     <div class="version-date">January 22, 2026</div>
                 </div>
 
-                <p>Port fly mode from animation example into library.</p>
+                <p>Fly mode controls, experimental stereoscopic viewing, and improved material rendering.</p>
 
                 <div class="changes-list">
+                    <h4>Added</h4>
                     <ul>
-                        <li><span class="change-type new">New</span> Port fly mode from animation example into library - F key or Shift+~ to activate</li>
+                        <li><span class="change-type new">New</span> Fly mode controls with F key or Shift+~ to activate - port from animation example into core library</li>
+                        <li><span class="change-type new">New</span> <strong>Stereoscopic viewing mode (Experimental)</strong>: UI mirroring for immersive stereo displays</li>
+                        <li><span class="change-type new">New</span> Stereo example demonstrating cylindrical projection for VR headset displays</li>
                     </ul>
-                </div>
-            </div>
 
-            <div class="version-section">
-                <div class="version-header">
-                    <div class="version-number">Unreleased</div>
-                    <div class="version-tag rc">Patch</div>
-                </div>
-                <div class="changes-list">
-                    <h3>Changed</h3>
+                    <h4>Changed</h4>
                     <ul>
                         <li><span class="change-type improved">Improved</span> Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)</li>
                         <li><span class="change-type improved">Improved</span> Studio lighting increased by 10% to compensate for improved material reflections</li>
+                    </ul>
+
+                    <h4>Fixed</h4>
+                    <ul>
+                        <li><span class="change-type fixed">Fixed</span> Raycasting accuracy in stereo viewing mode</li>
+                        <li><span class="change-type fixed">Fixed</span> VR button visibility management with fly mode controls</li>
                     </ul>
                 </div>
             </div>
