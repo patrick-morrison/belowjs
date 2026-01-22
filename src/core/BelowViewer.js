@@ -30,6 +30,10 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {boolean} [renderer.antialias=true] - Enable antialiasing
  * @property {boolean} [renderer.alpha=false] - Enable transparency
  * @property {string} [renderer.powerPreference='high-performance'] - GPU preference
+ * @property {Object} [stereo] - Stereo rendering configuration
+ * @property {boolean} [stereo.enabled=false] - Enable SBS stereo rendering
+ * @property {string} [stereo.mode='sbs'] - Stereo mode ('sbs')
+ * @property {number} [stereo.eyeSeparation=0.064] - Eye separation in meters (clamped to 0.050-0.070m for screen comfort)
  * @property {Object} [vr] - VR configuration
  * @property {boolean} [vr.enabled=true] - Enable VR support
  * @property {Object} [ar] - AR configuration
@@ -142,6 +146,19 @@ export class BelowViewer extends EventSystem {
           powerPreference: { type: 'string', default: 'high-performance' }
         }
       },
+      stereo: {
+        type: 'object',
+        default: {
+          enabled: false,
+          mode: 'sbs',
+          eyeSeparation: 0.064
+        },
+        schema: {
+          enabled: { type: 'boolean', default: false },
+          mode: { type: 'string', default: 'sbs' },
+          eyeSeparation: { type: 'number', default: 0.064 }
+        }
+      },
       vr: {
         type: 'object',
         default: { enabled: true },
@@ -178,9 +195,19 @@ export class BelowViewer extends EventSystem {
     this.modelLoader = null;
     this.vrManager = null;
     this.arManager = null;
+    this.stereoCamera = null;
 
     this.isVREnabled = this.config.vr?.enabled !== false;
     this.isAREnabled = this.config.ar?.enabled === true;
+    this.stereoEnabled = this.config.stereo?.enabled === true;
+    this.stereoMode = this.config.stereo?.mode || 'sbs';
+    // Clamp eye separation to comfortable range for screen-based stereo (50-70mm)
+    // IMAX and cinema 3D use conservative ranges to prevent eye strain on flat displays
+    const rawEyeSep = this.config.stereo?.eyeSeparation ?? 0.064;
+    this.stereoEyeSeparation = Math.max(0.050, Math.min(0.070, rawEyeSep));
+    if (this.stereoEyeSeparation !== rawEyeSep) {
+      console.warn(`[BelowJS] Initial eye separation ${rawEyeSep}m clamped to ${this.stereoEyeSeparation}m (comfortable range for screens: 0.050-0.070m)`);
+    }
     this.dolly = null;
     
     this.isInitialized = false;
@@ -202,6 +229,7 @@ export class BelowViewer extends EventSystem {
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
       this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || false;
+      this.initStereo();
       if (this.renderer?.getPixelRatio) {
         this.originalPixelRatio = this.renderer.getPixelRatio();
       } else if (typeof window !== 'undefined') {
@@ -270,6 +298,13 @@ export class BelowViewer extends EventSystem {
     this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure;
     
     this.container.appendChild(this.renderer.domElement);
+  }
+
+  initStereo() {
+    if (!this.stereoCamera) {
+      this.stereoCamera = new THREE.StereoCamera();
+    }
+    this.stereoCamera.eyeSep = this.stereoEyeSeparation;
   }
 
   initVR() {
@@ -586,13 +621,112 @@ export class BelowViewer extends EventSystem {
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
         if (!this.skipRenderDuringLoad || isXRPresenting) {
-          this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+          // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
+          // (VR headsets provide native stereoscopic rendering)
+          if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
+            this.renderSbsStereo();
+          } else {
+            this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+          }
         }
       }
     };
     
 
     this.renderer.setAnimationLoop(animate);
+  }
+
+  renderSbsStereo() {
+    if (!this.stereoCamera || !this.renderer || !this.sceneManager || !this.cameraManager) {
+      return;
+    }
+
+    const size = this.renderer.getSize(new THREE.Vector2());
+    const width = size.width;
+    const height = size.height;
+    const halfWidth = Math.floor(width / 2);
+    const rightWidth = width - halfWidth;
+
+    // Calculate aspect ratio for each eye viewport (width/height)
+    this.stereoCamera.aspect = height > 0 ? halfWidth / height : 1.0;
+    this.stereoCamera.update(this.cameraManager.camera);
+
+    this.renderer.setScissorTest(true);
+
+    this.renderer.setViewport(0, 0, halfWidth, height);
+    this.renderer.setScissor(0, 0, halfWidth, height);
+    this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraL);
+
+    this.renderer.setViewport(halfWidth, 0, rightWidth, height);
+    this.renderer.setScissor(halfWidth, 0, rightWidth, height);
+    this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraR);
+
+    this.renderer.setScissorTest(false);
+    this.renderer.setViewport(0, 0, width, height);
+  }
+
+  /**
+   * Enable or disable stereo rendering.
+   *
+   * Note: Stereo rendering (SBS) is automatically disabled when entering VR/XR mode,
+   * as VR headsets provide native stereoscopic rendering. When exiting VR, stereo
+   * rendering will resume if it was enabled before entering VR.
+   *
+   * @param {boolean} enabled - Whether stereo rendering is enabled.
+   */
+  setStereoEnabled(enabled) {
+    this.stereoEnabled = enabled === true;
+    if (this.stereoEnabled) {
+      this.initStereo();
+    }
+  }
+
+  /**
+   * Set the eye separation distance for stereo rendering.
+   *
+   * @param {number} eyeSeparation - Eye separation in meters (clamped to 0.050-0.070m for screen comfort).
+   */
+  setStereoEyeSeparation(eyeSeparation) {
+    if (typeof eyeSeparation !== 'number' || Number.isNaN(eyeSeparation)) {
+      return;
+    }
+    // Clamp to comfortable range for screen-based stereo: 50mm to 70mm
+    // IMAX and cinema 3D use conservative interaxial distances (often 50-65mm)
+    // to prevent eye strain and dizziness on flat displays. This is smaller than
+    // natural human IPD range (55-75mm) because screens lack depth cues of real world.
+    const clampedSeparation = Math.max(0.050, Math.min(0.070, eyeSeparation));
+    if (clampedSeparation !== eyeSeparation) {
+      console.warn(`[BelowJS] Eye separation ${eyeSeparation}m clamped to ${clampedSeparation}m (comfortable range for screens: 0.050-0.070m)`);
+    }
+    this.stereoEyeSeparation = clampedSeparation;
+    if (this.stereoCamera) {
+      this.stereoCamera.eyeSep = clampedSeparation;
+    }
+  }
+
+  /**
+   * Set the stereo mode (currently only 'sbs').
+   *
+   * @param {string} mode - Stereo mode string.
+   */
+  setStereoMode(mode) {
+    if (mode !== 'sbs') {
+      return;
+    }
+    this.stereoMode = mode;
+  }
+
+  /**
+   * Get the current stereo configuration.
+   *
+   * @returns {{enabled: boolean, mode: string, eyeSeparation: number}}
+   */
+  getStereoSettings() {
+    return {
+      enabled: this.stereoEnabled,
+      mode: this.stereoMode,
+      eyeSeparation: this.stereoEyeSeparation
+    };
   }
 
   applyLoadRenderingConstraints(isLoading) {

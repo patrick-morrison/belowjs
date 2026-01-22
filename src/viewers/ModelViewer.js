@@ -87,6 +87,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {SceneConfig} [viewerConfig.scene] - Scene configuration
  * @property {CameraConfig} [viewerConfig.camera] - Camera configuration
  * @property {Object} [viewerConfig.renderer] - Renderer configuration
+ * @property {Object} [viewerConfig.stereo] - Stereo rendering configuration
  * @property {string} [initialModel] - Key of model to load initially
  * @property {Object} [initialPositions] - Override initial positions for loaded model
  */
@@ -212,6 +213,11 @@ export class ModelViewer extends EventSystem {
     this.currentModelKey = null;
     this.belowViewer = null;
     this.ui = {};
+    this.uiRoot = null;
+    this.stereoUiMirror = null;
+    this.stereoUiObserver = null;
+    this.stereoUiSyncQueued = false;
+    this.stereoUiActive = false;
     this.measurementSystem = null;
     this.comfortGlyph = null;
     this.diveSystem = null;
@@ -295,6 +301,8 @@ export class ModelViewer extends EventSystem {
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
       controls: this.belowViewer.cameraManager.controls,
+      uiParent: this.getUiContainer(),
+      getRaycastInfo: (event) => this.getPointerRaycastInfo(event),
       theme: this.config.measurementTheme,
       showMeasurementLabels: this.config.showMeasurementLabels
     });
@@ -443,7 +451,7 @@ export class ModelViewer extends EventSystem {
       }
     });
 
-    this.container.appendChild(button);
+    this.getUiContainer().appendChild(button);
     this.screenshotButton = button;
     this.ui.screenshot = button;
   }
@@ -474,7 +482,7 @@ export class ModelViewer extends EventSystem {
       }
     });
 
-    this.container.appendChild(button);
+    this.getUiContainer().appendChild(button);
     this.fullscreenButton = button;
     this.ui.fullscreen = button;
 
@@ -866,16 +874,66 @@ export class ModelViewer extends EventSystem {
       onMouseClick
     };
   }
-  focusOnPoint(event) {
+
+  getPointerRaycastInfo(event) {
+    if (!event || typeof event.clientX !== 'number' || typeof event.clientY !== 'number') {
+      return null;
+    }
+    if (!this.belowViewer || !this.belowViewer.renderer || !this.belowViewer.cameraManager) {
+      return null;
+    }
+    if (this.belowViewer.renderer.xr?.isPresenting) {
+      return null;
+    }
+
     const canvas = this.belowViewer.renderer.domElement;
     const rect = canvas.getBoundingClientRect();
-    const mouse = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((event.clientY - rect.top) / rect.height) * 2 + 1
+    if (!rect.width || !rect.height) {
+      return null;
+    }
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return null;
+    }
+
+    const baseCamera = this.belowViewer.cameraManager.getCamera();
+    let camera = baseCamera;
+    let normX = (x / rect.width) * 2 - 1;
+    const normY = -((y / rect.height) * 2 - 1);
+
+    const settings = this.belowViewer.getStereoSettings?.();
+    if (settings?.enabled === true && settings?.mode === 'sbs' && this.belowViewer.stereoCamera) {
+      const stereoCamera = this.belowViewer.stereoCamera;
+      const halfWidth = rect.width / 2;
+      const isLeft = x <= halfWidth;
+      const eyeWidth = isLeft ? halfWidth : (rect.width - halfWidth);
+      const eyeX = isLeft ? x : (x - halfWidth);
+      if (eyeWidth > 0) {
+        normX = (eyeX / eyeWidth) * 2 - 1;
+      }
+      // Calculate aspect ratio for each eye viewport (width/height)
+      stereoCamera.aspect = rect.height > 0 ? halfWidth / rect.height : 1.0;
+      stereoCamera.update(baseCamera);
+      camera = isLeft ? stereoCamera.cameraL : stereoCamera.cameraR;
+    }
+
+    return {
+      mouse: { x: normX, y: normY },
+      camera
     };
+  }
+
+  focusOnPoint(event) {
+    const raycastInfo = this.getPointerRaycastInfo(event);
+    const mouse = raycastInfo?.mouse;
+    const camera = raycastInfo?.camera;
+    if (!mouse || !camera) {
+      return;
+    }
 
     const raycaster = new THREE.Raycaster();
-    const camera = this.belowViewer.cameraManager.getCamera();
     raycaster.setFromCamera(mouse, camera);
 
     let raycastTargets = [];
@@ -948,6 +1006,8 @@ export class ModelViewer extends EventSystem {
       this.container.classList.add('below-viewer-container');
     }
 
+    this.ensureUiRoot();
+
 
     const modelCount = Object.keys(this.config.models).length;
     if (modelCount > 1 && !this.ui.dropdown) {
@@ -982,9 +1042,129 @@ export class ModelViewer extends EventSystem {
       });
     }
   }
+
+  ensureUiRoot() {
+    if (this.uiRoot) {
+      return this.uiRoot;
+    }
+    const root = document.createElement('div');
+    root.className = 'below-ui-root';
+    this.container.appendChild(root);
+    this.uiRoot = root;
+    this.applyStereoUiState();
+    return root;
+  }
+
+  getUiContainer() {
+    return this.ensureUiRoot();
+  }
+
+  applyStereoUiState() {
+    const settings = this.belowViewer?.getStereoSettings?.();
+    const isStereo = settings?.enabled === true && settings?.mode === 'sbs';
+    if (!this.uiRoot) {
+      return;
+    }
+    if (isStereo) {
+      this.enableStereoUi();
+    } else {
+      this.disableStereoUi();
+    }
+  }
+
+  updateStereoUiState() {
+    this.applyStereoUiState();
+  }
+
+  enableStereoUi() {
+    if (this.stereoUiActive) {
+      this.scheduleStereoUiSync();
+      return;
+    }
+    this.stereoUiActive = true;
+    this.uiRoot.classList.add('below-ui-root--stereo-left');
+
+    if (!this.stereoUiMirror) {
+      const mirror = document.createElement('div');
+      mirror.className = 'below-ui-root below-ui-root--stereo-right';
+      mirror.setAttribute('aria-hidden', 'true');
+      mirror.setAttribute('inert', '');
+      mirror.tabIndex = -1;
+      mirror.style.pointerEvents = 'none';
+      this.container.appendChild(mirror);
+      this.stereoUiMirror = mirror;
+    }
+
+    this.scheduleStereoUiSync();
+
+    if (!this.stereoUiObserver && typeof MutationObserver !== 'undefined') {
+      this.stereoUiObserver = new MutationObserver(() => this.scheduleStereoUiSync());
+      this.stereoUiObserver.observe(this.uiRoot, {
+        childList: true,
+        attributes: true,
+        characterData: true,
+        subtree: true
+      });
+    }
+  }
+
+  disableStereoUi() {
+    if (!this.stereoUiActive) {
+      return;
+    }
+    this.stereoUiActive = false;
+    this.uiRoot.classList.remove('below-ui-root--stereo-left');
+    if (this.stereoUiObserver) {
+      this.stereoUiObserver.disconnect();
+      this.stereoUiObserver = null;
+    }
+    if (this.stereoUiMirror) {
+      this.stereoUiMirror.remove();
+      this.stereoUiMirror = null;
+    }
+  }
+
+  scheduleStereoUiSync() {
+    if (this.stereoUiSyncQueued || !this.stereoUiMirror) {
+      return;
+    }
+    this.stereoUiSyncQueued = true;
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (cb) => setTimeout(cb, 0);
+    schedule(() => {
+      this.stereoUiSyncQueued = false;
+      this.syncStereoUiMirror();
+    });
+  }
+
+  syncStereoUiMirror() {
+    if (!this.stereoUiMirror || !this.uiRoot) {
+      return;
+    }
+    this.stereoUiMirror.innerHTML = '';
+    for (const child of this.uiRoot.childNodes) {
+      const clone = child.cloneNode(true);
+      this.stripStereoCloneIds(clone);
+      this.stereoUiMirror.appendChild(clone);
+    }
+  }
+
+  stripStereoCloneIds(node) {
+    if (!node || node.nodeType !== 1) {
+      return;
+    }
+    if (node.hasAttribute('id')) {
+      node.removeAttribute('id');
+    }
+    if (node.hasAttribute('for')) {
+      node.removeAttribute('for');
+    }
+    for (const child of node.children) {
+      this.stripStereoCloneIds(child);
+    }
+  }
   
   createModelSelector() {
-    const parent = this.container;
+    const parent = this.getUiContainer();
 
 
     const existing = parent.querySelector('.model-selector');
@@ -1052,7 +1232,7 @@ export class ModelViewer extends EventSystem {
   createDiveModeToggle() {
     const toggleContainer = document.createElement('div');
     toggleContainer.className = 'dive-mode-toggle-container';
-    toggleContainer.style.position = 'fixed';
+    toggleContainer.style.position = 'absolute';
     toggleContainer.style.top = '20px';
     toggleContainer.style.right = '20px';
     toggleContainer.style.zIndex = '1000';
@@ -1095,7 +1275,7 @@ export class ModelViewer extends EventSystem {
     toggle.appendChild(left);
     toggle.appendChild(right);
     toggleContainer.appendChild(toggle);
-    this.container.appendChild(toggleContainer);
+    this.getUiContainer().appendChild(toggleContainer);
 
     this.ui.diveToggle = toggleContainer;
   }
@@ -1122,7 +1302,7 @@ export class ModelViewer extends EventSystem {
       </div>
     `;
     
-    this.container.appendChild(loading);
+    this.getUiContainer().appendChild(loading);
     this.ui.loading = loading;
   }
 
@@ -1251,7 +1431,7 @@ export class ModelViewer extends EventSystem {
     status.id = 'status';
     status.className = 'status below-status';
     status.style.display = 'none';
-    this.container.appendChild(status);
+    this.getUiContainer().appendChild(status);
     this.ui.status = status;
   }
   
@@ -1275,7 +1455,7 @@ export class ModelViewer extends EventSystem {
     
     info.appendChild(title);
     info.appendChild(controls);
-    this.container.appendChild(info);
+    this.getUiContainer().appendChild(info);
 
     this.ui.info = info;
   }
@@ -1880,6 +2060,53 @@ export class ModelViewer extends EventSystem {
     }
     return null;
   }
+
+  /**
+   * Enable or disable SBS stereo rendering.
+   *
+   * @param {boolean} enabled - Whether stereo rendering is enabled.
+   */
+  setStereoEnabled(enabled) {
+    if (this.belowViewer && this.belowViewer.setStereoEnabled) {
+      this.belowViewer.setStereoEnabled(enabled);
+    }
+    this.updateStereoUiState();
+  }
+
+  /**
+   * Adjust the SBS stereo eye separation.
+   *
+   * @param {number} eyeSeparation - Eye separation in meters.
+   */
+  setStereoEyeSeparation(eyeSeparation) {
+    if (this.belowViewer && this.belowViewer.setStereoEyeSeparation) {
+      this.belowViewer.setStereoEyeSeparation(eyeSeparation);
+    }
+  }
+
+  /**
+   * Set the stereo mode (currently only 'sbs').
+   *
+   * @param {string} mode - Stereo mode string.
+   */
+  setStereoMode(mode) {
+    if (this.belowViewer && this.belowViewer.setStereoMode) {
+      this.belowViewer.setStereoMode(mode);
+    }
+    this.updateStereoUiState();
+  }
+
+  /**
+   * Get current stereo settings.
+   *
+   * @returns {{enabled: boolean, mode: string, eyeSeparation: number}|null}
+   */
+  getStereoSettings() {
+    if (this.belowViewer && this.belowViewer.getStereoSettings) {
+      return this.belowViewer.getStereoSettings();
+    }
+    return null;
+  }
   
   /**
    * Clean up and dispose of all resources
@@ -1931,6 +2158,14 @@ export class ModelViewer extends EventSystem {
     if (this.screenshotButton) {
       this.screenshotButton.remove();
       this.screenshotButton = null;
+    }
+    if (this.stereoUiObserver) {
+      this.stereoUiObserver.disconnect();
+      this.stereoUiObserver = null;
+    }
+    if (this.stereoUiMirror) {
+      this.stereoUiMirror.remove();
+      this.stereoUiMirror = null;
     }
     if (this.belowViewer) {
       this.belowViewer.dispose();

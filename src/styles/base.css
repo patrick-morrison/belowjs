@@ -30,6 +30,28 @@ html, body {
   position: relative;
 }
 
+.below-ui-root {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.below-ui-root > * {
+  pointer-events: auto;
+}
+
+.below-ui-root--stereo-left {
+  right: 50%;
+}
+
+.below-ui-root--stereo-right {
+  left: 50%;
+  pointer-events: none;
+}
+
 /* Ensure renderer canvas fills the container without gaps */
 .below-viewer-container canvas {
   display: block;
