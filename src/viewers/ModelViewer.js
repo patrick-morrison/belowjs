@@ -368,6 +368,10 @@ export class ModelViewer extends EventSystem {
         event.preventDefault();
         if (this.comfortGlyph) this.comfortGlyph.toggle();
       }
+      if (event.code === 'KeyZ' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+        event.preventDefault();
+        if (this.diveSystem) this.diveSystem.toggleDiveMode();
+      }
     });
 
     window.addEventListener('beforeunload', () => this.comfortGlyph && this.comfortGlyph.dispose());
