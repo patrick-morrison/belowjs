@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Fly mode controls with F key or Shift+~ to activate - port from animation example into core library
-- **Stereoscopic viewing mode (Experimental)**: UI mirroring for immersive stereo displays
-- Stereo example demonstrating cylindrical projection for VR headset displays
+- **Stereoscopic viewing mode (Experimental)**: side-by-side stereo rendering with configurable eye separation
+- Stereo example with adjustable eye separation controls
 
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
