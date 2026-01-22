@@ -7,6 +7,7 @@ import { Line2, LineMaterial, LineGeometry } from './ThickLine.js';
  * @property {THREE.Scene} scene - Three.js scene for measurement objects
  * @property {THREE.PerspectiveCamera} camera - Three.js camera
  * @property {THREE.WebGLRenderer} renderer - Three.js renderer
+ * @property {HTMLElement} [uiParent] - Optional parent element for measurement UI
  * @property {Object} [controls] - Orbit controls for desktop mode
  * @property {THREE.Group} [dolly] - VR dolly for VR mode positioning
  * @property {Object} [config={}] - Additional configuration options
@@ -127,7 +128,7 @@ export class MeasurementSystem {
    * 
    * @param {MeasurementSystemConfig} config - Configuration object
    */
-  constructor({ scene, camera, renderer, controls, dolly, config = {}, theme = 'dark', showMeasurementLabels = false }) {
+  constructor({ scene, camera, renderer, controls, dolly, uiParent, config = {}, theme = 'dark', showMeasurementLabels = false }) {
     this.ghostSpheres = {
       left: null,
       right: null
@@ -149,6 +150,7 @@ export class MeasurementSystem {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
+    this.uiParent = uiParent || null;
     this.controls = controls;
     this.dolly = dolly;
     this.config = config;
@@ -995,7 +997,7 @@ export class MeasurementSystem {
         this.updateMeasurementPanel();
       }
     });
-    const parent = (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement) || document.body;
+    const parent = this.uiParent || (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement) || document.body;
     parent.appendChild(panel);
     this.measurementPanel = panel;
   }

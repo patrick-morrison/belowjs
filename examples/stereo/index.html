@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BelowJS - Stereo Example</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫧</text></svg>">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/node_modules/three/build/three.module.js",
+      "belowjs": "/dist/belowjs.js"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="/dist/belowjs.css">
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #001122;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #e2e8f0;
+    }
+
+    .stereo-panel {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 1200;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(51, 65, 85, 0.85);
+      border-radius: 12px;
+      padding: 12px 14px;
+      width: 240px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .stereo-panel h2 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #93c5fd;
+    }
+
+    .stereo-panel label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #cbd5f5;
+    }
+
+    .stereo-panel .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stereo-panel input[type="range"] {
+      flex: 1;
+    }
+
+    .stereo-panel .value {
+      min-width: 46px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #f8fafc;
+    }
+
+    .stereo-panel button {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(59, 130, 246, 0.9);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s ease;
+    }
+
+    .stereo-panel button:hover {
+      background: rgba(59, 130, 246, 1);
+    }
+  </style>
+</head>
+<body>
+  <div class="stereo-panel">
+    <h2>Stereo</h2>
+    <div class="row">
+      <label for="eyeDistance">Eye distance</label>
+    </div>
+    <div class="row">
+      <input id="eyeDistance" type="range" min="0.03" max="0.12" step="0.005" value="0.064">
+      <span class="value" id="eyeValue">0.064</span>
+    </div>
+    <button id="toggleStereo">Disable Stereo</button>
+  </div>
+
+  <script type="module">
+    import { ModelViewer } from 'belowjs';
+
+    const viewerContainer = document.createElement('div');
+    viewerContainer.style.position = 'fixed';
+    viewerContainer.style.inset = '0';
+    viewerContainer.style.zIndex = '0';
+    document.body.appendChild(viewerContainer);
+
+    const viewer = new ModelViewer(viewerContainer, {
+      enableVR: false,
+      showInfo: true,
+      enableFullscreen: true,
+      enableScreenshot: true,
+      models: {
+        kxi: {
+          url: '/examples/basic/models/kxi.glb',
+          name: 'HNLMS K XI (1946)',
+          credit: 'WreckSploration'
+        }
+      },
+      viewerConfig: {
+        scene: {
+          background: '#001122'
+        },
+        stereo: {
+          enabled: true,
+          mode: 'sbs',
+          eyeSeparation: 0.064
+        }
+      }
+    });
+
+    const stereoPanel = document.querySelector('.stereo-panel');
+    const uiContainer = typeof viewer.getUiContainer === 'function' ? viewer.getUiContainer() : viewerContainer;
+    if (stereoPanel && uiContainer && stereoPanel.parentElement !== uiContainer) {
+      uiContainer.appendChild(stereoPanel);
+    }
+
+    viewer.loadModel('kxi');
+
+    const eyeDistance = document.getElementById('eyeDistance');
+    const eyeValue = document.getElementById('eyeValue');
+    const toggleStereo = document.getElementById('toggleStereo');
+
+    const updateEyeValue = () => {
+      const value = Number(eyeDistance.value);
+      eyeValue.textContent = value.toFixed(3);
+      viewer.setStereoEyeSeparation(value);
+    };
+
+    eyeDistance.addEventListener('input', updateEyeValue);
+    updateEyeValue();
+
+    toggleStereo.addEventListener('click', () => {
+      const current = viewer.getStereoSettings();
+      const nextEnabled = !current?.enabled;
+      viewer.setStereoEnabled(nextEnabled);
+      toggleStereo.textContent = nextEnabled ? 'Disable Stereo' : 'Enable Stereo';
+    });
+  </script>
+</body>
+</html>
