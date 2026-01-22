@@ -287,6 +287,7 @@ export class ModelViewer extends EventSystem {
       renderer: this.belowViewer.renderer,
       controls: this.belowViewer.cameraManager.controls,
       uiParent: this.getUiContainer(),
+      getRaycastInfo: (event) => this.getPointerRaycastInfo(event),
       theme: this.config.measurementTheme,
       showMeasurementLabels: this.config.showMeasurementLabels
     });
@@ -763,16 +764,65 @@ export class ModelViewer extends EventSystem {
       onMouseClick
     };
   }
-  focusOnPoint(event) {
+
+  getPointerRaycastInfo(event) {
+    if (!event || typeof event.clientX !== 'number' || typeof event.clientY !== 'number') {
+      return null;
+    }
+    if (!this.belowViewer || !this.belowViewer.renderer || !this.belowViewer.cameraManager) {
+      return null;
+    }
+    if (this.belowViewer.renderer.xr?.isPresenting) {
+      return null;
+    }
+
     const canvas = this.belowViewer.renderer.domElement;
     const rect = canvas.getBoundingClientRect();
-    const mouse = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((event.clientY - rect.top) / rect.height) * 2 + 1
+    if (!rect.width || !rect.height) {
+      return null;
+    }
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return null;
+    }
+
+    const baseCamera = this.belowViewer.cameraManager.getCamera();
+    let camera = baseCamera;
+    let normX = (x / rect.width) * 2 - 1;
+    const normY = -((y / rect.height) * 2 - 1);
+
+    const settings = this.belowViewer.getStereoSettings?.();
+    if (settings?.enabled === true && settings?.mode === 'sbs' && this.belowViewer.stereoCamera) {
+      const stereoCamera = this.belowViewer.stereoCamera;
+      const halfWidth = rect.width / 2;
+      const isLeft = x <= halfWidth;
+      const eyeWidth = isLeft ? halfWidth : (rect.width - halfWidth);
+      const eyeX = isLeft ? x : (x - halfWidth);
+      if (eyeWidth > 0) {
+        normX = (eyeX / eyeWidth) * 2 - 1;
+      }
+      stereoCamera.aspect = rect.width > 0 ? halfWidth / rect.width : 0.5;
+      stereoCamera.update(baseCamera);
+      camera = isLeft ? stereoCamera.cameraL : stereoCamera.cameraR;
+    }
+
+    return {
+      mouse: { x: normX, y: normY },
+      camera
     };
+  }
+
+  focusOnPoint(event) {
+    const raycastInfo = this.getPointerRaycastInfo(event);
+    const mouse = raycastInfo?.mouse;
+    const camera = raycastInfo?.camera;
+    if (!mouse || !camera) {
+      return;
+    }
 
     const raycaster = new THREE.Raycaster();
-    const camera = this.belowViewer.cameraManager.getCamera();
     raycaster.setFromCamera(mouse, camera);
 
     let raycastTargets = [];
