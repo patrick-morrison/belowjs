@@ -15,9 +15,10 @@ export class DiveSystem {
     this.lighting = new DiveLighting(scene);
     this.particles = new DiveParticles(scene);
     this.torch = new DiveTorch(scene);
-    
+
     this.isQuest2 = false;
     this.isQuest3 = false;
+    this._fallbackHandedness = new Map();
     this.detectQuestDevice();
     
     this.applyModeSettings();
@@ -322,11 +323,13 @@ export class DiveSystem {
   checkVRControllerButtons(renderer) {
     if (!renderer || !renderer.xr) return;
     
-    const session = renderer.xr.getSession();
-    if (!session) return;
+    const session = renderer.xr.getSession && renderer.xr.getSession();
+    const inputSources = session && session.inputSources
+      ? Array.from(session.inputSources)
+      : this._getFallbackInputSources();
+    if (!inputSources || inputSources.length === 0) return;
 
-
-    for (const inputSource of session.inputSources) {
+    for (const inputSource of inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
@@ -357,6 +360,54 @@ export class DiveSystem {
         });
       }
     }
+  }
+
+  _getFallbackInputSources() {
+    if (typeof navigator === 'undefined' || !navigator.getGamepads) return [];
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) return [];
+
+    const sources = [];
+    let fallbackIndex = 0;
+
+    for (const gamepad of gamepads) {
+      if (!gamepad || !gamepad.buttons) continue;
+
+      const handedness = this._resolveHandedness(gamepad, fallbackIndex);
+      if (!handedness) {
+        fallbackIndex += 1;
+        continue;
+      }
+
+      sources.push({ gamepad, handedness });
+      fallbackIndex += 1;
+    }
+
+    return sources;
+  }
+
+  _resolveHandedness(gamepad, fallbackIndex) {
+    const hand = (gamepad.hand || '').toLowerCase();
+    if (hand === 'left' || hand === 'right') return hand;
+
+    const id = (gamepad.id || '').toLowerCase();
+    if (id.includes('left')) return 'left';
+    if (id.includes('right')) return 'right';
+
+    if (this._fallbackHandedness.has(gamepad.index)) {
+      return this._fallbackHandedness.get(gamepad.index);
+    }
+
+    if (fallbackIndex === 0) {
+      this._fallbackHandedness.set(gamepad.index, 'left');
+      return 'left';
+    }
+    if (fallbackIndex === 1) {
+      this._fallbackHandedness.set(gamepad.index, 'right');
+      return 'right';
+    }
+
+    return null;
   }
   
   /**

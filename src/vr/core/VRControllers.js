@@ -35,6 +35,8 @@ export class VRControllers {
       left: { pinch: false, fist: false, direction: new THREE.Vector3() },
       right: { pinch: false, fist: false, direction: new THREE.Vector3() }
     };
+
+    this._fallbackHandedness = new Map();
   }
   
   init() {
@@ -201,10 +203,10 @@ export class VRControllers {
   }
   
   checkControllerButtons() {
-    const session = this.renderer.xr.getSession();
-    if (!session) return;
+    const inputSources = this.getInputSources();
+    if (!inputSources || inputSources.length === 0) return;
     
-    for (const inputSource of session.inputSources) {
+    for (const inputSource of inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
@@ -242,13 +244,13 @@ export class VRControllers {
   }
   
   getControllerInput() {
-    const session = this.renderer.xr.getSession();
-    if (!session) return { movement: null, teleport: null };
-    
+    const inputSources = this.getInputSources();
+    if (!inputSources || inputSources.length === 0) return { movement: null, teleport: null };
+
     let movementInput = null;
     let teleportInput = null;
     
-    for (const inputSource of session.inputSources) {
+    for (const inputSource of inputSources) {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
@@ -286,6 +288,62 @@ export class VRControllers {
     }
     
     return { movement: movementInput, teleport: teleportInput };
+  }
+
+  getInputSources() {
+    const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
+    if (session && session.inputSources) {
+      return Array.from(session.inputSources);
+    }
+    return this._getFallbackInputSources();
+  }
+
+  _getFallbackInputSources() {
+    if (typeof navigator === 'undefined' || !navigator.getGamepads) return [];
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) return [];
+
+    const sources = [];
+    let fallbackIndex = 0;
+
+    for (const gamepad of gamepads) {
+      if (!gamepad || !gamepad.buttons || !gamepad.axes) continue;
+
+      const handedness = this._resolveHandedness(gamepad, fallbackIndex);
+      if (!handedness) {
+        fallbackIndex += 1;
+        continue;
+      }
+
+      sources.push({ gamepad, handedness });
+      fallbackIndex += 1;
+    }
+
+    return sources;
+  }
+
+  _resolveHandedness(gamepad, fallbackIndex) {
+    const hand = (gamepad.hand || '').toLowerCase();
+    if (hand === 'left' || hand === 'right') return hand;
+
+    const id = (gamepad.id || '').toLowerCase();
+    if (id.includes('left')) return 'left';
+    if (id.includes('right')) return 'right';
+
+    if (this._fallbackHandedness.has(gamepad.index)) {
+      return this._fallbackHandedness.get(gamepad.index);
+    }
+
+    if (fallbackIndex === 0) {
+      this._fallbackHandedness.set(gamepad.index, 'left');
+      return 'left';
+    }
+    if (fallbackIndex === 1) {
+      this._fallbackHandedness.set(gamepad.index, 'right');
+      return 'right';
+    }
+
+    return null;
   }
   
   getControllers() {

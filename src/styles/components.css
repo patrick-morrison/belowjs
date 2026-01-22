@@ -369,7 +369,7 @@
 
 .fly-mode-indicator .hint {
   position: absolute;
-  bottom: 110px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.85);
@@ -399,7 +399,7 @@
 
 @media (max-width: 768px) {
   .fly-mode-indicator .hint {
-    bottom: 90px;
+    bottom: 12px;
     font-size: 11px;
     padding: 8px 12px;
   }

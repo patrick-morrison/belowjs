@@ -191,6 +191,7 @@ export class VRManager {
 
     const controllers = {
       ...this.vrControllers.getControllers(),
+      inputSources: this.vrControllers.getInputSources(),
       handsActive: this.vrControllers.handsActive,
       handStates: this.vrControllers.handStates,
       updateHandGestures: this.vrControllers.updateHandGestures ? this.vrControllers.updateHandGestures.bind(this.vrControllers) : undefined

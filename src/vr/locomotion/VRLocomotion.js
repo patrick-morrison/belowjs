@@ -86,13 +86,17 @@ export class VRLocomotion {
   
   updateMovement(deltaTime, controllers) {
 
-    const session = this.renderer.xr.getSession();
-    if (!session || session.visibilityState !== 'visible') {
+    const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
+    if (session && session.visibilityState !== 'visible') {
+      return;
+    }
+    const inputSources = controllers?.inputSources || (session ? Array.from(session.inputSources || []) : []);
+    if (!inputSources || inputSources.length === 0) {
       return;
     }
 
 
-    if (controllers.updateHandGestures && controllers.handsActive) {
+    if (session && controllers.updateHandGestures && controllers.handsActive) {
       controllers.updateHandGestures();
 
       let handUsed = null;
@@ -112,8 +116,9 @@ export class VRLocomotion {
         this.handMoveBoost = boost;
         this.handMoveDirection.copy(moveDir);
 
+        const rig = this.camera.parent || this.camera;
         const speed = this.MOVE_SPEED * (boost ? 3 : 1) * deltaTime;
-        this.camera.parent.position.addScaledVector(moveDir, speed);
+        rig.position.addScaledVector(moveDir, speed);
         this.isMoving = true;
 
         if (this.onMovementStart && !this._wasMoving) this.onMovementStart();
@@ -134,17 +139,14 @@ export class VRLocomotion {
     }
 
 
-    if (!controllers.controller1 || !controllers.controller2) {
-      return;
-    }
-    
+    const rig = this.camera.parent || this.camera;
 
     let currentlyMoving = false;
     let isBoosted = false;
     
 
-    for (let i = 0; i < session.inputSources.length; i++) {
-      const src = session.inputSources[i];
+    for (let i = 0; i < inputSources.length; i++) {
+      const src = inputSources[i];
       
 
       if (!src || !src.gamepad || !src.gamepad.buttons || !src.gamepad.axes || src.gamepad.axes.length < 4) {
@@ -170,10 +172,9 @@ export class VRLocomotion {
           isBoosted = true;
         }
 
-        if (this.comfortSettings.locomotionMode === 'teleport' && this.teleportSystem) {
-
+        const canTeleport = this.comfortSettings.locomotionMode === 'teleport' && this.teleportSystem && controller;
+        if (canTeleport) {
           this.teleportSystem.processTeleportation(controller, x, y);
-
           continue;
         } else {
 
@@ -185,12 +186,12 @@ export class VRLocomotion {
 
           if (Math.abs(y) > 0.1) {
             const rampedSpeed = this.MOVE_SPEED * speedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;
-            this.camera.parent.position.addScaledVector(forward, -y * rampedSpeed);
+            rig.position.addScaledVector(forward, -y * rampedSpeed);
             currentlyMoving = true;
           }
           if (Math.abs(x) > 0.1) {
             const rampedSpeed = this.MOVE_SPEED * speedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;
-            this.camera.parent.position.addScaledVector(right, x * rampedSpeed);
+            rig.position.addScaledVector(right, x * rampedSpeed);
             currentlyMoving = true;
           }
         }
@@ -229,8 +230,8 @@ export class VRLocomotion {
               if (Math.abs(smoothedInput) > this.inputDeadzone) {
                 const turnSpeed = this.comfortSettings.reducedMotion ? this.TURN_SPEED * 0.5 : this.TURN_SPEED;
                 const turnAmount = smoothedInput * turnSpeed * Math.min(deltaTime, 1/30);
-                this.camera.parent.rotation.y -= turnAmount;
-                this.camera.parent.rotation.y = this.normalizeAngle(this.camera.parent.rotation.y);
+                rig.rotation.y -= turnAmount;
+                rig.rotation.y = this.normalizeAngle(rig.rotation.y);
               }
             } else {
               this.lastTurnInput *= 0.9;
@@ -240,7 +241,7 @@ export class VRLocomotion {
 
           if (Math.abs(y) > 0.1) {
             const rampedSpeed = this.FLY_SPEED * verticalSpeedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;
-            this.camera.parent.position.y -= y * rampedSpeed;
+            rig.position.y -= y * rampedSpeed;
             currentlyMoving = true;
           }
         }
@@ -291,8 +292,8 @@ export class VRLocomotion {
 
   correctDrift() {
 
-    const dolly = this.camera.parent;
-    
+    const dolly = this.camera.parent || this.camera;
+    if (!dolly) return;
 
     dolly.rotation.y = this.normalizeAngle(dolly.rotation.y);
     

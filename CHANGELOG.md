@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Stereoscopic viewing mode (Experimental)**: side-by-side stereo rendering with configurable eye separation
 - Stereo example with adjustable eye separation controls
 - `stereo()` console command for enabling/disabling stereo mode and adjusting eye separation
+- Z key to toggle between dive mode and studio mode
 
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
