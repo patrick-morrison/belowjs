@@ -33,7 +33,7 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {Object} [stereo] - Stereo rendering configuration
  * @property {boolean} [stereo.enabled=false] - Enable SBS stereo rendering
  * @property {string} [stereo.mode='sbs'] - Stereo mode ('sbs')
- * @property {number} [stereo.eyeSeparation=0.064] - Eye separation in meters
+ * @property {number} [stereo.eyeSeparation=0.064] - Eye separation in meters (clamped to 0.050-0.070m for screen comfort)
  * @property {Object} [vr] - VR configuration
  * @property {boolean} [vr.enabled=true] - Enable VR support
  * @property {Object} [ar] - AR configuration
@@ -201,7 +201,13 @@ export class BelowViewer extends EventSystem {
     this.isAREnabled = this.config.ar?.enabled === true;
     this.stereoEnabled = this.config.stereo?.enabled === true;
     this.stereoMode = this.config.stereo?.mode || 'sbs';
-    this.stereoEyeSeparation = this.config.stereo?.eyeSeparation ?? 0.064;
+    // Clamp eye separation to comfortable range for screen-based stereo (50-70mm)
+    // IMAX and cinema 3D use conservative ranges to prevent eye strain on flat displays
+    const rawEyeSep = this.config.stereo?.eyeSeparation ?? 0.064;
+    this.stereoEyeSeparation = Math.max(0.050, Math.min(0.070, rawEyeSep));
+    if (this.stereoEyeSeparation !== rawEyeSep) {
+      console.warn(`[BelowJS] Initial eye separation ${rawEyeSep}m clamped to ${this.stereoEyeSeparation}m (comfortable range for screens: 0.050-0.070m)`);
+    }
     this.dolly = null;
     
     this.isInitialized = false;
@@ -615,6 +621,8 @@ export class BelowViewer extends EventSystem {
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
         if (!this.skipRenderDuringLoad || isXRPresenting) {
+          // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
+          // (VR headsets provide native stereoscopic rendering)
           if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
             this.renderSbsStereo();
           } else {
@@ -639,7 +647,8 @@ export class BelowViewer extends EventSystem {
     const halfWidth = Math.floor(width / 2);
     const rightWidth = width - halfWidth;
 
-    this.stereoCamera.aspect = width > 0 ? halfWidth / width : 0.5;
+    // Calculate aspect ratio for each eye viewport (width/height)
+    this.stereoCamera.aspect = height > 0 ? halfWidth / height : 1.0;
     this.stereoCamera.update(this.cameraManager.camera);
 
     this.renderer.setScissorTest(true);
@@ -659,6 +668,10 @@ export class BelowViewer extends EventSystem {
   /**
    * Enable or disable stereo rendering.
    *
+   * Note: Stereo rendering (SBS) is automatically disabled when entering VR/XR mode,
+   * as VR headsets provide native stereoscopic rendering. When exiting VR, stereo
+   * rendering will resume if it was enabled before entering VR.
+   *
    * @param {boolean} enabled - Whether stereo rendering is enabled.
    */
   setStereoEnabled(enabled) {
@@ -671,15 +684,23 @@ export class BelowViewer extends EventSystem {
   /**
    * Set the eye separation distance for stereo rendering.
    *
-   * @param {number} eyeSeparation - Eye separation in meters.
+   * @param {number} eyeSeparation - Eye separation in meters (clamped to 0.050-0.070m for screen comfort).
    */
   setStereoEyeSeparation(eyeSeparation) {
     if (typeof eyeSeparation !== 'number' || Number.isNaN(eyeSeparation)) {
       return;
     }
-    this.stereoEyeSeparation = eyeSeparation;
+    // Clamp to comfortable range for screen-based stereo: 50mm to 70mm
+    // IMAX and cinema 3D use conservative interaxial distances (often 50-65mm)
+    // to prevent eye strain and dizziness on flat displays. This is smaller than
+    // natural human IPD range (55-75mm) because screens lack depth cues of real world.
+    const clampedSeparation = Math.max(0.050, Math.min(0.070, eyeSeparation));
+    if (clampedSeparation !== eyeSeparation) {
+      console.warn(`[BelowJS] Eye separation ${eyeSeparation}m clamped to ${clampedSeparation}m (comfortable range for screens: 0.050-0.070m)`);
+    }
+    this.stereoEyeSeparation = clampedSeparation;
     if (this.stereoCamera) {
-      this.stereoCamera.eyeSep = eyeSeparation;
+      this.stereoCamera.eyeSep = clampedSeparation;
     }
   }
 

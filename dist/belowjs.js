@@ -6107,7 +6107,9 @@ class _n extends je {
       audioPath: { type: "string", default: "./sound/" },
       enableVRAudio: { type: "boolean", default: !1 }
     };
-    this.config = new Ke(i).validate(t), this.renderer = null, this.sceneManager = null, this.cameraManager = null, this.modelLoader = null, this.vrManager = null, this.arManager = null, this.stereoCamera = null, this.isVREnabled = this.config.vr?.enabled !== !1, this.isAREnabled = this.config.ar?.enabled === !0, this.stereoEnabled = this.config.stereo?.enabled === !0, this.stereoMode = this.config.stereo?.mode || "sbs", this.stereoEyeSeparation = this.config.stereo?.eyeSeparation ?? 0.064, this.dolly = null, this.isInitialized = !1, this.loadedModels = [], this.currentAbortController = null, this.skipRenderDuringLoad = !1, this.pixelRatioBeforeThrottle = 1, this.originalPixelRatio = 1, this.isConstrainedSafari = !1, this.init();
+    this.config = new Ke(i).validate(t), this.renderer = null, this.sceneManager = null, this.cameraManager = null, this.modelLoader = null, this.vrManager = null, this.arManager = null, this.stereoCamera = null, this.isVREnabled = this.config.vr?.enabled !== !1, this.isAREnabled = this.config.ar?.enabled === !0, this.stereoEnabled = this.config.stereo?.enabled === !0, this.stereoMode = this.config.stereo?.mode || "sbs";
+    const s = this.config.stereo?.eyeSeparation ?? 0.064;
+    this.stereoEyeSeparation = Math.max(0.05, Math.min(0.07, s)), this.stereoEyeSeparation !== s && console.warn(`[BelowJS] Initial eye separation ${s}m clamped to ${this.stereoEyeSeparation}m (comfortable range for screens: 0.050-0.070m)`), this.dolly = null, this.isInitialized = !1, this.loadedModels = [], this.currentAbortController = null, this.skipRenderDuringLoad = !1, this.pixelRatioBeforeThrottle = 1, this.originalPixelRatio = 1, this.isConstrainedSafari = !1, this.init();
   }
   init() {
     try {
@@ -6280,10 +6282,14 @@ class _n extends je {
     if (!this.stereoCamera || !this.renderer || !this.sceneManager || !this.cameraManager)
       return;
     const e = this.renderer.getSize(new g.Vector2()), t = e.width, i = e.height, s = Math.floor(t / 2), o = t - s;
-    this.stereoCamera.aspect = t > 0 ? s / t : 0.5, this.stereoCamera.update(this.cameraManager.camera), this.renderer.setScissorTest(!0), this.renderer.setViewport(0, 0, s, i), this.renderer.setScissor(0, 0, s, i), this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraL), this.renderer.setViewport(s, 0, o, i), this.renderer.setScissor(s, 0, o, i), this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraR), this.renderer.setScissorTest(!1), this.renderer.setViewport(0, 0, t, i);
+    this.stereoCamera.aspect = i > 0 ? s / i : 1, this.stereoCamera.update(this.cameraManager.camera), this.renderer.setScissorTest(!0), this.renderer.setViewport(0, 0, s, i), this.renderer.setScissor(0, 0, s, i), this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraL), this.renderer.setViewport(s, 0, o, i), this.renderer.setScissor(s, 0, o, i), this.renderer.render(this.sceneManager.scene, this.stereoCamera.cameraR), this.renderer.setScissorTest(!1), this.renderer.setViewport(0, 0, t, i);
   }
   /**
    * Enable or disable stereo rendering.
+   *
+   * Note: Stereo rendering (SBS) is automatically disabled when entering VR/XR mode,
+   * as VR headsets provide native stereoscopic rendering. When exiting VR, stereo
+   * rendering will resume if it was enabled before entering VR.
    *
    * @param {boolean} enabled - Whether stereo rendering is enabled.
    */
@@ -6293,10 +6299,13 @@ class _n extends je {
   /**
    * Set the eye separation distance for stereo rendering.
    *
-   * @param {number} eyeSeparation - Eye separation in meters.
+   * @param {number} eyeSeparation - Eye separation in meters (clamped to 0.050-0.070m for screen comfort).
    */
   setStereoEyeSeparation(e) {
-    typeof e != "number" || Number.isNaN(e) || (this.stereoEyeSeparation = e, this.stereoCamera && (this.stereoCamera.eyeSep = e));
+    if (typeof e != "number" || Number.isNaN(e))
+      return;
+    const t = Math.max(0.05, Math.min(0.07, e));
+    t !== e && console.warn(`[BelowJS] Eye separation ${e}m clamped to ${t}m (comfortable range for screens: 0.050-0.070m)`), this.stereoEyeSeparation = t, this.stereoCamera && (this.stereoCamera.eyeSep = t);
   }
   /**
    * Set the stereo mode (currently only 'sbs').
@@ -9006,7 +9015,7 @@ class Kn extends je {
     const a = -(o / i.height * 2 - 1), l = this.belowViewer.getStereoSettings?.();
     if (l?.enabled === !0 && l?.mode === "sbs" && this.belowViewer.stereoCamera) {
       const h = this.belowViewer.stereoCamera, d = i.width / 2, u = s <= d, p = u ? d : i.width - d, E = u ? s : s - d;
-      p > 0 && (A = E / p * 2 - 1), h.aspect = i.width > 0 ? d / i.width : 0.5, h.update(n), r = u ? h.cameraL : h.cameraR;
+      p > 0 && (A = E / p * 2 - 1), h.aspect = i.height > 0 ? d / i.height : 1, h.update(n), r = u ? h.cameraL : h.cameraR;
     }
     return {
       mouse: { x: A, y: a },

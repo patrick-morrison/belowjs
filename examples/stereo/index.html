@@ -32,113 +32,97 @@
       bottom: 16px;
       left: 16px;
       z-index: 1200;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(51, 65, 85, 0.85);
-      border-radius: 12px;
-      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 16px 18px;
       width: 240px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .stereo-panel h2 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      letter-spacing: 0.02em;
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
-      color: #93c5fd;
+      color: rgba(255, 255, 255, 0.9);
     }
 
     .stereo-panel label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       margin-bottom: 6px;
-      color: #cbd5f5;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
     }
 
     .stereo-panel .row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
     .stereo-panel input[type="range"] {
       flex: 1;
       -webkit-appearance: none;
       appearance: none;
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.9), rgba(14, 165, 233, 0.5));
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
       outline: none;
     }
 
     .stereo-panel input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      background: rgba(226, 232, 240, 0.95);
-      border: 2px solid rgba(59, 130, 246, 0.8);
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.45);
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       cursor: pointer;
     }
 
     .stereo-panel input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      background: rgba(226, 232, 240, 0.95);
-      border: 2px solid rgba(59, 130, 246, 0.8);
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.45);
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       cursor: pointer;
     }
 
     .stereo-panel input[type="range"]::-moz-range-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.9), rgba(14, 165, 233, 0.5));
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
     }
 
     .stereo-panel .value {
       min-width: 46px;
       text-align: right;
       font-variant-numeric: tabular-nums;
-      color: #f8fafc;
-    }
-
-    .stereo-panel button {
-      width: 100%;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 10px;
-      background: rgba(59, 130, 246, 0.9);
-      color: #fff;
-      cursor: pointer;
+      color: rgba(255, 255, 255, 0.95);
       font-size: 12px;
-      transition: background 0.2s ease;
-    }
-
-    .stereo-panel button:hover {
-      background: rgba(59, 130, 246, 1);
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
   <div class="stereo-panel">
     <h2>Stereo</h2>
+    <label for="eyeDistance">Eye Separation (50-70mm)</label>
     <div class="row">
-      <label for="eyeDistance">Eye distance</label>
-    </div>
-    <div class="row">
-      <input id="eyeDistance" type="range" min="0.03" max="0.12" step="0.005" value="0.064">
+      <input id="eyeDistance" type="range" min="0.050" max="0.070" step="0.001" value="0.064">
       <span class="value" id="eyeValue">0.064</span>
     </div>
-    <button id="toggleStereo">Disable Stereo</button>
   </div>
 
   <script type="module">
@@ -184,7 +168,6 @@
 
     const eyeDistance = document.getElementById('eyeDistance');
     const eyeValue = document.getElementById('eyeValue');
-    const toggleStereo = document.getElementById('toggleStereo');
 
     const updateEyeValue = () => {
       const value = Number(eyeDistance.value);
@@ -194,13 +177,6 @@
 
     eyeDistance.addEventListener('input', updateEyeValue);
     updateEyeValue();
-
-    toggleStereo.addEventListener('click', () => {
-      const current = viewer.getStereoSettings();
-      const nextEnabled = !current?.enabled;
-      viewer.setStereoEnabled(nextEnabled);
-      toggleStereo.textContent = nextEnabled ? 'Disable Stereo' : 'Enable Stereo';
-    });
   </script>
 </body>
 </html>

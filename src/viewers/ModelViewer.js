@@ -803,7 +803,8 @@ export class ModelViewer extends EventSystem {
       if (eyeWidth > 0) {
         normX = (eyeX / eyeWidth) * 2 - 1;
       }
-      stereoCamera.aspect = rect.width > 0 ? halfWidth / rect.width : 0.5;
+      // Calculate aspect ratio for each eye viewport (width/height)
+      stereoCamera.aspect = rect.height > 0 ? halfWidth / rect.height : 1.0;
       stereoCamera.update(baseCamera);
       camera = isLeft ? stereoCamera.cameraL : stereoCamera.cameraR;
     }
