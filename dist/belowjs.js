@@ -1,5 +1,5 @@
 import * as g from "three";
-import { Controls as Oi, Vector3 as R, MOUSE as Ce, TOUCH as pe, Quaternion as Ue, Spherical as Dt, Vector2 as V, Ray as Hi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as ve, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as Oe, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as He, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as St, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as us, OrthographicCamera as gs, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as ui, Texture as Lt, VectorKeyframeTrack as Tt, NumberKeyframeTrack as Ft, QuaternionKeyframeTrack as kt, ColorManagement as ut, FrontSide as Cs, Interpolant as Es, Box3 as qe, Sphere as Qt, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as gi, NoColorSpace as _t, RGBA_BPTC_Format as gt, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as xe, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Ss, RGB_ETC1_Format as Qs, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as xs, SphereGeometry as mi, BoxGeometry as vs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ls, ShaderMaterial as Ts, ShaderLib as Pe, UniformsUtils as bi, UniformsLib as Ne, Vector4 as Le, Line3 as Fs } from "three";
+import { Controls as Oi, Vector3 as R, MOUSE as Ce, TOUCH as pe, Quaternion as Ue, Spherical as Dt, Vector2 as V, Ray as Hi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as ve, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as Oe, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as He, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as St, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as us, OrthographicCamera as gs, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as ui, Texture as Tt, VectorKeyframeTrack as Lt, NumberKeyframeTrack as Ft, QuaternionKeyframeTrack as kt, ColorManagement as ut, FrontSide as Cs, Interpolant as Es, Box3 as qe, Sphere as Qt, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as gi, NoColorSpace as _t, RGBA_BPTC_Format as gt, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Ge, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as xe, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Ss, RGB_ETC1_Format as Qs, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as xs, SphereGeometry as mi, BoxGeometry as vs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ts, ShaderMaterial as Ls, ShaderLib as Pe, UniformsUtils as bi, UniformsLib as Ne, Vector4 as Te, Line3 as Fs } from "three";
 class je {
   /**
    * Creates a new EventSystem instance
@@ -164,7 +164,7 @@ class ks {
     this.scene.clear();
   }
 }
-const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, Te = new Hi(), Ot = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), k = new R(), U = 2 * Math.PI, x = {
+const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, Le = new Hi(), Ot = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), k = new R(), U = 2 * Math.PI, x = {
   NONE: -1,
   ROTATE: 0,
   DOLLY: 1,
@@ -273,7 +273,7 @@ class Gs extends Oi {
         a.unproject(this.object), this.object.position.sub(a).add(r), this.object.updateMatrixWorld(), n = k.length();
       } else
         console.warn("WARNING: OrbitControls.js encountered an unknown camera type - zoom to cursor disabled."), this.zoomToCursor = !1;
-      n !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(n).add(this.object.position) : (Te.origin.copy(this.object.position), Te.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(Te.direction)) < _s ? this.object.lookAt(this.target) : (Ot.setFromNormalAndCoplanarPoint(this.object.up, this.target), Te.intersectPlane(Ot, this.target))));
+      n !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(n).add(this.object.position) : (Le.origin.copy(this.object.position), Le.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(Le.direction)) < _s ? this.object.lookAt(this.target) : (Ot.setFromNormalAndCoplanarPoint(this.object.up, this.target), Le.intersectPlane(Ot, this.target))));
     } else if (this.object.isOrthographicCamera) {
       const n = this.object.zoom;
       this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), n !== this.object.zoom && (this.object.updateProjectionMatrix(), o = !0);
@@ -1464,8 +1464,8 @@ class Ii extends Es {
   interpolate_(e, t, i, s) {
     const o = this.resultBuffer, n = this.sampleValues, r = this.valueSize, A = r * 2, a = r * 3, l = s - t, h = (i - t) / l, d = h * h, u = d * h, p = e * a, E = p - a, b = -2 * u + 3 * d, f = u - d, m = 1 - b, I = f - d + h;
     for (let C = 0; C !== r; C++) {
-      const B = n[E + C + r], y = n[E + C + A] * l, w = n[p + C + r], T = n[p + C] * l;
-      o[C] = m * B + I * y + b * w + f * T;
+      const B = n[E + C + r], y = n[E + C + A] * l, w = n[p + C + r], L = n[p + C] * l;
+      o[C] = m * B + I * y + b * w + f * L;
     }
     return o;
   }
@@ -1901,7 +1901,7 @@ class Ro {
       if (s.sparse !== void 0) {
         const f = We.SCALAR, m = Ee[s.sparse.indices.componentType], I = s.sparse.indices.byteOffset || 0, C = s.sparse.values.byteOffset || 0, B = new m(n[1], I, s.sparse.count * f), y = new a(n[2], C, s.sparse.count * A);
         r !== null && (b = new Re(b.array.slice(), b.itemSize, b.normalized)), b.normalized = !1;
-        for (let w = 0, T = B.length; w < T; w++) {
+        for (let w = 0, L = B.length; w < L; w++) {
           const D = B[w];
           if (b.setX(D, y[w * A]), A >= 2 && b.setY(D, y[w * A + 1]), A >= 3 && b.setZ(D, y[w * A + 2]), A >= 4 && b.setW(D, y[w * A + 3]), A >= 5) throw new Error("THREE.GLTFLoader: Unsupported itemSize in sparse BufferAttribute.");
         }
@@ -1957,7 +1957,7 @@ class Ro {
       return new Promise(function(d, u) {
         let p = d;
         t.isImageBitmapLoader === !0 && (p = function(E) {
-          const b = new Lt(E);
+          const b = new Tt(E);
           b.needsUpdate = !0, d(b);
         }), t.load(ve.resolveURL(h, o.path), p, void 0, u);
       });
@@ -2216,10 +2216,10 @@ class Ro {
     ]).then(function(h) {
       const d = h[0], u = h[1], p = h[2], E = h[3], b = h[4], f = [];
       for (let m = 0, I = d.length; m < I; m++) {
-        const C = d[m], B = u[m], y = p[m], w = E[m], T = b[m];
+        const C = d[m], B = u[m], y = p[m], w = E[m], L = b[m];
         if (C === void 0) continue;
         C.updateMatrix && C.updateMatrix();
-        const D = i._createAnimationTracks(C, B, y, w, T);
+        const D = i._createAnimationTracks(C, B, y, w, L);
         if (D)
           for (let S = 0; S < D.length; S++)
             f.push(D[S]);
@@ -2317,7 +2317,7 @@ class Ro {
       const a = (l) => {
         const h = /* @__PURE__ */ new Map();
         for (const [d, u] of s.associations)
-          (d instanceof ze || d instanceof Lt) && h.set(d, u);
+          (d instanceof ze || d instanceof Tt) && h.set(d, u);
         return l.traverse((d) => {
           const u = s.associations.get(d);
           u != null && h.set(d, u);
@@ -2341,7 +2341,7 @@ class Ro {
         break;
       case ne.translation:
       case ne.scale:
-        a = Tt;
+        a = Lt;
         break;
       default:
         switch (i.itemSize) {
@@ -2351,7 +2351,7 @@ class Ro {
           case 2:
           case 3:
           default:
-            a = Tt;
+            a = Lt;
             break;
         }
         break;
@@ -2448,7 +2448,7 @@ function zt(c, e, t) {
   });
 }
 const $e = /* @__PURE__ */ new WeakMap();
-class Lo extends yt {
+class To extends yt {
   /**
    * Constructs a new Draco loader.
    *
@@ -2584,7 +2584,7 @@ class Lo extends yt {
     return e ? t.push(this._loadLibrary("draco_decoder.js", "text")) : (t.push(this._loadLibrary("draco_wasm_wrapper.js", "text")), t.push(this._loadLibrary("draco_decoder.wasm", "arraybuffer"))), this.decoderPending = Promise.all(t).then((i) => {
       const s = i[0];
       e || (this.decoderConfig.wasmBinary = i[1]);
-      const o = To.toString(), n = [
+      const o = Lo.toString(), n = [
         "/* draco decoder */",
         s,
         "",
@@ -2632,7 +2632,7 @@ class Lo extends yt {
     return this.workerPool.length = 0, this.workerSourceURL !== "" && URL.revokeObjectURL(this.workerSourceURL), this;
   }
 }
-function To() {
+function Lo() {
   let c, e;
   onmessage = function(n) {
     const r = n.data;
@@ -2788,7 +2788,7 @@ class Fo {
     this.workers.forEach((e) => e.terminate()), this.workersResolve.length = 0, this.workers.length = 0, this.queue.length = 0, this.workerStatus = 0;
   }
 }
-const ko = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Si = 22, Qi = 37, Mi = 43, xi = 76, vi = 83, Ri = 97, Di = 100, Li = 103, Ti = 109, Vo = 131, Oo = 132, Ho = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, Fi = 148, ki = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, vt = 1000066e3;
+const ko = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Si = 22, Qi = 37, Mi = 43, xi = 76, vi = 83, Ri = 97, Di = 100, Ti = 103, Li = 109, Vo = 131, Oo = 132, Ho = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, Fi = 148, ki = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, vt = 1000066e3;
 class $o {
   constructor() {
     this.vkFormat = 0, this.typeSize = 1, this.pixelWidth = 0, this.pixelHeight = 0, this.pixelDepth = 0, this.layerCount = 0, this.faceCount = 1, this.supercompressionScheme = 0, this.levels = [], this.dataFormatDescriptor = [{ vendorId: 0, descriptorType: 0, descriptorBlockSize: 0, versionNumber: 2, colorModel: 0, colorPrimaries: 1, transferFunction: 2, flags: 0, texelBlockDimension: [0, 0, 0, 0], bytesPlane: [0, 0, 0, 0, 0, 0, 0, 0], samples: [] }], this.keyValue = {}, this.globalData = null;
@@ -2862,10 +2862,10 @@ function en(c) {
     b._skip(F % 4 ? 4 - F % 4 : 0);
   }
   if (h <= 0) return t;
-  const f = new Qe(c, l, h, !0), m = f._nextUint16(), I = f._nextUint16(), C = f._nextUint32(), B = f._nextUint32(), y = f._nextUint32(), w = f._nextUint32(), T = [];
-  for (let F = 0; F < o; F++) T.push({ imageFlags: f._nextUint32(), rgbSliceByteOffset: f._nextUint32(), rgbSliceByteLength: f._nextUint32(), alphaSliceByteOffset: f._nextUint32(), alphaSliceByteLength: f._nextUint32() });
+  const f = new Qe(c, l, h, !0), m = f._nextUint16(), I = f._nextUint16(), C = f._nextUint32(), B = f._nextUint32(), y = f._nextUint32(), w = f._nextUint32(), L = [];
+  for (let F = 0; F < o; F++) L.push({ imageFlags: f._nextUint32(), rgbSliceByteOffset: f._nextUint32(), rgbSliceByteLength: f._nextUint32(), alphaSliceByteOffset: f._nextUint32(), alphaSliceByteLength: f._nextUint32() });
   const D = l + f._offset, S = D + C, v = S + B, M = v + y, J = new Uint8Array(c.buffer, c.byteOffset + D, C), W = new Uint8Array(c.buffer, c.byteOffset + S, B), ye = new Uint8Array(c.buffer, c.byteOffset + v, y), q = new Uint8Array(c.buffer, c.byteOffset + M, w);
-  return t.globalData = { endpointCount: m, selectorCount: I, imageDescs: T, endpointsData: J, selectorsData: W, tablesData: ye, extendedData: q }, t;
+  return t.globalData = { endpointCount: m, selectorCount: I, imageDescs: L, endpointsData: J, selectorsData: W, tablesData: ye, extendedData: q }, t;
 }
 let et, te, Et;
 const tt = { env: { emscripten_notify_memory_growth: function(c) {
@@ -3150,7 +3150,7 @@ K.BasisWorker = function() {
       f = n.UASTC_HDR;
     else
       throw new Error("THREE.KTX2Loader: Unknown Basis encoding");
-    const m = E.getWidth(), I = E.getHeight(), C = E.getLayers() || 1, B = E.getLevels(), y = E.getFaces(), w = E.getHasAlpha(), T = E.getDFDFlags(), { transcoderFormat: D, engineFormat: S, engineType: v } = h(f, m, I, w);
+    const m = E.getWidth(), I = E.getHeight(), C = E.getLayers() || 1, B = E.getLevels(), y = E.getFaces(), w = E.getHasAlpha(), L = E.getDFDFlags(), { transcoderFormat: D, engineFormat: S, engineType: v } = h(f, m, I, w);
     if (!m || !I || !B)
       throw b(), new Error("THREE.KTX2Loader:	Invalid texture");
     if (!E.startTranscoding())
@@ -3175,7 +3175,7 @@ K.BasisWorker = function() {
       }
       M.push({ mipmaps: ye, width: m, height: I, format: S, type: v });
     }
-    return b(), { faces: M, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: T, format: S, type: v };
+    return b(), { faces: M, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: L, format: S, type: v };
   }
   const a = [
     {
@@ -3304,11 +3304,11 @@ K.BasisWorker = function() {
   }
 };
 const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
-  [Ti]: me,
+  [Li]: me,
   [Ri]: me,
   [Qi]: me,
   [Mi]: me,
-  [Li]: xe,
+  [Ti]: xe,
   [vi]: xe,
   [wi]: xe,
   [Si]: xe,
@@ -3334,11 +3334,11 @@ const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
   [Wo]: gt,
   [Jo]: gt
 }, rt = {
-  [Ti]: De,
+  [Li]: De,
   [Ri]: be,
   [Qi]: z,
   [Mi]: z,
-  [Li]: De,
+  [Ti]: De,
   [vi]: be,
   [wi]: z,
   [Si]: z,
@@ -3532,10 +3532,10 @@ var an = function() {
     return m.buffer.slice(0, B);
   }
   function A(f, m, I, C, B, y, w) {
-    var T = f.exports.sbrk, D = C + 3 & -4, S = T(D * B), v = T(y.length), M = new Uint8Array(f.exports.memory.buffer);
+    var L = f.exports.sbrk, D = C + 3 & -4, S = L(D * B), v = L(y.length), M = new Uint8Array(f.exports.memory.buffer);
     M.set(y, v);
     var J = m(S, C, B, v, y.length);
-    if (J == 0 && w && w(S, D, B), I.set(M.subarray(S, S + C * B)), T(S - T(0)), J != 0)
+    if (J == 0 && w && w(S, D, B), I.set(M.subarray(S, S + C * B)), L(S - L(0)), J != 0)
       throw new Error("Malformed buffer data: " + J);
   }
   var a = {
@@ -3569,9 +3569,9 @@ var an = function() {
   function E(f, m, I, C, B) {
     for (var y = h[0], w = 1; w < h.length; ++w)
       h[w].pending < y.pending && (y = h[w]);
-    return new Promise(function(T, D) {
+    return new Promise(function(L, D) {
       var S = new Uint8Array(I), v = ++d;
-      y.pending += f, y.requests[v] = { resolve: T, reject: D }, y.object.postMessage({ id: v, count: f, size: m, source: S, mode: C, filter: B }, [S.buffer]);
+      y.pending += f, y.requests[v] = { resolve: L, reject: D }, y.object.postMessage({ id: v, count: f, size: m, source: S, mode: C, filter: B }, [S.buffer]);
     });
   }
   function b(f) {
@@ -3632,7 +3632,7 @@ function ln() {
 }
 class O {
   constructor(e = null) {
-    this.renderer = e, this.isIOSWebKit = O.isIOSWebKit(), this.platformKey = O.getPlatformKey(), this.loader = new xt(), this.dracoLoader = new Lo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
+    this.renderer = e, this.isIOSWebKit = O.isIOSWebKit(), this.platformKey = O.getPlatformKey(), this.loader = new xt(), this.dracoLoader = new To(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.cache = /* @__PURE__ */ new Map(), this.ktx2SetupComplete = !1, this.setupKTX2Loader();
   }
   setupKTX2Loader() {
     const e = this.platformKey;
@@ -3716,16 +3716,23 @@ class O {
         const n = Array.isArray(o.material) ? o.material : [o.material];
         n.forEach((r, A) => {
           if (r.emissive && r.emissive.setHex(0), r.emissiveIntensity !== void 0 && (r.emissiveIntensity = 0), r.emissiveMap && (r.emissiveMap = null), r.lightMap && (r.lightMap = null), r.lightMapIntensity !== void 0 && (r.lightMapIntensity = 0), r.type === "MeshBasicMaterial" || r.type === "MeshPhongMaterial") {
-            const l = new g.MeshLambertMaterial({
+            const l = new g.MeshStandardMaterial({
               // Only include common, safe params; set specialized textures conditionally below
               color: r.color || new g.Color(16777215),
               side: r.side !== void 0 ? r.side : g.FrontSide,
               wireframe: r.wireframe || !1,
               vertexColors: r.vertexColors || !1,
               fog: r.fog !== void 0 ? r.fog : !0,
-              flatShading: !1
+              flatShading: !1,
+              // Realistic shipwreck appearance
+              roughness: 0.8,
+              // Weathered, corroded metal/wood
+              metalness: 0.3
+              // Mix of metal and non-metal
             });
-            r.map && (l.map = r.map), r.alphaMap && (l.alphaMap = r.alphaMap), r.aoMap && (l.aoMap = r.aoMap), typeof r.aoMapIntensity == "number" && (l.aoMapIntensity = r.aoMapIntensity), r.envMap && (l.envMap = r.envMap), typeof r.reflectivity == "number" && (l.reflectivity = r.reflectivity), typeof r.refractionRatio == "number" && (l.refractionRatio = r.refractionRatio), r.combine !== void 0 && (l.combine = r.combine), r.transparent !== void 0 && (l.transparent = r.transparent), typeof r.opacity == "number" && (l.opacity = r.opacity), r.normalMap && (l.normalMap = r.normalMap, l.normalScale = r.normalScale || new g.Vector2(1, 1)), l.map && i !== null && (l.map.anisotropy = i, l.map.needsUpdate = !0), l.normalMap && i !== null && (l.normalMap.anisotropy = i, l.normalMap.needsUpdate = !0), l.needsUpdate = !0, Array.isArray(o.material) ? o.material[A] = l : o.material = l, r !== l && typeof r?.dispose == "function" && r.dispose();
+            r.map && (l.map = r.map), r.alphaMap && (l.alphaMap = r.alphaMap), r.aoMap && (l.aoMap = r.aoMap), typeof r.aoMapIntensity == "number" && (l.aoMapIntensity = r.aoMapIntensity), r.envMap && (l.envMap = r.envMap), r.roughnessMap && (l.roughnessMap = r.roughnessMap), r.metalnessMap && (l.metalnessMap = r.metalnessMap), r.transparent !== void 0 && (l.transparent = r.transparent), typeof r.opacity == "number" && (l.opacity = r.opacity), r.normalMap && (l.normalMap = r.normalMap, l.normalScale = r.normalScale || new g.Vector2(1, 1)), i !== null && ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap"].forEach((d) => {
+              l[d] && (l[d].anisotropy = i, l[d].needsUpdate = !0);
+            }), l.needsUpdate = !0, Array.isArray(o.material) ? o.material[A] = l : o.material = l, r !== l && typeof r?.dispose == "function" && r.dispose();
           } else (r.type === "MeshStandardMaterial" || r.type === "MeshPhysicalMaterial") && (i !== null && ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap", "emissiveMap"].forEach((h) => {
             r[h] && (r[h].anisotropy = i, r[h].needsUpdate = !0);
           }), r.needsUpdate = !0);
@@ -4053,7 +4060,7 @@ class cn {
     this.vrButton && this.vrButton.parentNode && this.vrButton.parentNode.removeChild(this.vrButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isVRSupported = !1, this.isVRPresenting = !1;
   }
 }
-const L = {
+const T = {
   ComponentState: Object.freeze({
     DEFAULT: "default",
     TOUCHED: "touched",
@@ -4132,7 +4139,7 @@ const un = {
   xAxis: 0,
   yAxis: 0,
   button: 0,
-  state: L.ComponentState.DEFAULT
+  state: T.ComponentState.DEFAULT
 };
 function gn(c = 0, e = 0) {
   let t = c, i = e;
@@ -4147,7 +4154,7 @@ function gn(c = 0, e = 0) {
 }
 class pn {
   constructor(e) {
-    this.componentProperty = e.componentProperty, this.states = e.states, this.valueNodeName = e.valueNodeName, this.valueNodeProperty = e.valueNodeProperty, this.valueNodeProperty === L.VisualResponseProperty.TRANSFORM && (this.minNodeName = e.minNodeName, this.maxNodeName = e.maxNodeName), this.value = 0, this.updateFromComponent(un);
+    this.componentProperty = e.componentProperty, this.states = e.states, this.valueNodeName = e.valueNodeName, this.valueNodeProperty = e.valueNodeProperty, this.valueNodeProperty === T.VisualResponseProperty.TRANSFORM && (this.minNodeName = e.minNodeName, this.maxNodeName = e.maxNodeName), this.value = 0, this.updateFromComponent(un);
   }
   /**
    * Computes the visual response's interpolation weight based on component state
@@ -4165,17 +4172,17 @@ class pn {
   }) {
     const { normalizedXAxis: o, normalizedYAxis: n } = gn(e, t);
     switch (this.componentProperty) {
-      case L.ComponentProperty.X_AXIS:
+      case T.ComponentProperty.X_AXIS:
         this.value = this.states.includes(s) ? o : 0.5;
         break;
-      case L.ComponentProperty.Y_AXIS:
+      case T.ComponentProperty.Y_AXIS:
         this.value = this.states.includes(s) ? n : 0.5;
         break;
-      case L.ComponentProperty.BUTTON:
+      case T.ComponentProperty.BUTTON:
         this.value = this.states.includes(s) ? i : 0;
         break;
-      case L.ComponentProperty.STATE:
-        this.valueNodeProperty === L.VisualResponseProperty.VISIBILITY ? this.value = this.states.includes(s) : this.value = this.states.includes(s) ? 1 : 0;
+      case T.ComponentProperty.STATE:
+        this.valueNodeProperty === T.VisualResponseProperty.VISIBILITY ? this.value = this.states.includes(s) : this.value = this.states.includes(s) ? 1 : 0;
         break;
       default:
         throw new Error(`Unexpected visualResponse componentProperty ${this.componentProperty}`);
@@ -4194,7 +4201,7 @@ class fn {
       const s = new pn(t.visualResponses[i]);
       this.visualResponses[i] = s;
     }), this.gamepadIndices = Object.assign({}, t.gamepadIndices), this.values = {
-      state: L.ComponentState.DEFAULT,
+      state: T.ComponentState.DEFAULT,
       button: this.gamepadIndices.button !== void 0 ? 0 : void 0,
       xAxis: this.gamepadIndices.xAxis !== void 0 ? 0 : void 0,
       yAxis: this.gamepadIndices.yAxis !== void 0 ? 0 : void 0
@@ -4208,11 +4215,11 @@ class fn {
    * @param {Object} gamepad - The gamepad object from which the component data should be polled
    */
   updateFromGamepad(e) {
-    if (this.values.state = L.ComponentState.DEFAULT, this.gamepadIndices.button !== void 0 && e.buttons.length > this.gamepadIndices.button) {
+    if (this.values.state = T.ComponentState.DEFAULT, this.gamepadIndices.button !== void 0 && e.buttons.length > this.gamepadIndices.button) {
       const t = e.buttons[this.gamepadIndices.button];
-      this.values.button = t.value, this.values.button = this.values.button < 0 ? 0 : this.values.button, this.values.button = this.values.button > 1 ? 1 : this.values.button, t.pressed || this.values.button === 1 ? this.values.state = L.ComponentState.PRESSED : (t.touched || this.values.button > L.ButtonTouchThreshold) && (this.values.state = L.ComponentState.TOUCHED);
+      this.values.button = t.value, this.values.button = this.values.button < 0 ? 0 : this.values.button, this.values.button = this.values.button > 1 ? 1 : this.values.button, t.pressed || this.values.button === 1 ? this.values.state = T.ComponentState.PRESSED : (t.touched || this.values.button > T.ButtonTouchThreshold) && (this.values.state = T.ComponentState.TOUCHED);
     }
-    this.gamepadIndices.xAxis !== void 0 && e.axes.length > this.gamepadIndices.xAxis && (this.values.xAxis = e.axes[this.gamepadIndices.xAxis], this.values.xAxis = this.values.xAxis < -1 ? -1 : this.values.xAxis, this.values.xAxis = this.values.xAxis > 1 ? 1 : this.values.xAxis, this.values.state === L.ComponentState.DEFAULT && Math.abs(this.values.xAxis) > L.AxisTouchThreshold && (this.values.state = L.ComponentState.TOUCHED)), this.gamepadIndices.yAxis !== void 0 && e.axes.length > this.gamepadIndices.yAxis && (this.values.yAxis = e.axes[this.gamepadIndices.yAxis], this.values.yAxis = this.values.yAxis < -1 ? -1 : this.values.yAxis, this.values.yAxis = this.values.yAxis > 1 ? 1 : this.values.yAxis, this.values.state === L.ComponentState.DEFAULT && Math.abs(this.values.yAxis) > L.AxisTouchThreshold && (this.values.state = L.ComponentState.TOUCHED)), Object.values(this.visualResponses).forEach((t) => {
+    this.gamepadIndices.xAxis !== void 0 && e.axes.length > this.gamepadIndices.xAxis && (this.values.xAxis = e.axes[this.gamepadIndices.xAxis], this.values.xAxis = this.values.xAxis < -1 ? -1 : this.values.xAxis, this.values.xAxis = this.values.xAxis > 1 ? 1 : this.values.xAxis, this.values.state === T.ComponentState.DEFAULT && Math.abs(this.values.xAxis) > T.AxisTouchThreshold && (this.values.state = T.ComponentState.TOUCHED)), this.gamepadIndices.yAxis !== void 0 && e.axes.length > this.gamepadIndices.yAxis && (this.values.yAxis = e.axes[this.gamepadIndices.yAxis], this.values.yAxis = this.values.yAxis < -1 ? -1 : this.values.yAxis, this.values.yAxis = this.values.yAxis > 1 ? 1 : this.values.yAxis, this.values.state === T.ComponentState.DEFAULT && Math.abs(this.values.yAxis) > T.AxisTouchThreshold && (this.values.state = T.ComponentState.TOUCHED)), Object.values(this.visualResponses).forEach((t) => {
       t.updateFromComponent(this.values);
     });
   }
@@ -4287,7 +4294,7 @@ class En extends Oe {
     super.updateMatrixWorld(e), this.motionController && (this.motionController.updateFromGamepad(), Object.values(this.motionController.components).forEach((t) => {
       Object.values(t.visualResponses).forEach((i) => {
         const { valueNode: s, minNode: o, maxNode: n, value: r, valueNodeProperty: A } = i;
-        s && (A === L.VisualResponseProperty.VISIBILITY ? s.visible = r : A === L.VisualResponseProperty.TRANSFORM && (s.quaternion.slerpQuaternions(
+        s && (A === T.VisualResponseProperty.VISIBILITY ? s.visible = r : A === T.VisualResponseProperty.TRANSFORM && (s.quaternion.slerpQuaternions(
           o.quaternion,
           n.quaternion,
           r
@@ -4303,7 +4310,7 @@ class En extends Oe {
 function In(c, e) {
   Object.values(c.components).forEach((t) => {
     const { type: i, touchPointNodeName: s, visualResponses: o } = t;
-    if (i === L.ComponentType.TOUCHPAD)
+    if (i === T.ComponentType.TOUCHPAD)
       if (t.touchPointNode = e.getObjectByName(s), t.touchPointNode) {
         const n = new mi(1e-3), r = new fe({ color: 255 }), A = new St(n, r);
         t.touchPointNode.add(A);
@@ -4311,7 +4318,7 @@ function In(c, e) {
         console.warn(`Could not find touch dot, ${t.touchPointNodeName}, in touchpad component ${t.id}`);
     Object.values(o).forEach((n) => {
       const { valueNodeName: r, minNodeName: A, maxNodeName: a, valueNodeProperty: l } = n;
-      if (l === L.VisualResponseProperty.TRANSFORM) {
+      if (l === T.VisualResponseProperty.TRANSFORM) {
         if (n.minNode = e.getObjectByName(A), n.maxNode = e.getObjectByName(a), !n.minNode) {
           console.warn(`Could not find ${A} in the model`);
           return;
@@ -4656,7 +4663,7 @@ class wn {
       u *= S;
     }
     const E = i.x * u, b = Math.max(i.y * u, u * 0.3), f = i.z * u, m = b / Math.abs(d), I = Math.max(m * 2.2, 1.5), C = this.teleportFloorHeight;
-    let B = null, y = !1, w = e.y, T = 0;
+    let B = null, y = !1, w = e.y, L = 0;
     const D = 8;
     for (let S = 0; S <= h; S++) {
       const v = S / h * I, M = new g.Vector3(
@@ -4664,8 +4671,8 @@ class wn {
         e.y + b * v + 0.5 * d * v * v,
         e.z + f * v
       );
-      Math.abs(M.y - e.y) > D && (M.y = e.y + Math.sign(M.y - e.y) * D), !y && M.y < w && (y = !0, T = v), l.push(M);
-      const J = y ? v - T : 0, W = y && J > 0.1;
+      Math.abs(M.y - e.y) > D && (M.y = e.y + Math.sign(M.y - e.y) * D), !y && M.y < w && (y = !0, L = v), l.push(M);
+      const J = y ? v - L : 0, W = y && J > 0.1;
       if (!B && W && M.y <= C) {
         if (S > 0) {
           const q = l[S - 1], F = (C - q.y) / (M.y - q.y);
@@ -5596,7 +5603,7 @@ class Dn {
     }
   }
 }
-class Ln extends Oe {
+class Tn extends Oe {
   /**
    * Constructs a new XR hand model.
    *
@@ -5615,7 +5622,7 @@ class Ln extends Oe {
     super.updateMatrixWorld(e), this.motionController && this.motionController.updateMesh();
   }
 }
-class Tn {
+class Ln {
   /**
    * Constructs a new XR hand model factory.
    *
@@ -5642,7 +5649,7 @@ class Tn {
    * @return {XRHandModel} The XR hand model.
    */
   createHandModel(e, t) {
-    const i = new Ln(e);
+    const i = new Tn(e);
     return e.addEventListener("connected", (s) => {
       const o = s.data;
       o.hand && !i.motionController && (i.xrInputSource = o, t === void 0 || t === "spheres" ? i.motionController = new ti(i, e, this.path, o.handedness, { primitive: "sphere" }) : t === "boxes" ? i.motionController = new ti(i, e, this.path, o.handedness, { primitive: "box" }) : t === "mesh" && (i.motionController = new Dn(i, e, this.path, o.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
@@ -5653,7 +5660,7 @@ class Tn {
 }
 class Fn {
   constructor(e) {
-    this.renderer = e, this.handModelFactory = new Tn(), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new g.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.handModelFactory = new Ln(), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new g.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
@@ -6601,7 +6608,7 @@ class Ui extends Ds {
    * @return {LineSegmentsGeometry} A reference to this geometry.
    */
   fromMesh(e) {
-    return this.fromWireframeGeometry(new Ls(e.geometry)), this;
+    return this.fromWireframeGeometry(new Ts(e.geometry)), this;
   }
   /**
    * Setups this line segments geometry from the given line segments.
@@ -7028,7 +7035,7 @@ Pe.line = {
 		`
   )
 };
-class Ve extends Ts {
+class Ve extends Ls {
   /**
    * Constructs a new line segments geometry.
    *
@@ -7183,7 +7190,7 @@ class Ve extends Ts {
     this.defines && (e === !0 !== this.alphaToCoverage && (this.needsUpdate = !0), e === !0 ? this.defines.USE_ALPHA_TO_COVERAGE = "" : delete this.defines.USE_ALPHA_TO_COVERAGE);
   }
 }
-const At = new Le(), oi = new R(), ni = new R(), _ = new Le(), G = new Le(), X = new Le(), lt = new R(), ct = new Ie(), P = new Fs(), ri = new R(), ke = new qe(), _e = new Qt(), Z = new Le();
+const At = new Te(), oi = new R(), ni = new R(), _ = new Te(), G = new Te(), X = new Te(), lt = new R(), ct = new Ie(), P = new Fs(), ri = new R(), ke = new qe(), _e = new Qt(), Z = new Te();
 let $, ce;
 function ai(c, e, t) {
   return Z.set(0, 0, -e, 1).applyMatrix4(c.projectionMatrix), Z.multiplyScalar(1 / Z.w), Z.x = ce / t.width, Z.y = ce / t.height, Z.applyMatrix4(c.projectionMatrixInverse), Z.multiplyScalar(1 / Z.w), Math.abs(Math.max(Z.x, Z.y));
@@ -8501,7 +8508,7 @@ class Hn {
   createSurveyModeLights() {
     if (!(this.isDisposed || !this.scene))
       try {
-        this.clearModeDirectionalLight || (this.clearModeDirectionalLight = new g.DirectionalLight(16777215, 1.2), this.clearModeDirectionalLight.position.set(10, 20, 10), this.clearModeDirectionalLight.castShadow = !0, this.clearModeDirectionalLight.shadow.mapSize.width = 2048, this.clearModeDirectionalLight.shadow.mapSize.height = 2048, this.clearModeDirectionalLight.shadow.camera.near = 0.5, this.clearModeDirectionalLight.shadow.camera.far = 100, this.clearModeDirectionalLight.shadow.camera.left = -20, this.clearModeDirectionalLight.shadow.camera.right = 20, this.clearModeDirectionalLight.shadow.camera.top = 20, this.clearModeDirectionalLight.shadow.camera.bottom = -20, this.scene.add(this.clearModeDirectionalLight)), this.clearModeHemisphereLight || (this.clearModeHemisphereLight = new g.HemisphereLight(16777215, 4473924, 0.7), this.scene.add(this.clearModeHemisphereLight)), this.fillLight || (this.fillLight = new g.DirectionalLight(16777215, 0.8), this.fillLight.position.set(-10, 10, -10), this.scene.add(this.fillLight)), this.bottomLight || (this.bottomLight = new g.DirectionalLight(16777215, 0.3), this.bottomLight.position.set(0, -10, 0), this.scene.add(this.bottomLight));
+        this.clearModeDirectionalLight || (this.clearModeDirectionalLight = new g.DirectionalLight(16777215, 1.32), this.clearModeDirectionalLight.position.set(10, 20, 10), this.clearModeDirectionalLight.castShadow = !0, this.clearModeDirectionalLight.shadow.mapSize.width = 2048, this.clearModeDirectionalLight.shadow.mapSize.height = 2048, this.clearModeDirectionalLight.shadow.camera.near = 0.5, this.clearModeDirectionalLight.shadow.camera.far = 100, this.clearModeDirectionalLight.shadow.camera.left = -20, this.clearModeDirectionalLight.shadow.camera.right = 20, this.clearModeDirectionalLight.shadow.camera.top = 20, this.clearModeDirectionalLight.shadow.camera.bottom = -20, this.scene.add(this.clearModeDirectionalLight)), this.clearModeHemisphereLight || (this.clearModeHemisphereLight = new g.HemisphereLight(16777215, 4473924, 0.77), this.scene.add(this.clearModeHemisphereLight)), this.fillLight || (this.fillLight = new g.DirectionalLight(16777215, 0.88), this.fillLight.position.set(-10, 10, -10), this.scene.add(this.fillLight)), this.bottomLight || (this.bottomLight = new g.DirectionalLight(16777215, 0.33), this.bottomLight.position.set(0, -10, 0), this.scene.add(this.bottomLight));
       } catch (e) {
         console.error("Failed to create survey mode lights:", e);
       }
@@ -8510,7 +8517,7 @@ class Hn {
     this.overheadLight && this.scene.children.includes(this.overheadLight) && this.scene.remove(this.overheadLight), this.clearModeDirectionalLight && (this.scene.remove(this.clearModeDirectionalLight), this.clearModeDirectionalLight = null), this.clearModeHemisphereLight && (this.scene.remove(this.clearModeHemisphereLight), this.clearModeHemisphereLight = null), this.fillLight && (this.scene.remove(this.fillLight), this.fillLight = null), this.bottomLight && (this.scene.remove(this.bottomLight), this.bottomLight = null), this.currentMode = "dive";
   }
   enableSurveyMode() {
-    this.overheadLight && !this.scene.children.includes(this.overheadLight) && this.scene.add(this.overheadLight), this.overheadLight && (this.overheadLight.intensity = 0.6, this.overheadLight.color.setHex(16777215)), this.createSurveyModeLights(), this.currentMode = "survey";
+    this.overheadLight && !this.scene.children.includes(this.overheadLight) && this.scene.add(this.overheadLight), this.overheadLight && (this.overheadLight.intensity = 0.66, this.overheadLight.color.setHex(16777215)), this.createSurveyModeLights(), this.currentMode = "survey";
   }
   setVRDiveMode() {
     this.overheadLight && this.scene.children.includes(this.overheadLight) && this.scene.remove(this.overheadLight);
@@ -8565,7 +8572,7 @@ class Hn {
   }
   setSurveyBrightness(e = 1) {
     const t = Math.max(0.5, Math.min(5, e));
-    this.overheadLight && (this.overheadLight.intensity = 0.6 * t), this.clearModeDirectionalLight && (this.clearModeDirectionalLight.intensity = 1.2 * t), this.clearModeHemisphereLight && (this.clearModeHemisphereLight.intensity = 0.7 * t), this.fillLight && (this.fillLight.intensity = 0.8 * t), this.bottomLight && (this.bottomLight.intensity = 0.3 * t);
+    this.overheadLight && (this.overheadLight.intensity = 0.66 * t), this.clearModeDirectionalLight && (this.clearModeDirectionalLight.intensity = 1.32 * t), this.clearModeHemisphereLight && (this.clearModeHemisphereLight.intensity = 0.77 * t), this.fillLight && (this.fillLight.intensity = 0.88 * t), this.bottomLight && (this.bottomLight.intensity = 0.33 * t);
   }
   dispose() {
     this.isDisposed = !0, this.cancelActiveAnimations(), requestAnimationFrame(() => {

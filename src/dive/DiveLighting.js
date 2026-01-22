@@ -38,7 +38,7 @@ export class DiveLighting {
 
     try {
       if (!this.clearModeDirectionalLight) {
-        this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.32);
         this.clearModeDirectionalLight.position.set(10, 20, 10);
         this.clearModeDirectionalLight.castShadow = true;
         
@@ -55,19 +55,19 @@ export class DiveLighting {
       }
       
       if (!this.clearModeHemisphereLight) {
-        this.clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+        this.clearModeHemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.77);
         this.scene.add(this.clearModeHemisphereLight);
       }
 
       if (!this.fillLight) {
-        this.fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        this.fillLight = new THREE.DirectionalLight(0xffffff, 0.88);
         this.fillLight.position.set(-10, 10, -10);
         this.scene.add(this.fillLight);
       }
 
 
       if (!this.bottomLight) {
-        this.bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        this.bottomLight = new THREE.DirectionalLight(0xffffff, 0.33);
         this.bottomLight.position.set(0, -10, 0);
         this.scene.add(this.bottomLight);
       }
@@ -112,7 +112,7 @@ export class DiveLighting {
     }
     
     if (this.overheadLight) {
-      this.overheadLight.intensity = 0.6;
+      this.overheadLight.intensity = 0.66;
       this.overheadLight.color.setHex(0xffffff);
     }
     
@@ -218,23 +218,23 @@ export class DiveLighting {
 
     // Update all survey mode lights with the brightness multiplier
     if (this.overheadLight) {
-      this.overheadLight.intensity = 0.6 * brightness;
+      this.overheadLight.intensity = 0.66 * brightness;
     }
 
     if (this.clearModeDirectionalLight) {
-      this.clearModeDirectionalLight.intensity = 1.2 * brightness;
+      this.clearModeDirectionalLight.intensity = 1.32 * brightness;
     }
 
     if (this.clearModeHemisphereLight) {
-      this.clearModeHemisphereLight.intensity = 0.7 * brightness;
+      this.clearModeHemisphereLight.intensity = 0.77 * brightness;
     }
 
     if (this.fillLight) {
-      this.fillLight.intensity = 0.8 * brightness;
+      this.fillLight.intensity = 0.88 * brightness;
     }
 
     if (this.bottomLight) {
-      this.bottomLight.intensity = 0.3 * brightness;
+      this.bottomLight.intensity = 0.33 * brightness;
     }
   }
   
