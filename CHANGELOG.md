@@ -8,7 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] - 2026-01-22
 
 ### Added
-- Port fly mode from animation example into library - F key or Shift+~ to activate
+- Fly mode controls with F key or Shift+~ to activate - port from animation example into core library
+- Stereoscopic viewing mode with UI mirroring for immersive stereo displays
+- Stereo example demonstrating cylindrical projection for VR headset displays
+
+### Changed
+- Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
+- Studio lighting increased by 10% to compensate for improved material reflections
+
+### Fixed
+- Raycasting accuracy in stereo viewing mode
+- VR button visibility management with fly mode controls
 
 ---
 

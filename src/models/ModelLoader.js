@@ -216,14 +216,18 @@ export class ModelLoader {
           if (material.lightMapIntensity !== undefined) material.lightMapIntensity = 0;
 
           if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
-            const newMaterial = new THREE.MeshLambertMaterial({
+            const newMaterial = new THREE.MeshStandardMaterial({
               // Only include common, safe params; set specialized textures conditionally below
               color: material.color || new THREE.Color(0xffffff),
               side: material.side !== undefined ? material.side : THREE.FrontSide,
               wireframe: material.wireframe || false,
               vertexColors: material.vertexColors || false,
               fog: material.fog !== undefined ? material.fog : true,
-              flatShading: false
+              flatShading: false,
+
+              // Realistic shipwreck appearance
+              roughness: 0.8,  // Weathered, corroded metal/wood
+              metalness: 0.3   // Mix of metal and non-metal
             });
 
             // Conditionally copy supported maps/props to avoid undefined warnings
@@ -232,9 +236,8 @@ export class ModelLoader {
             if (material.aoMap) newMaterial.aoMap = material.aoMap;
             if (typeof material.aoMapIntensity === 'number') newMaterial.aoMapIntensity = material.aoMapIntensity;
             if (material.envMap) newMaterial.envMap = material.envMap;
-            if (typeof material.reflectivity === 'number') newMaterial.reflectivity = material.reflectivity;
-            if (typeof material.refractionRatio === 'number') newMaterial.refractionRatio = material.refractionRatio;
-            if (material.combine !== undefined) newMaterial.combine = material.combine;
+            if (material.roughnessMap) newMaterial.roughnessMap = material.roughnessMap;
+            if (material.metalnessMap) newMaterial.metalnessMap = material.metalnessMap;
             if (material.transparent !== undefined) newMaterial.transparent = material.transparent;
             if (typeof material.opacity === 'number') newMaterial.opacity = material.opacity;
             if (material.normalMap) {
@@ -243,13 +246,14 @@ export class ModelLoader {
             }
 
 
-            if (newMaterial.map && maxAnisotropy !== null) {
-              newMaterial.map.anisotropy = maxAnisotropy;
-              newMaterial.map.needsUpdate = true;
-            }
-            if (newMaterial.normalMap && maxAnisotropy !== null) {
-              newMaterial.normalMap.anisotropy = maxAnisotropy;
-              newMaterial.normalMap.needsUpdate = true;
+            if (maxAnisotropy !== null) {
+              const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'];
+              textureSlots.forEach(slot => {
+                if (newMaterial[slot]) {
+                  newMaterial[slot].anisotropy = maxAnisotropy;
+                  newMaterial[slot].needsUpdate = true;
+                }
+              });
             }
 
             newMaterial.needsUpdate = true;
