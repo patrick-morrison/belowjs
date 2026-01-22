@@ -6007,15 +6007,25 @@ class ii {
         }
       };
       return console.log("🌊 Particle information:"), console.table(i), i;
+    }, window.stereo = (t, i) => {
+      if (t === void 0) {
+        const s = {
+          enabled: e.stereoEnabled || !1,
+          mode: e.stereoMode || "sbs",
+          eyeSeparation: e.stereoEyeSeparation || 0.064
+        };
+        return console.log("👓 Stereo information:"), console.table(s), console.log(""), console.log("Usage:"), console.log("  stereo(true)           - Enable stereo mode"), console.log("  stereo(false)          - Disable stereo mode"), console.log("  stereo(true, 0.065)    - Enable with custom eye separation"), s;
+      }
+      return e.setStereoEnabled(t), i !== void 0 && e.setStereoEyeSeparation(i), console.log(`👓 Stereo ${t ? "enabled" : "disabled"}`), i !== void 0 && console.log(`👓 Eye separation: ${i}m`), { enabled: t, eyeSeparation: e.stereoEyeSeparation };
     }, window.debugHelp = () => {
-      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()    - Get current camera position data"), console.log("  scene()     - Get scene information and object counts"), console.log("  models()    - Get loaded models information"), console.log("  particles() - Get particle system information"), console.log("  vr()        - Get VR state and settings"), console.log("  debugHelp() - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
+      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()    - Get current camera position data"), console.log("  scene()     - Get scene information and object counts"), console.log("  models()    - Get loaded models information"), console.log("  particles() - Get particle system information"), console.log("  vr()        - Get VR state and settings"), console.log("  stereo()    - Get/set stereo mode and eye separation"), console.log("  debugHelp() - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
     });
   }
   /**
    * Clean up debug commands when viewer is disposed
    */
   static cleanup() {
-    typeof window > "u" || (delete window.camera, delete window.scene, delete window.models, delete window.particles, delete window.vr, delete window.debugHelp, delete window.belowViewer);
+    typeof window > "u" || (delete window.camera, delete window.scene, delete window.models, delete window.particles, delete window.vr, delete window.stereo, delete window.debugHelp, delete window.belowViewer);
   }
 }
 class _n extends Te {

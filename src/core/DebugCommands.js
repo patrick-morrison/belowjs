@@ -183,7 +183,7 @@ export class DebugCommands {
     
     window.particles = () => {
       let particles = null;
-      
+
       if (viewer.diveSystem?.particles) {
         particles = viewer.diveSystem.particles;
       }
@@ -193,7 +193,7 @@ export class DebugCommands {
       else if (viewer.belowViewer?.diveSystem?.particles) {
         particles = viewer.belowViewer.diveSystem.particles;
       }
-      
+
       if (!particles) {
         console.log('🌊 Particles not initialized');
         return null;
@@ -214,11 +214,42 @@ export class DebugCommands {
           }
         }
       };
-      
+
       console.log('🌊 Particle information:');
       console.table(particleInfo);
-      
+
       return particleInfo;
+    };
+
+    window.stereo = (enable, eyeSeparation) => {
+      if (enable === undefined) {
+        // Just return current state
+        const stereoInfo = {
+          enabled: viewer.stereoEnabled || false,
+          mode: viewer.stereoMode || 'sbs',
+          eyeSeparation: viewer.stereoEyeSeparation || 0.064
+        };
+        console.log('👓 Stereo information:');
+        console.table(stereoInfo);
+        console.log('');
+        console.log('Usage:');
+        console.log('  stereo(true)           - Enable stereo mode');
+        console.log('  stereo(false)          - Disable stereo mode');
+        console.log('  stereo(true, 0.065)    - Enable with custom eye separation');
+        return stereoInfo;
+      }
+
+      viewer.setStereoEnabled(enable);
+      if (eyeSeparation !== undefined) {
+        viewer.setStereoEyeSeparation(eyeSeparation);
+      }
+
+      console.log(`👓 Stereo ${enable ? 'enabled' : 'disabled'}`);
+      if (eyeSeparation !== undefined) {
+        console.log(`👓 Eye separation: ${eyeSeparation}m`);
+      }
+
+      return { enabled: enable, eyeSeparation: viewer.stereoEyeSeparation };
     };
     
     window.debugHelp = () => {
@@ -228,6 +259,7 @@ export class DebugCommands {
       console.log('  models()    - Get loaded models information');
       console.log('  particles() - Get particle system information');
       console.log('  vr()        - Get VR state and settings');
+      console.log('  stereo()    - Get/set stereo mode and eye separation');
       console.log('  debugHelp() - Show this help message');
       console.log('');
       console.log('Global objects:');
@@ -240,12 +272,13 @@ export class DebugCommands {
    */
   static cleanup() {
     if (typeof window === 'undefined') return;
-    
+
     delete window.camera;
     delete window.scene;
     delete window.models;
     delete window.particles;
     delete window.vr;
+    delete window.stereo;
     delete window.debugHelp;
     delete window.belowViewer;
   }
