@@ -391,6 +391,10 @@ export class ModelViewer extends EventSystem {
         event.preventDefault();
         if (this.diveSystem) this.diveSystem.toggleDiveMode();
       }
+      if (event.code === 'KeyH' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        this.takeScreenshot();
+      }
     });
 
 
