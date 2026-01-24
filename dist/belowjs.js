@@ -9037,7 +9037,7 @@ class zn extends Te {
     ), setTimeout(() => {
       this.diveSystem.initializeToggleSwitch();
     }, 100), document.addEventListener("keydown", (t) => {
-      t.code === "KeyZ" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode());
+      t.code === "KeyZ" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode()), t.code === "KeyH" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.takeScreenshot());
     });
     const e = (t) => {
       if (this.diveSystem) {
