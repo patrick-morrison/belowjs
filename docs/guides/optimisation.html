@@ -201,7 +201,8 @@
 
             <pre><code>npx gltf-transform dedup  model.glb tmp-dedup.glb
 npx gltf-transform weld   tmp-dedup.glb  tmp-weld.glb
-npx gltf-transform simplify tmp-weld.glb tmp-simplified.glb \
+npx gltf-transform join   tmp-weld.glb   tmp-join.glb
+npx gltf-transform simplify tmp-join.glb tmp-simplified.glb \
   --ratio 0.125 \
   --error 0.005 \
   --lock-border true</code></pre>
