@@ -187,6 +187,61 @@
                 </tbody>
             </table>
 
+            <h3 id="polygon-reduction">Polygon Reduction for Large Models</h3>
+            <p>Models with more than 1.2 million polygons generally do not perform well on VR headsets. This is a
+                common issue when migrating high-detail models from <a href="sketchfab-models.html">Sketchfab</a>.</p>
+
+            <p>Polygon reduction is the first step in optimisation, before mesh and texture compression, to avoid
+                reprocessing models. It's better done directly in Metashape (or your photogrammetry package) before
+                texturing, so the texturing is optimised for that exact geometry.</p>
+
+            <p>We use a standard gltf-transform pipeline to reduce polygon counts while maintaining visual quality.
+                The <code>--error 0.005</code> parameter allows <code>--lock-border true</code> to work without
+                creating seams.</p>
+
+            <pre><code>npx gltf-transform dedup  model.glb tmp-dedup.glb
+npx gltf-transform weld   tmp-dedup.glb  tmp-weld.glb
+npx gltf-transform simplify tmp-weld.glb tmp-simplified.glb \
+  --ratio 0.125 \
+  --error 0.005 \
+  --lock-border true</code></pre>
+
+            <p>The <code>--ratio</code> parameter depends on your starting polygon count. Here are some typical values:</p>
+
+            <table style="border-collapse: collapse; width: 100%; margin: 1rem 0;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Starting Polygons</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Recommended Ratio</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Resulting Polygons</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">8 million</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">0.125</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">~1 million</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">5 million</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">0.20</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">~1 million</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">3 million</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">0.33</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">~1 million</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">2 million</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">0.50</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">~1 million</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>After reducing polygons with this pipeline, proceed with the mesh and texture compression steps above.</p>
+
             <h3>below-optimiser</h3>
             <p>We use a utility for this process.</p>
             <pre><code>./below-optimiser pack input.glb</code></pre>
