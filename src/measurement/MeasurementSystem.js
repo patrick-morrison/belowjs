@@ -638,8 +638,8 @@ export class MeasurementSystem {
     if (this.ghostSpheres.right && this.ghostSpheres.right.parent) this.ghostSpheres.right.parent.remove(this.ghostSpheres.right);
     this.ghostSpheres.left = new THREE.Mesh(this.sphereGeometry, ghostMaterial.clone());
     this.ghostSpheres.right = new THREE.Mesh(this.sphereGeometry, ghostMaterial.clone());
-    this.ghostSpheres.left.scale.set(1, 1, 1);
-    this.ghostSpheres.right.scale.set(1, 1, 1);
+    this.ghostSpheres.left.scale.set(0.5, 0.5, 0.5);
+    this.ghostSpheres.right.scale.set(0.5, 0.5, 0.5);
     this.ghostSpheres.left.position.set(0, 0, -0.05);
     this.ghostSpheres.right.position.set(0, 0, -0.05);
     this.ghostSpheres.left.visible = true;
