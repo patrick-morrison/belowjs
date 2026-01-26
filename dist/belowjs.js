@@ -7619,6 +7619,10 @@ class Un {
       this.updateMeasurementPanel();
     }
   }
+  formatDistance(e) {
+    const t = e * 100;
+    return t <= 20 ? `${t.toFixed(2)} cm` : `${e.toFixed(2)}m`;
+  }
   createMeasurementDisplay(e) {
     const t = (window.devicePixelRatio || 1) * 4, i = 256, s = 64, o = i * t, n = s * t;
     this.measurementCanvas || (this.measurementCanvas = document.createElement("canvas")), (this.measurementCanvas.width !== o || this.measurementCanvas.height !== n) && (this.measurementCanvas.width = o, this.measurementCanvas.height = n);
@@ -7629,7 +7633,7 @@ class Un {
     e <= 2 ? a = 0.4 + e / 2 * 0.3 : e <= 4 ? a = 0.7 + (e - 2) / 2 * 0.2 : a = 0.9 + Math.min((e - 4) / 16, 1) * 0.5;
     const l = Math.round(A * a);
     r.font = `600 ${l}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
-    const h = `${e.toFixed(2)}m`, u = r.measureText(h).width, p = l, b = Math.max(6, l * 0.3), E = u + b * 2, f = p + b * 2, m = (i - E) / 2, I = (s - f) / 2;
+    const h = this.formatDistance(e), u = r.measureText(h).width, p = l, b = Math.max(6, l * 0.3), E = u + b * 2, f = p + b * 2, m = (i - E) / 2, I = (s - f) / 2;
     if (r.fillStyle = "rgba(0, 0, 0, 0.8)", r.beginPath(), r.roundRect(m, I, E, f, Math.max(4, l * 0.2)), r.fill(), r.fillStyle = "white", r.textAlign = "center", r.textBaseline = "middle", r.fillText(h, i / 2, s / 2), r.restore(), this.measurementTexture ? this.measurementTexture.needsUpdate = !0 : (this.measurementTexture = new g.CanvasTexture(this.measurementCanvas), this.measurementTexture.minFilter = g.LinearFilter, this.measurementTexture.magFilter = g.LinearFilter), !this.measurementSprite) {
       const w = new g.SpriteMaterial({
         map: this.measurementTexture,
@@ -7736,7 +7740,7 @@ class Un {
       s.sphere && this.scene.remove(s.sphere);
     }
     const i = new g.Mesh(this.sphereGeometry, this.placedMaterial);
-    i.position.copy(e), i.userData.isMeasurementSphere = !0, this.scene.add(i), this.unifiedMeasurementPoints.push({
+    i.position.copy(e), i.scale.setScalar(0.5), i.userData.isMeasurementSphere = !0, this.scene.add(i), this.unifiedMeasurementPoints.push({
       position: e.clone(),
       sphere: i,
       source: t
@@ -7757,13 +7761,17 @@ class Un {
         t.z
       ]), this.unifiedMeasurementLine = new Ai(i, this.desktopLineMaterial), this.unifiedMeasurementLine.computeLineDistances(), this.unifiedMeasurementLine.userData.isMeasurementLine = !0, this.scene.add(this.unifiedMeasurementLine);
       const s = e.distanceTo(t);
-      if (this.createMeasurementDisplay(s), this.measurementSprite) {
-        const o = new g.Vector3();
-        o.addVectors(e, t), o.multiplyScalar(0.5);
-        const n = Math.max(0.05, Math.min(0.2, s * 0.03));
-        o.y += n, this.measurementSprite.position.copy(o), this.scene.children.includes(this.measurementSprite) || this.scene.add(this.measurementSprite);
-        const r = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
-        this.measurementSprite.visible = r || this.showMeasurementLabels;
+      this.createMeasurementDisplay(s);
+      const o = s * 100 <= 20 ? 0.125 : 0.5;
+      if (this.unifiedMeasurementPoints.forEach((n) => {
+        n.sphere && n.sphere.scale.setScalar(o);
+      }), this.measurementSprite) {
+        const n = new g.Vector3();
+        n.addVectors(e, t), n.multiplyScalar(0.5);
+        const r = Math.max(0.05, Math.min(0.2, s * 0.03));
+        n.y += r, this.measurementSprite.position.copy(n), this.scene.children.includes(this.measurementSprite) || this.scene.add(this.measurementSprite);
+        const A = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+        this.measurementSprite.visible = A || this.showMeasurementLabels;
       }
       this.desktopMeasurementMode || (this.desktopMeasurementMode = !0);
     }
@@ -7820,7 +7828,7 @@ class Un {
       `;
     else if (s)
       e.classList.add("measured"), e.innerHTML = `
-        <div>${n.toFixed(2)}m</div>
+        <div>${this.formatDistance(n)}</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to disable</div>
       `;
     else {

@@ -518,6 +518,14 @@ export class MeasurementSystem {
     }
   }
 
+  formatDistance(distance) {
+    const distanceCm = distance * 100;
+    if (distanceCm <= 20.0) {
+      return `${distanceCm.toFixed(2)} cm`;
+    }
+    return `${distance.toFixed(2)}m`;
+  }
+
   createMeasurementDisplay(distance) {
     const DPR = (window.devicePixelRatio || 1) * 4;
     const logicalWidth = 256;
@@ -548,7 +556,7 @@ export class MeasurementSystem {
     }
     const fontSize = Math.round(baseFontSize * scaleFactor);
     context.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
-    const text = `${distance.toFixed(2)}m`;
+    const text = this.formatDistance(distance);
     const textMetrics = context.measureText(text);
     const textWidth = textMetrics.width;
     const textHeight = fontSize;
@@ -776,6 +784,7 @@ export class MeasurementSystem {
 
     const sphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
     sphere.position.copy(point);
+    sphere.scale.setScalar(0.5);
     sphere.userData.isMeasurementSphere = true;
     this.scene.add(sphere);
     
@@ -824,7 +833,15 @@ export class MeasurementSystem {
 
       const distance = point1.distanceTo(point2);
       this.createMeasurementDisplay(distance);
-      
+
+      // Scale spheres: half size normally, 1/4 of that for small measurements (≤ 20 cm)
+      const sphereScale = (distance * 100 <= 20.0) ? 0.125 : 0.5;
+      this.unifiedMeasurementPoints.forEach(point => {
+        if (point.sphere) {
+          point.sphere.scale.setScalar(sphereScale);
+        }
+      });
+
       if (this.measurementSprite) {
         const midpoint = new THREE.Vector3();
         midpoint.addVectors(point1, point2);
@@ -1032,7 +1049,7 @@ export class MeasurementSystem {
     } else if (hasMeasurement) {
       panel.classList.add('measured');
       panel.innerHTML = `
-        <div>${distance.toFixed(2)}m</div>
+        <div>${this.formatDistance(distance)}</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to disable</div>
       `;
     } else {

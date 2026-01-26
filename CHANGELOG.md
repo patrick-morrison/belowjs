@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
 - Studio lighting increased by 10% to compensate for improved material reflections
+- Measurement display: distances ≤ 20 cm now shown in cm with 2 decimal places, smaller sphere markers for precision
 
 ### Fixed
 - Raycasting accuracy in stereo viewing mode
