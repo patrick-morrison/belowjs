@@ -640,8 +640,8 @@ export class MeasurementSystem {
     this.ghostSpheres.right = new THREE.Mesh(this.sphereGeometry, ghostMaterial.clone());
     this.ghostSpheres.left.scale.set(0.5, 0.5, 0.5);
     this.ghostSpheres.right.scale.set(0.5, 0.5, 0.5);
-    this.ghostSpheres.left.position.set(0, 0, -0.05);
-    this.ghostSpheres.right.position.set(0, 0, -0.05);
+    this.ghostSpheres.left.position.set(0, 0, -0.07);
+    this.ghostSpheres.right.position.set(0, 0, -0.07);
     this.ghostSpheres.left.visible = true;
     this.ghostSpheres.right.visible = true;
     if (this.controller1) this.controller1.add(this.ghostSpheres.left);
@@ -877,12 +877,12 @@ export class MeasurementSystem {
     if (this.isVR && this.ghostSpheres) {
 
       if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.parent === this.controller1) {
-        this.ghostSpheres.left.position.set(0, 0, -0.05);
+        this.ghostSpheres.left.position.set(0, 0, -0.07);
         this.ghostSpheres.left.rotation.set(0, 0, 0);
         this.ghostSpheres.left.scale.set(1, 1, 1);
       }
       if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.parent === this.controller2) {
-        this.ghostSpheres.right.position.set(0, 0, -0.05);
+        this.ghostSpheres.right.position.set(0, 0, -0.07);
         this.ghostSpheres.right.rotation.set(0, 0, 0);
         this.ghostSpheres.right.scale.set(1, 1, 1);
       }
