@@ -39,18 +39,18 @@ export class DiveLighting {
     try {
       if (!this.clearModeDirectionalLight) {
         this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.32);
-        this.clearModeDirectionalLight.position.set(10, 20, 10);
+        this.clearModeDirectionalLight.position.set(50, 100, 50);
         this.clearModeDirectionalLight.castShadow = true;
-        
+
         this.clearModeDirectionalLight.shadow.mapSize.width = 2048;
         this.clearModeDirectionalLight.shadow.mapSize.height = 2048;
         this.clearModeDirectionalLight.shadow.camera.near = 0.5;
-        this.clearModeDirectionalLight.shadow.camera.far = 100;
-        this.clearModeDirectionalLight.shadow.camera.left = -20;
-        this.clearModeDirectionalLight.shadow.camera.right = 20;
-        this.clearModeDirectionalLight.shadow.camera.top = 20;
-        this.clearModeDirectionalLight.shadow.camera.bottom = -20;
-        
+        this.clearModeDirectionalLight.shadow.camera.far = 500;
+        this.clearModeDirectionalLight.shadow.camera.left = -150;
+        this.clearModeDirectionalLight.shadow.camera.right = 150;
+        this.clearModeDirectionalLight.shadow.camera.top = 150;
+        this.clearModeDirectionalLight.shadow.camera.bottom = -150;
+
         this.scene.add(this.clearModeDirectionalLight);
       }
       
