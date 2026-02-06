@@ -23,6 +23,41 @@ export class ModelLoader {
     this.loader.setDRACOLoader(this.dracoLoader);
     this.loader.setMeshoptDecoder(MeshoptDecoder);
 
+    // Register plugin to convert deprecated KHR_materials_pbrSpecularGlossiness to standard PBR
+    this.loader.register((parser) => {
+      return {
+        name: 'KHR_materials_pbrSpecularGlossiness',
+        extendMaterialParams: async (materialIndex, materialParams) => {
+          const materialDef = parser.json.materials[materialIndex];
+          if (!materialDef.extensions || !materialDef.extensions.KHR_materials_pbrSpecularGlossiness) {
+            return Promise.resolve();
+          }
+
+          const sgExt = materialDef.extensions.KHR_materials_pbrSpecularGlossiness;
+
+          // Convert diffuse texture to baseColor/map
+          if (sgExt.diffuseTexture !== undefined) {
+            materialParams.map = await parser.getDependency('texture', sgExt.diffuseTexture.index);
+          }
+
+          // Convert diffuse factor to color
+          if (sgExt.diffuseFactor !== undefined) {
+            materialParams.color = new THREE.Color().fromArray(sgExt.diffuseFactor);
+          }
+
+          // Convert glossiness to roughness (roughness = 1 - glossiness)
+          if (sgExt.glossinessFactor !== undefined) {
+            materialParams.roughness = 1.0 - sgExt.glossinessFactor;
+          }
+
+          // Assume non-metallic for specular-glossiness workflows
+          materialParams.metalness = 0.0;
+
+          return Promise.resolve();
+        }
+      };
+    });
+
     this.cache = new Map();
 
     this.ktx2SetupComplete = false;
