@@ -89,6 +89,11 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.4.2)
-- New: `setSurveyBrightness(multiplier)` method on DiveLighting
-- Improved: Animation example for smaller and darker objects
+## Current (1.5.0)
+- New: Fly mode controls with F key or Shift+~ to activate
+- New: Experimental stereoscopic viewing mode with configurable eye separation
+- New: Z key to toggle between dive mode and studio mode
+- New: H key to take screenshot
+- Improved: Material conversion upgraded to MeshStandardMaterial with PBR defaults
+- Fixed: Support for deprecated KHR_materials_pbrSpecularGlossiness GLTF extension
+- Fixed: Support for logarithmicDepthBuffer renderer option

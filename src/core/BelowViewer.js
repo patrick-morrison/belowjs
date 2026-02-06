@@ -30,6 +30,7 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {boolean} [renderer.antialias=true] - Enable antialiasing
  * @property {boolean} [renderer.alpha=false] - Enable transparency
  * @property {string} [renderer.powerPreference='high-performance'] - GPU preference
+ * @property {boolean} [renderer.logarithmicDepthBuffer=false] - Enable logarithmic depth buffer for large scenes
  * @property {Object} [stereo] - Stereo rendering configuration
  * @property {boolean} [stereo.enabled=false] - Enable SBS stereo rendering
  * @property {string} [stereo.mode='sbs'] - Stereo mode ('sbs')
@@ -138,12 +139,14 @@ export class BelowViewer extends EventSystem {
         default: {
           antialias: true,
           alpha: false,
-          powerPreference: 'high-performance'
+          powerPreference: 'high-performance',
+          logarithmicDepthBuffer: false
         },
         schema: {
           antialias: { type: 'boolean', default: true },
           alpha: { type: 'boolean', default: false },
-          powerPreference: { type: 'string', default: 'high-performance' }
+          powerPreference: { type: 'string', default: 'high-performance' },
+          logarithmicDepthBuffer: { type: 'boolean', default: false }
         }
       },
       stereo: {
@@ -270,6 +273,7 @@ export class BelowViewer extends EventSystem {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
+      logarithmicDepthBuffer: this.config.renderer.logarithmicDepthBuffer,
       preserveDrawingBuffer: true
     });
     

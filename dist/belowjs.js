@@ -5748,7 +5748,7 @@ class kn {
         (this.scaling || this.rotating) && (this.rotVelocity = 0, this.scaleVelocity = 0), this.dragging = !0, this.scaling = !1, this.rotating = !1, l.getWorldPosition(this.dragStartPos), this.onGestureStart && this.onGestureStart("drag");
       else {
         l.getWorldPosition(this.tempVec1);
-        let h = this.tempVec1.clone().sub(this.dragStartPos);
+        const h = this.tempVec1.clone().sub(this.dragStartPos);
         if (h.length() > this.MAX_DELTA_PER_FRAME && h.normalize().multiplyScalar(this.MAX_DELTA_PER_FRAME), i) {
           const d = i.position.distanceTo(t.position);
           if (d > this.DISTANCE_GAIN_THRESHOLD) {
@@ -6115,12 +6115,14 @@ class _n extends Te {
         default: {
           antialias: !0,
           alpha: !1,
-          powerPreference: "high-performance"
+          powerPreference: "high-performance",
+          logarithmicDepthBuffer: !1
         },
         schema: {
           antialias: { type: "boolean", default: !0 },
           alpha: { type: "boolean", default: !1 },
-          powerPreference: { type: "string", default: "high-performance" }
+          powerPreference: { type: "string", default: "high-performance" },
+          logarithmicDepthBuffer: { type: "boolean", default: !1 }
         }
       },
       stereo: {
@@ -6179,6 +6181,7 @@ class _n extends Te {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
+      logarithmicDepthBuffer: this.config.renderer.logarithmicDepthBuffer,
       preserveDrawingBuffer: !0
     }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = g.PCFSoftShadowMap, this.renderer.outputColorSpace = g.SRGBColorSpace;
     const e = {

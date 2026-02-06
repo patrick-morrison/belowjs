@@ -151,7 +151,7 @@ export class ARHandTracking {
         if (this.onGestureStart) this.onGestureStart('drag');
       } else {
         indexTip.getWorldPosition(this.tempVec1);
-        let delta = this.tempVec1.clone().sub(this.dragStartPos);
+        const delta = this.tempVec1.clone().sub(this.dragStartPos);
 
         if (delta.length() > this.MAX_DELTA_PER_FRAME) {
           delta.normalize().multiplyScalar(this.MAX_DELTA_PER_FRAME);

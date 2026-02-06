@@ -12,12 +12,12 @@
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.4.2/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
         }
     }
     </script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.4.2/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css">
 
     <style>
         * {
@@ -1656,7 +1656,6 @@
         let keyframes = [];
         let hoveredKeyframeIndex = null;
         let selectedKeyframeIndex = null;
-        let flyControlsEnabled = false;
         let animationId = null;
         let lastFrameTime = 0;
         let defaultInterpolation = 'linear';
@@ -1670,11 +1669,6 @@
         let draggingKeyframe = null;
         let longPressTimeout = null;
         let longPressKeyframeIndex = null;
-
-        // Camera rotation state for fly mode
-        let cameraYaw = 0;
-        let cameraPitch = 0;
-        let modelSize = 100; // Default reference size in meters
 
         // Elements
         const emptyState = document.getElementById('emptyState');
@@ -1846,10 +1840,6 @@
         const getControls = () => viewer?.belowViewer?.cameraManager?.getControls?.();
         const getRenderer = () => viewer?.belowViewer?.renderer;
 
-        // Fly Controls - using yaw/pitch directly
-        const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
-        let pointerLocked = false;
-
         document.addEventListener('keydown', (e) => {
             // Guard: Don't trigger shortcuts when typing in inputs
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
@@ -1886,124 +1876,21 @@
             // 'i' to add keyframe (Blender style)
             if (key === 'i') {
                 addKeyframe();
-                return;
-            }
-            if (key in keys) keys[key] = true;
-            if (e.shiftKey) keys.shift = true;
-            // Toggle fly mode with Shift+` or F key
-            if (e.shiftKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
-                e.preventDefault();
-                if (hasModel && !isPlaying && !pointerLocked) viewerContainer.requestPointerLock();
-            }
-            if (key === 'f') {
-                e.preventDefault();
-                if (hasModel && !isPlaying) {
-                    if (pointerLocked) {
-                        document.exitPointerLock();
-                    } else {
-                        viewerContainer.requestPointerLock();
-                    }
-                }
-                return;
-            }
-            // ESC to exit fly mode
-            if (e.key === 'Escape' && pointerLocked) {
-                document.exitPointerLock();
             }
         });
 
-        document.addEventListener('keyup', (e) => {
-            const key = e.key.toLowerCase();
-            if (key in keys) keys[key] = false;
-            if (!e.shiftKey) keys.shift = false;
-        });
-
-        viewerContainer.addEventListener('click', () => { if (pointerLocked) document.exitPointerLock(); });
-
-        document.addEventListener('pointerlockchange', () => {
-            const wasLocked = pointerLocked;
-            pointerLocked = document.pointerLockElement === viewerContainer;
-            const controls = getControls();
-            const camera = getCamera();
-
-            if (pointerLocked && !wasLocked && camera) {
-                // Get current camera rotation as yaw/pitch
-                const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
-                cameraYaw = euler.y;
-                cameraPitch = euler.x;
-            }
-
-            if (controls) controls.enabled = !pointerLocked;
-            flyControlsEnabled = pointerLocked;
-            flyModeIndicator.classList.toggle('visible', pointerLocked);
-
-            // Update aspect frame when exiting fly mode to prevent offset
+        viewer.on('fly-mode-change', ({ active }) => {
+            flyModeIndicator.classList.toggle('visible', active);
             updateAspectFrame();
         });
 
         // Interactive sidebar fly hint
         const runtimeFlyHint = document.getElementById('runtimeFlyHint');
         runtimeFlyHint.addEventListener('click', () => {
-            if (hasModel && !isPlaying && !pointerLocked) {
-                viewerContainer.requestPointerLock();
+            if (hasModel && !isPlaying && !viewer.isFlyModeActive()) {
+                viewer.enterFlyMode();
             }
         });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!pointerLocked) return;
-            const camera = getCamera();
-            const controls = getControls();
-            if (!camera) return;
-
-            // Update yaw and pitch based on mouse movement
-            cameraYaw -= e.movementX * 0.002;
-            cameraPitch -= e.movementY * 0.002;
-
-            // Clamp pitch
-            cameraPitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, cameraPitch));
-
-            // Apply rotation using YXZ order (yaw then pitch)
-            const euler = new THREE.Euler(cameraPitch, cameraYaw, 0, 'YXZ');
-            camera.quaternion.setFromEuler(euler);
-
-            // CRITICAL: Update OrbitControls target to match camera look direction
-            // This prevents OrbitControls.update() from overriding our rotation
-            if (controls) {
-                const forward = new THREE.Vector3(0, 0, -5).applyQuaternion(camera.quaternion);
-                controls.target.copy(camera.position).add(forward);
-            }
-        });
-
-        function updateFlyControls(delta) {
-            if (!flyControlsEnabled || isPlaying) return;
-            const camera = getCamera();
-            if (!camera) return;
-
-            // Scale speed linearly with model size (tuned for 100m, 10m is 10x slower)
-            const sizeMultiplier = modelSize / 100;
-            const baseSpeed = keys.shift ? 20 : 6;
-            const speed = baseSpeed * sizeMultiplier;
-            const direction = new THREE.Vector3();
-
-            if (keys.w) direction.z -= 1;
-            if (keys.s) direction.z += 1;
-            if (keys.a) direction.x -= 1;
-            if (keys.d) direction.x += 1;
-            if (keys.q) direction.y -= 1;
-            if (keys.e) direction.y += 1;
-
-            if (direction.lengthSq() > 0) {
-                direction.normalize();
-                direction.applyQuaternion(camera.quaternion);
-                camera.position.addScaledVector(direction, speed * delta);
-
-                const controls = getControls();
-                if (controls) {
-                    const forward = new THREE.Vector3(0, 0, -5).applyQuaternion(camera.quaternion);
-                    controls.target.copy(camera.position).add(forward);
-                }
-            }
-        }
 
 
 
@@ -2466,8 +2353,6 @@
                 if (currentTime >= duration) { currentTime = duration; stopPlayback(); }
                 animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
                 updateTimeDisplay();
-            } else {
-                updateFlyControls(delta);
             }
         }
         animationId = requestAnimationFrame(animate);
@@ -2574,8 +2459,8 @@
             if (!camera || !controls) return;
 
             // If in fly mode, exit it first (this saves the current spot)
-            if (pointerLocked) {
-                document.exitPointerLock();
+            if (viewer.isFlyModeActive()) {
+                viewer.exitFlyMode();
             }
 
             const existing = keyframes.findIndex(k => Math.abs(k.time - currentTime) < 0.01);
@@ -2610,10 +2495,6 @@
             camera.position.set(kf.position.x, kf.position.y, kf.position.z);
             controls.target.set(kf.target.x, kf.target.y, kf.target.z);
             camera.lookAt(controls.target);
-            // Update fly mode state
-            const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
-            cameraYaw = euler.y;
-            cameraPitch = euler.x;
             currentTime = kf.time;
             updateTimeDisplay();
         }
@@ -2936,13 +2817,15 @@
             playBtn.querySelector('.play-icon').style.display = 'none';
             playBtn.querySelector('.pause-icon').style.display = 'block';
             addFrameBtn.disabled = true;
-            if (document.pointerLockElement) document.exitPointerLock();
+            viewer.setFlyControlsEnabled(false);
+            viewer.exitFlyMode();
         }
         function stopPlayback() {
             isPlaying = false;
             playBtn.querySelector('.play-icon').style.display = 'block';
             playBtn.querySelector('.pause-icon').style.display = 'none';
             addFrameBtn.disabled = false;
+            viewer.setFlyControlsEnabled(true);
         }
         function togglePlayback() {
             if (keyframes.length === 0 && animationMode === 'timeline') {
@@ -3195,10 +3078,6 @@
                 controls.update();
             }
 
-            // Reset fly mode state to match restored camera
-            const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
-            cameraYaw = euler.y;
-            cameraPitch = euler.x;
         }
 
         async function exportRange(startTime, endTime, name, expW, expH, fps, renderer, camera, controls) {
@@ -3480,33 +3359,11 @@
 
                 hasModel = true;
 
-                // Calculate model size for fly speed scaling
-                const scene = viewer?.belowViewer?.sceneManager?.getScene();
-                if (scene) {
-                    const box = new THREE.Box3().setFromObject(scene);
-                    if (!box.isEmpty()) {
-                        const size = box.getSize(new THREE.Vector3());
-                        const maxSize = Math.max(size.x, size.y, size.z);
-                        // Clamp to reasonable range: 1m to 10,000m
-                        if (maxSize > 0 && isFinite(maxSize)) {
-                            modelSize = Math.max(1, Math.min(10000, maxSize));
-                        }
-                    }
-                }
-
                 // Expand panel on small screens when model loads
                 if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
                     animPanel.classList.remove('collapsed');
                     panelCollapseToggle.textContent = 'Hide Settings';
                     panelCollapseToggle.title = 'Hide settings';
-                }
-
-                // Initialize fly mode rotation from camera
-                const camera = getCamera();
-                if (camera) {
-                    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
-                    cameraYaw = euler.y;
-                    cameraPitch = euler.x;
                 }
 
                 keyframes = []; currentTime = 0;
@@ -3553,31 +3410,10 @@
 
                 hasModel = true;
 
-                // Calculate model size for fly speed scaling
-                const scene = viewer?.belowViewer?.sceneManager?.getScene();
-                if (scene) {
-                    const box = new THREE.Box3().setFromObject(scene);
-                    if (!box.isEmpty()) {
-                        const size = box.getSize(new THREE.Vector3());
-                        const maxSize = Math.max(size.x, size.y, size.z);
-                        // Clamp to reasonable range: 1m to 10,000m
-                        if (maxSize > 0 && isFinite(maxSize)) {
-                            modelSize = Math.max(1, Math.min(10000, maxSize));
-                        }
-                    }
-                }
-
                 if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
                     animPanel.classList.remove('collapsed');
                     panelCollapseToggle.textContent = 'Hide Settings';
                     panelCollapseToggle.title = 'Hide settings';
-                }
-
-                const camera = getCamera();
-                if (camera) {
-                    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
-                    cameraYaw = euler.y;
-                    cameraPitch = euler.x;
                 }
 
                 keyframes = []; currentTime = 0;
