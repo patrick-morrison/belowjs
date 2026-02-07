@@ -137,12 +137,22 @@
                 </div>
             </div>
 
-            <h2>Step 4: Optimise and scale your model (Optional)</h2>
-            <p>If your model wasn't scaled before you uploaded, follow the <a href="model-setup.html">model setup guide</a>. The Blender process is probably the easiest.</p>
+            <h2>Step 4: Optimise and scale your model (Recommended)</h2>
+            <p>If your model wasn't scaled before upload, follow the <a href="model-setup.html">model setup guide</a>.
+                If your model is already oriented from Sketchfab, this is usually the quickest way to finish scaling and
+                optimisation.</p>
             
-            <p>Sketchfab GLBs are already well optimised, but we can do better - especially for VR. Use the <a href="optimisation.html">optimisation guide</a>, especially if your model is over 1 million polygons. With the script, it's as simple as running:</p>
+            <p>Sketchfab GLBs are usually decent out of the box, but we can do better for VR. Use the
+                <a href="optimisation.html">optimisation guide</a>, especially if your model is over ~1 million
+                polygons.</p>
             
-            <pre><code>./below-optimiser pack input.glb</code></pre>
+            <pre><code>belowjs-optimiser pack input.glb</code></pre>
+
+            <p>To scale with the optimiser, measure a known distance in the
+                <a href="../examples/dragdrop/" target="_blank">drag-and-drop viewer</a>, then compute
+                <code>scale factor = expected / measured</code>. Example: if a 1 m scale stick measures 0.85 m, use
+                <code>1.00 / 0.85 = 1.18</code>:</p>
+            <pre><code>belowjs-optimiser pack input.glb --scale 1.18</code></pre>
 
             <h2>Step 5: Copy the Basic example</h2>
             <p>The basic example uses CDN imports, so nothing else is needed - just the HTML file and your models!</p>
@@ -164,7 +174,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                     <img src="screenshots/optimise.gif" alt="Optimising models for better performance" style="width: 100%; height: auto; border-radius: 8px;">
-                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">(Optional) Optimise your models</p>
+                    <p style="text-align: center; margin: 0.75rem 0 0 0; font-size: 0.9em; color: #666;">(Recommended) Optimise your models</p>
                 </div>
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                     <img src="screenshots/htmling.gif" alt="Setting up HTML with BelowJS" style="width: 100%; height: auto; border-radius: 8px;">

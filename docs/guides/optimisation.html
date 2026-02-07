@@ -86,7 +86,8 @@
             <p><strong>Note:</strong> We use the <a href="https://github.com/patrick-morrison/belowjs-optimiser"
                     target="_blank">belowjs-optimiser</a> utility for this workflow. Example:
                 <code>npx belowjs-optimiser pack model.glb</code>. By default this simplifies to ~1,200,000 polygons,
-                applies 20-bit Draco mesh compression, and converts textures to KTX2.</p>
+                applies 20-bit Draco mesh compression, converts textures to KTX2, and resizes textures to a max of
+                4096x4096.</p>
 
             <h2>Optimising Photogrammetry 3D Models for WebXR on Meta Quest 3</h2>
 
@@ -264,8 +265,12 @@ brew install ktx-software</code></pre>
             <p>Optimise a model:</p>
             <pre><code>belowjs-optimiser pack model.glb</code></pre>
 
-            <p>This will apply 20-bit Draco mesh compression and KTX2 texture compression, then write out
+            <p>This applies 20-bit Draco mesh compression, KTX2 texture compression, texture resizing (max 4096x4096),
+                and automatic simplification above the polygon target, then writes out
                 <code>&lt;input&gt;-belowjs.glb</code>.</p>
+
+            <p>Optimise many files:</p>
+            <pre><code>belowjs-optimiser pack models/*.glb</code></pre>
 
             <p>Recommended polygon targets:</p>
             <ul>
@@ -274,8 +279,30 @@ brew install ktx-software</code></pre>
             </ul>
 
             <p>Set a custom polygon target when needed:</p>
-            <pre><code>belowjs-optimiser pack model.glb --polygon 1200000
-belowjs-optimiser pack model.glb --polygon 500000</code></pre>
+            <pre><code>belowjs-optimiser pack model.glb --polygon 800000</code></pre>
+
+            <p>Skip simplification:</p>
+            <pre><code>belowjs-optimiser pack model.glb --no-simplify</code></pre>
+
+            <p>Custom output suffix:</p>
+            <pre><code>belowjs-optimiser pack model.glb --suffix "_ar"</code></pre>
+
+            <p>Apply uniform scene scaling:</p>
+            <pre><code>belowjs-optimiser pack model.glb --scale 0.01</code></pre>
+
+            <p>Scaling behavior:</p>
+            <ul>
+                <li>Default behavior keeps geometry/object scale unchanged (<code>--scale 1</code>).</li>
+                <li>Use <code>--scale &lt;factor&gt;</code> to apply uniform scene scaling.</li>
+                <li>Scene hierarchy is wrapped with a scale node; mesh data is not rewritten.</li>
+                <li>Texture dimensions may still be resized down to max 4096x4096.</li>
+                <li>For measurement accuracy, scaling in Metashape is preferred; see <a href="model-setup.html">model
+                        setup and scaling</a>.</li>
+                <li>You can check scale in the <a href="../examples.html">drag-and-drop viewer</a>: measure a known
+                    distance, compare to expected, then compute <code>scale factor = expected / measured</code>. Example:
+                    if a 1 m scale stick measures 0.85 m in the viewer, <code>1.00 / 0.85 = 1.18</code>, so use
+                    <code>--scale 1.18</code>.</li>
+            </ul>
 
             <p>For texture editing - normally light colour correction, we also have unpack:</p>
             <pre><code>belowjs-optimiser unpack model.glb</code></pre>
@@ -287,6 +314,9 @@ belowjs-optimiser pack model.glb --polygon 500000</code></pre>
             <p>It will also detect normal maps, and link them, as long as they are named to the form
                 <code>*normal1.*</code>, <code>*normal2.*</code>, etc. If you originally had .png textures, but replaced
                 them with jpegs, it will also detect that and adjust the gltf references before packing.</p>
+
+            <p>Inspect model stats:</p>
+            <pre><code>belowjs-optimiser info model.glb</code></pre>
 
             <p><code>below-optimiser</code> is still supported as a compatibility alias.</p>
 

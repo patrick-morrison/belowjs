@@ -101,6 +101,18 @@
             <p>In short, you add a marker on each end of the scale bar using Right Click → Add Marker. In the Reference Pane (typically bottom right of screen), you shift-select both markers and right click to create a Scale Bar. Below that you can define the distance - for a 1 m scale bar, you will type 1 in the box. To apply, you hit the Update Transform button - it looks like a refresh icon on the top of the reference pane. Your model may resize so much it disappears from screen. Hit 0 on your keyboard to reset the view.</p>
             
             <p>If you have a georeferenced model, it will already be scaled - but a scale bar is normally more precise. You can also use known features as a scale bar, if you did not use one - for example: 1) known cray pot dimensions, 2) pre-measured masts or cannons, 3) dive knives. Beware scaling errors. Good practice and multiple checks are important if you care about the accuracy of the BelowJS measurement tool.</p>
+
+            <h2>Scaling with belowjs-optimiser</h2>
+            <p>You can scale a model using belowjs-optimiser. Use the <a href="../examples/dragdrop/">drag-and-drop
+                    viewer</a> to measure a known distance, then compute
+                <code>scale factor = expected / measured</code>. Example: if a 1 m scale
+                stick measures 0.85 m in the viewer, <code>1.00 / 0.85 = 1.18</code>.</p>
+            <p>Then apply that factor with belowjs-optimiser:</p>
+            <pre><code>belowjs-optimiser pack model.glb --scale 1.18</code></pre>
+            <p>After scaling, continue with the <a href="optimisation.html">optimisation guide</a> to apply compression
+                and polygon targets for VR/AR performance.</p>
+            <p>If your model is already oriented from a <a href="sketchfab-models.html">Sketchfab download</a>, this is
+                usually the quickest way to get it correctly scaled.</p>
             
             <h2>Scaling in Blender and other open source programs</h2>
             <p>There are tutorials elsewhere on the internet for scaling in free and open source programs. Look for recent tutorials as software interfaces change frequently.</p>
@@ -110,7 +122,7 @@
             <p>This approach can be done in most 3D packages, including <a href="https://www.youtube.com/watch?v=ZlNqm0_oTpU" target="_blank">MeshLab</a>.</p>
             
             <p>Another approach is to add a 1-meter cube, then scale visually until it matches a 1 m scale bar. This is good to reasonable accuracy, but not ideal.</p>
-            
+
             <h2>Next Steps</h2>
             <p>Once you have your model properly scaled and oriented, export it as a GLB file and move to <a href="optimisation.html">Model Optimisation</a> to reduce file sizes and improve performance for web and VR platforms.</p>
         </div>
