@@ -83,6 +83,10 @@
             <p>Learn how to optimise photogrammetry models for smooth WebXR performance on headsets and mobile devices.
                 This guide covers mesh compression, texture optimisation, and practical file size targets for web
                 deployment.</p>
+            <p><strong>Note:</strong> We use the <a href="https://github.com/patrick-morrison/belowjs-optimiser"
+                    target="_blank">belowjs-optimiser</a> utility for this workflow. Example:
+                <code>npx belowjs-optimiser pack model.glb</code>. By default this simplifies to ~1,200,000 polygons,
+                applies 20-bit Draco mesh compression, and converts textures to KTX2.</p>
 
             <h2>Optimising Photogrammetry 3D Models for WebXR on Meta Quest 3</h2>
 
@@ -110,7 +114,7 @@
             </ul>
 
             <p>This .glb is a single file that contains the mesh and the textures - it's an alternative to formats like
-                like .obj, .fbx, .stl, etc. We have had the best results with 1,000,000 polygon models using 4 × 4K
+                like .obj, .fbx, .stl, etc. We have had the best results with ~1,200,000 polygon models using 4 × 4K
                 textures, which stays under 50MB - an acceptable limit for most modern internet connections. In some
                 cases it might be worth considering a much lower target - say under 10MB.</p>
 
@@ -188,8 +192,9 @@
             </table>
 
             <h3 id="polygon-reduction">Polygon Reduction for Large Models</h3>
-            <p>Models with more than 1.2 million polygons generally do not perform well on VR headsets. This is a
-                common issue when migrating high-detail models from <a href="sketchfab-models.html">Sketchfab</a>.</p>
+            <p>Models with more than 1.2 million polygons generally do not perform well on VR headsets. For AR/mobile
+                experiences, a target around 500,000 polygons is usually more reliable. This is a common issue when
+                migrating high-detail models from <a href="sketchfab-models.html">Sketchfab</a>.</p>
 
             <p>Polygon reduction is the first step in optimisation, before mesh and texture compression, to avoid
                 reprocessing models. It's better done directly in Metashape (or your photogrammetry package) before
@@ -243,26 +248,50 @@ npx gltf-transform simplify tmp-join.glb tmp-simplified.glb \
 
             <p>After reducing polygons with this pipeline, proceed with the mesh and texture compression steps above.</p>
 
-            <h3>below-optimiser</h3>
+            <h3>belowjs-optimiser</h3>
             <p>We use a utility for this process.</p>
-            <pre><code>./below-optimiser pack input.glb</code></pre>
+
+            <p>Install globally:</p>
+            <pre><code>npm install -g belowjs-optimiser</code></pre>
+
+            <p>Or run ad-hoc with npx:</p>
+            <pre><code>npx belowjs-optimiser pack model.glb</code></pre>
+
+            <p>The optimiser requires <code>ktx</code> on your PATH (KTX-Software):</p>
+            <pre><code># macOS
+brew install ktx-software</code></pre>
+
+            <p>Optimise a model:</p>
+            <pre><code>belowjs-optimiser pack model.glb</code></pre>
 
             <p>This will apply 20-bit Draco mesh compression and KTX2 texture compression, then write out
-                <code>&lt;input&gt;-quest.glb</code>.</p>
+                <code>&lt;input&gt;-belowjs.glb</code>.</p>
+
+            <p>Recommended polygon targets:</p>
+            <ul>
+                <li>VR (Meta Quest): <code>1,200,000</code> polygons</li>
+                <li>AR/mobile: <code>500,000</code> polygons</li>
+            </ul>
+
+            <p>Set a custom polygon target when needed:</p>
+            <pre><code>belowjs-optimiser pack model.glb --polygon 1200000
+belowjs-optimiser pack model.glb --polygon 500000</code></pre>
 
             <p>For texture editing - normally light colour correction, we also have unpack:</p>
-            <pre><code>./below-optimiser unpack input.glb</code></pre>
+            <pre><code>belowjs-optimiser unpack model.glb</code></pre>
 
-            <p>This will create a folder of the form <code>path/to/input_edit</code>. You can then edit these textures,
-                and pack that folder.</p>
-            <pre><code>./below-optimiser pack path/to/input_edit</code></pre>
+            <p>This will create a folder of the form <code>model_edit/</code>. You can then edit these textures, and pack
+                that folder.</p>
+            <pre><code>belowjs-optimiser pack model_edit/</code></pre>
 
             <p>It will also detect normal maps, and link them, as long as they are named to the form
                 <code>*normal1.*</code>, <code>*normal2.*</code>, etc. If you originally had .png textures, but replaced
                 them with jpegs, it will also detect that and adjust the gltf references before packing.</p>
 
-            <p>Download below-optimiser at <a href="https://github.com/patrick-morrison/below-optimiser"
-                    target="_blank">https://github.com/patrick-morrison/below-optimiser</a><br>
+            <p><code>below-optimiser</code> is still supported as a compatibility alias.</p>
+
+            <p>Download belowjs-optimiser at <a href="https://github.com/patrick-morrison/belowjs-optimiser"
+                    target="_blank">https://github.com/patrick-morrison/belowjs-optimiser</a><br>
                 It has been tested on macOS, and Windows Subsystem for Linux (WSL).</p>
 
             <h2>Next Steps</h2>
