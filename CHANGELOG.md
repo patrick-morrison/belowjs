@@ -5,6 +5,13 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - Unreleased
+
+### Fixed
+- Prevent unintended switches to dive mode during immersive AR sessions (keyboard/controller toggles are ignored in AR, and AR session start enforces survey mode)
+
+---
+
 ## [1.5.0] - 2026-02-06
 
 ### Added
