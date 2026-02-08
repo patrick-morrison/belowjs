@@ -6,6 +6,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - Source of truth: version in `package.json`
 - Two changelogs to maintain: `CHANGELOG.md` and `docs/changelog.html`
 - Examples in `examples/` are local-dev; docs copies live in `docs/examples/` (CDN)
+- Docs analytics is centralized in `docs/assets/navigation.js`; do not add it to `docs/demo.html`
 - Always run `npm run build` before testing examples
 - Use `node docs/copy-examples.js` to re-copy examples and bump CDN version
 - Keep diffs minimal and focused; don’t fix unrelated issues
