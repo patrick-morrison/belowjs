@@ -88,3 +88,15 @@ jspm_packages/
 
 # Linux specific
 *~
+
+# Local tileset datasets (keep the example page trackable)
+/examples/tileset/*.3tz
+/examples/tileset/*.3dtiles
+/examples/tileset/**/tileset.json
+/examples/tileset/**/Data/
+/examples/tileset/**/App/
+/docs/examples/tileset/*.3tz
+/docs/examples/tileset/*.3dtiles
+/docs/examples/tileset/**/tileset.json
+/docs/examples/tileset/**/Data/
+/docs/examples/tileset/**/App/

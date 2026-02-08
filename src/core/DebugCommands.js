@@ -102,6 +102,44 @@ export class DebugCommands {
       
       return { info: sceneInfo, scene };
     };
+
+    window.vertices = () => {
+      if (!viewer.sceneManager?.scene) {
+        console.warn('Scene not initialized');
+        return null;
+      }
+
+      const scene = viewer.sceneManager.scene;
+      let meshCount = 0;
+      let visibleMeshCount = 0;
+      let vertexCount = 0;
+      let visibleVertexCount = 0;
+
+      scene.traverse((obj) => {
+        const position = obj.geometry?.getAttribute?.('position');
+        if (!position) return;
+
+        meshCount += 1;
+        const objectVertexCount = obj.isInstancedMesh ? position.count * obj.count : position.count;
+        vertexCount += objectVertexCount;
+
+        if (obj.visible) {
+          visibleMeshCount += 1;
+          visibleVertexCount += objectVertexCount;
+        }
+      });
+
+      const vertexInfo = {
+        meshes: meshCount,
+        visibleMeshes: visibleMeshCount,
+        vertices: vertexCount,
+        visibleVertices: visibleVertexCount
+      };
+
+      console.log('🔢 Scene vertex counts:');
+      console.table(vertexInfo);
+      return vertexInfo;
+    };
     
     window.models = () => {
       const loadedModels = viewer.getLoadedModels();
@@ -256,6 +294,7 @@ export class DebugCommands {
       console.log('🔧 BelowJS Debug Commands:');
       console.log('  camera()    - Get current camera position data');
       console.log('  scene()     - Get scene information and object counts');
+      console.log('  vertices()  - Get scene vertex counts');
       console.log('  models()    - Get loaded models information');
       console.log('  particles() - Get particle system information');
       console.log('  vr()        - Get VR state and settings');
@@ -275,6 +314,7 @@ export class DebugCommands {
 
     delete window.camera;
     delete window.scene;
+    delete window.vertices;
     delete window.models;
     delete window.particles;
     delete window.vr;

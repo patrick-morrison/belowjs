@@ -28,6 +28,7 @@ if (fs.existsSync(EXAMPLES_DEST)) {
 
 const BINARY_EXTENSIONS = [
   '.glb', '.gltf', '.bin',
+  '.b3dm', '.i3dm', '.pnts', '.cmpt', '.subtree',
   '.jpg', '.jpeg', '.png',
   '.ogg', '.mp3', '.wav', '.flac'
 ];

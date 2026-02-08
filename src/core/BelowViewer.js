@@ -462,6 +462,14 @@ export class BelowViewer extends EventSystem {
    * @param {boolean} [options.optimizedLoadStrategy] - Prioritize closer tiles over SSE error
    * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
    * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
+   * @param {string} [options.up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+   * @param {boolean} [options.autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
+   * @param {number} [options.maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+   * @param {number} [options.minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
+   * @param {number} [options.maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
+   * @param {boolean} [options.enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
+   * @param {string} [options.dracoDecoderPath] - Optional DRACO decoder path for GLTFExtensionsPlugin
+   * @param {string} [options.ktx2TranscoderPath] - Optional KTX2 transcoder path for GLTFExtensionsPlugin
    * @returns {Promise<THREE.Object3D>} Promise that resolves to the loaded model
    * 
    * @fires BelowViewer#model-loaded - When model loads successfully
@@ -524,7 +532,15 @@ export class BelowViewer extends EventSystem {
           loadSiblings: options.loadSiblings,
           optimizedLoadStrategy: options.optimizedLoadStrategy,
           maxTilesProcessed: options.maxTilesProcessed,
-          fetchOptions: options.fetchOptions
+          fetchOptions: options.fetchOptions,
+          up: options.up,
+          autoCenter: options.autoCenter,
+          maxTriangles: options.maxTriangles,
+          minErrorTarget: options.minErrorTarget,
+          maxErrorTarget: options.maxErrorTarget,
+          enableGltfExtensions: options.enableGltfExtensions,
+          dracoDecoderPath: options.dracoDecoderPath,
+          ktx2TranscoderPath: options.ktx2TranscoderPath
         });
         model = tilesetResult.group;
         tileset = tilesetResult.tileset;
@@ -597,16 +613,46 @@ export class BelowViewer extends EventSystem {
   }
 
   frameModel(model) {
-    if (!model.userData.boundingBox) {
-      const box = new THREE.Box3().setFromObject(model);
-      model.userData.boundingBox = box;
+    const box = this.getValidModelBoundingBox(model);
+    if (!box) {
+      return;
     }
-    
-    const box = model.userData.boundingBox;
-    const size = box.getSize(new THREE.Vector3()).length();
+
+    const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     
     this.cameraManager.frameObject(center, size);
+  }
+
+  isValidBox3(box) {
+    if (!box || !(box instanceof THREE.Box3)) {
+      return false;
+    }
+
+    if (box.isEmpty()) {
+      return false;
+    }
+
+    return Number.isFinite(box.min.x)
+      && Number.isFinite(box.min.y)
+      && Number.isFinite(box.min.z)
+      && Number.isFinite(box.max.x)
+      && Number.isFinite(box.max.y)
+      && Number.isFinite(box.max.z);
+  }
+
+  getValidModelBoundingBox(model) {
+    if (this.isValidBox3(model?.userData?.boundingBox)) {
+      return model.userData.boundingBox;
+    }
+
+    const computedBox = new THREE.Box3().setFromObject(model);
+    if (this.isValidBox3(computedBox)) {
+      model.userData.boundingBox = computedBox;
+      return computedBox;
+    }
+
+    return null;
   }
 
   /**
@@ -617,19 +663,22 @@ export class BelowViewer extends EventSystem {
    * @returns {THREE.Vector3} The original center offset for reference.
    */
   centerModelAndRecalculateBounds(model) {
-    if (!model.userData.boundingBox) {
-      const box = new THREE.Box3().setFromObject(model);
-      model.userData.boundingBox = box;
+    const box = this.getValidModelBoundingBox(model);
+    if (!box) {
+      return new THREE.Vector3();
     }
-    
-    const box = model.userData.boundingBox;
+
     const center = box.getCenter(new THREE.Vector3());
-    
-
     model.position.sub(center);
-    
 
-    model.userData.boundingBox = new THREE.Box3().setFromObject(model);
+    const recomputedBox = new THREE.Box3().setFromObject(model);
+    if (this.isValidBox3(recomputedBox)) {
+      model.userData.boundingBox = recomputedBox;
+    } else {
+      // Tilesets can still be streaming and have no loaded meshes yet.
+      // Preserve a usable box by translating the known bounds by the applied center offset.
+      model.userData.boundingBox = box.clone().translate(center.clone().multiplyScalar(-1));
+    }
     
     return center; // Return the original center offset for reference
   }
@@ -660,7 +709,10 @@ export class BelowViewer extends EventSystem {
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
         if (this.tilesetLoader) {
-          this.tilesetLoader.update();
+          const activeTilesCamera = isXRPresenting
+            ? this.renderer.xr.getCamera(this.cameraManager.camera)
+            : this.cameraManager.camera;
+          this.tilesetLoader.update(activeTilesCamera);
         }
         if (!this.skipRenderDuringLoad || isXRPresenting) {
           // Use SBS stereo rendering only when enabled and NOT in VR/XR mode

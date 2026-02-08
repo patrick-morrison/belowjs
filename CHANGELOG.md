@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Z key to toggle between dive mode and studio mode
 - H key to take screenshot
 - Experimental 3D Tiles streaming loader for massive datasets
+- New `tileset` example (`npm run dev:tileset`) with a NASA-AMMOS sample dataset default and URL override support
 
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VR button visibility management with fly mode controls
 - Support for deprecated KHR_materials_pbrSpecularGlossiness GLTF extension by converting to standard PBR materials
 - Support for logarithmicDepthBuffer renderer option (suppresses ConfigValidator warning)
+- 3D Tiles auto-centering and auto-framing when streaming tiles are not fully available on first bounds pass
 
 ---
 

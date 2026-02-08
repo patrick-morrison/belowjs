@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - 3D Tiles Example</title>
+    <meta name="theme-color" content="#0d3b66">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../icons/favicon-16x16.png">
+    <link rel="icon" href="../../favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../icons/apple-touch-icon.png">
+    <link rel="manifest" href="../../site.webmanifest">
+    <meta name="application-name" content="BelowJS">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BelowJS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#0d3b66">
+
+<!-- Import map for CDN production -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
+        }
+    }
+    </script>
+
+    <!-- BelowJS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #001122;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/NASA-AMMOS/3DTilesSampleData/master/msl-dingo-gap/0528_0260184_to_s64o256_colorize/scene-tileset.json';
+        const FALLBACK_TILESET_URL = 'https://raw.githubusercontent.com/CesiumGS/3d-tiles-samples/main/1.0/TilesetWithDiscreteLOD/tileset.json';
+
+        const params = new URLSearchParams(window.location.search);
+        const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
+        const isNasaAmmosTileset = /NASA-AMMOS\/3DTilesSampleData/i.test(tilesetUrl);
+        const isLikelyMetashapeTileset = /(?:^|[\/\\])[^/?#]*\.psx(?:[_./-]|$)|_psx_tiles/i.test(tilesetUrl);
+        const upAxis = params.get('up') || (isNasaAmmosTileset ? '-Z' : (isLikelyMetashapeTileset ? '+Z' : '+Y'));
+        const modelName = params.get('name') || 'NASA-AMMOS MSL Dingo Gap';
+        const modelCredit = params.get('credit') || (tilesetUrl === FALLBACK_TILESET_URL ? 'CesiumGS' : 'NASA-AMMOS');
+
+        new ModelViewer('#viewer', {
+            showInfo: true,
+            enableVR: true,
+            enableScreenshot: true,
+            enableFullscreen: true,
+            models: {
+                tileset: {
+                    url: tilesetUrl,
+                    type: 'tileset',
+                    name: modelName,
+                    credit: modelCredit,
+                    up: upAxis,
+                    autoCenter: true,
+                    maxTriangles: 1000000,
+                    errorTarget: 12,
+                    maxDepth: 25,
+                    loadSiblings: true,
+                    optimizedLoadStrategy: true,
+                    maxTilesProcessed: 512
+                }
+            },
+            viewerConfig: {
+                scene: {
+                    background: '#001122',
+                    fog: { enabled: false }
+                },
+                renderer: {
+                    logarithmicDepthBuffer: true
+                }
+            }
+        });
+    </script>
+</body>
+</html>

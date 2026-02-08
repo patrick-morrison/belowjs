@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - 3D Tiles Example</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+
+    <!-- Import map for local testing -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "belowjs": "/dist/belowjs.js"
+        }
+    }
+    </script>
+
+    <!-- BelowJS CSS -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #001122;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        const DEFAULT_TILESET_URL = './AwhinaTiled_tiles/tileset.json';
+        const params = new URLSearchParams(window.location.search);
+        const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
+        const upAxis = params.get('up') || '+Z';
+
+        new ModelViewer('#viewer', {
+            showInfo: true,
+            enableVR: true,
+            enableScreenshot: true,
+            enableFullscreen: true,
+            models: {
+                tileset: {
+                    url: tilesetUrl,
+                    type: 'tileset',
+                    name: 'Tiled Model',
+                    credit: 'Agisoft Metashape',
+                    up: upAxis,
+                    autoCenter: true,
+                    initialPositions: {
+                        desktop: {
+                            camera: { x: -14.671, y: -19.099, z: 15.605 },
+                            target: { x: -21.841, y: -24.233, z: 8.435 }
+                        },
+                        vr: {
+                            dolly: { x: -14.671, y: -19.099, z: 15.605 },
+                            rotation: { x: 0.468687688, y: -2.35619449, z: 0.0 }
+                        }
+                    }
+                }
+            },
+            viewerConfig: {
+                scene: {
+                    background: '#001122',
+                    fog: { enabled: false }
+                },
+                renderer: {
+                    logarithmicDepthBuffer: true
+                }
+            }
+        });
+    </script>
+</body>
+</html>

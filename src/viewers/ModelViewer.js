@@ -19,6 +19,14 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean} [optimizedLoadStrategy] - Prioritize closer tiles over SSE error
  * @property {number} [maxTilesProcessed] - Tiles processed per frame for streaming tilesets
  * @property {Object} [fetchOptions] - Fetch options for tileset network requests
+ * @property {string} [up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+ * @property {boolean} [autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
+ * @property {number} [maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+ * @property {number} [minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
+ * @property {number} [maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
+ * @property {boolean} [enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
+ * @property {string} [dracoDecoderPath] - Optional DRACO decoder path for GLTFExtensionsPlugin
+ * @property {string} [ktx2TranscoderPath] - Optional KTX2 transcoder path for GLTFExtensionsPlugin
  * @property {Object} [initialPositions] - Camera and target positions for this model
  * @property {Object} [initialPositions.desktop] - Desktop viewing positions
  * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
@@ -1567,17 +1575,34 @@ export class ModelViewer extends EventSystem {
       const model = await this.belowViewer.loadModel(modelConfig.url, {
         autoFrame: false,  // We'll handle positioning manually
         initialPositions: modelConfig.initialPositions,  // Pass VR/desktop positions
+        position: modelConfig.position,
+        rotation: modelConfig.rotation,
+        scale: modelConfig.scale,
         type: modelConfig.type,
         errorTarget: modelConfig.errorTarget,
         maxDepth: modelConfig.maxDepth,
         loadSiblings: modelConfig.loadSiblings,
         optimizedLoadStrategy: modelConfig.optimizedLoadStrategy,
         maxTilesProcessed: modelConfig.maxTilesProcessed,
-        fetchOptions: modelConfig.fetchOptions
+        fetchOptions: modelConfig.fetchOptions,
+        up: modelConfig.up,
+        autoCenter: modelConfig.autoCenter,
+        maxTriangles: modelConfig.maxTriangles,
+        minErrorTarget: modelConfig.minErrorTarget,
+        maxErrorTarget: modelConfig.maxErrorTarget,
+        enableGltfExtensions: modelConfig.enableGltfExtensions,
+        dracoDecoderPath: modelConfig.dracoDecoderPath,
+        ktx2TranscoderPath: modelConfig.ktx2TranscoderPath
       });
       if (model) {
-
+        const hasInitialDesktopPosition = Boolean(modelConfig.initialPositions?.desktop);
         this.applyInitialPositions(modelConfig, model);
+        const shouldAutoFrameTileset = modelConfig.type === 'tileset'
+          && !hasInitialDesktopPosition
+          && !this.belowViewer.isVRPresenting();
+        if (shouldAutoFrameTileset) {
+          this.belowViewer.frameModel(model);
+        }
 
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);

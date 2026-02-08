@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiled Models - BelowJS</title>
+    <meta name="description" content="Prepare Agisoft Metashape tiled datasets for BelowJS: build, export, packaging, and validation workflow">
+    <meta name="theme-color" content="#0d3b66">
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="application-name" content="BelowJS">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BelowJS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#0d3b66">
+
+    <!-- Analytics -->
+    <script defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/script.js"></script>
+
+    <!-- Site styles -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-title">BelowJS</a>
+            <div class="nav-links">
+                <a href="../installation.html">Installation</a>
+                <a href="../examples.html">Examples</a>
+                <a href="../guides.html">Guides</a>
+                <a href="../implementations.html">Implementations</a>
+                <a href="../changelog.html">Changelog</a>
+                <div class="social-links">
+                    <a href="https://github.com/patrick-morrison/belowjs" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                    </a>
+                    <a href="https://www.npmjs.com/package/belowjs" target="_blank" title="NPM">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="nav-mobile" id="nav-mobile">
+        <a href="../installation.html">Installation</a>
+        <a href="../examples.html">Examples</a>
+        <a href="../guides.html">Guides</a>
+        <a href="../implementations.html">Implementations</a>
+        <a href="../changelog.html">Changelog</a>
+        <a href="https://github.com/patrick-morrison/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/belowjs" target="_blank" class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                    d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214 0.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0H1.763zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113L5.13 5.323z" />
+            </svg>
+            NPM
+        </a>
+    </div>
+
+    <!-- Page Content -->
+    <div class="docs-container">
+        <div class="docs-content">
+            <h1>Tiled Models</h1>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 8 February 2026</em></p>
+
+            <p>This is the short, practical guide for using 3D Tiles in BelowJS. If you only read one page, use this one.</p>
+
+            <h2>What BelowJS Expects</h2>
+            <ul>
+                <li>Load from the root <code>tileset.json</code> URL.</li>
+                <li>Do not point BelowJS at a raw <code>.3tz</code> file.</li>
+                <li>Tile content can be <code>.glb</code> or <code>.b3dm</code>; <code>.glb</code> tile content works well.</li>
+            </ul>
+
+            <h2>Fast Path (Metashape .3tz)</h2>
+            <p>Metashape often exports <code>.3tz</code>. Convert it once, then load the resulting folder.</p>
+            <pre><code># From repository root
+examples/tileset/convert-3tz.sh
+
+# Output:
+# examples/tileset/AwhinaTiled_tiles/tileset.json</code></pre>
+            <p>The script does two steps:</p>
+            <ol>
+                <li>Convert <code>.3tz</code> to an unpacked tileset folder.</li>
+                <li>Upgrade to 3D Tiles 1.1 with <code>.glb</code> tile payloads.</li>
+            </ol>
+
+            <h2>Load It in the Example</h2>
+            <pre><code>http://localhost:5173/examples/tileset/index.html?url=http://localhost:5173/examples/tileset/AwhinaTiled_tiles/tileset.json&amp;up=+Z</code></pre>
+            <p>For Metashape data, <code>up=+Z</code> is usually correct. For NASA-AMMOS sample data, use <code>up=-Z</code>.</p>
+
+            <h2>Minimum Viewer Settings That Matter</h2>
+            <pre><code>{
+  type: 'tileset',
+  url: '.../tileset.json',
+  up: '+Z',
+  autoCenter: true,
+  maxTriangles: 1000000
+}</code></pre>
+            <ul>
+                <li><code>up</code>: fixes orientation.</li>
+                <li><code>autoCenter</code>: keeps positioning sane for navigation and framing.</li>
+                <li><code>maxTriangles</code>: useful for keeping VR smooth.</li>
+            </ul>
+
+            <h2>Textures and Material Notes</h2>
+            <ul>
+                <li>Metashape tiles can use KTX2/BasisU (<code>KHR_texture_basisu</code>).</li>
+                <li>3D Tiles can be authored as unlit. BelowJS handles conversion for interactive lighting use cases.</li>
+                <li>If a dataset still looks flat, check that you are loading the converted tileset and not stale output.</li>
+            </ul>
+
+            <h2>Single File vs Streaming</h2>
+            <ul>
+                <li>If you want true single file delivery: use one <code>.glb</code> model (no tile streaming).</li>
+                <li>If you want large-scene streaming: use 3D Tiles (<code>tileset.json</code> + many tile files).</li>
+            </ul>
+
+            <h2>Troubleshooting</h2>
+            <ul>
+                <li><strong>Wrong orientation:</strong> set <code>up=+Z</code> (Metashape) or test <code>-Z</code>/<code>+Y</code> quickly via URL params.</li>
+                <li><strong>Won't load:</strong> serve via HTTP(S), not <code>file://</code>.</li>
+                <li><strong>3D Tiles 1.1 warning:</strong> some newer features/extensions may still have partial support depending on dataset.</li>
+                <li><strong>Performance drops in VR:</strong> lower <code>maxTriangles</code>, increase error target, or simplify source data.</li>
+            </ul>
+
+            <h2>References</h2>
+            <ul>
+                <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools</a></li>
+                <li><a href="https://download.agisoft.com/metashape-java-api/latest/com/agisoft/metashape/tasks/ExportTiledModel.html" target="_blank">Agisoft ExportTiledModel reference</a></li>
+                <li><a href="https://www.agisoft.com/pdf/metashape_2_1_en.pdf" target="_blank">Agisoft Metashape manual</a></li>
+            </ul>
+
+            <h2>Next Step</h2>
+            <p>Run the conversion script, load <code>tileset.json</code> in the <a href="../examples/tileset/">tileset example</a>, set the correct up-axis, and you are done.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>GPL-3.0 Licensed. Open Source.</p>
+            <p>Created by <a href="https://padmorrison.com">Patrick Morrison</a></p>
+        </div>
+    </footer>
+
+    <!-- Navigation JavaScript -->
+    <script src="../assets/navigation.js"></script>
+</body>
+
+</html>
