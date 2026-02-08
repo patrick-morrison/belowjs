@@ -55,16 +55,17 @@ function copyDir(src, dest) {
         
         // Convert HTML files to use CDN imports
         if (entry.name.endsWith('.html')) {
-          content = convertToCDN(content, version);
+          content = convertToCDN(content, version, entry.name);
         }
         
         fs.writeFileSync(destPath, content, 'utf8');
+
       }
     }
   }
 }
 
-function convertToCDN(htmlContent, version) {
+function convertToCDN(htmlContent, version, fileName) {
   // Replace local Three.js import
   htmlContent = htmlContent.replace(
     'three": "/node_modules/three/build/three.module.js"',
@@ -88,7 +89,45 @@ function convertToCDN(htmlContent, version) {
     '<!-- Import map for local testing -->',
     '<!-- Import map for CDN production -->'
   );
-  
+
+  // Replace emoji/favicon placeholder with proper web + PWA icon metadata
+  const exampleIconHead = [
+    '    <meta name="theme-color" content="#0d3b66">',
+    '    <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">',
+    '    <link rel="icon" type="image/png" sizes="16x16" href="../../icons/favicon-16x16.png">',
+    '    <link rel="icon" href="../../favicon.ico" sizes="any">',
+    '    <link rel="apple-touch-icon" sizes="180x180" href="../../icons/apple-touch-icon.png">',
+    '    <link rel="manifest" href="../../site.webmanifest">',
+    '    <meta name="application-name" content="BelowJS">',
+    '    <meta name="apple-mobile-web-app-capable" content="yes">',
+    '    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
+    '    <meta name="apple-mobile-web-app-title" content="BelowJS">',
+    '    <meta name="mobile-web-app-capable" content="yes">',
+    '    <meta name="msapplication-TileColor" content="#0d3b66">'
+  ].join('\n');
+
+  if (fileName === 'index.html') {
+    const legacyEmojiIconTag = /\s*<link rel="icon"[\s\S]*?<\/svg>">\s*/m;
+    const simpleIconTag = /\s*<link rel="icon"[^>]*>\s*/m;
+
+    if (legacyEmojiIconTag.test(htmlContent)) {
+      htmlContent = htmlContent.replace(
+        legacyEmojiIconTag,
+        `\n${exampleIconHead}\n\n`
+      );
+    } else if (simpleIconTag.test(htmlContent)) {
+      htmlContent = htmlContent.replace(
+        simpleIconTag,
+        `\n${exampleIconHead}\n\n`
+      );
+    } else if (!htmlContent.includes('manifest.webmanifest')) {
+      htmlContent = htmlContent.replace(
+        /(<meta name="viewport"[^>]*>\n)/,
+        `$1${exampleIconHead}\n`
+      );
+    }
+  }
+
   return htmlContent;
 }
 

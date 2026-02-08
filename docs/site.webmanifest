@@ -1,0 +1,50 @@
+{
+  "name": "BelowJS",
+  "short_name": "BelowJS",
+  "description": "View underwater photogrammetry models on web and in VR.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#001122",
+  "theme_color": "#0d3b66",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Basic Viewer",
+      "url": "examples/basic/"
+    },
+    {
+      "name": "Drag and Drop",
+      "url": "examples/dragdrop/"
+    },
+    {
+      "name": "Stereo Demo",
+      "url": "examples/stereo/"
+    }
+  ]
+}
