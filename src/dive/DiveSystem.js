@@ -29,7 +29,19 @@ export class DiveSystem {
    * Toggle between dive and survey modes
    */
   toggleDiveMode() {
-    this.isDiveModeEnabled = !this.isDiveModeEnabled;
+    this.setDiveMode(!this.isDiveModeEnabled);
+  }
+  
+  setDiveMode(enabled) {
+    if (this.isARSessionActive() && enabled) {
+      return;
+    }
+
+    if (this.isDiveModeEnabled === enabled) {
+      return;
+    }
+
+    this.isDiveModeEnabled = enabled;
     
     const toggleSwitch = document.querySelector('.mode-toggle__switch');
     if (toggleSwitch) {
@@ -37,13 +49,6 @@ export class DiveSystem {
     }
     
     this.applyModeSettings();
-    
-  }
-  
-  setDiveMode(enabled) {
-    if (this.isDiveModeEnabled !== enabled) {
-      this.toggleDiveMode();
-    }
   }
   
   isDiveMode() {
@@ -308,6 +313,9 @@ export class DiveSystem {
    * Handle VR controller button presses for mode switching
    */
   handleControllerButton(controller, buttonIndex) {
+    if (this.isARSessionActive()) {
+      return false;
+    }
 
     if (buttonIndex === 4) {
       this.toggleDiveMode();
@@ -321,7 +329,7 @@ export class DiveSystem {
    * This replaces the button checking logic that was in the example
    */
   checkVRControllerButtons(renderer) {
-    if (!renderer || !renderer.xr) return;
+    if (!renderer || !renderer.xr || !renderer.xr.isPresenting || this.isARSessionActive()) return;
     
     const session = renderer.xr.getSession && renderer.xr.getSession();
     const inputSources = session && session.inputSources
@@ -408,6 +416,28 @@ export class DiveSystem {
     }
 
     return null;
+  }
+
+  isARSessionActive() {
+    if (!this.renderer?.xr) return false;
+
+    const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
+    if (!session) return false;
+
+    if (session.mode === 'immersive-ar') {
+      return true;
+    }
+
+    if (session.mode === 'immersive-vr') {
+      return false;
+    }
+
+    // AR sessions use non-opaque blending; immersive VR sessions are opaque.
+    if (session.environmentBlendMode === 'alpha-blend' || session.environmentBlendMode === 'additive') {
+      return true;
+    }
+
+    return false;
   }
   
   /**

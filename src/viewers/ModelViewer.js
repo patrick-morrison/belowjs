@@ -388,6 +388,9 @@ export class ModelViewer extends EventSystem {
 
     document.addEventListener('keydown', (event) => {
       if (event.code === 'KeyZ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (this.belowViewer?.arManager?.isActive?.()) {
+          return;
+        }
         event.preventDefault();
         if (this.diveSystem) this.diveSystem.toggleDiveMode();
       }
@@ -419,6 +422,12 @@ export class ModelViewer extends EventSystem {
 
       this.belowViewer.on('before-render', update);
     }
+
+    this.belowViewer.on('ar-session-start', () => {
+      if (this.diveSystem) {
+        this.diveSystem.setDiveMode(false);
+      }
+    });
 
 
     this.on('model-loaded', (data) => {

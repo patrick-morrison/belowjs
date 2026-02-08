@@ -8652,12 +8652,14 @@ class qn {
    * Toggle between dive and survey modes
    */
   toggleDiveMode() {
-    this.isDiveModeEnabled = !this.isDiveModeEnabled;
-    const e = document.querySelector(".mode-toggle__switch");
-    e && (e.checked = this.isDiveModeEnabled), this.applyModeSettings();
+    this.setDiveMode(!this.isDiveModeEnabled);
   }
   setDiveMode(e) {
-    this.isDiveModeEnabled !== e && this.toggleDiveMode();
+    if (this.isARSessionActive() && e || this.isDiveModeEnabled === e)
+      return;
+    this.isDiveModeEnabled = e;
+    const t = document.querySelector(".mode-toggle__switch");
+    t && (t.checked = this.isDiveModeEnabled), this.applyModeSettings();
   }
   isDiveMode() {
     return this.isDiveModeEnabled;
@@ -8776,14 +8778,14 @@ class qn {
    * Handle VR controller button presses for mode switching
    */
   handleControllerButton(e, t) {
-    return t === 4 ? (this.toggleDiveMode(), !0) : !1;
+    return this.isARSessionActive() ? !1 : t === 4 ? (this.toggleDiveMode(), !0) : !1;
   }
   /**
    * Check VR controller buttons for mode switching
    * This replaces the button checking logic that was in the example
    */
   checkVRControllerButtons(e) {
-    if (!e || !e.xr) return;
+    if (!e || !e.xr || !e.xr.isPresenting || this.isARSessionActive()) return;
     const t = e.xr.getSession && e.xr.getSession(), i = t && t.inputSources ? Array.from(t.inputSources) : this._getFallbackInputSources();
     if (!(!i || i.length === 0)) {
       for (const s of i)
@@ -8822,6 +8824,11 @@ class qn {
     if (i === "left" || i === "right") return i;
     const s = (e.id || "").toLowerCase();
     return s.includes("left") ? "left" : s.includes("right") ? "right" : this._fallbackHandedness.has(e.index) ? this._fallbackHandedness.get(e.index) : t === 0 ? (this._fallbackHandedness.set(e.index, "left"), "left") : t === 1 ? (this._fallbackHandedness.set(e.index, "right"), "right") : null;
+  }
+  isARSessionActive() {
+    if (!this.renderer?.xr) return !1;
+    const e = this.renderer.xr.getSession && this.renderer.xr.getSession();
+    return e ? e.mode === "immersive-ar" ? !0 : e.mode === "immersive-vr" ? !1 : e.environmentBlendMode === "alpha-blend" || e.environmentBlendMode === "additive" : !1;
   }
   /**
    * Dispose of all resources
@@ -9057,7 +9064,12 @@ class zn extends Te {
     ), setTimeout(() => {
       this.diveSystem.initializeToggleSwitch();
     }, 100), document.addEventListener("keydown", (t) => {
-      t.code === "KeyZ" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode()), t.code === "KeyH" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.takeScreenshot());
+      if (t.code === "KeyZ" && !t.ctrlKey && !t.metaKey && !t.altKey) {
+        if (this.belowViewer?.arManager?.isActive?.())
+          return;
+        t.preventDefault(), this.diveSystem && this.diveSystem.toggleDiveMode();
+      }
+      t.code === "KeyH" && !t.ctrlKey && !t.metaKey && !t.altKey && (t.preventDefault(), this.takeScreenshot());
     });
     const e = (t) => {
       if (this.diveSystem) {
@@ -9065,7 +9077,9 @@ class zn extends Te {
         this.diveSystem.update(i, t), this.belowViewer.vrManager && this.diveSystem.updateTorchFromVRManager(this.belowViewer.vrManager), this.belowViewer.renderer.xr.isPresenting || this.diveSystem.torch.updateCameraPosition(this.belowViewer.cameraManager.camera);
       }
     };
-    this.belowViewer.onAfterRender ? this.belowViewer.onAfterRender(e) : this.belowViewer.on("before-render", e), this.on("model-loaded", (t) => {
+    this.belowViewer.onAfterRender ? this.belowViewer.onAfterRender(e) : this.belowViewer.on("before-render", e), this.belowViewer.on("ar-session-start", () => {
+      this.diveSystem && this.diveSystem.setDiveMode(!1);
+    }), this.on("model-loaded", (t) => {
       this.diveSystem && t.model && this.diveSystem.updateParticleBounds(t.model);
     }), typeof window < "u" && (window.diveSystem = this.diveSystem);
   }
