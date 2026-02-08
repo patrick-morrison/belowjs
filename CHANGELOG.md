@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `stereo()` console command for enabling/disabling stereo mode and adjusting eye separation
 - Z key to toggle between dive mode and studio mode
 - H key to take screenshot
+- Experimental 3D Tiles streaming loader for massive datasets
 
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)

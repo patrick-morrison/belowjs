@@ -10,8 +10,15 @@ import { FlyControls } from '../core/FlyControls.js';
 /**
  * @typedef {Object} ModelConfig
  * @property {string} url - Path to the GLB model file
+ * @property {string} [type='gltf'] - Model type ('gltf' or 'tileset')
  * @property {string} name - Display name for the model
  * @property {string} [credit] - Attribution text for the model
+ * @property {number} [errorTarget] - Tileset SSE target for streaming refinement
+ * @property {number} [maxDepth] - Tileset traversal depth limit
+ * @property {boolean} [loadSiblings] - Load sibling tiles for smoother refinement
+ * @property {boolean} [optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+ * @property {number} [maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+ * @property {Object} [fetchOptions] - Fetch options for tileset network requests
  * @property {Object} [initialPositions] - Camera and target positions for this model
  * @property {Object} [initialPositions.desktop] - Desktop viewing positions
  * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
@@ -1559,7 +1566,14 @@ export class ModelViewer extends EventSystem {
 
       const model = await this.belowViewer.loadModel(modelConfig.url, {
         autoFrame: false,  // We'll handle positioning manually
-        initialPositions: modelConfig.initialPositions  // Pass VR/desktop positions
+        initialPositions: modelConfig.initialPositions,  // Pass VR/desktop positions
+        type: modelConfig.type,
+        errorTarget: modelConfig.errorTarget,
+        maxDepth: modelConfig.maxDepth,
+        loadSiblings: modelConfig.loadSiblings,
+        optimizedLoadStrategy: modelConfig.optimizedLoadStrategy,
+        maxTilesProcessed: modelConfig.maxTilesProcessed,
+        fetchOptions: modelConfig.fetchOptions
       });
       if (model) {
 

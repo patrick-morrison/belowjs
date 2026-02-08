@@ -192,6 +192,23 @@ new ModelViewer(document.body, {
 
 Enable `enableScreenshot` to add a button that captures the scene without UI overlays.
 
+### 3D Tiles (Experimental)
+BelowJS can stream 3D Tiles datasets for large environments. Tilesets still require a `tileset.json` root plus streamed tile content hosted alongside it. Point a model at the `tileset.json` and set `type: 'tileset'`:
+
+```javascript
+new ModelViewer('#container', {
+  models: {
+    'site': {
+      url: 'https://example.com/tiles/site/tileset.json',
+      type: 'tileset',
+      name: 'Survey Site',
+      errorTarget: 16,
+      optimizedLoadStrategy: true
+    }
+  }
+});
+```
+
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:
 

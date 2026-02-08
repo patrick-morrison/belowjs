@@ -4,6 +4,7 @@ import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { Scene } from './Scene.js';
 import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
+import { TilesetLoader } from '../models/TilesetLoader.js';
 import { disposeObject3D } from '../utils/ThreeCleanupUtils.js';
 import { VRManager } from './VRManager.js';
 import { ARManager } from './ARManager.js';
@@ -196,6 +197,7 @@ export class BelowViewer extends EventSystem {
     this.sceneManager = null;
     this.cameraManager = null;
     this.modelLoader = null;
+    this.tilesetLoader = null;
     this.vrManager = null;
     this.arManager = null;
     this.stereoCamera = null;
@@ -231,6 +233,7 @@ export class BelowViewer extends EventSystem {
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
+      this.tilesetLoader = new TilesetLoader(this.renderer, this.cameraManager.camera);
       this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || false;
       this.initStereo();
       if (this.renderer?.getPixelRatio) {
@@ -435,6 +438,9 @@ export class BelowViewer extends EventSystem {
     
     this.cameraManager.setSize(width, height);
     this.renderer.setSize(width, height);
+    if (this.tilesetLoader) {
+      this.tilesetLoader.updateResolution();
+    }
     
     this.emit('resize', { width, height });
   }
@@ -449,6 +455,13 @@ export class BelowViewer extends EventSystem {
    * @param {AbortSignal} [options.signal] - AbortSignal for cancelling the load
    * @param {Function} [options.onProgress] - Progress callback function
    * @param {Object} [options.initialPositions] - Camera positions for this model
+   * @param {string} [options.type='gltf'] - Model type ('gltf' or 'tileset')
+   * @param {number} [options.errorTarget] - Tileset SSE target for streaming refinement
+   * @param {number} [options.maxDepth] - Tileset traversal depth limit
+   * @param {boolean} [options.loadSiblings] - Load sibling tiles for smoother refinement
+   * @param {boolean} [options.optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+   * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+   * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
    * @returns {Promise<THREE.Object3D>} Promise that resolves to the loaded model
    * 
    * @fires BelowViewer#model-loaded - When model loads successfully
@@ -498,7 +511,29 @@ export class BelowViewer extends EventSystem {
         }
       };
       
-      const model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
+      let model;
+      let tileset = null;
+      if (options.type === 'tileset') {
+        if (onStageChange) {
+          onStageChange('downloading');
+        }
+        const tilesetResult = await this.tilesetLoader.load(url, {
+          signal,
+          errorTarget: options.errorTarget,
+          maxDepth: options.maxDepth,
+          loadSiblings: options.loadSiblings,
+          optimizedLoadStrategy: options.optimizedLoadStrategy,
+          maxTilesProcessed: options.maxTilesProcessed,
+          fetchOptions: options.fetchOptions
+        });
+        model = tilesetResult.group;
+        tileset = tilesetResult.tileset;
+        if (onStageChange) {
+          onStageChange('processing');
+        }
+      } else {
+        model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
+      }
       
       if (signal.aborted) {
         return null;
@@ -522,7 +557,7 @@ export class BelowViewer extends EventSystem {
       const originalCenter = this.centerModelAndRecalculateBounds(model);
       
       this.sceneManager.add(model);
-      this.loadedModels.push({ model, url, options, originalCenter });
+      this.loadedModels.push({ model, url, options, originalCenter, tileset });
       
       if (this.loadedModels.length === 1 && options.autoFrame !== false) {
         this.frameModel(model);
@@ -624,6 +659,9 @@ export class BelowViewer extends EventSystem {
       
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
+        if (this.tilesetLoader) {
+          this.tilesetLoader.update();
+        }
         if (!this.skipRenderDuringLoad || isXRPresenting) {
           // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
           // (VR headsets provide native stereoscopic rendering)
@@ -835,8 +873,11 @@ export class BelowViewer extends EventSystem {
   removeModel(model) {
     const index = this.loadedModels.findIndex(item => item.model === model);
     if (index >= 0) {
-      const { url } = this.loadedModels[index];
+      const { url, tileset } = this.loadedModels[index];
       this.sceneManager.remove(model);
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
+      }
       disposeObject3D(model);
       this.loadedModels.splice(index, 1);
       this.emit('model-removed', { model });
@@ -855,7 +896,10 @@ export class BelowViewer extends EventSystem {
 
     const urlsToRelease = new Set(this.loadedModels.map(({ url }) => url));
 
-    this.loadedModels.forEach(({ model }) => {
+    this.loadedModels.forEach(({ model, tileset }) => {
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
+      }
       disposeObject3D(model);
       this.sceneManager.remove(model);
     });
@@ -908,9 +952,12 @@ export class BelowViewer extends EventSystem {
       this.renderer.setAnimationLoop(null);
     }
     
-    this.loadedModels.forEach(({ model }) => {
+    this.loadedModels.forEach(({ model, tileset }) => {
       if (model.parent) {
         model.parent.remove(model);
+      }
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
       }
       disposeObject3D(model);
     });
@@ -934,6 +981,11 @@ export class BelowViewer extends EventSystem {
     if (this.modelLoader) {
       this.modelLoader.dispose();
       this.modelLoader = null;
+    }
+
+    if (this.tilesetLoader) {
+      this.tilesetLoader.dispose();
+      this.tilesetLoader = null;
     }
     
     window.removeEventListener('resize', this.onWindowResize.bind(this));

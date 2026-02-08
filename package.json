@@ -53,6 +53,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "3d-tiles-renderer": "^0.4.20",
     "three": "0.179.1"
   },
   "devDependencies": {
