@@ -1848,7 +1848,8 @@ export class ModelViewer extends EventSystem {
       'freeing-resources': 'Freeing GPU memory...',
       cloning: 'Fetching from cache...',
       processing: 'Uploading textures... almost there',
-      finalizing: 'Finalizing view...'
+      finalizing: 'Finalizing view...',
+      retrying: 'Loading interrupted, retrying...'
     };
 
     if (stageMessages[stage]) {

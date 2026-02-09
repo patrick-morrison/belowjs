@@ -498,8 +498,31 @@ export class BelowViewer extends EventSystem {
         }
       };
       
-      const model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
-      
+      const maxRetries = 3;
+      const retryDelays = [1000, 2000, 4000];
+      let model = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
+          break;
+        } catch (loadError) {
+          if (signal.aborted || loadError.message === 'Loading cancelled') {
+            throw loadError;
+          }
+          if (attempt >= maxRetries) {
+            throw loadError;
+          }
+          console.warn(`Model load attempt ${attempt + 1} failed, retrying...`, loadError);
+          onStageChange(`retrying`);
+          this.emit('model-load-retry', { url, attempt: attempt + 1, maxRetries, error: loadError });
+          await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+          if (signal.aborted) {
+            throw new Error('Loading cancelled');
+          }
+        }
+      }
+
       if (signal.aborted) {
         return null;
       }
