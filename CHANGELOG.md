@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0] - Unreleased
 
+### Added
+- Programmatic comfort-mode APIs (work in and out of active VR sessions):
+  - `ModelViewer`: `setComfortMode(enabled)`, `toggleComfortMode()`, `getComfortMode()`
+  - `BelowViewer`: `setVRComfortMode(enabled)`, `toggleVRComfortMode()`, `isVRComfortModeEnabled()`
+
+### Changed
+- Comfort toggle styling tightened; active state keeps a clear green ring
+- Comfort teleport visuals tuned: thinner arc, lower marker/floor intensity, and range adjusted to 1.5m-20m
+
 ### Fixed
 - Prevent unintended switches to dive mode during immersive AR sessions (keyboard/controller toggles are ignored in AR, and AR session start enforces survey mode)
 - Graceful viewer recovery after tab focus/context interruptions: auto-retry model loading on refocus and recover from `webglcontextlost`/`webglcontextrestored` blank-screen states
+- Programmatic comfort-mode changes now sync immediately to the comfort glyph during active VR sessions
 
 ---
 

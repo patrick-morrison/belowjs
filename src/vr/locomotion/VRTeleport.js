@@ -11,6 +11,11 @@ export class VRTeleport {
   constructor(scene, camera) {
     this.scene = scene;
     this.camera = camera;
+    this.style = {
+      neutralColor: 0xe2e8f0,
+      accentColor: 0x94a3b8,
+      floorColor: 0x64748b
+    };
     
 
     this.teleportController = null;
@@ -22,6 +27,8 @@ export class VRTeleport {
     this.teleportReleaseThreshold = 0.3; // Below this threshold counts as "released"
     this.teleportPressed = false;      // Track if joystick is currently "pressed"
     this.teleportMaxMagnitude = 0;     // Track the maximum magnitude reached during this gesture
+    this.teleportMinDistance = 1.5;
+    this.teleportMaxDistance = 20;
     this.teleportFloorHeight = null;  // Will be set to user's current Y on first teleport aim
     this.teleportFloorMin = -10.0;    // Minimum floor height (10m below current)
     this.teleportFloorMax = 10.0;     // Maximum floor height (10m above current)
@@ -59,9 +66,9 @@ export class VRTeleport {
     
 
     const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: this.style.accentColor,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.62,
       side: THREE.DoubleSide
     });
     
@@ -71,11 +78,11 @@ export class VRTeleport {
     
 
     if (!this.teleportMarker) {
-      const markerGeometry = new THREE.RingGeometry(0.4, 0.6, 20);
+      const markerGeometry = new THREE.RingGeometry(0.34, 0.5, 28);
       const markerMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: this.style.neutralColor,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.78,
         side: THREE.DoubleSide
       });
       
@@ -85,11 +92,11 @@ export class VRTeleport {
       this.scene.add(this.teleportMarker);
       
 
-      const glowGeometry = new THREE.RingGeometry(0.3, 0.7, 20);
+      const glowGeometry = new THREE.RingGeometry(0.46, 0.72, 28);
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: this.style.accentColor,
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.18,
         side: THREE.DoubleSide
       });
       
@@ -100,13 +107,13 @@ export class VRTeleport {
     
 
     if (!this.teleportFloor) {
-      const floorGeometry = new THREE.PlaneGeometry(100, 100); // Large invisible plane
+      const floorGeometry = new THREE.PlaneGeometry(14, 14);
       const floorMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
+        color: this.style.floorColor,
         transparent: true,
-        opacity: 0.1, // Very subtle when visible
+        opacity: 0.06,
         side: THREE.DoubleSide,
-        visible: false // Invisible by default
+        visible: false
       });
       
       this.teleportFloor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -278,20 +285,20 @@ export class VRTeleport {
     forwardDir.applyQuaternion(controllerQuat);
     
 
-    const minDistance = 3;   // Minimum 3m
-    const maxDistance = 30;  // Maximum 30m
+    const minDistance = this.teleportMinDistance;
+    const maxDistance = this.teleportMaxDistance;
     
 
     const normalizedMagnitude = Math.min(this.teleportMaxMagnitude / this.teleportThreshold, 1.0);
     const distanceRange = maxDistance - minDistance;
     
 
-    const distanceRatio = Math.pow(normalizedMagnitude, 0.7); // Gentler curve for finer control
+    const distanceRatio = Math.pow(normalizedMagnitude, 0.78);
     const targetDistance = minDistance + (distanceRange * distanceRatio);
     
 
     const arcPoints = [];
-    const steps = 40; // More steps for better precision
+    const steps = 32;
     const gravity = -9.8; // m/s² downward
     
 
@@ -413,7 +420,7 @@ export class VRTeleport {
 
     if (arcPoints.length > 1) {
       const curve = new THREE.CatmullRomCurve3(arcPoints);
-      const newGeometry = new THREE.TubeGeometry(curve, 20, 0.03, 6, false);
+      const newGeometry = new THREE.TubeGeometry(curve, 20, 0.022, 6, false);
       
       if (this.teleportCurve.geometry) {
         this.teleportCurve.geometry.dispose();
@@ -425,18 +432,7 @@ export class VRTeleport {
     if (this.teleportMarker && intersectionPoint) {
       this.teleportMarker.position.copy(intersectionPoint);
       this.teleportMarker.visible = true;
-      
-
-      if (this.teleportFloorHeight < -0.5) {
-
-        this.teleportMarker.material.color.setHex(0x88ccff);
-      } else if (this.teleportFloorHeight > 0.5) {
-
-        this.teleportMarker.material.color.setHex(0xffff88);
-      } else {
-
-        this.teleportMarker.material.color.setHex(0xffffff);
-      }
+      this.teleportMarker.material.color.setHex(this.style.neutralColor);
     }
   }
 
@@ -451,19 +447,8 @@ export class VRTeleport {
 
     this.teleportFloor.visible = true;
     this.teleportFloor.material.visible = true;
-    this.teleportFloor.material.opacity = 0.15;
-    
-
-    if (this.teleportFloorHeight < -0.5) {
-
-      this.teleportFloor.material.color.setHex(0x4488ff);
-    } else if (this.teleportFloorHeight > 0.5) {
-
-      this.teleportFloor.material.color.setHex(0xffff44);
-    } else {
-
-      this.teleportFloor.material.color.setHex(0x44ff88);
-    }
+    this.teleportFloor.material.opacity = 0.06;
+    this.teleportFloor.material.color.setHex(this.style.floorColor);
     
 
     this.updateTeleportArc();
@@ -493,7 +478,7 @@ export class VRTeleport {
       );
       
 
-      if (horizontalDistance >= 3 && horizontalDistance <= 30) {
+      if (horizontalDistance >= this.teleportMinDistance && horizontalDistance <= this.teleportMaxDistance) {
 
         const teleportPosition = new THREE.Vector3(intersectionPoint.x, this.teleportFloorHeight, intersectionPoint.z);
         this.validTeleportPosition = teleportPosition;

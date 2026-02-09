@@ -353,10 +353,46 @@ export class ModelViewer extends EventSystem {
       offsetX: 20,
       offsetY: 70
     });
-    this.lastComfortMode = this.comfortGlyph.isComfortMode;
+
+    const settings = this.belowViewer.getVRComfortSettings ? this.belowViewer.getVRComfortSettings() : null;
+    const fallbackMode = settings
+      ? settings.locomotionMode === 'teleport' && settings.reducedMotion === true
+      : false;
+    const initialComfortMode = typeof this.lastComfortMode === 'boolean'
+      ? this.lastComfortMode
+      : fallbackMode;
+    this.lastComfortMode = initialComfortMode;
+    this.comfortGlyph.setComfortMode(initialComfortMode, {
+      emitEvent: false,
+      applyToManager: false
+    });
+
     this.comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
       this.lastComfortMode = event.detail.isComfortMode;
     });
+    if (this.belowViewer.vrManager) {
+      const originalComfortChange = this.belowViewer.vrManager.onComfortModeChange;
+      this.belowViewer.vrManager.onComfortModeChange = (data) => {
+        if (originalComfortChange) {
+          originalComfortChange(data);
+        }
+        const enabled = data && typeof data.enabled === 'boolean'
+          ? data.enabled
+          : this.belowViewer.vrManager.isComfortModeEnabled();
+        this.lastComfortMode = enabled;
+        if (this.comfortGlyph) {
+          this.comfortGlyph.setComfortMode(enabled, {
+            emitEvent: false,
+            applyToManager: false
+          });
+        }
+        this.emit('comfort-mode-change', {
+          enabled,
+          inVR: this.belowViewer.vrManager.isVRPresenting,
+          preset: enabled ? 'comfort' : 'free'
+        });
+      };
+    }
     if (this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
       // Chain with existing onSessionStart callback instead of replacing it
       const originalCallback = this.belowViewer.vrManager.vrCore.onSessionStart;
@@ -373,7 +409,10 @@ export class ModelViewer extends EventSystem {
             } else {
               this.belowViewer.vrManager.setComfortPreset('free');
             }
-            this.comfortGlyph.setComfortMode(this.lastComfortMode);
+            this.comfortGlyph.setComfortMode(this.lastComfortMode, {
+              emitEvent: false,
+              applyToManager: false
+            });
           }, 50);
         }
       };
@@ -2215,9 +2254,76 @@ export class ModelViewer extends EventSystem {
   }
   
   setVRComfortPreset(preset) {
-    if (this.belowViewer && this.belowViewer.setVRComfortPreset) {
-      return this.belowViewer.setVRComfortPreset(preset);
+    const isComfort = preset === 'comfort';
+    const isFree = preset === 'free';
+    const changed = this.belowViewer && this.belowViewer.setVRComfortPreset
+      ? this.belowViewer.setVRComfortPreset(preset)
+      : false;
+
+    if (isComfort || isFree) {
+      this.lastComfortMode = isComfort;
+      if (this.comfortGlyph) {
+        this.comfortGlyph.setComfortMode(isComfort, {
+          emitEvent: false,
+          applyToManager: false
+        });
+      }
     }
+
+    return changed;
+  }
+
+  /**
+   * Enable or disable comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setComfortMode(enabled) {
+    const target = enabled === true;
+    const changed = this.belowViewer && this.belowViewer.setVRComfortMode
+      ? this.belowViewer.setVRComfortMode(target)
+      : false;
+
+    this.lastComfortMode = target;
+    if (this.comfortGlyph) {
+      this.comfortGlyph.setComfortMode(target, {
+        emitEvent: false,
+        applyToManager: false
+      });
+    }
+
+    return changed;
+  }
+
+  /**
+   * Toggle comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @returns {boolean} New comfort mode state
+   */
+  toggleComfortMode() {
+    const next = !this.getComfortMode();
+    this.setComfortMode(next);
+    return next;
+  }
+
+  /**
+   * Check current comfort mode state.
+   *
+   * @returns {boolean}
+   */
+  getComfortMode() {
+    if (typeof this.lastComfortMode === 'boolean') {
+      return this.lastComfortMode;
+    }
+
+    const settings = this.getVRComfortSettings();
+    if (!settings) return false;
+    return settings.locomotionMode === 'teleport' && settings.reducedMotion === true;
   }
   
   /**
