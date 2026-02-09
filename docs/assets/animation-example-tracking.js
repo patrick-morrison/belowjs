@@ -3,6 +3,8 @@
  * Replace/remove for your own deployment.
  */
 (function () {
+  let activeExport = null;
+
   const getAnimationMetrics = () => {
     const timeDisplay = document.getElementById('timeDisplay');
     const resolutionSelect = document.getElementById('resolutionSelect');
@@ -68,14 +70,26 @@
   });
 
   on('click', '#exportBtn', () => send('docs_animation_export_open'));
-  on('click', '#exportFull', () => send('docs_animation_export_start', {
-    type: 'full',
-    ...getAnimationMetrics()
-  }));
-  on('click', '#exportSegments', () => send('docs_animation_export_start', {
-    type: 'segments',
-    ...getAnimationMetrics()
-  }));
+  on('click', '#exportFull', () => {
+    const metrics = getAnimationMetrics();
+    activeExport = {
+      type: 'full',
+      startedAtMs: Date.now(),
+      metrics,
+      overlayWasVisible: false
+    };
+    send('docs_animation_export_start', { type: 'full', ...metrics });
+  });
+  on('click', '#exportSegments', () => {
+    const metrics = getAnimationMetrics();
+    activeExport = {
+      type: 'segments',
+      startedAtMs: Date.now(),
+      metrics,
+      overlayWasVisible: false
+    };
+    send('docs_animation_export_start', { type: 'segments', ...metrics });
+  });
   on('click', '#exportShareAction', () => send('docs_animation_export_complete_action', { action: 'share' }));
   on('click', '#exportDoneAction', () => send('docs_animation_export_complete_action', { action: 'done' }));
 
@@ -115,6 +129,34 @@
           ? file.name.split('.').pop().toLowerCase()
           : 'unknown'
       });
+    });
+  }
+
+  const exportOverlay = document.getElementById('exportOverlay');
+  const exportStatus = document.getElementById('exportStatus');
+  if (exportOverlay) {
+    const observer = new MutationObserver(() => {
+      const isVisible = exportOverlay.classList.contains('visible');
+      if (activeExport && isVisible) {
+        activeExport.overlayWasVisible = true;
+      }
+
+      if (activeExport && !isVisible && activeExport.overlayWasVisible) {
+        send('docs_animation_export_finish', {
+          type: activeExport.type,
+          elapsedMs: Date.now() - activeExport.startedAtMs,
+          statusText: exportStatus && typeof exportStatus.textContent === 'string'
+            ? exportStatus.textContent.trim().slice(0, 120)
+            : '',
+          ...activeExport.metrics
+        });
+        activeExport = null;
+      }
+    });
+
+    observer.observe(exportOverlay, {
+      attributes: true,
+      attributeFilter: ['class']
     });
   }
 })();
