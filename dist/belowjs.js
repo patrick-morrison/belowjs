@@ -1,5 +1,5 @@
 import * as g from "three";
-import { Controls as Oi, Vector3 as L, MOUSE as Ce, TOUCH as pe, Quaternion as Ve, Spherical as Dt, Vector2 as V, Ray as Hi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as ve, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as He, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as qe, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as St, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as us, OrthographicCamera as gs, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as ui, Texture as Lt, VectorKeyframeTrack as Tt, NumberKeyframeTrack as kt, QuaternionKeyframeTrack as Ft, ColorManagement as ut, FrontSide as Cs, Interpolant as Es, Box3 as je, Sphere as Qt, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as gi, NoColorSpace as _t, RGBA_BPTC_Format as gt, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Pe, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as xe, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Ss, RGB_ETC1_Format as Qs, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as xs, SphereGeometry as mi, BoxGeometry as vs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ls, ShaderMaterial as Ts, ShaderLib as Ne, UniformsUtils as bi, UniformsLib as Ue, Vector4 as Le, Line3 as ks } from "three";
+import { Controls as Oi, Vector3 as L, MOUSE as Ce, TOUCH as pe, Quaternion as Ve, Spherical as Dt, Vector2 as V, Ray as Hi, Plane as qi, MathUtils as Bt, TrianglesDrawMode as ji, TriangleFanDrawMode as ht, TriangleStripDrawMode as li, Loader as yt, LoaderUtils as xe, FileLoader as le, MeshPhysicalMaterial as ee, Color as re, LinearSRGBColorSpace as Y, SRGBColorSpace as se, SpotLight as Ki, PointLight as zi, DirectionalLight as Yi, Matrix4 as Ie, InstancedMesh as ci, InstancedBufferAttribute as Ji, Object3D as He, TextureLoader as Wi, ImageBitmapLoader as Xi, BufferAttribute as Re, InterleavedBuffer as Zi, InterleavedBufferAttribute as Ae, LinearMipmapLinearFilter as qe, NearestMipmapLinearFilter as $i, LinearMipmapNearestFilter as es, NearestMipmapNearestFilter as ts, LinearFilter as he, NearestFilter as hi, RepeatWrapping as dt, MirroredRepeatWrapping as is, ClampToEdgeWrapping as ss, PointsMaterial as os, Material as ze, LineBasicMaterial as ns, MeshStandardMaterial as wt, DoubleSide as rs, MeshBasicMaterial as fe, PropertyBinding as as, BufferGeometry as di, SkinnedMesh as As, Mesh as St, LineSegments as ls, Line as cs, LineLoop as hs, Points as ds, Group as Ye, PerspectiveCamera as us, OrthographicCamera as gs, Skeleton as ps, AnimationClip as fs, Bone as ms, InterpolateDiscrete as bs, InterpolateLinear as ui, Texture as Lt, VectorKeyframeTrack as Tt, NumberKeyframeTrack as kt, QuaternionKeyframeTrack as Ft, ColorManagement as ut, FrontSide as Cs, Interpolant as Es, Box3 as je, Sphere as Qt, CompressedCubeTexture as Is, CompressedArrayTexture as Bs, CompressedTexture as gi, NoColorSpace as _t, RGBA_BPTC_Format as gt, RGBA_S3TC_DXT5_Format as pt, RGBA_S3TC_DXT3_Format as Gt, RGB_S3TC_DXT1_Format as Pt, RGBA_S3TC_DXT1_Format as ft, RGBA_ASTC_6x6_Format as Nt, RGBA_ASTC_4x4_Format as Pe, RGBA_ETC2_EAC_Format as pi, RGB_ETC2_Format as fi, RedFormat as Me, RGFormat as ve, RGBAFormat as me, UnsignedByteType as z, HalfFloatType as be, FloatType as De, DataTexture as ys, Data3DTexture as ws, RGB_PVRTC_4BPPV1_Format as Ss, RGB_ETC1_Format as Qs, RGBA_PVRTC_4BPPV1_Format as Ms, RGB_BPTC_UNSIGNED_Format as vs, SphereGeometry as mi, BoxGeometry as xs, DynamicDrawUsage as Rs, InstancedBufferGeometry as Ds, Float32BufferAttribute as Ut, InstancedInterleavedBuffer as mt, WireframeGeometry as Ls, ShaderMaterial as Ts, ShaderLib as Ne, UniformsUtils as bi, UniformsLib as Ue, Vector4 as Le, Line3 as ks } from "three";
 class Te {
   /**
    * Creates a new EventSystem instance
@@ -164,7 +164,7 @@ class Fs {
     this.scene.clear();
   }
 }
-const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, ke = new Hi(), Ot = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), F = new L(), U = 2 * Math.PI, v = {
+const Vt = { type: "change" }, Mt = { type: "start" }, Ci = { type: "end" }, ke = new Hi(), Ot = new qi(), _s = Math.cos(70 * Bt.DEG2RAD), F = new L(), U = 2 * Math.PI, x = {
   NONE: -1,
   ROTATE: 0,
   DOLLY: 1,
@@ -182,7 +182,7 @@ class Gs extends Oi {
    * @param {?HTMLDOMElement} domElement - The HTML element used for event listeners.
    */
   constructor(e, t = null) {
-    super(e, t), this.state = v.NONE, this.target = new L(), this.cursor = new L(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ce.ROTATE, MIDDLE: Ce.DOLLY, RIGHT: Ce.PAN }, this.touches = { ONE: pe.ROTATE, TWO: pe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new L(), this._lastQuaternion = new Ve(), this._lastTargetPosition = new L(), this._quat = new Ve().setFromUnitVectors(e.up, new L(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new Dt(), this._sphericalDelta = new Dt(), this._scale = 1, this._panOffset = new L(), this._rotateStart = new V(), this._rotateEnd = new V(), this._rotateDelta = new V(), this._panStart = new V(), this._panEnd = new V(), this._panDelta = new V(), this._dollyStart = new V(), this._dollyEnd = new V(), this._dollyDelta = new V(), this._dollyDirection = new L(), this._mouse = new V(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Ns.bind(this), this._onPointerDown = Ps.bind(this), this._onPointerUp = Us.bind(this), this._onContextMenu = zs.bind(this), this._onMouseWheel = Hs.bind(this), this._onKeyDown = qs.bind(this), this._onTouchStart = js.bind(this), this._onTouchMove = Ks.bind(this), this._onMouseDown = Vs.bind(this), this._onMouseMove = Os.bind(this), this._interceptControlDown = Ys.bind(this), this._interceptControlUp = Js.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
+    super(e, t), this.state = x.NONE, this.target = new L(), this.cursor = new L(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: Ce.ROTATE, MIDDLE: Ce.DOLLY, RIGHT: Ce.PAN }, this.touches = { ONE: pe.ROTATE, TWO: pe.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new L(), this._lastQuaternion = new Ve(), this._lastTargetPosition = new L(), this._quat = new Ve().setFromUnitVectors(e.up, new L(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new Dt(), this._sphericalDelta = new Dt(), this._scale = 1, this._panOffset = new L(), this._rotateStart = new V(), this._rotateEnd = new V(), this._rotateDelta = new V(), this._panStart = new V(), this._panEnd = new V(), this._panDelta = new V(), this._dollyStart = new V(), this._dollyEnd = new V(), this._dollyDelta = new V(), this._dollyDirection = new L(), this._mouse = new V(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Ns.bind(this), this._onPointerDown = Ps.bind(this), this._onPointerUp = Us.bind(this), this._onContextMenu = zs.bind(this), this._onMouseWheel = Hs.bind(this), this._onKeyDown = qs.bind(this), this._onTouchStart = js.bind(this), this._onTouchMove = Ks.bind(this), this._onMouseDown = Vs.bind(this), this._onMouseMove = Os.bind(this), this._interceptControlDown = Ys.bind(this), this._interceptControlUp = Js.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
   }
   connect(e) {
     super.connect(e), this.domElement.addEventListener("pointerdown", this._onPointerDown), this.domElement.addEventListener("pointercancel", this._onPointerUp), this.domElement.addEventListener("contextmenu", this._onContextMenu), this.domElement.addEventListener("wheel", this._onMouseWheel, { passive: !1 }), this.domElement.getRootNode().addEventListener("keydown", this._interceptControlDown, { passive: !0, capture: !0 }), this.domElement.style.touchAction = "none";
@@ -243,11 +243,11 @@ class Gs extends Oi {
    * was called, or the initial state.
    */
   reset() {
-    this.target.copy(this.target0), this.object.position.copy(this.position0), this.object.zoom = this.zoom0, this.object.updateProjectionMatrix(), this.dispatchEvent(Vt), this.update(), this.state = v.NONE;
+    this.target.copy(this.target0), this.object.position.copy(this.position0), this.object.zoom = this.zoom0, this.object.updateProjectionMatrix(), this.dispatchEvent(Vt), this.update(), this.state = x.NONE;
   }
   update(e = null) {
     const t = this.object.position;
-    F.copy(t).sub(this.target), F.applyQuaternion(this._quat), this._spherical.setFromVector3(F), this.autoRotate && this.state === v.NONE && this._rotateLeft(this._getAutoRotationAngle(e)), this.enableDamping ? (this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor, this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor) : (this._spherical.theta += this._sphericalDelta.theta, this._spherical.phi += this._sphericalDelta.phi);
+    F.copy(t).sub(this.target), F.applyQuaternion(this._quat), this._spherical.setFromVector3(F), this.autoRotate && this.state === x.NONE && this._rotateLeft(this._getAutoRotationAngle(e)), this.enableDamping ? (this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor, this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor) : (this._spherical.theta += this._sphericalDelta.theta, this._spherical.phi += this._sphericalDelta.phi);
     let i = this.minAzimuthAngle, s = this.maxAzimuthAngle;
     isFinite(i) && isFinite(s) && (i < -Math.PI ? i += U : i > Math.PI && (i -= U), s < -Math.PI ? s += U : s > Math.PI && (s -= U), i <= s ? this._spherical.theta = Math.max(i, Math.min(s, this._spherical.theta)) : this._spherical.theta = this._spherical.theta > (i + s) / 2 ? Math.max(i, this._spherical.theta) : Math.min(s, this._spherical.theta)), this._spherical.phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, this._spherical.phi)), this._spherical.makeSafe(), this.enableDamping === !0 ? this.target.addScaledVector(this._panOffset, this.dampingFactor) : this.target.add(this._panOffset), this.target.sub(this.cursor), this.target.clampLength(this.minTargetRadius, this.maxTargetRadius), this.target.add(this.cursor);
     let o = !1;
@@ -479,7 +479,7 @@ function Ns(c) {
 function Us(c) {
   switch (this._removePointer(c), this._pointers.length) {
     case 0:
-      this.domElement.releasePointerCapture(c.pointerId), this.domElement.removeEventListener("pointermove", this._onPointerMove), this.domElement.removeEventListener("pointerup", this._onPointerUp), this.dispatchEvent(Ci), this.state = v.NONE;
+      this.domElement.releasePointerCapture(c.pointerId), this.domElement.removeEventListener("pointermove", this._onPointerMove), this.domElement.removeEventListener("pointerup", this._onPointerUp), this.dispatchEvent(Ci), this.state = x.NONE;
       break;
     case 1:
       const e = this._pointers[0], t = this._pointerPositions[e];
@@ -505,49 +505,49 @@ function Vs(c) {
   switch (e) {
     case Ce.DOLLY:
       if (this.enableZoom === !1) return;
-      this._handleMouseDownDolly(c), this.state = v.DOLLY;
+      this._handleMouseDownDolly(c), this.state = x.DOLLY;
       break;
     case Ce.ROTATE:
       if (c.ctrlKey || c.metaKey || c.shiftKey) {
         if (this.enablePan === !1) return;
-        this._handleMouseDownPan(c), this.state = v.PAN;
+        this._handleMouseDownPan(c), this.state = x.PAN;
       } else {
         if (this.enableRotate === !1) return;
-        this._handleMouseDownRotate(c), this.state = v.ROTATE;
+        this._handleMouseDownRotate(c), this.state = x.ROTATE;
       }
       break;
     case Ce.PAN:
       if (c.ctrlKey || c.metaKey || c.shiftKey) {
         if (this.enableRotate === !1) return;
-        this._handleMouseDownRotate(c), this.state = v.ROTATE;
+        this._handleMouseDownRotate(c), this.state = x.ROTATE;
       } else {
         if (this.enablePan === !1) return;
-        this._handleMouseDownPan(c), this.state = v.PAN;
+        this._handleMouseDownPan(c), this.state = x.PAN;
       }
       break;
     default:
-      this.state = v.NONE;
+      this.state = x.NONE;
   }
-  this.state !== v.NONE && this.dispatchEvent(Mt);
+  this.state !== x.NONE && this.dispatchEvent(Mt);
 }
 function Os(c) {
   switch (this.state) {
-    case v.ROTATE:
+    case x.ROTATE:
       if (this.enableRotate === !1) return;
       this._handleMouseMoveRotate(c);
       break;
-    case v.DOLLY:
+    case x.DOLLY:
       if (this.enableZoom === !1) return;
       this._handleMouseMoveDolly(c);
       break;
-    case v.PAN:
+    case x.PAN:
       if (this.enablePan === !1) return;
       this._handleMouseMovePan(c);
       break;
   }
 }
 function Hs(c) {
-  this.enabled === !1 || this.enableZoom === !1 || this.state !== v.NONE || (c.preventDefault(), this.dispatchEvent(Mt), this._handleMouseWheel(this._customWheelEvent(c)), this.dispatchEvent(Ci));
+  this.enabled === !1 || this.enableZoom === !1 || this.state !== x.NONE || (c.preventDefault(), this.dispatchEvent(Mt), this._handleMouseWheel(this._customWheelEvent(c)), this.dispatchEvent(Ci));
 }
 function qs(c) {
   this.enabled !== !1 && this._handleKeyDown(c);
@@ -558,55 +558,55 @@ function js(c) {
       switch (this.touches.ONE) {
         case pe.ROTATE:
           if (this.enableRotate === !1) return;
-          this._handleTouchStartRotate(c), this.state = v.TOUCH_ROTATE;
+          this._handleTouchStartRotate(c), this.state = x.TOUCH_ROTATE;
           break;
         case pe.PAN:
           if (this.enablePan === !1) return;
-          this._handleTouchStartPan(c), this.state = v.TOUCH_PAN;
+          this._handleTouchStartPan(c), this.state = x.TOUCH_PAN;
           break;
         default:
-          this.state = v.NONE;
+          this.state = x.NONE;
       }
       break;
     case 2:
       switch (this.touches.TWO) {
         case pe.DOLLY_PAN:
           if (this.enableZoom === !1 && this.enablePan === !1) return;
-          this._handleTouchStartDollyPan(c), this.state = v.TOUCH_DOLLY_PAN;
+          this._handleTouchStartDollyPan(c), this.state = x.TOUCH_DOLLY_PAN;
           break;
         case pe.DOLLY_ROTATE:
           if (this.enableZoom === !1 && this.enableRotate === !1) return;
-          this._handleTouchStartDollyRotate(c), this.state = v.TOUCH_DOLLY_ROTATE;
+          this._handleTouchStartDollyRotate(c), this.state = x.TOUCH_DOLLY_ROTATE;
           break;
         default:
-          this.state = v.NONE;
+          this.state = x.NONE;
       }
       break;
     default:
-      this.state = v.NONE;
+      this.state = x.NONE;
   }
-  this.state !== v.NONE && this.dispatchEvent(Mt);
+  this.state !== x.NONE && this.dispatchEvent(Mt);
 }
 function Ks(c) {
   switch (this._trackPointer(c), this.state) {
-    case v.TOUCH_ROTATE:
+    case x.TOUCH_ROTATE:
       if (this.enableRotate === !1) return;
       this._handleTouchMoveRotate(c), this.update();
       break;
-    case v.TOUCH_PAN:
+    case x.TOUCH_PAN:
       if (this.enablePan === !1) return;
       this._handleTouchMovePan(c), this.update();
       break;
-    case v.TOUCH_DOLLY_PAN:
+    case x.TOUCH_DOLLY_PAN:
       if (this.enableZoom === !1 && this.enablePan === !1) return;
       this._handleTouchMoveDollyPan(c), this.update();
       break;
-    case v.TOUCH_DOLLY_ROTATE:
+    case x.TOUCH_DOLLY_ROTATE:
       if (this.enableZoom === !1 && this.enableRotate === !1) return;
       this._handleTouchMoveDollyRotate(c), this.update();
       break;
     default:
-      this.state = v.NONE;
+      this.state = x.NONE;
   }
 }
 function zs(c) {
@@ -765,7 +765,7 @@ function Ht(c, e) {
   } else
     return console.error("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:", e), c;
 }
-class xt extends yt {
+class vt extends yt {
   /**
    * Constructs a new glTF loader.
    *
@@ -823,10 +823,10 @@ class xt extends yt {
     if (this.resourcePath !== "")
       n = this.resourcePath;
     else if (this.path !== "") {
-      const a = ve.extractUrlBase(e);
-      n = ve.resolveURL(a, this.path);
+      const a = xe.extractUrlBase(e);
+      n = xe.resolveURL(a, this.path);
     } else
-      n = ve.extractUrlBase(e);
+      n = xe.extractUrlBase(e);
     this.manager.itemStart(e);
     const r = function(a) {
       s ? s(a) : console.error(a), o.manager.itemError(e), o.manager.itemEnd(e);
@@ -1631,10 +1631,10 @@ function Ct(c) {
       throw new Error("THREE.GLTFLoader: Unsupported normalized accessor component type.");
   }
 }
-function xo(c) {
+function vo(c) {
   return c.search(/\.jpe?g($|\?)/i) > 0 || c.search(/^data\:image\/jpeg/) === 0 ? "image/jpeg" : c.search(/\.webp($|\?)/i) > 0 || c.search(/^data\:image\/webp/) === 0 ? "image/webp" : c.search(/\.ktx2($|\?)/i) > 0 || c.search(/^data\:image\/ktx2/) === 0 ? "image/ktx2" : "image/png";
 }
-const vo = new Ie();
+const xo = new Ie();
 class Ro {
   constructor(e = {}, t = {}) {
     this.json = e, this.extensions = {}, this.plugins = {}, this.options = t, this.cache = new Xs(), this.associations = /* @__PURE__ */ new Map(), this.primitiveCache = {}, this.nodeCache = {}, this.meshCache = { refs: {}, uses: {} }, this.cameraCache = { refs: {}, uses: {} }, this.lightCache = { refs: {}, uses: {} }, this.sourceCache = {}, this.textureCache = {}, this.nodeNamesUsed = {};
@@ -1856,7 +1856,7 @@ class Ro {
       return Promise.resolve(this.extensions[Q.KHR_BINARY_GLTF].body);
     const s = this.options;
     return new Promise(function(o, n) {
-      i.load(ve.resolveURL(t.uri, s.path), o, void 0, function() {
+      i.load(xe.resolveURL(t.uri, s.path), o, void 0, function() {
         n(new Error('THREE.GLTFLoader: Failed to load buffer "' + t.uri + '".'));
       });
     });
@@ -1959,10 +1959,10 @@ class Ro {
         t.isImageBitmapLoader === !0 && (p = function(b) {
           const E = new Lt(b);
           E.needsUpdate = !0, d(E);
-        }), t.load(ve.resolveURL(h, o.path), p, void 0, u);
+        }), t.load(xe.resolveURL(h, o.path), p, void 0, u);
       });
     }).then(function(h) {
-      return a === !0 && r.revokeObjectURL(A), ie(h, n), h.userData.mimeType = n.mimeType || xo(n.uri), h;
+      return a === !0 && r.revokeObjectURL(A), ie(h, n), h.userData.mimeType = n.mimeType || vo(n.uri), h;
     }).catch(function(h) {
       throw console.error("THREE.GLTFLoader: Couldn't load texture", A), h;
     });
@@ -2257,7 +2257,7 @@ class Ro {
     ]).then(function(a) {
       const l = a[0], h = a[1], d = a[2];
       d !== null && l.traverse(function(u) {
-        u.isSkinnedMesh && u.bind(d, vo);
+        u.isSkinnedMesh && u.bind(d, xo);
       });
       for (let u = 0, p = h.length; u < p; u++)
         l.add(h[u]);
@@ -2788,7 +2788,7 @@ class ko {
     this.workers.forEach((e) => e.terminate()), this.workersResolve.length = 0, this.workers.length = 0, this.queue.length = 0, this.workerStatus = 0;
   }
 }
-const Fo = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Si = 22, Qi = 37, Mi = 43, xi = 76, vi = 83, Ri = 97, Di = 100, Li = 103, Ti = 109, Vo = 131, Oo = 132, Ho = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, ki = 148, Fi = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, vt = 1000066e3;
+const Fo = 0, Yt = 2, _o = 1, Jt = 2, Go = 0, Po = 1, No = 10, Uo = 0, Bi = 9, yi = 15, wi = 16, Si = 22, Qi = 37, Mi = 43, vi = 76, xi = 83, Ri = 97, Di = 100, Li = 103, Ti = 109, Vo = 131, Oo = 132, Ho = 133, qo = 134, jo = 137, Ko = 138, zo = 141, Yo = 142, Jo = 145, Wo = 146, ki = 148, Fi = 152, Xo = 157, Zo = 158, _i = 165, Gi = 166, xt = 1000066e3;
 class $o {
   constructor() {
     this.vkFormat = 0, this.typeSize = 1, this.pixelWidth = 0, this.pixelHeight = 0, this.pixelDepth = 0, this.layerCount = 0, this.faceCount = 1, this.supercompressionScheme = 0, this.levels = [], this.dataFormatDescriptor = [{ vendorId: 0, descriptorType: 0, descriptorBlockSize: 0, versionNumber: 2, colorModel: 0, colorPrimaries: 1, transferFunction: 2, flags: 0, texelBlockDimension: [0, 0, 0, 0], bytesPlane: [0, 0, 0, 0, 0, 0, 0, 0], samples: [] }], this.keyValue = {}, this.globalData = null;
@@ -2864,7 +2864,7 @@ function en(c) {
   if (h <= 0) return t;
   const f = new Qe(c, l, h, !0), m = f._nextUint16(), I = f._nextUint16(), C = f._nextUint32(), B = f._nextUint32(), y = f._nextUint32(), w = f._nextUint32(), M = [];
   for (let k = 0; k < o; k++) M.push({ imageFlags: f._nextUint32(), rgbSliceByteOffset: f._nextUint32(), rgbSliceByteLength: f._nextUint32(), alphaSliceByteOffset: f._nextUint32(), alphaSliceByteLength: f._nextUint32() });
-  const D = l + f._offset, S = D + C, R = S + B, x = R + y, J = new Uint8Array(c.buffer, c.byteOffset + D, C), W = new Uint8Array(c.buffer, c.byteOffset + S, B), ye = new Uint8Array(c.buffer, c.byteOffset + R, y), q = new Uint8Array(c.buffer, c.byteOffset + x, w);
+  const D = l + f._offset, S = D + C, R = S + B, v = R + y, J = new Uint8Array(c.buffer, c.byteOffset + D, C), W = new Uint8Array(c.buffer, c.byteOffset + S, B), ye = new Uint8Array(c.buffer, c.byteOffset + R, y), q = new Uint8Array(c.buffer, c.byteOffset + v, w);
   return t.globalData = { endpointCount: m, selectorCount: I, imageDescs: M, endpointsData: J, selectorsData: W, tablesData: ye, extendedData: q }, t;
 }
 let et, te, Et;
@@ -3047,7 +3047,7 @@ class K extends yt {
    * @return {Promise<CompressedTexture|CompressedArrayTexture|DataTexture|Data3DTexture>}
    */
   async _createTexture(e, t = {}) {
-    const i = en(new Uint8Array(e)), s = i.vkFormat === vt && i.dataFormatDescriptor[0].colorModel === 167;
+    const i = en(new Uint8Array(e)), s = i.vkFormat === xt && i.dataFormatDescriptor[0].colorModel === 167;
     if (!(i.vkFormat === Uo || s && !this.workerConfig.astcHDRSupported))
       return rn(i);
     const n = t, r = this.init().then(() => this.workerPool.postMessage({ type: "transcode", buffer: e, taskConfig: n }, [e])).then((A) => this._createTextureFrom(A.data, i));
@@ -3091,7 +3091,7 @@ K.TranscoderFormat = {
 K.EngineFormat = {
   RGBAFormat: me,
   RGBA_ASTC_4x4_Format: Pe,
-  RGB_BPTC_UNSIGNED_Format: xs,
+  RGB_BPTC_UNSIGNED_Format: vs,
   RGBA_BPTC_Format: gt,
   RGBA_ETC2_EAC_Format: pi,
   RGBA_PVRTC_4BPPV1_Format: Ms,
@@ -3155,7 +3155,7 @@ K.BasisWorker = function() {
       throw E(), new Error("THREE.KTX2Loader:	Invalid texture");
     if (!b.startTranscoding())
       throw E(), new Error("THREE.KTX2Loader: .startTranscoding failed");
-    const x = [], J = [];
+    const v = [], J = [];
     for (let W = 0; W < y; W++) {
       const ye = [];
       for (let q = 0; q < B; q++) {
@@ -3173,9 +3173,9 @@ K.BasisWorker = function() {
         const we = u(k);
         ye.push({ data: we, width: H, height: oe }), J.push(we.buffer);
       }
-      x.push({ mipmaps: ye, width: m, height: I, format: S, type: R });
+      v.push({ mipmaps: ye, width: m, height: I, format: S, type: R });
     }
-    return E(), { faces: x, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: M, format: S, type: R };
+    return E(), { faces: v, buffers: J, width: m, height: I, hasAlpha: w, dfdFlags: M, format: S, type: R };
   }
   const a = [
     {
@@ -3303,22 +3303,22 @@ K.BasisWorker = function() {
     return E;
   }
 };
-const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
+const nn = /* @__PURE__ */ new Set([me, ve, Me]), nt = {
   [Ti]: me,
   [Ri]: me,
   [Qi]: me,
   [Mi]: me,
-  [Li]: xe,
-  [vi]: xe,
-  [wi]: xe,
-  [Si]: xe,
+  [Li]: ve,
+  [xi]: ve,
+  [wi]: ve,
+  [Si]: ve,
   [Di]: Me,
-  [xi]: Me,
+  [vi]: Me,
   [yi]: Me,
   [Bi]: Me,
   [ki]: fi,
   [Fi]: pi,
-  [vt]: Pe,
+  [xt]: Pe,
   [Zo]: Pe,
   [Xo]: Pe,
   [Gi]: Nt,
@@ -3339,16 +3339,16 @@ const nn = /* @__PURE__ */ new Set([me, xe, Me]), nt = {
   [Qi]: z,
   [Mi]: z,
   [Li]: De,
-  [vi]: be,
+  [xi]: be,
   [wi]: z,
   [Si]: z,
   [Di]: De,
-  [xi]: be,
+  [vi]: be,
   [yi]: z,
   [Bi]: z,
   [ki]: z,
   [Fi]: z,
-  [vt]: be,
+  [xt]: be,
   [Gi]: z,
   [_i]: z
 };
@@ -3532,10 +3532,10 @@ var an = function() {
     return m.buffer.slice(0, B);
   }
   function A(f, m, I, C, B, y, w) {
-    var M = f.exports.sbrk, D = C + 3 & -4, S = M(D * B), R = M(y.length), x = new Uint8Array(f.exports.memory.buffer);
-    x.set(y, R);
+    var M = f.exports.sbrk, D = C + 3 & -4, S = M(D * B), R = M(y.length), v = new Uint8Array(f.exports.memory.buffer);
+    v.set(y, R);
     var J = m(S, C, B, R, y.length);
-    if (J == 0 && w && w(S, D, B), I.set(x.subarray(S, S + C * B)), M(S - M(0)), J != 0)
+    if (J == 0 && w && w(S, D, B), I.set(v.subarray(S, S + C * B)), M(S - M(0)), J != 0)
       throw new Error("Malformed buffer data: " + J);
   }
   var a = {
@@ -3632,7 +3632,7 @@ function ln() {
 }
 class O {
   constructor(e = null) {
-    this.renderer = e, this.isIOSWebKit = O.isIOSWebKit(), this.platformKey = O.getPlatformKey(), this.loader = new xt(), this.dracoLoader = new Lo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.loader.register((t) => ({
+    this.renderer = e, this.isIOSWebKit = O.isIOSWebKit(), this.platformKey = O.getPlatformKey(), this.loader = new vt(), this.dracoLoader = new Lo(), this.ktx2Loader = null, this.loadQueue = Promise.resolve(), this.activeIOSLoad = !1, this.dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"), this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit == "function" && this.dracoLoader.setWorkerLimit(1), this.loader.setDRACOLoader(this.dracoLoader), this.loader.setMeshoptDecoder(an), this.loader.register((t) => ({
       name: "KHR_materials_pbrSpecularGlossiness",
       extendMaterialParams: async (i, s) => {
         const o = t.json.materials[i];
@@ -4354,7 +4354,7 @@ class Bn {
    * @param {?Function} [onLoad=null] - A callback that is executed when a controller model has been loaded.
    */
   constructor(e = null, t = null) {
-    this.gltfLoader = e, this.path = bn, this._assetCache = {}, this.onLoad = t, this.gltfLoader || (this.gltfLoader = new xt());
+    this.gltfLoader = e, this.path = bn, this._assetCache = {}, this.onLoad = t, this.gltfLoader || (this.gltfLoader = new vt());
   }
   /**
    * Sets the path to the model repository.
@@ -4702,33 +4702,33 @@ class wn {
     let B = null, y = !1, w = e.y, M = 0;
     const D = 8;
     for (let S = 0; S <= h; S++) {
-      const R = S / h * I, x = new g.Vector3(
+      const R = S / h * I, v = new g.Vector3(
         e.x + b * R,
         e.y + E * R + 0.5 * d * R * R,
         e.z + f * R
       );
-      Math.abs(x.y - e.y) > D && (x.y = e.y + Math.sign(x.y - e.y) * D), !y && x.y < w && (y = !0, M = R), l.push(x);
+      Math.abs(v.y - e.y) > D && (v.y = e.y + Math.sign(v.y - e.y) * D), !y && v.y < w && (y = !0, M = R), l.push(v);
       const J = y ? R - M : 0, W = y && J > 0.1;
-      if (!B && W && x.y <= C) {
+      if (!B && W && v.y <= C) {
         if (S > 0) {
-          const q = l[S - 1], k = (C - q.y) / (x.y - q.y);
-          B = new g.Vector3().lerpVectors(q, x, k), B.y = C;
+          const q = l[S - 1], k = (C - q.y) / (v.y - q.y);
+          B = new g.Vector3().lerpVectors(q, v, k), B.y = C;
         } else
-          B = x.clone(), B.y = C;
+          B = v.clone(), B.y = C;
         l[S] = B, l.length = S + 1;
         break;
       }
-      if (w = x.y, Math.sqrt(
-        Math.pow(x.x - e.x, 2) + Math.pow(x.z - e.z, 2)
+      if (w = v.y, Math.sqrt(
+        Math.pow(v.x - e.x, 2) + Math.pow(v.z - e.z, 2)
       ) > o) {
-        W && (B = new g.Vector3(x.x, C, x.z), l[S] = B, l.length = S + 1);
+        W && (B = new g.Vector3(v.x, C, v.z), l[S] = B, l.length = S + 1);
         break;
       }
     }
     if (!B && l.length > 0) {
       let S = l[0], R = 0;
-      for (let x = 1; x < l.length; x++)
-        l[x].y < S.y && (S = l[x], R = x);
+      for (let v = 1; v < l.length; v++)
+        l[v].y < S.y && (S = l[v], R = v);
       R > l.length / 3 && (B = new g.Vector3(S.x, C, S.z), l.length = R + 1, l[R] = B);
     }
     if (l.length > 1) {
@@ -5336,7 +5336,7 @@ class Mn {
     return this.vrLocomotion.normalizeAngle(e);
   }
 }
-class xn {
+class vn {
   /**
    * Constructs a new AR button.
    *
@@ -5398,7 +5398,7 @@ class xn {
     }
   }
 }
-class vn {
+class xn {
   constructor(e, t, i, s = null) {
     this.renderer = e, this.camera = t, this.scene = i, this.container = s || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null;
   }
@@ -5432,7 +5432,7 @@ class vn {
         requiredFeatures: ["local"],
         optionalFeatures: this.getOptionalFeatures()
       };
-      this.arButton = xn.createButton(this.renderer, e), this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', this.arButton.className = "ar-button--glass ar-button-available", this.arButton.disabled = !1, this.arButton.style.cssText = `
+      this.arButton = vn.createButton(this.renderer, e), this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', this.arButton.className = "ar-button--glass ar-button-available", this.arButton.disabled = !1, this.arButton.style.cssText = `
         position: fixed !important;
         bottom: 140px !important;
         left: 50% !important;
@@ -5533,7 +5533,7 @@ class ti {
   constructor(e, t, i, s, o) {
     this.controller = t, this.handModel = e, this.envMap = null;
     let n;
-    !o || !o.primitive || o.primitive === "sphere" ? n = new mi(1, 10, 10) : o.primitive === "box" && (n = new vs(1, 1, 1));
+    !o || !o.primitive || o.primitive === "sphere" ? n = new mi(1, 10, 10) : o.primitive === "box" && (n = new xs(1, 1, 1));
     const r = new wt();
     this.handMesh = new ci(n, r, 30), this.handMesh.frustumCulled = !1, this.handMesh.instanceMatrix.setUsage(Rs), this.handMesh.castShadow = !0, this.handMesh.receiveShadow = !0, this.handModel.add(this.handMesh), this.joints = [
       "wrist",
@@ -5589,7 +5589,7 @@ class Dn {
    * @param {?Function} [onLoad=null] - A callback that is executed when a controller model has been loaded.
    */
   constructor(e, t, i, s, o = null, n = null) {
-    this.controller = t, this.handModel = e, this.bones = [], o === null && (o = new xt(), o.setPath(i || Rn)), o.load(`${s}.glb`, (r) => {
+    this.controller = t, this.handModel = e, this.bones = [], o === null && (o = new vt(), o.setPath(i || Rn)), o.load(`${s}.glb`, (r) => {
       const A = r.scene.children[0];
       this.handModel.add(A);
       const a = A.getObjectByProperty("type", "SkinnedMesh");
@@ -5822,7 +5822,7 @@ class Fn extends Te {
       worldCubeSize: 1e3,
       worldCubeOpacity: 0.1,
       ...s
-    }, this.container = o, this.arCore = new vn(e, t, i, o), this.handTracking = this.config.enableHandTracking ? new kn(e) : null, this.modelGroup = new g.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
+    }, this.container = o, this.arCore = new xn(e, t, i, o), this.handTracking = this.config.enableHandTracking ? new kn(e) : null, this.modelGroup = new g.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
   }
   init() {
     this.arCore.init(), this.handTracking && (this.handTracking.init(this.scene), this.handTracking.onGestureStart = (e) => {
@@ -8974,6 +8974,7 @@ class zn extends Te {
       flyControls: { type: "object", default: {} },
       enableVRAudio: { type: "boolean", default: !1 },
       audioPath: { type: "string", default: "./sound/" },
+      enableAutoRecovery: { type: "boolean", default: !0 },
       viewerConfig: {
         type: "object",
         default: {
@@ -8985,7 +8986,7 @@ class zn extends Te {
       initialModel: { type: "string", default: null },
       initialPositions: { type: "object", default: null }
     };
-    this.config = new Ke(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.uiRoot = null, this.stereoUiMirror = null, this.stereoUiObserver = null, this.stereoUiSyncQueued = !1, this.stereoUiActive = !1, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.flyControls = null, this.lastComfortMode = null, this._vrButtonWasVisible = !1, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.lastManualLoadingMessage = "", this.stageOverrideActive = !1, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
+    this.config = new Ke(i).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.uiRoot = null, this.stereoUiMirror = null, this.stereoUiObserver = null, this.stereoUiSyncQueued = !1, this.stereoUiActive = !1, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.flyControls = null, this.lastComfortMode = null, this._vrButtonWasVisible = !1, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.lastManualLoadingMessage = "", this.stageOverrideActive = !1, this.vrUpdateLoop = null, this.lastRequestedModelKey = null, this.recoveryHandlers = null, this.recoveryTimer = null, this.recoveryCooldownMs = 1200, this.lastRecoveryAttemptAt = 0, this.recoveryAttempts = 0, this.maxRecoveryAttempts = 3, this.hadContextLoss = !1, this.isDisposed = !1, typeof window < "u" && (window.modelViewer = this), this.init();
   }
   init() {
     const e = {
@@ -8999,9 +9000,9 @@ class zn extends Te {
       ...this.config.audioPath && { audioPath: this.config.audioPath },
       ...typeof this.config.enableVRAudio < "u" && { enableVRAudio: this.config.enableVRAudio }
     };
-    if (this.belowViewer = new _n(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
-      this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
-    }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
+    if (this.belowViewer = new _n(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
+      this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
+    }), this.belowViewer.isInitialized && (this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
       setTimeout(() => this.loadModel(t), 100);
     }
@@ -9139,6 +9140,70 @@ class zn extends Te {
   _handleVRButtonVisibility(e) {
     const t = this.belowViewer?.vrManager?.vrCore?.vrButton;
     t && (e ? window.getComputedStyle(t).visibility !== "hidden" && (this._vrButtonWasVisible = !0, t.style.setProperty("visibility", "hidden", "important"), t.style.setProperty("opacity", "0", "important"), t.style.setProperty("pointer-events", "none", "important")) : this._vrButtonWasVisible && (t.style.setProperty("visibility", "visible", "important"), t.style.setProperty("opacity", "1", "important"), t.style.setProperty("pointer-events", "auto", "important"), this._vrButtonWasVisible = !1));
+  }
+  setupRecoveryHandlers() {
+    if (this.recoveryHandlers || !this.config.enableAutoRecovery || typeof window > "u" || typeof document > "u") return;
+    const e = this.belowViewer?.renderer?.domElement;
+    if (!e) return;
+    const t = () => {
+      document.hidden || this.queueRecovery("visibility-change", { forceReload: this.hadContextLoss });
+    }, i = () => {
+      this.queueRecovery("window-focus", { forceReload: !1 });
+    }, s = (n) => {
+      n && typeof n.preventDefault == "function" && n.preventDefault(), this.hadContextLoss = !0;
+    }, o = () => {
+      this.queueRecovery("context-restored", { forceReload: !0, delayMs: 120 });
+    };
+    document.addEventListener("visibilitychange", t), window.addEventListener("focus", i), e.addEventListener("webglcontextlost", s, !1), e.addEventListener("webglcontextrestored", o, !1), this.recoveryHandlers = {
+      canvas: e,
+      onVisibilityChange: t,
+      onWindowFocus: i,
+      onContextLost: s,
+      onContextRestored: o
+    };
+  }
+  queueRecovery(e, { forceReload: t = !1, delayMs: i = 200 } = {}) {
+    this.isDisposed || !this.config.enableAutoRecovery || (this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.recoveryTimer = setTimeout(() => {
+      this.recoveryTimer = null, this.tryRecoverFromInterruption(e, { forceReload: t });
+    }, i));
+  }
+  async tryRecoverFromInterruption(e, { forceReload: t = !1 } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery || typeof document < "u" && document.hidden) return;
+    if (this.isLoading) {
+      this.queueRecovery(e, { forceReload: !0, delayMs: 600 });
+      return;
+    }
+    const i = Date.now();
+    if (i - this.lastRecoveryAttemptAt < this.recoveryCooldownMs)
+      return;
+    this.lastRecoveryAttemptAt = i;
+    const s = this.belowViewer?.getLoadedModels?.()?.length || 0;
+    if (!(t || this.hadContextLoss || s === 0)) {
+      this.forceRefreshFrame();
+      return;
+    }
+    const n = Object.keys(this.config.models)[0], r = this.currentModelKey || this.lastRequestedModelKey || n;
+    if (!r || !this.config.models[r]) {
+      this.forceRefreshFrame();
+      return;
+    }
+    if (this.recoveryAttempts += 1, this.updateStatus("Recovering viewer..."), await this.loadModel(r), (this.belowViewer?.getLoadedModels?.()?.length || 0) > 0) {
+      this.hadContextLoss = !1, this.recoveryAttempts = 0, this.forceRefreshFrame(), this.emit("viewer-recovered", { reason: e, modelKey: r });
+      return;
+    }
+    this.recoveryAttempts < this.maxRecoveryAttempts ? this.queueRecovery(e, {
+      forceReload: !0,
+      delayMs: 400 + this.recoveryAttempts * 300
+    }) : this.updateStatus("Recovery failed. Try selecting the model again.");
+  }
+  forceRefreshFrame() {
+    const e = this.belowViewer?.renderer, t = this.belowViewer?.sceneManager?.scene, i = this.belowViewer?.cameraManager?.camera;
+    if (!(!e || !t || !i))
+      try {
+        const s = e.xr?.isPresenting;
+        this.belowViewer?.stereoEnabled && !s && this.belowViewer?.stereoMode === "sbs" && typeof this.belowViewer.renderSbsStereo == "function" ? this.belowViewer.renderSbsStereo() : e.render(t, i);
+      } catch {
+      }
   }
   toggleFullscreen() {
     if (this.isFullscreen()) {
@@ -9518,7 +9583,7 @@ class zn extends Te {
       console.error("Model not found:", e);
       return;
     }
-    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), this.belowViewer?.getLoadedModels()?.length > 0 && this.setManualLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
+    this.lastRequestedModelKey = e, this.currentModelKey = e, this.hadContextLoss = !1, this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), this.belowViewer?.getLoadedModels()?.length > 0 && this.setManualLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
     try {
       this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), this.belowViewer.vrManager && (this.belowViewer.vrManager.stopMovement(), this.belowViewer.vrManager.resetTeleportState()), await new Promise((n) => setTimeout(n, 50));
       const o = await this.belowViewer.loadModel(t.url, {
@@ -9527,9 +9592,9 @@ class zn extends Te {
         initialPositions: t.initialPositions
         // Pass VR/desktop positions
       });
-      o && (this.applyInitialPositions(t, o), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets(o), this.modelReady = !0, this.emit("model-switched", { modelKey: e, model: o, config: t }), this.emit("modelLoaded", { modelKey: e, model: o, config: t }));
+      o ? (this.applyInitialPositions(t, o), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets(o), this.modelReady = !0, this.recoveryAttempts = 0, this.emit("model-switched", { modelKey: e, model: o, config: t }), this.emit("modelLoaded", { modelKey: e, model: o, config: t })) : this.currentModelKey === e && this.queueRecovery("empty-load-result", { forceReload: !0, delayMs: 350 });
     } catch (o) {
-      o.message !== "Loading cancelled" && (console.error("Failed to load model:", o), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets([]));
+      o.message !== "Loading cancelled" && (console.error("Failed to load model:", o), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets([]), this.currentModelKey === e && (typeof document > "u" || !document.hidden) && this.queueRecovery("model-load-error", { forceReload: !0, delayMs: 500 }));
     }
   }
   applyInitialPositions(e, t) {
@@ -9880,6 +9945,10 @@ class zn extends Te {
    * @since 1.0.0
    */
   dispose() {
+    if (this.isDisposed = !0, this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.recoveryHandlers) {
+      const { canvas: e, onVisibilityChange: t, onWindowFocus: i, onContextLost: s, onContextRestored: o } = this.recoveryHandlers;
+      typeof document < "u" && t && document.removeEventListener("visibilitychange", t), typeof window < "u" && i && window.removeEventListener("focus", i), e && s && e.removeEventListener("webglcontextlost", s, !1), e && o && e.removeEventListener("webglcontextrestored", o, !1), this.recoveryHandlers = null;
+    }
     if (typeof window < "u" && window.modelViewer === this && (window.modelViewer = null), this.focusEventHandlers && this.belowViewer?.renderer?.domElement) {
       const e = this.belowViewer.renderer.domElement;
       e.removeEventListener("mousedown", this.focusEventHandlers.onMouseDown), e.removeEventListener("mousemove", this.focusEventHandlers.onMouseMove), e.removeEventListener("mouseup", this.focusEventHandlers.onMouseUp), e.removeEventListener("click", this.focusEventHandlers.onMouseClick), this.focusEventHandlers = null;

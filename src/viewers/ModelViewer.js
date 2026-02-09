@@ -88,6 +88,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {CameraConfig} [viewerConfig.camera] - Camera configuration
  * @property {Object} [viewerConfig.renderer] - Renderer configuration
  * @property {Object} [viewerConfig.stereo] - Stereo rendering configuration
+ * @property {boolean} [enableAutoRecovery=true] - Retry loading when tab focus/context interruptions leave the viewer blank
  * @property {string} [initialModel] - Key of model to load initially
  * @property {Object} [initialPositions] - Override initial positions for loaded model
  */
@@ -195,6 +196,7 @@ export class ModelViewer extends EventSystem {
       flyControls: { type: 'object', default: {} },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
+      enableAutoRecovery: { type: 'boolean', default: true },
       viewerConfig: {
         type: 'object',
         default: {
@@ -235,6 +237,17 @@ export class ModelViewer extends EventSystem {
     this.lastManualLoadingMessage = '';
     this.stageOverrideActive = false;
     this.vrUpdateLoop = null;
+
+    // Recovery state for focus/context interruptions
+    this.lastRequestedModelKey = null;
+    this.recoveryHandlers = null;
+    this.recoveryTimer = null;
+    this.recoveryCooldownMs = 1200;
+    this.lastRecoveryAttemptAt = 0;
+    this.recoveryAttempts = 0;
+    this.maxRecoveryAttempts = 3;
+    this.hadContextLoss = false;
+    this.isDisposed = false;
     
     if (typeof window !== 'undefined') {
       window.modelViewer = this;
@@ -259,9 +272,11 @@ export class ModelViewer extends EventSystem {
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
 
     this.setupEventForwarding();
+    this.setupRecoveryHandlers();
 
 
     this.belowViewer.on('initialized', () => {
+      this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
@@ -273,6 +288,7 @@ export class ModelViewer extends EventSystem {
 
 
     if (this.belowViewer.isInitialized) {
+      this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
@@ -600,6 +616,133 @@ export class ModelViewer extends EventSystem {
         vrButton.style.setProperty('pointer-events', 'auto', 'important');
         this._vrButtonWasVisible = false;
       }
+    }
+  }
+
+  setupRecoveryHandlers() {
+    if (this.recoveryHandlers || !this.config.enableAutoRecovery) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const canvas = this.belowViewer?.renderer?.domElement;
+    if (!canvas) return;
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        this.queueRecovery('visibility-change', { forceReload: this.hadContextLoss });
+      }
+    };
+
+    const onWindowFocus = () => {
+      this.queueRecovery('window-focus', { forceReload: false });
+    };
+
+    const onContextLost = (event) => {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      this.hadContextLoss = true;
+    };
+
+    const onContextRestored = () => {
+      this.queueRecovery('context-restored', { forceReload: true, delayMs: 120 });
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onWindowFocus);
+    canvas.addEventListener('webglcontextlost', onContextLost, false);
+    canvas.addEventListener('webglcontextrestored', onContextRestored, false);
+
+    this.recoveryHandlers = {
+      canvas,
+      onVisibilityChange,
+      onWindowFocus,
+      onContextLost,
+      onContextRestored
+    };
+  }
+
+  queueRecovery(reason, { forceReload = false, delayMs = 200 } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery) return;
+
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
+
+    this.recoveryTimer = setTimeout(() => {
+      this.recoveryTimer = null;
+      this.tryRecoverFromInterruption(reason, { forceReload });
+    }, delayMs);
+  }
+
+  async tryRecoverFromInterruption(reason, { forceReload = false } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+    if (this.isLoading) {
+      this.queueRecovery(reason, { forceReload: true, delayMs: 600 });
+      return;
+    }
+
+    const now = Date.now();
+    if (now - this.lastRecoveryAttemptAt < this.recoveryCooldownMs) {
+      return;
+    }
+    this.lastRecoveryAttemptAt = now;
+
+    const loadedCount = this.belowViewer?.getLoadedModels?.()?.length || 0;
+    const shouldReload = forceReload || this.hadContextLoss || loadedCount === 0;
+
+    if (!shouldReload) {
+      this.forceRefreshFrame();
+      return;
+    }
+
+    const fallbackKey = Object.keys(this.config.models)[0];
+    const modelKey = this.currentModelKey || this.lastRequestedModelKey || fallbackKey;
+    if (!modelKey || !this.config.models[modelKey]) {
+      this.forceRefreshFrame();
+      return;
+    }
+
+    this.recoveryAttempts += 1;
+    this.updateStatus('Recovering viewer...');
+    await this.loadModel(modelKey);
+
+    const recovered = (this.belowViewer?.getLoadedModels?.()?.length || 0) > 0;
+    if (recovered) {
+      this.hadContextLoss = false;
+      this.recoveryAttempts = 0;
+      this.forceRefreshFrame();
+      this.emit('viewer-recovered', { reason, modelKey });
+      return;
+    }
+
+    if (this.recoveryAttempts < this.maxRecoveryAttempts) {
+      this.queueRecovery(reason, {
+        forceReload: true,
+        delayMs: 400 + this.recoveryAttempts * 300
+      });
+    } else {
+      this.updateStatus('Recovery failed. Try selecting the model again.');
+    }
+  }
+
+  forceRefreshFrame() {
+    const renderer = this.belowViewer?.renderer;
+    const scene = this.belowViewer?.sceneManager?.scene;
+    const camera = this.belowViewer?.cameraManager?.camera;
+    if (!renderer || !scene || !camera) return;
+
+    try {
+      const isXRPresenting = renderer.xr?.isPresenting;
+      if (this.belowViewer?.stereoEnabled && !isXRPresenting && this.belowViewer?.stereoMode === 'sbs' &&
+        typeof this.belowViewer.renderSbsStereo === 'function') {
+        this.belowViewer.renderSbsStereo();
+      } else {
+        renderer.render(scene, camera);
+      }
+    } catch {
+      // Ignore one-off render errors and rely on next animation frame.
     }
   }
 
@@ -1522,7 +1665,13 @@ export class ModelViewer extends EventSystem {
       console.error('Model not found:', modelKey);
       return;
     }
+    this.lastRequestedModelKey = modelKey;
     this.currentModelKey = modelKey;
+    this.hadContextLoss = false;
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
 
     if (this.ui.dropdown) {
       this.ui.dropdown.value = modelKey;
@@ -1574,8 +1723,11 @@ export class ModelViewer extends EventSystem {
         
 
         this.modelReady = true;
+        this.recoveryAttempts = 0;
         this.emit('model-switched', { modelKey, model, config: modelConfig });
         this.emit('modelLoaded', { modelKey, model, config: modelConfig });
+      } else if (this.currentModelKey === modelKey) {
+        this.queueRecovery('empty-load-result', { forceReload: true, delayMs: 350 });
       }
     } catch (error) {
       if (error.message !== 'Loading cancelled') {
@@ -1586,6 +1738,12 @@ export class ModelViewer extends EventSystem {
 
         if (this.measurementSystem) {
           this.measurementSystem.setRaycastTargets([]);
+        }
+        if (this.currentModelKey === modelKey) {
+          const shouldRetryNow = typeof document === 'undefined' || !document.hidden;
+          if (shouldRetryNow) {
+            this.queueRecovery('model-load-error', { forceReload: true, delayMs: 500 });
+          }
         }
       }
     }
@@ -2144,6 +2302,27 @@ export class ModelViewer extends EventSystem {
    * @since 1.0.0
    */
   dispose() {
+    this.isDisposed = true;
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
+    if (this.recoveryHandlers) {
+      const { canvas, onVisibilityChange, onWindowFocus, onContextLost, onContextRestored } = this.recoveryHandlers;
+      if (typeof document !== 'undefined' && onVisibilityChange) {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+      }
+      if (typeof window !== 'undefined' && onWindowFocus) {
+        window.removeEventListener('focus', onWindowFocus);
+      }
+      if (canvas && onContextLost) {
+        canvas.removeEventListener('webglcontextlost', onContextLost, false);
+      }
+      if (canvas && onContextRestored) {
+        canvas.removeEventListener('webglcontextrestored', onContextRestored, false);
+      }
+      this.recoveryHandlers = null;
+    }
     if (typeof window !== 'undefined' && window.modelViewer === this) {
       window.modelViewer = null;
     }
