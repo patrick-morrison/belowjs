@@ -218,6 +218,8 @@
                         <li><span class="change-type new">New</span> Programmatic comfort-mode APIs (work in and out of active VR sessions):
                             <code>setComfortMode(enabled)</code>, <code>toggleComfortMode()</code>, <code>getComfortMode()</code>,
                             <code>setVRComfortMode(enabled)</code>, <code>toggleVRComfortMode()</code>, <code>isVRComfortModeEnabled()</code></li>
+                        <li><span class="change-type new">New</span> Per-model measurement availability via optional <code>models[modelKey].measurable</code> (defaults to <code>true</code> for backward compatibility)</li>
+                        <li><span class="change-type new">New</span> Non-measurable model UX for measurement panel: stays visible but disabled/unusable, blocks desktop/VR measurement input, and shows native tooltip text (<code>This model is marked as not measurable</code>)</li>
                     </ul>
 
                     <h4>Changed</h4>
