@@ -39,7 +39,8 @@ import 'belowjs/dist/belowjs.css';
 const config = {
     models: {
         'kxi': {
-            url: 'shipwreck.glb'
+            url: 'shipwreck.glb',
+            measurable: true // optional, defaults to true
         }
     }
 };
@@ -75,7 +76,8 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
         const config = {
             models: {
                 'kxi': {
-                    url: 'shipwreck.glb'
+                    url: 'shipwreck.glb',
+                    measurable: true // optional, defaults to true
                 }
             }
         };
@@ -160,7 +162,22 @@ import { ModelViewer } from 'belowjs';
 import 'belowjs/dist/belowjs.css';
 
 new ModelViewer('#container', {
-  models: { 'ship': { url: 'model.glb', name: 'Historic Ship' } }
+  models: {
+    'ship': { url: 'model.glb', name: 'Historic Ship', measurable: true }
+  }
+});
+```
+
+### Per-Model Measurement Availability
+```javascript
+new ModelViewer('#container', {
+  models: {
+    'draftSite': {
+      url: 'draft-site.glb',
+      name: 'Draft Site',
+      measurable: false // disable measurements for uncertain scale
+    }
+  }
 });
 ```
 

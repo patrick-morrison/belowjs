@@ -70,6 +70,8 @@
             url: './models/unknown.glb', 
             name: 'Unknown Wreck', 
             credit: 'WreckSploration',
+            // Approximate scale for VR exploration only; disable measurements to avoid false precision.
+            measurable: false,
             initialPositions: {
               desktop: {
                 camera: { x: 34.226, y: 10.354, z: 2.12 },
@@ -107,7 +109,7 @@
             }
           }
         });
-        
+
         // Explicitly load the initial model (ModelViewer handles dropdown changes internally)
         setTimeout(() => viewer.loadModel(currentModel), 100);
     </script>

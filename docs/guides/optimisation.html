@@ -121,6 +121,11 @@
                 <li>Use Local Coordinates (m),</li>
                 <li>Disable Vertex colors (wasted space, we are using a texture)</li>
                 <li>Textures as JPG are normally fine, otherwise PNG or TIFF for better colour correction</li>
+                <li>As of Metashape 2.3 you can export KTX2 textures, which is preferable to JPG or PNG. If you are
+                    colour correcting intermediate textures, export as TIFF or PNG, reimport, then save KTX2 for the
+                    final export. This is critical to making large textures run efficiently in headsets, and means you
+                    can skip much of the texture optimisation pipeline below (Draco helps load time; KTX2 keeps scenes
+                    smooth).</li>
                 <li>Use glTF Y-up convention (make sure Metashape is on latest version, this is a recent addition.
                     Without this your models will be on their side.)</li>
             </ul>
@@ -132,8 +137,9 @@
 
             <h3>Mesh Compression</h3>
             <p>Draco is a de-facto standard for glTF geometry compression. It's well supported in Three.js, and can
-                significantly reduce mesh sizes with only a small decode cost on model load. For technical details on
-                using Draco with Three.js, see the <a
+                significantly reduce mesh sizes for faster downloads, with only a small decode cost on model load.
+                It does not directly improve runtime framerate or GPU load; the benefit is primarily smaller files.
+                For technical details on using Draco with Three.js, see the <a
                     href="https://threejs.org/docs/examples/en/loaders/DRACOLoader.html" target="_blank">DRACOLoader
                     documentation</a>.</p>
 

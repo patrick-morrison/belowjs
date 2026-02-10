@@ -7539,7 +7539,7 @@ class Un {
     this.ghostSpheres = {
       left: null,
       right: null
-    }, this.MAX_SPHERES = 2, this.measurementSpheres = [], this.measurementLine = null, this.measurementLabel = null, this.previousTriggerState = {}, this.unifiedMeasurementPoints = [], this.unifiedMeasurementLine = null, this.desktopMeasurementPoints = [], this.desktopMeasurementLine = null, typeof window < "u" && (window.measurementSystem = this), this.scene = e, this.camera = t, this.renderer = i, this.uiParent = n || null, this.getRaycastInfo = typeof r == "function" ? r : null, this.controls = s, this.dolly = o, this.config = A, this.theme = a, this.showMeasurementLabels = l, this._raycastTargets = e && e.children ? e.children : [], this.enabled = !0, this.isVR = !1, this.measurementPanel = null, this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !0, this.desktopMeasurementPoints = [], this.connectionLine = null, this.desktopMeasurementLine = null, this.measurementSprite = null, this.measurementCanvas = null, this.measurementTexture = null, this.lastClickTime = 0, this.lastTriggerTime = 0, this._wasInVR = !1, this.focusAnimation = null, this.mouse = new g.Vector2(), this.raycaster = new g.Raycaster();
+    }, this.MAX_SPHERES = 2, this.measurementSpheres = [], this.measurementLine = null, this.measurementLabel = null, this.previousTriggerState = {}, this.unifiedMeasurementPoints = [], this.unifiedMeasurementLine = null, this.desktopMeasurementPoints = [], this.desktopMeasurementLine = null, typeof window < "u" && (window.measurementSystem = this), this.scene = e, this.camera = t, this.renderer = i, this.uiParent = n || null, this.getRaycastInfo = typeof r == "function" ? r : null, this.controls = s, this.dolly = o, this.config = A, this.theme = a, this.showMeasurementLabels = l, this._raycastTargets = e && e.children ? e.children : [], this.enabled = !0, this.isVR = !1, this.measurementPanel = null, this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !0, this.measurementAvailable = !0, this.desktopMeasurementPoints = [], this.connectionLine = null, this.desktopMeasurementLine = null, this.measurementSprite = null, this.measurementCanvas = null, this.measurementTexture = null, this.lastClickTime = 0, this.lastTriggerTime = 0, this._wasInVR = !1, this.focusAnimation = null, this.mouse = new g.Vector2(), this.raycaster = new g.Raycaster();
     const h = () => {
       let d = null, u = null;
       const p = null, b = null;
@@ -7641,7 +7641,10 @@ class Un {
     }), this.unifiedMeasurementPoints.length = 0), this.unifiedMeasurementLine && (this.scene.remove(this.unifiedMeasurementLine), this.unifiedMeasurementLine = null), this.measurementSprite && (this.measurementSprite.visible = !1, this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.updateMeasurementPanel();
   }
   clearVRMeasurement() {
-    this.measurementSpheres && (this.measurementSpheres.forEach((e) => this.scene.remove(e)), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null), this.placedSpheres && (this.placedSpheres.forEach((e) => this.scene.remove(e)), this.placedSpheres.length = 0), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSprite && (this.measurementSprite.visible = !1), this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
+    this.measurementSpheres && (this.measurementSpheres.forEach((e) => this.scene.remove(e)), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null), this.placedSpheres && (this.placedSpheres.forEach((e) => this.scene.remove(e)), this.placedSpheres.length = 0), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSprite && (this.measurementSprite.visible = !1), this.measurementSystemEnabled = this.measurementAvailable, this.updateMeasurementPanel();
+  }
+  setMeasurementAvailability(e) {
+    this.measurementAvailable = e !== !1, this.measurementAvailable ? (this.measurementSystemEnabled = !0, this.renderer && this.renderer.xr && this.renderer.xr.isPresenting && (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0))) : (this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !1, this.clearUnifiedMeasurement(), this.clearLegacyDesktopMeasurement(), this.clearLegacyVRMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1), this.setRaycastTargets([])), this.updateMeasurementPanel();
   }
   /**
    * Clear legacy VR measurements (old system compatibility)
@@ -7663,7 +7666,7 @@ class Un {
         ]), t = this.vrLineMaterial || new g.LineBasicMaterial({ color: 16777215, transparent: !0, opacity: 0.8, depthTest: !1 });
         this.connectionLine = new g.Line(e, t), this.scene.add(this.connectionLine), this.createMeasurementDisplay(this.measurementSpheres[0].position.distanceTo(this.measurementSpheres[1].position)), this.measurementSprite && !this.scene.children.includes(this.measurementSprite) && this.scene.add(this.measurementSprite);
       }
-      this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
+      this.measurementSystemEnabled = this.measurementAvailable, this.updateMeasurementPanel();
     }
   }
   syncToDesktop() {
@@ -7769,6 +7772,7 @@ class Un {
   _onVRTriggerDown() {
   }
   _onVRTriggerUp(e) {
+    if (!this.measurementAvailable) return;
     const t = e.target, i = performance.now();
     if (!(this.lastTriggerTime && i - this.lastTriggerTime < 200) && (this.lastTriggerTime = i, this.measurementSystemEnabled)) {
       const s = new g.Vector3();
@@ -7894,6 +7898,10 @@ class Un {
   createMeasurementPanel() {
     const e = document.createElement("div");
     e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
+      if (!this.measurementAvailable) {
+        this.updateMeasurementPanel();
+        return;
+      }
       this.renderer && this.renderer.xr && this.renderer.xr.isPresenting ? (this.measurementSystemEnabled = !this.measurementSystemEnabled, this.measurementSystemEnabled ? (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0), this.resetGhostSpherePositions()) : (this.clearUnifiedMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1)), this.updateMeasurementPanel()) : (this.desktopMeasurementMode = !this.desktopMeasurementMode, this.desktopMeasurementMode || this.clearUnifiedMeasurement(), this.updateMeasurementPanel());
     }), (this.uiParent || this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement || document.body).appendChild(e), this.measurementPanel = e;
   }
@@ -7902,7 +7910,14 @@ class Un {
     if (!e) return;
     const t = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting, i = this.unifiedMeasurementPoints ? this.unifiedMeasurementPoints.length : 0, s = i === 2, o = t ? this.measurementSystemEnabled : this.desktopMeasurementMode;
     let n;
-    if (s && (n = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position)), e.classList.remove("disabled", "active", "measured"), !o)
+    if (s && (n = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position)), e.classList.remove("disabled", "active", "measured", "unavailable"), e.style.opacity = "", e.style.cursor = "pointer", e.setAttribute("aria-disabled", "false"), e.removeAttribute("title"), !this.measurementAvailable) {
+      e.classList.add("disabled", "unavailable"), e.style.opacity = "0.55", e.style.cursor = "not-allowed", e.setAttribute("aria-disabled", "true"), e.title = "This model is marked as not measurable", e.innerHTML = `
+        <div>MEASURE</div>
+        <div style="font-size: 12px; margin-top: 4px;">Not available</div>
+      `;
+      return;
+    }
+    if (!o)
       e.classList.add("disabled"), e.innerHTML = `
         <div>MEASURE</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to enable</div>
@@ -7936,6 +7951,8 @@ class Un {
     }, 10);
   }
   onMouseClick(e) {
+    if (!this.measurementAvailable)
+      return;
     const t = Date.now(), i = t - this.lastClickTime < 300;
     if (this.lastClickTime = t, this.isDragging || !this.desktopMeasurementMode)
       return;
@@ -9105,9 +9122,25 @@ class zn extends Te {
       t();
     }
     if (this.belowViewer.loadedModels && this.belowViewer.loadedModels.length > 0) {
-      const t = this.belowViewer.loadedModels[0].model;
-      this.measurementSystem.setRaycastTargets(t);
+      const t = this.belowViewer.loadedModels[0].model, i = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+      this.applyModelMeasurementConfig(i, t);
     }
+  }
+  isModelMeasurable(e) {
+    return !e || e.measurable !== !1;
+  }
+  applyModelMeasurementConfig(e, t = null) {
+    if (!this.measurementSystem) return;
+    const i = this.isModelMeasurable(e);
+    if (typeof this.measurementSystem.setMeasurementAvailability == "function" ? this.measurementSystem.setMeasurementAvailability(i) : (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement(), this.measurementSystem.desktopMeasurementMode = !1, this.measurementSystem.measurementSystemEnabled = i, this.measurementSystem.updateMeasurementPanel()), this.measurementSystem.ghostSpheres) {
+      const s = i && this.measurementSystem.isVR;
+      this.measurementSystem.ghostSpheres.left && (this.measurementSystem.ghostSpheres.left.visible = s), this.measurementSystem.ghostSpheres.right && (this.measurementSystem.ghostSpheres.right.visible = s);
+    }
+    if (i && t) {
+      this.measurementSystem.setRaycastTargets(t);
+      return;
+    }
+    this.measurementSystem.setRaycastTargets([]);
   }
   async _maybeAttachVRComfortGlyph() {
     if (!this.config.enableVRComfortGlyph || this.comfortGlyph || !this.belowViewer.vrManager || !this.belowViewer.vrManager.vrCore || (await this.belowViewer.vrManager.vrCore.checkVRSupported(), !this.belowViewer.vrManager.vrCore.isVRSupported)) return;
@@ -9688,9 +9721,9 @@ class zn extends Te {
         initialPositions: t.initialPositions
         // Pass VR/desktop positions
       });
-      o ? (this.applyInitialPositions(t, o), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets(o), this.modelReady = !0, this.recoveryAttempts = 0, this.emit("model-switched", { modelKey: e, model: o, config: t }), this.emit("modelLoaded", { modelKey: e, model: o, config: t })) : this.currentModelKey === e && this.queueRecovery("empty-load-result", { forceReload: !0, delayMs: 350 });
+      o ? (this.applyInitialPositions(t, o), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.applyModelMeasurementConfig(t, o), this.modelReady = !0, this.recoveryAttempts = 0, this.emit("model-switched", { modelKey: e, model: o, config: t }), this.emit("modelLoaded", { modelKey: e, model: o, config: t })) : this.currentModelKey === e && this.queueRecovery("empty-load-result", { forceReload: !0, delayMs: 350 });
     } catch (o) {
-      o.message !== "Loading cancelled" && (console.error("Failed to load model:", o), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets([]), this.currentModelKey === e && (typeof document > "u" || !document.hidden) && this.queueRecovery("model-load-error", { forceReload: !0, delayMs: 500 }));
+      o.message !== "Loading cancelled" && (console.error("Failed to load model:", o), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.applyModelMeasurementConfig(t, null), this.currentModelKey === e && (typeof document > "u" || !document.hidden) && this.queueRecovery("model-load-error", { forceReload: !0, delayMs: 500 }));
     }
   }
   applyInitialPositions(e, t) {
@@ -9796,7 +9829,8 @@ class zn extends Te {
     }
   }
   onModelLoaded({ model: e }) {
-    this.measurementSystem && this.measurementSystem.setRaycastTargets(e), this.flyControls && this.flyControls.setModelSizeFromObject(e);
+    const t = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+    this.applyModelMeasurementConfig(t, e), this.flyControls && this.flyControls.setModelSizeFromObject(e);
   }
   onModelLoadError({ error: e }) {
     this.hideLoading(), this.updateStatus(`Failed to load model: ${e.message}`);

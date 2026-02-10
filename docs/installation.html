@@ -119,7 +119,7 @@
             <pre><code>import { ModelViewer } from 'belowjs';
 
 const viewer = new ModelViewer('body', {
-    models: { 'wreck': { url: 'shipwreck.glb' } }
+    models: { 'wreck': { url: 'shipwreck.glb', measurable: true } }
 });</code></pre>
 
             <h2>npm</h2>
@@ -133,12 +133,14 @@ import 'belowjs/dist/belowjs.css';
 const config = {
     models: {
         'kxi': {
-            url: 'shipwreck.glb'
+            url: 'shipwreck.glb',
+            measurable: true
         }
     }
 };
 
 const viewer = new ModelViewer('#container', config);</code></pre>
+            <p><strong>Measurement option:</strong> Set <code>measurable: false</code> for models with uncertain scale so users can explore in VR without taking unreliable measurements.</p>
 
             <h2>Manual installation</h2>
             <p>If you prefer to download files directly, you can get them from <a href="https://github.com/patrick-morrison/belowjs/tree/main/dist" target="_blank">GitHub</a> or clone the repository and build them yourself:</p>

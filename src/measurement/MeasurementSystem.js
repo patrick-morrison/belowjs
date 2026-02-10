@@ -166,6 +166,7 @@ export class MeasurementSystem {
     this.measurementPanel = null;
     this.desktopMeasurementMode = false;
     this.measurementSystemEnabled = true;
+    this.measurementAvailable = true;
     this.desktopMeasurementPoints = [];
     this.connectionLine = null;
     this.desktopMeasurementLine = null;
@@ -405,7 +406,28 @@ export class MeasurementSystem {
     if (this.measurementSprite) {
       this.measurementSprite.visible = false;
     }
-    this.measurementSystemEnabled = true;
+    this.measurementSystemEnabled = this.measurementAvailable;
+    this.updateMeasurementPanel();
+  }
+
+  setMeasurementAvailability(available) {
+    this.measurementAvailable = available !== false;
+    if (!this.measurementAvailable) {
+      this.desktopMeasurementMode = false;
+      this.measurementSystemEnabled = false;
+      this.clearUnifiedMeasurement();
+      this.clearLegacyDesktopMeasurement();
+      this.clearLegacyVRMeasurement();
+      if (this.ghostSpheres.left) this.ghostSpheres.left.visible = false;
+      if (this.ghostSpheres.right) this.ghostSpheres.right.visible = false;
+      this.setRaycastTargets([]);
+    } else {
+      this.measurementSystemEnabled = true;
+      if (this.renderer && this.renderer.xr && this.renderer.xr.isPresenting) {
+        if (this.ghostSpheres.left) this.ghostSpheres.left.visible = true;
+        if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
+      }
+    }
     this.updateMeasurementPanel();
   }
 
@@ -461,7 +483,7 @@ export class MeasurementSystem {
           this.scene.add(this.measurementSprite);
         }
       }
-      this.measurementSystemEnabled = true;
+      this.measurementSystemEnabled = this.measurementAvailable;
       this.updateMeasurementPanel();
     }
   }
@@ -677,6 +699,7 @@ export class MeasurementSystem {
   }
 
   _onVRTriggerUp(event) {
+    if (!this.measurementAvailable) return;
     const controller = event.target;
     
     const now = performance.now();
@@ -936,7 +959,6 @@ export class MeasurementSystem {
    * @since 1.0.0
    */
   dispose() {
-
     if (this.measurementPanel && this.measurementPanel.parentNode) {
       this.measurementPanel.parentNode.removeChild(this.measurementPanel);
       this.measurementPanel = null;
@@ -988,6 +1010,11 @@ export class MeasurementSystem {
     panel.className = `measurement-panel${this.theme === 'light' ? ' light-theme' : ''}`;
     
     panel.addEventListener('click', () => {
+      if (!this.measurementAvailable) {
+        this.updateMeasurementPanel();
+        return;
+      }
+
       if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
 
         this.desktopMeasurementMode = !this.desktopMeasurementMode;
@@ -1038,7 +1065,24 @@ export class MeasurementSystem {
     }
     
 
-    panel.classList.remove('disabled', 'active', 'measured');
+    panel.classList.remove('disabled', 'active', 'measured', 'unavailable');
+    panel.style.opacity = '';
+    panel.style.cursor = 'pointer';
+    panel.setAttribute('aria-disabled', 'false');
+    panel.removeAttribute('title');
+
+    if (!this.measurementAvailable) {
+      panel.classList.add('disabled', 'unavailable');
+      panel.style.opacity = '0.55';
+      panel.style.cursor = 'not-allowed';
+      panel.setAttribute('aria-disabled', 'true');
+      panel.title = 'This model is marked as not measurable';
+      panel.innerHTML = `
+        <div>MEASURE</div>
+        <div style="font-size: 12px; margin-top: 4px;">Not available</div>
+      `;
+      return;
+    }
     
     if (!isEnabled) {
       panel.classList.add('disabled');
@@ -1083,6 +1127,9 @@ export class MeasurementSystem {
     }, 10);
   }
   onMouseClick(event) {
+    if (!this.measurementAvailable) {
+      return;
+    }
     const currentTime = Date.now();
     const isDoubleClick = currentTime - this.lastClickTime < 300;
     this.lastClickTime = currentTime;

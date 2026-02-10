@@ -33,7 +33,7 @@
  * 
  * const viewer = new ModelViewer('#container', {
  *   models: {
- *     'wreck': { url: 'shipwreck.glb', name: 'Historic Wreck' }
+ *     'wreck': { url: 'shipwreck.glb', name: 'Historic Wreck', measurable: true }
  *   },
  *   enableVR: true,
  *   enableMeasurement: true

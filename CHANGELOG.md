@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Programmatic comfort-mode APIs (work in and out of active VR sessions):
   - `ModelViewer`: `setComfortMode(enabled)`, `toggleComfortMode()`, `getComfortMode()`
   - `BelowViewer`: `setVRComfortMode(enabled)`, `toggleVRComfortMode()`, `isVRComfortModeEnabled()`
+- Per-model measurement availability via optional `models[modelKey].measurable` (defaults to `true` for backward compatibility)
+- Non-measurable model UX for measurement panel: stays visible but disabled/unusable, blocks desktop/VR measurement input, and shows native tooltip text (`This model is marked as not measurable`)
 
 ### Changed
 - Comfort toggle styling tightened; active state keeps a clear green ring

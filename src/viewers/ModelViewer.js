@@ -12,6 +12,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {string} url - Path to the GLB model file
  * @property {string} name - Display name for the model
  * @property {string} [credit] - Attribution text for the model
+ * @property {boolean} [measurable=true] - Whether this model can use the measurement system
  * @property {Object} [initialPositions] - Camera and target positions for this model
  * @property {Object} [initialPositions.desktop] - Desktop viewing positions
  * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
@@ -121,7 +122,8 @@ import { FlyControls } from '../core/FlyControls.js';
  *     'wreck': {
  *       url: 'models/shipwreck.glb',
  *       name: 'Historic Shipwreck',
- *       credit: 'Maritime Museum'
+ *       credit: 'Maritime Museum',
+ *       measurable: true
  *     }
  *   },
  *   enableVR: true,
@@ -148,7 +150,8 @@ import { FlyControls } from '../core/FlyControls.js';
  *     },
  *     'model2': {
  *       url: 'path/to/model2.glb',
- *       name: 'Model 2'
+ *       name: 'Model 2',
+ *       measurable: false
  *     }
  *   },
  *   enableVR: true,
@@ -333,8 +336,45 @@ export class ModelViewer extends EventSystem {
     }
     if (this.belowViewer.loadedModels && this.belowViewer.loadedModels.length > 0) {
       const modelRoot = this.belowViewer.loadedModels[0].model;
-      this.measurementSystem.setRaycastTargets(modelRoot);
+      const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+      this.applyModelMeasurementConfig(modelConfig, modelRoot);
     }
+  }
+
+  isModelMeasurable(modelConfig) {
+    return !modelConfig || modelConfig.measurable !== false;
+  }
+
+  applyModelMeasurementConfig(modelConfig, model = null) {
+    if (!this.measurementSystem) return;
+
+    const measurable = this.isModelMeasurable(modelConfig);
+    if (typeof this.measurementSystem.setMeasurementAvailability === 'function') {
+      this.measurementSystem.setMeasurementAvailability(measurable);
+    } else {
+      this.measurementSystem.clearUnifiedMeasurement();
+      this.measurementSystem.clearLegacyVRMeasurement();
+      this.measurementSystem.clearLegacyDesktopMeasurement();
+      this.measurementSystem.desktopMeasurementMode = false;
+      this.measurementSystem.measurementSystemEnabled = measurable;
+      this.measurementSystem.updateMeasurementPanel();
+    }
+
+    if (this.measurementSystem.ghostSpheres) {
+      const showGhostSpheres = measurable && this.measurementSystem.isVR;
+      if (this.measurementSystem.ghostSpheres.left) {
+        this.measurementSystem.ghostSpheres.left.visible = showGhostSpheres;
+      }
+      if (this.measurementSystem.ghostSpheres.right) {
+        this.measurementSystem.ghostSpheres.right.visible = showGhostSpheres;
+      }
+    }
+
+    if (measurable && model) {
+      this.measurementSystem.setRaycastTargets(model);
+      return;
+    }
+    this.measurementSystem.setRaycastTargets([]);
   }
 
   async _maybeAttachVRComfortGlyph() {
@@ -1756,9 +1796,7 @@ export class ModelViewer extends EventSystem {
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);
 
-        if (this.measurementSystem) {
-          this.measurementSystem.setRaycastTargets(model);
-        }
+        this.applyModelMeasurementConfig(modelConfig, model);
         
 
         this.modelReady = true;
@@ -1775,9 +1813,7 @@ export class ModelViewer extends EventSystem {
         this.updateStatus(`Error loading ${modelConfig.name || modelKey}`);
         
 
-        if (this.measurementSystem) {
-          this.measurementSystem.setRaycastTargets([]);
-        }
+        this.applyModelMeasurementConfig(modelConfig, null);
         if (this.currentModelKey === modelKey) {
           const shouldRetryNow = typeof document === 'undefined' || !document.hidden;
           if (shouldRetryNow) {
@@ -2024,9 +2060,8 @@ export class ModelViewer extends EventSystem {
   }
   
   onModelLoaded({ model }) {
-    if (this.measurementSystem) {
-      this.measurementSystem.setRaycastTargets(model);
-    }
+    const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+    this.applyModelMeasurementConfig(modelConfig, model);
     if (this.flyControls) {
       this.flyControls.setModelSizeFromObject(model);
     }
