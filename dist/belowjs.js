@@ -7767,7 +7767,7 @@ class Gc {
     if (t.adaptiveQuality === !1)
       return null;
     const n = typeof t.errorTarget == "number" && t.errorTarget > 0 ? t.errorTarget : typeof e.errorTarget == "number" && e.errorTarget > 0 ? e.errorTarget : 12, o = this.clamp(
-      typeof t.adaptiveMovingErrorTarget == "number" ? t.adaptiveMovingErrorTarget : Math.max(n * 1.8, n + 6),
+      typeof t.adaptiveMovingErrorTarget == "number" ? t.adaptiveMovingErrorTarget : Math.max(n * 2, n + 7),
       s,
       i
     ), r = this.clamp(
@@ -7780,7 +7780,7 @@ class Gc {
       typeof t.adaptiveMaxTilesProcessed == "number" ? t.adaptiveMaxTilesProcessed : Math.max(l, 512)
     )), h = this.clamp(
       Math.round(
-        typeof t.adaptiveMovingMaxTilesProcessed == "number" ? t.adaptiveMovingMaxTilesProcessed : l * 0.4
+        typeof t.adaptiveMovingMaxTilesProcessed == "number" ? t.adaptiveMovingMaxTilesProcessed : l * 0.25
       ),
       c,
       A
@@ -7796,15 +7796,15 @@ class Gc {
       i
     ), g = this.clamp(
       Math.round(
-        typeof t.adaptiveFastMovingMaxTilesProcessed == "number" ? t.adaptiveFastMovingMaxTilesProcessed : h * 0.55
+        typeof t.adaptiveFastMovingMaxTilesProcessed == "number" ? t.adaptiveFastMovingMaxTilesProcessed : h * 0.4
       ),
       c,
       A
     );
     return {
-      linearSpeedThreshold: typeof t.adaptiveLinearSpeedThreshold == "number" && t.adaptiveLinearSpeedThreshold > 0 ? t.adaptiveLinearSpeedThreshold : 0.16,
+      linearSpeedThreshold: typeof t.adaptiveLinearSpeedThreshold == "number" && t.adaptiveLinearSpeedThreshold > 0 ? t.adaptiveLinearSpeedThreshold : 0.12,
       fastLinearSpeedThreshold: typeof t.adaptiveFastLinearSpeedThreshold == "number" && t.adaptiveFastLinearSpeedThreshold > 0 ? t.adaptiveFastLinearSpeedThreshold : 0.85,
-      angularSpeedThreshold: typeof t.adaptiveAngularSpeedThreshold == "number" && t.adaptiveAngularSpeedThreshold > 0 ? t.adaptiveAngularSpeedThreshold : 0.5,
+      angularSpeedThreshold: typeof t.adaptiveAngularSpeedThreshold == "number" && t.adaptiveAngularSpeedThreshold > 0 ? t.adaptiveAngularSpeedThreshold : 0.4,
       settleDelayMs: typeof t.adaptiveSettleDelayMs == "number" && t.adaptiveSettleDelayMs >= 0 ? t.adaptiveSettleDelayMs : 450,
       errorLerp: this.clamp(
         typeof t.adaptiveErrorLerp == "number" ? t.adaptiveErrorLerp : 0.12,
@@ -9235,16 +9235,16 @@ class sA {
       autoRotateSpeed: null,
       controls: null
       // Reference to controls object
-    }, this._initialPositions = null, this.lastComfortLog = 0, this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
+    }, this._initialPositions = null, this.lastComfortLog = 0, this.onModeToggle = null, this.onSessionStart = null, this.onSessionEnd = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
   }
   init() {
     this.vrCore.init(), this.vrControllers.init(), this.vrTeleport.init(), this.vrLocomotion.init(), this.setupModuleConnections();
   }
   setupModuleConnections() {
     this.vrCore.onSessionStart = async () => {
-      this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && await this.vrAudio.initImmediatelyForVR(this.audioPath) && this.vrAudio.startAmbientSound();
+      this._saveCameraState(), this.isVRPresenting = !0, this.vrAudio && await this.vrAudio.initImmediatelyForVR(this.audioPath) && this.vrAudio.startAmbientSound(), this.onSessionStart && this.onSessionStart();
     }, this.vrCore.onSessionEnd = () => {
-      this.isVRPresenting = !1, this.vrAudio && (this.vrAudio.stopMovementSound(), this.vrAudio.stopAmbientSound()), this._restoreCameraState();
+      this.isVRPresenting = !1, this.vrAudio && (this.vrAudio.stopMovementSound(), this.vrAudio.stopAmbientSound()), this._restoreCameraState(), this.onSessionEnd && this.onSessionEnd();
     }, this.vrControllers.onModeToggle = () => {
       this.onModeToggle && this.onModeToggle();
     }, this.vrLocomotion.onMovementStart = () => {
@@ -9345,7 +9345,10 @@ class sA {
   applyVRPositions(e) {
     if (!(!this.isVRPresenting || !e))
       try {
-        e.camera && (this.camera.position.copy(e.camera.position), this.camera.quaternion.copy(e.camera.quaternion)), e.dolly && (this.camera.parent.position.copy(e.dolly.position), this.camera.parent.quaternion.copy(e.dolly.quaternion));
+        const t = e.vr || e, s = this.camera?.parent;
+        if (!t || !s)
+          return;
+        t.camera?.position && this.camera.position.copy(t.camera.position), t.camera?.quaternion && this.camera.quaternion.copy(t.camera.quaternion), t.dolly?.position ? s.position.copy(t.dolly.position) : Number.isFinite(t.dolly?.x) && Number.isFinite(t.dolly?.y) && Number.isFinite(t.dolly?.z) && s.position.set(t.dolly.x, t.dolly.y, t.dolly.z), t.dolly?.quaternion ? s.quaternion.copy(t.dolly.quaternion) : Number.isFinite(t.rotation?.x) && Number.isFinite(t.rotation?.y) && Number.isFinite(t.rotation?.z) && s.rotation.set(t.rotation.x, t.rotation.y, t.rotation.z);
       } catch (t) {
         console.warn("VR position application failed:", t);
       }
@@ -9436,7 +9439,7 @@ class sA {
    * @since 1.0.0
    */
   dispose() {
-    this.vrCore.dispose(), this.vrControllers.dispose(), this.vrTeleport.dispose(), this.vrAudio && this.vrAudio.dispose(), this.onModeToggle = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null;
+    this.vrCore.dispose(), this.vrControllers.dispose(), this.vrTeleport.dispose(), this.vrAudio && this.vrAudio.dispose(), this.onModeToggle = null, this.onSessionStart = null, this.onSessionEnd = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null;
   }
   checkVRSupport() {
     return this.vrCore.checkVRSupported();

@@ -41,10 +41,10 @@
     <script type="module">
         import { ModelViewer } from 'belowjs';
 
-        const DEFAULT_TILESET_URL = './AwhinaTiled_tiles/tileset.json';
+        const DEFAULT_TILESET_URL = './tiled_example_tiles/tileset.json';
         const params = new URLSearchParams(window.location.search);
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
-        const upAxis = params.get('up') || '+Z';
+        const upAxis = params.get('up') || '-Z';
 
         new ModelViewer('#viewer', {
             showInfo: true,
@@ -61,12 +61,12 @@
                     autoCenter: true,
                     initialPositions: {
                         desktop: {
-                            camera: { x: -17.594, y: -23.03, z: 16.921 },
-                            target: { x: -23.004, y: -26.904, z: 11.511 }
+                            camera: { x: 151.456, y: -136.643, z: -42.32 },
+                            target: { x: 146.582, y: -138.85, z: -42.672 }
                         },
                         vr: {
-                            dolly: { x: -17.594, y: -23.03, z: 16.921 },
-                            rotation: { x: 0.468711483, y: -2.35619449, z: 0.0 }
+                            dolly: { x: 151.456, y: -136.643, z: -42.32 },
+                            rotation: { x: 0.0, y: 0, z: 0.0 }
                         }
                     }
                 }

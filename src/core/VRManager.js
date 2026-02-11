@@ -89,6 +89,8 @@ export class VRManager {
     this.lastComfortLog = 0;
     
     this.onModeToggle = null;
+    this.onSessionStart = null;
+    this.onSessionEnd = null;
     this.onMovementStart = null;
     this.onMovementStop = null;
     this.onMovementUpdate = null;
@@ -118,6 +120,9 @@ export class VRManager {
           this.vrAudio.startAmbientSound();
         }
       }
+      if (this.onSessionStart) {
+        this.onSessionStart();
+      }
     };
 
     this.vrCore.onSessionEnd = () => {
@@ -128,6 +133,9 @@ export class VRManager {
       }
       // Remove timeout - restore immediately
       this._restoreCameraState();
+      if (this.onSessionEnd) {
+        this.onSessionEnd();
+      }
     };
 
     this.vrControllers.onModeToggle = () => {
@@ -302,14 +310,30 @@ export class VRManager {
     if (!this.isVRPresenting || !positions) return;
     
     try {
-      if (positions.camera) {
-        this.camera.position.copy(positions.camera.position);
-        this.camera.quaternion.copy(positions.camera.quaternion);
+      const vrPositions = positions.vr || positions;
+      const dolly = this.camera?.parent;
+
+      if (!vrPositions || !dolly) {
+        return;
+      }
+
+      if (vrPositions.camera?.position) {
+        this.camera.position.copy(vrPositions.camera.position);
+      }
+      if (vrPositions.camera?.quaternion) {
+        this.camera.quaternion.copy(vrPositions.camera.quaternion);
       }
       
-      if (positions.dolly) {
-        this.camera.parent.position.copy(positions.dolly.position);
-        this.camera.parent.quaternion.copy(positions.dolly.quaternion);
+      if (vrPositions.dolly?.position) {
+        dolly.position.copy(vrPositions.dolly.position);
+      } else if (Number.isFinite(vrPositions.dolly?.x) && Number.isFinite(vrPositions.dolly?.y) && Number.isFinite(vrPositions.dolly?.z)) {
+        dolly.position.set(vrPositions.dolly.x, vrPositions.dolly.y, vrPositions.dolly.z);
+      }
+
+      if (vrPositions.dolly?.quaternion) {
+        dolly.quaternion.copy(vrPositions.dolly.quaternion);
+      } else if (Number.isFinite(vrPositions.rotation?.x) && Number.isFinite(vrPositions.rotation?.y) && Number.isFinite(vrPositions.rotation?.z)) {
+        dolly.rotation.set(vrPositions.rotation.x, vrPositions.rotation.y, vrPositions.rotation.z);
       }
     } catch (error) {
       console.warn('VR position application failed:', error);
@@ -474,6 +498,8 @@ export class VRManager {
     }
     
     this.onModeToggle = null;
+    this.onSessionStart = null;
+    this.onSessionEnd = null;
     this.onMovementStart = null;
     this.onMovementStop = null;
     this.onMovementUpdate = null;

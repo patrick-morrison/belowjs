@@ -417,7 +417,7 @@ export class TilesetLoader {
     const movingErrorTarget = this.clamp(
       typeof options.adaptiveMovingErrorTarget === 'number'
         ? options.adaptiveMovingErrorTarget
-        : Math.max(baseErrorTarget * 1.8, baseErrorTarget + 6),
+        : Math.max(baseErrorTarget * 2.0, baseErrorTarget + 7),
       minErrorTarget,
       maxErrorTarget
     );
@@ -449,7 +449,7 @@ export class TilesetLoader {
       Math.round(
         typeof options.adaptiveMovingMaxTilesProcessed === 'number'
           ? options.adaptiveMovingMaxTilesProcessed
-          : baseMaxTilesProcessed * 0.4
+          : baseMaxTilesProcessed * 0.25
       ),
       minTilesProcessed,
       maxTilesProcessed
@@ -477,7 +477,7 @@ export class TilesetLoader {
       Math.round(
         typeof options.adaptiveFastMovingMaxTilesProcessed === 'number'
           ? options.adaptiveFastMovingMaxTilesProcessed
-          : movingTilesProcessed * 0.55
+          : movingTilesProcessed * 0.4
       ),
       minTilesProcessed,
       maxTilesProcessed
@@ -486,13 +486,13 @@ export class TilesetLoader {
     return {
       linearSpeedThreshold: (typeof options.adaptiveLinearSpeedThreshold === 'number' && options.adaptiveLinearSpeedThreshold > 0)
         ? options.adaptiveLinearSpeedThreshold
-        : 0.16,
+        : 0.12,
       fastLinearSpeedThreshold: (typeof options.adaptiveFastLinearSpeedThreshold === 'number' && options.adaptiveFastLinearSpeedThreshold > 0)
         ? options.adaptiveFastLinearSpeedThreshold
         : 0.85,
       angularSpeedThreshold: (typeof options.adaptiveAngularSpeedThreshold === 'number' && options.adaptiveAngularSpeedThreshold > 0)
         ? options.adaptiveAngularSpeedThreshold
-        : 0.5,
+        : 0.4,
       settleDelayMs: (typeof options.adaptiveSettleDelayMs === 'number' && options.adaptiveSettleDelayMs >= 0)
         ? options.adaptiveSettleDelayMs
         : 450,
