@@ -685,6 +685,7 @@ export class BelowViewer extends EventSystem {
 
   startRenderLoop() {
     let lastTime = 0;
+    let lastVRTilesUpdateTimeMs = 0;
     
     const animate = (time) => {
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
@@ -708,20 +709,50 @@ export class BelowViewer extends EventSystem {
       
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
-        if (this.tilesetLoader) {
-          const activeTilesCamera = isXRPresenting
-            ? this.renderer.xr.getCamera(this.cameraManager.camera)
-            : this.cameraManager.camera;
-          this.tilesetLoader.update(activeTilesCamera);
-        }
-        if (!this.skipRenderDuringLoad || isXRPresenting) {
-          // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
-          // (VR headsets provide native stereoscopic rendering)
-          if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
-            this.renderSbsStereo();
-          } else {
-            this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+        const renderScene = () => {
+          if (!this.skipRenderDuringLoad || isXRPresenting) {
+            // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
+            // (VR headsets provide native stereoscopic rendering)
+            if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
+              this.renderSbsStereo();
+            } else {
+              this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+            }
           }
+        };
+
+        // In VR, prioritize rendering first and throttle tile update work to
+        // reduce locomotion hitches from streaming/parsing bursts.
+        if (isXRPresenting) {
+          renderScene();
+
+          if (this.tilesetLoader) {
+            const movement = this.vrManager?.getVRStatus?.().movement;
+            const isMoving = movement?.isMoving === true;
+            const nowMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+              ? performance.now()
+              : time;
+
+            const minUpdateIntervalMs = isMoving ? 28 : 14;
+            const shouldUpdateTiles = (nowMs - lastVRTilesUpdateTimeMs) >= minUpdateIntervalMs;
+
+            if (shouldUpdateTiles) {
+              const activeTilesCamera = this.renderer.xr.getCamera(this.cameraManager.camera);
+              this.tilesetLoader.update(activeTilesCamera, {
+                queueOptions: {
+                  maxTasks: isMoving ? 1 : 2,
+                  timeBudgetMs: isMoving ? 0.7 : 1.5
+                }
+              });
+              lastVRTilesUpdateTimeMs = nowMs;
+            }
+          }
+        } else {
+          if (this.tilesetLoader) {
+            const activeTilesCamera = this.cameraManager.camera;
+            this.tilesetLoader.update(activeTilesCamera);
+          }
+          renderScene();
         }
       }
     };

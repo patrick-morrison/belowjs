@@ -180,18 +180,29 @@ export class TilesetLoader {
     });
   }
 
-  runScheduledQueueTasks() {
+  runScheduledQueueTasks(options = {}) {
     if (this.pendingQueueTasks.length === 0) {
       return;
     }
 
-    const tasks = this.pendingQueueTasks.slice();
-    this.pendingQueueTasks.length = 0;
-    tasks.forEach((task) => {
+    const hasMaxTasks = Number.isFinite(options?.maxTasks) && options.maxTasks > 0;
+    const maxTasks = hasMaxTasks ? Math.max(1, Math.floor(options.maxTasks)) : Infinity;
+    const hasTimeBudget = Number.isFinite(options?.timeBudgetMs) && options.timeBudgetMs >= 0;
+    const timeBudgetMs = hasTimeBudget ? options.timeBudgetMs : Infinity;
+    const startTimeMs = hasTimeBudget ? performance.now() : 0;
+
+    let tasksRun = 0;
+    while (this.pendingQueueTasks.length > 0 && tasksRun < maxTasks) {
+      if (hasTimeBudget && (performance.now() - startTimeMs) >= timeBudgetMs) {
+        break;
+      }
+
+      const task = this.pendingQueueTasks.shift();
       if (typeof task === 'function') {
         task();
       }
-    });
+      tasksRun += 1;
+    }
   }
 
   isValidBox3(box) {
@@ -735,8 +746,9 @@ export class TilesetLoader {
     });
   }
 
-  update(activeCamera = null) {
-    this.runScheduledQueueTasks();
+  update(activeCamera = null, options = {}) {
+    const queueOptions = options?.queueOptions;
+    this.runScheduledQueueTasks(queueOptions);
 
     const camera = activeCamera || this.camera;
     if (camera && camera !== this.camera) {
