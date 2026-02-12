@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent unintended switches to dive mode during immersive AR sessions (keyboard/controller toggles are ignored in AR, and AR session start enforces survey mode)
 - Graceful viewer recovery after tab focus/context interruptions: auto-retry model loading on refocus and recover from `webglcontextlost`/`webglcontextrestored` blank-screen states
 - Programmatic comfort-mode changes now sync immediately to the comfort glyph during active VR sessions
+- Double-click focus now behaves correctly with desktop measurement enabled: measurement mode owns double-click interaction and focus animation can be interrupted by user input
 
 ---
 

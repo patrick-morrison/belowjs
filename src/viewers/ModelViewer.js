@@ -1098,6 +1098,7 @@ export class ModelViewer extends EventSystem {
       lastClickTime = currentTime;
       
       if (this.belowViewer.renderer.xr?.isPresenting || isDragging) return;
+      if (this.measurementSystem && this.measurementSystem.desktopMeasurementMode) return;
       
       if (isDoubleClick) {
         this.focusOnPoint(event);

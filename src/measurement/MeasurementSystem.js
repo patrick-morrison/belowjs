@@ -177,6 +177,7 @@ export class MeasurementSystem {
     this.lastTriggerTime = 0;
     this._wasInVR = false;
     this.focusAnimation = null;
+    this._cancelFocusOnUserInput = null;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
 
@@ -964,6 +965,15 @@ export class MeasurementSystem {
       this.measurementPanel = null;
     }
 
+    if (this.focusAnimation) {
+      cancelAnimationFrame(this.focusAnimation);
+      this.focusAnimation = null;
+    }
+    if (this.controls && this._cancelFocusOnUserInput) {
+      this.controls.removeEventListener('start', this._cancelFocusOnUserInput);
+      this._cancelFocusOnUserInput = null;
+    }
+
     this.renderer.domElement.removeEventListener('click', this._boundOnMouseClick, false);
     this.renderer.domElement.removeEventListener('mousedown', this._boundOnMouseDown, false);
     this.renderer.domElement.removeEventListener('mousemove', this._boundOnMouseMove, false);
@@ -1232,16 +1242,41 @@ export class MeasurementSystem {
   }
 
   focusOnPoint(point) {
+    if (!point || !this.controls || !this.camera) {
+      return;
+    }
+
     if (this.focusAnimation) {
       cancelAnimationFrame(this.focusAnimation);
       this.focusAnimation = null;
     }
+
+    if (this._cancelFocusOnUserInput) {
+      this.controls.removeEventListener('start', this._cancelFocusOnUserInput);
+      this._cancelFocusOnUserInput = null;
+    }
+
     const startTarget = this.controls.target.clone();
     const startPosition = this.camera.position.clone();
     const offset = startPosition.clone().sub(startTarget);
     const newPosition = point.clone().add(offset);
     const duration = 1000;
     const startTime = performance.now();
+
+    const cancelOnUserInput = () => {
+      if (this.focusAnimation) {
+        cancelAnimationFrame(this.focusAnimation);
+        this.focusAnimation = null;
+      }
+      if (this._cancelFocusOnUserInput) {
+        this.controls.removeEventListener('start', this._cancelFocusOnUserInput);
+        this._cancelFocusOnUserInput = null;
+      }
+    };
+
+    this._cancelFocusOnUserInput = cancelOnUserInput;
+    this.controls.addEventListener('start', cancelOnUserInput, { once: true });
+
     const animate = () => {
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
@@ -1252,6 +1287,10 @@ export class MeasurementSystem {
         this.focusAnimation = requestAnimationFrame(animate);
       } else {
         this.focusAnimation = null;
+        if (this._cancelFocusOnUserInput) {
+          this.controls.removeEventListener('start', this._cancelFocusOnUserInput);
+          this._cancelFocusOnUserInput = null;
+        }
       }
     };
     this.focusAnimation = requestAnimationFrame(animate);
