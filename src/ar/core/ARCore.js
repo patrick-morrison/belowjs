@@ -91,7 +91,7 @@ export class ARCore {
           this.isARSupported = false;
           resolve();
         }
-      } catch (error) {
+      } catch {
         this.isARSupported = false;
         resolve();
       }
@@ -196,7 +196,7 @@ export class ARCore {
       }
 
       return 'unknown';
-    } catch (error) {
+    } catch {
       return 'unknown';
     }
   }

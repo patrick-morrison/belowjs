@@ -101,7 +101,7 @@
             <p>BelowJS supports both single-file GLB models and streamed 3D Tiles datasets. Use a standard model entry (default <code>type: 'gltf'</code>) for single-file delivery, or set <code>type: 'tileset'</code> when you need hierarchical streaming from a root <code>tileset.json</code>. For Quest-targeted GLBs, a practical upper limit is around <code>1.2 million polygons</code>; if you cannot stay near that after optimisation, use tilesets.</p>
             <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.2rem; margin: 1.25rem 0; border-radius: 4px;">
                 <p style="margin: 0 0 0.6rem 0; color: #334155; line-height: 1.5;">
-                    <strong>Denton Holme and Macedon 2023 example (local export):</strong>
+                    <strong><a href="../examples/tileset/" target="_blank">Denton Holme and Macedon 2023 example</a> (local export):</strong>
                     <code>455.25 MB</code> total converted dataset size, <code>6,336,051</code> vertices at finest-detail leaf tiles, and texture area equivalent to about <code>77</code> x <code>4K</code> textures.
                 </p>
                 <p style="margin: 0; color: #334155; line-height: 1.5;">
@@ -125,7 +125,7 @@
   autoCenter: true,
   maxTriangles: 1000000
 }</code></pre>
-            <p><code>url</code> must point to the root <code>tileset.json</code>. Loader defaults include <code>geospatialReorientation: 'auto'</code>, <code>autoCenter: true</code>, <code>errorTarget: 12</code>, <code>maxDepth: 25</code>, <code>loadSiblings: true</code>, <code>optimizedLoadStrategy: false</code>, and <code>maxTilesProcessed: 224</code>. Set <code>maxTriangles</code> explicitly in your model config (the example uses <code>1000000</code>).</p>
+            <p><code>url</code> must point to the root <code>tileset.json</code>. Loader defaults include <code>geospatialReorientation: 'auto'</code>, <code>autoCenter: true</code>, <code>errorTarget: 12</code>, <code>maxDepth: 25</code>, <code>loadSiblings: true</code>, <code>optimizedLoadStrategy: false</code>, and <code>maxTilesProcessed: 224</code>. Set <code>maxTriangles</code> explicitly in your model config (the <a href="../examples/tileset/" target="_blank">tiled model example</a> uses <code>1000000</code>).</p>
             <p>At runtime, BelowJS updates traversal cameras/resolution and adjusts quality adaptively by changing <code>errorTarget</code> and <code>maxTilesProcessed</code> based on camera motion and rendered triangle counts.</p>
 
             <h2>Troubleshooting</h2>

@@ -200,28 +200,34 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.6.0</code>
+                <code>npm install belowjs@1.7.0</code>
             </div>
 
             <div class="version-section">
                 <div class="version-header">
                     <div class="version-number">1.7.0</div>
-                    <div class="version-tag">In Progress</div>
-                    <div class="version-date">Upcoming</div>
+                    <div class="version-tag">Minor</div>
+                    <div class="version-date">February 15, 2026</div>
                 </div>
 
-                <p>Tileset workflow and documentation updates in progress.</p>
+                <p>Cesium 3D Tiles loading support in BelowJS via the NASA-AMMOS 3DTilesRendererJS library, including Agisoft Metashape tiled-model workflows.</p>
 
                 <div class="changes-list">
                     <h4>Added</h4>
                     <ul>
-                        <li><span class="change-type new">New</span> Tiles docs now link directly to the <a href="examples/tileset/" target="_blank">live tileset example</a> and the <a href="guides/agisoft-tiled-models.html">tiled-models guide</a></li>
+                        <li><span class="change-type new">New</span> BelowJS support for Cesium 3D Tiles loading via the NASA-AMMOS 3DTilesRendererJS library, including tiled models exported from Agisoft Metashape</li>
+                        <li><span class="change-type new">New</span> <code>tileset</code> example configured with the Denton Holme and Macedon 2023 dataset</li>
+                        <li><span class="change-type new">New</span> <code>examples/tileset/convert-3tz.sh</code> conversion script for Agisoft Metashape <code>.3tz</code> exports, producing a web-hostable tileset folder with root <code>tileset.json</code></li>
                     </ul>
 
                     <h4>Changed</h4>
                     <ul>
-                        <li><span class="change-type improved">Improved</span> <code>tileset</code> example defaults now target the Denton Holme and Macedon 2023 dataset</li>
-                        <li><span class="change-type improved">Improved</span> <code>examples/tileset/convert-3tz.sh</code> now uses generic default paths: <code>wreck.3tz</code> and <code>wreck-tiles/</code></li>
+                        <li><span class="change-type improved">Improved</span> Examples docs describe six production-ready viewers</li>
+                    </ul>
+
+                    <h4>Fixed</h4>
+                    <ul>
+                        <li><span class="change-type fixed">Fixed</span> ARCore lint warnings from unused catch variables</li>
                     </ul>
                 </div>
             </div>

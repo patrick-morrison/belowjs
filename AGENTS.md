@@ -39,7 +39,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
    - `README.md` (version badge text + CDN URLs in Quick Start section)
    - `AGENTS.md` (Current version section below)
 8) **VERIFY**: Check all docs files have correct version
-   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.6.0"` (should be empty)
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.7.0"` (should be empty)
 9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -90,11 +90,9 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.6.0)
-- New: Programmatic comfort-mode APIs for ModelViewer and BelowViewer
-- New: Per-model measurement availability via optional `models[modelKey].measurable`
-- New: Disabled-state measurement UX with tooltip for non-measurable models
-- Improved: Comfort toggle styling with clearer active green ring
-- Improved: Comfort teleport visuals with thinner arc and tuned range
-- Fixed: Prevent mode switches to dive mode during immersive AR sessions
-- Fixed: Recovery after tab focus/context loss with model reload and WebGL context restore handling
+## Current (1.7.0)
+- New: Dedicated tiled-model workflow guide for Metashape/Cesium 3D Tiles exports
+- Improved: Tileset example defaults now target Denton Holme and Macedon 2023 dataset
+- Improved: `convert-3tz.sh` defaults now use generic paths (`wreck.3tz` -> `wreck-tiles/`)
+- Improved: Examples docs now reference six production-ready viewers
+- Fixed: ARCore lint warnings from unused catch variables

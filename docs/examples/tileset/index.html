@@ -22,13 +22,13 @@
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.7.0/dist/belowjs.js"
         }
     }
     </script>
 
     <!-- BelowJS CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.7.0/dist/belowjs.css">
 
     <style>
         html, body {
@@ -66,6 +66,9 @@
             color: #dbeafe;
         }
     </style>
+    <!-- Analytics script for BelowJS docs site only. Replace/remove for your own deployment. -->
+    <script defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/script.js"></script>
 </head>
 <body>
     <div id="viewer"></div>
@@ -74,15 +77,9 @@
         import { ModelViewer } from 'belowjs';
 
         const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/patrick-morrison/dentonholme-tiled/main/DentonHolmeMacedon2023_tiles/tileset.json';
-        const FALLBACK_TILESET_URL = 'https://raw.githubusercontent.com/CesiumGS/3d-tiles-samples/main/1.0/TilesetWithDiscreteLOD/tileset.json';
-
         const params = new URLSearchParams(window.location.search);
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
-        const isNasaAmmosTileset = /NASA-AMMOS\/3DTilesSampleData/i.test(tilesetUrl);
-        const isLikelyMetashapeTileset = /(?:^|[\/\\])[^/?#]*\.psx(?:[_./-]|$)|_psx_tiles/i.test(tilesetUrl);
-        const upAxis = params.get('up') || (isNasaAmmosTileset ? '-Z' : (isLikelyMetashapeTileset ? '+Z' : '+Y'));
-        const modelName = params.get('name') || 'Denton Holme and Macedon 2023';
-        const modelCredit = params.get('credit') || (tilesetUrl === FALLBACK_TILESET_URL ? 'CesiumGS' : 'WreckSploration');
+        const upAxis = params.get('up') || '+Y';
 
         const viewer = new ModelViewer('#viewer', {
             showInfo: true,
@@ -93,16 +90,20 @@
                 tileset: {
                     url: tilesetUrl,
                     type: 'tileset',
-                    name: modelName,
-                    credit: modelCredit,
+                    name: 'Tiled Datest',
+                    credit: 'Denton Holme and Macedon 2023',
                     up: upAxis,
                     autoCenter: true,
-                    maxTriangles: 1000000,
-                    errorTarget: 12,
-                    maxDepth: 25,
-                    loadSiblings: true,
-                    optimizedLoadStrategy: true,
-                    maxTilesProcessed: 512
+                    initialPositions: {
+                        desktop: {
+                            camera: { x: 74.088, y: -108.156, z: -12.676 },
+                            target: { x: 71.603, y: -110.98, z: -9.382 }
+                        },
+                        vr: {
+                            dolly: { x: 74.088, y: -108.156, z: -12.676 },
+                            rotation: { x: 0, y: 2.495, z: 0 }
+                        }
+                    }
                 }
             },
             viewerConfig: {
@@ -129,5 +130,7 @@
         applyCustomInfoTitle();
         viewer.on('initialized', applyCustomInfoTitle);
     </script>
+    <!-- Docs event tracking for this site only. Remove if you are reusing this example elsewhere. -->
+    <script src="../../assets/navigation.js"></script>
 </body>
 </html>
