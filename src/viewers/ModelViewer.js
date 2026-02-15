@@ -20,6 +20,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {number} [maxTilesProcessed] - Tiles processed per frame for streaming tilesets
  * @property {Object} [fetchOptions] - Fetch options for tileset network requests
  * @property {string} [up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+ * @property {boolean|string} [geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
  * @property {boolean} [autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
  * @property {number} [maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
  * @property {number} [minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
@@ -1587,6 +1588,7 @@ export class ModelViewer extends EventSystem {
         maxTilesProcessed: modelConfig.maxTilesProcessed,
         fetchOptions: modelConfig.fetchOptions,
         up: modelConfig.up,
+        geospatialReorientation: modelConfig.geospatialReorientation,
         autoCenter: modelConfig.autoCenter,
         maxTriangles: modelConfig.maxTriangles,
         minErrorTarget: modelConfig.minErrorTarget,

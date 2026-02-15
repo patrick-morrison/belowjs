@@ -41,10 +41,10 @@
     <script type="module">
         import { ModelViewer } from 'belowjs';
 
-        const DEFAULT_TILESET_URL = './tiled_example_tiles/tileset.json';
+        const DEFAULT_TILESET_URL = './DentonHolmeMacedon2023_tiles/tileset.json';
         const params = new URLSearchParams(window.location.search);
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
-        const upAxis = params.get('up') || '-Z';
+        const upAxis = params.get('up') || '+Y';
 
         new ModelViewer('#viewer', {
             showInfo: true,
@@ -55,18 +55,18 @@
                 tileset: {
                     url: tilesetUrl,
                     type: 'tileset',
-                    name: 'Tiled Model',
-                    credit: 'Agisoft Metashape',
+                    name: 'Tiled Datest',
+                    credit: 'Denton Holme and Macedon 2023',
                     up: upAxis,
                     autoCenter: true,
                     initialPositions: {
                         desktop: {
-                            camera: { x: 151.456, y: -136.643, z: -42.32 },
-                            target: { x: 146.582, y: -138.85, z: -42.672 }
+                            camera: { x: 74.088, y: -108.156, z: -12.676 },
+                            target: { x: 71.603, y: -110.98, z: -9.382 }
                         },
                         vr: {
-                            dolly: { x: 151.456, y: -136.643, z: -42.32 },
-                            rotation: { x: 0.0, y: 0, z: 0.0 }
+                            dolly: { x: 74.088, y: -108.156, z: -12.676 },
+                            rotation: { x: 0, y: 2.495, z: 0 }
                         }
                     }
                 }

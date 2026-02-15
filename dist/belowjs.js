@@ -7664,9 +7664,75 @@ class Gc {
   isValidBox3(e) {
     return !e || !(e instanceof m.Box3) || e.isEmpty() ? !1 : Number.isFinite(e.min.x) && Number.isFinite(e.min.y) && Number.isFinite(e.min.z) && Number.isFinite(e.max.x) && Number.isFinite(e.max.y) && Number.isFinite(e.max.z);
   }
+  normalizeUpAxis(e = "+Y") {
+    const t = String(e || "+Y").trim().toUpperCase();
+    switch (t) {
+      case "+Z":
+      case "-Z":
+      case "+X":
+      case "-X":
+      case "-Y":
+      case "+Y":
+        return t;
+      default:
+        return "+Y";
+    }
+  }
+  resolveGeospatialReorientationMode(e = void 0) {
+    if (e === !1) return "off";
+    if (typeof e == "string") {
+      const t = e.trim().toLowerCase();
+      if (t === "off" || t === "none" || t === "false") return "off";
+      if (t === "force" || t === "always") return "force";
+    }
+    return "auto";
+  }
+  getRootTransformArray(e) {
+    const t = e?.rootTileset?.root?.transform;
+    return !Array.isArray(t) || t.length !== 16 ? null : t.every((s) => Number.isFinite(s)) ? t : null;
+  }
+  getRootTransformUpVector(e) {
+    const t = this.getRootTransformArray(e);
+    if (!t) return null;
+    const s = new m.Vector3(t[8], t[9], t[10]);
+    return s.lengthSq() <= 1e-12 ? null : s.normalize();
+  }
+  isLikelyGeospatialTileset(e) {
+    const t = e?.rootTileset;
+    if (!t) return !1;
+    const s = t.properties;
+    if (s && typeof s == "object") {
+      const n = Object.keys(s).map((o) => o.toLowerCase());
+      if (n.includes("latitude") && n.includes("longitude"))
+        return !0;
+    }
+    const i = this.getRootTransformArray(e);
+    if (i) {
+      const n = i[12], o = i[13], r = i[14];
+      if (Number.isFinite(n) && Number.isFinite(o) && Number.isFinite(r) && Math.hypot(n, o, r) > 1e6)
+        return !0;
+    }
+    return !1;
+  }
+  applyGeospatialReorientation(e) {
+    if (!e?.geoGroup || !e?.upGroup || !e?.tileset)
+      return !1;
+    const t = e.geospatialReorientationMode || "auto";
+    if (!(t === "force" || t === "auto" && this.isLikelyGeospatialTileset(e.tileset)))
+      return e.geoGroup.quaternion.identity(), e.geoGroup.updateMatrixWorld(!0), e.hasGeospatialReoriented = !1, !1;
+    const i = this.getRootTransformUpVector(e.tileset);
+    if (!i)
+      return !1;
+    const n = i.clone().applyQuaternion(e.upGroup.quaternion);
+    if (n.lengthSq() <= 1e-12)
+      return !1;
+    n.normalize();
+    const o = new m.Vector3(0, 1, 0), r = new m.Quaternion().setFromUnitVectors(n, o);
+    return e.geoGroup.quaternion.copy(r), e.geoGroup.updateMatrixWorld(!0), e.hasGeospatialReoriented = !0, !0;
+  }
   setUpAxis(e, t = "+Y") {
     if (!e) return;
-    switch (e.rotation.set(0, 0, 0), String(t || "+Y").trim().toUpperCase()) {
+    switch (e.rotation.set(0, 0, 0), this.normalizeUpAxis(t)) {
       case "+Z":
         e.rotation.x = -Math.PI / 2;
         break;
@@ -7739,19 +7805,19 @@ class Gc {
   }
   updateBoundsAndCenter(e) {
     if (!e) return !1;
-    const { tileset: t, tilesGroup: s, upGroup: i, modelGroup: n, autoCenter: o } = e, r = new m.Box3(), l = t.getBoundingBox(r) && this.isValidBox3(r);
-    if (o && l && !e.hasAutoCentered) {
-      const A = r.getCenter(new m.Vector3());
-      s.position.set(-A.x, -A.y, -A.z), s.updateMatrixWorld(!0), e.hasAutoCentered = !0;
+    const { tileset: t, tilesGroup: s, upGroup: i, geoGroup: n, modelGroup: o, autoCenter: r } = e, l = new m.Box3(), c = t.getBoundingBox(l) && this.isValidBox3(l);
+    if (r && c && !e.hasAutoCentered) {
+      const h = l.getCenter(new m.Vector3());
+      s.position.set(-h.x, -h.y, -h.z), s.updateMatrixWorld(!0), e.hasAutoCentered = !0;
     }
-    n.updateMatrixWorld(!0);
-    const c = new m.Box3().setFromObject(n);
-    if (this.isValidBox3(c))
-      return n.userData.boundingBox = c, !0;
-    if (l) {
-      const A = r.clone(), h = new m.Matrix4().multiplyMatrices(i.matrix, s.matrix);
-      if (A.applyMatrix4(h), this.isValidBox3(A))
-        return n.userData.boundingBox = A, !0;
+    o.updateMatrixWorld(!0);
+    const A = new m.Box3().setFromObject(o);
+    if (this.isValidBox3(A))
+      return o.userData.boundingBox = A, !0;
+    if (c) {
+      const h = l.clone(), d = new m.Matrix4().multiplyMatrices(n.matrix, i.matrix).multiply(s.matrix);
+      if (h.applyMatrix4(d), this.isValidBox3(h))
+        return o.userData.boundingBox = h, !0;
     }
     return !1;
   }
@@ -7874,17 +7940,20 @@ class Gc {
     return new Promise((s, i) => {
       const n = new Pc(e);
       n.registerPlugin(new cc()), this.configureScheduling(n), this.applyOptions(n, t), this.configureGltfExtensions(n, t);
-      const o = new m.Group(), r = new m.Group();
-      o.add(r);
-      const l = n.group;
-      r.add(l), this.setUpAxis(r, t.up || "+Y");
-      const c = {
+      const o = new m.Group(), r = new m.Group(), l = new m.Group();
+      o.add(r), r.add(l);
+      const c = n.group;
+      l.add(c), this.setUpAxis(l, t.up || "+Y");
+      const A = {
         tileset: n,
         modelGroup: o,
-        upGroup: r,
-        tilesGroup: l,
+        geoGroup: r,
+        upGroup: l,
+        tilesGroup: c,
         autoCenter: t.autoCenter !== !1,
         hasAutoCentered: !1,
+        geospatialReorientationMode: this.resolveGeospatialReorientationMode(t.geospatialReorientation),
+        hasGeospatialReoriented: !1,
         maxTriangles: Object.prototype.hasOwnProperty.call(t, "maxTriangles") ? typeof t.maxTriangles == "number" && t.maxTriangles > 0 ? t.maxTriangles : null : 1e6,
         minErrorTarget: typeof t.minErrorTarget == "number" && t.minErrorTarget > 0 ? t.minErrorTarget : 2,
         maxErrorTarget: typeof t.maxErrorTarget == "number" && t.maxErrorTarget > 0 ? t.maxErrorTarget : 64,
@@ -7895,25 +7964,25 @@ class Gc {
         boundsDirty: !0,
         onLoadModel: null
       };
-      if (c.adaptive = this.createAdaptiveState(n, t, c.minErrorTarget, c.maxErrorTarget), this.camera) {
-        const g = this.getResolutionConfig(c), p = this.syncTilesetTraversalCameras(n, this.camera, g);
-        this.setResolutionForCamera(n, this.camera, p, g);
+      if (A.adaptive = this.createAdaptiveState(n, t, A.minErrorTarget, A.maxErrorTarget), this.camera) {
+        const p = this.getResolutionConfig(A), b = this.syncTilesetTraversalCameras(n, this.camera, p);
+        this.setResolutionForCamera(n, this.camera, b, p);
       }
-      c.onLoadModel = (g) => {
-        g?.scene && this.normalizeTileModel(g.scene), c.boundsDirty = !0;
-      }, n.addEventListener("load-model", c.onLoadModel);
-      let A = null;
-      const h = () => {
-        n.removeEventListener("load-tileset", d), n.removeEventListener("load-error", u), A && t.signal && t.signal.removeEventListener("abort", A);
-      }, d = () => {
-        h(), this.updateBoundsAndCenter(c), this.activeTilesets.add(n), this.tilesetStates.set(n, c), s({ group: o, tileset: n });
-      }, u = (g) => {
-        h(), n.removeEventListener("load-model", c.onLoadModel), n.dispose(), i(g?.error || new Error("Tileset failed to load"));
+      A.onLoadModel = (p) => {
+        p?.scene && this.normalizeTileModel(p.scene), A.boundsDirty = !0;
+      }, n.addEventListener("load-model", A.onLoadModel);
+      let h = null;
+      const d = () => {
+        n.removeEventListener("load-tileset", u), n.removeEventListener("load-error", g), h && t.signal && t.signal.removeEventListener("abort", h);
+      }, u = () => {
+        d(), this.applyGeospatialReorientation(A), this.updateBoundsAndCenter(A), this.activeTilesets.add(n), this.tilesetStates.set(n, A), s({ group: o, tileset: n });
+      }, g = (p) => {
+        d(), n.removeEventListener("load-model", A.onLoadModel), n.dispose(), i(p?.error || new Error("Tileset failed to load"));
       };
-      if (n.addEventListener("load-tileset", d), n.addEventListener("load-error", u), t.signal && (A = () => {
-        h(), n.removeEventListener("load-model", c.onLoadModel), n.dispose(), i(new Error("Loading cancelled"));
-      }, t.signal.addEventListener("abort", A), t.signal.aborted)) {
-        A();
+      if (n.addEventListener("load-tileset", u), n.addEventListener("load-error", g), t.signal && (h = () => {
+        d(), n.removeEventListener("load-model", A.onLoadModel), n.dispose(), i(new Error("Loading cancelled"));
+      }, t.signal.addEventListener("abort", h), t.signal.aborted)) {
+        h();
         return;
       }
       n.update();
@@ -10399,6 +10468,7 @@ class hA extends yt {
    * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
    * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
    * @param {string} [options.up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+   * @param {boolean|string} [options.geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
    * @param {boolean} [options.autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
    * @param {number} [options.maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
    * @param {number} [options.minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
@@ -13741,6 +13811,7 @@ class PA extends yt {
         maxTilesProcessed: t.maxTilesProcessed,
         fetchOptions: t.fetchOptions,
         up: t.up,
+        geospatialReorientation: t.geospatialReorientation,
         autoCenter: t.autoCenter,
         maxTriangles: t.maxTriangles,
         minErrorTarget: t.minErrorTarget,

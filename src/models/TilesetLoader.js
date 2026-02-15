@@ -217,11 +217,118 @@ export class TilesetLoader {
       && Number.isFinite(box.max.z);
   }
 
+  normalizeUpAxis(up = '+Y') {
+    const normalized = String(up || '+Y').trim().toUpperCase();
+    switch (normalized) {
+    case '+Z':
+    case '-Z':
+    case '+X':
+    case '-X':
+    case '-Y':
+    case '+Y':
+      return normalized;
+    default:
+      return '+Y';
+    }
+  }
+
+  resolveGeospatialReorientationMode(mode = undefined) {
+    if (mode === false) return 'off';
+    if (typeof mode === 'string') {
+      const normalized = mode.trim().toLowerCase();
+      if (normalized === 'off' || normalized === 'none' || normalized === 'false') return 'off';
+      if (normalized === 'force' || normalized === 'always') return 'force';
+    }
+    return 'auto';
+  }
+
+  getRootTransformArray(tileset) {
+    const transform = tileset?.rootTileset?.root?.transform;
+    if (!Array.isArray(transform) || transform.length !== 16) {
+      return null;
+    }
+    return transform.every((v) => Number.isFinite(v)) ? transform : null;
+  }
+
+  getRootTransformUpVector(tileset) {
+    const transform = this.getRootTransformArray(tileset);
+    if (!transform) return null;
+
+    // 3D Tiles uses column-major matrices; indices 8..10 represent local +Z transformed.
+    const upVector = new THREE.Vector3(transform[8], transform[9], transform[10]);
+    if (upVector.lengthSq() <= 1e-12) {
+      return null;
+    }
+    return upVector.normalize();
+  }
+
+  isLikelyGeospatialTileset(tileset) {
+    const rootTileset = tileset?.rootTileset;
+    if (!rootTileset) return false;
+
+    const properties = rootTileset.properties;
+    if (properties && typeof properties === 'object') {
+      const keys = Object.keys(properties).map((key) => key.toLowerCase());
+      if (keys.includes('latitude') && keys.includes('longitude')) {
+        return true;
+      }
+    }
+
+    const transform = this.getRootTransformArray(tileset);
+    if (transform) {
+      const tx = transform[12];
+      const ty = transform[13];
+      const tz = transform[14];
+      if (Number.isFinite(tx) && Number.isFinite(ty) && Number.isFinite(tz)) {
+        // ECEF translations are typically on the order of Earth's radius (~6.3e6m).
+        if (Math.hypot(tx, ty, tz) > 1e6) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  applyGeospatialReorientation(state) {
+    if (!state?.geoGroup || !state?.upGroup || !state?.tileset) {
+      return false;
+    }
+
+    const mode = state.geospatialReorientationMode || 'auto';
+    const shouldReorient = mode === 'force'
+      || (mode === 'auto' && this.isLikelyGeospatialTileset(state.tileset));
+    if (!shouldReorient) {
+      state.geoGroup.quaternion.identity();
+      state.geoGroup.updateMatrixWorld(true);
+      state.hasGeospatialReoriented = false;
+      return false;
+    }
+
+    const rootUpVector = this.getRootTransformUpVector(state.tileset);
+    if (!rootUpVector) {
+      return false;
+    }
+
+    const adjustedUpVector = rootUpVector.clone().applyQuaternion(state.upGroup.quaternion);
+    if (adjustedUpVector.lengthSq() <= 1e-12) {
+      return false;
+    }
+    adjustedUpVector.normalize();
+
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    const levelQuaternion = new THREE.Quaternion().setFromUnitVectors(adjustedUpVector, worldUp);
+    state.geoGroup.quaternion.copy(levelQuaternion);
+    state.geoGroup.updateMatrixWorld(true);
+    state.hasGeospatialReoriented = true;
+    return true;
+  }
+
   setUpAxis(targetGroup, up = '+Y') {
     if (!targetGroup) return;
 
     targetGroup.rotation.set(0, 0, 0);
-    const normalized = String(up || '+Y').trim().toUpperCase();
+    const normalized = this.normalizeUpAxis(up);
 
     switch (normalized) {
     case '+Z':
@@ -357,7 +464,7 @@ export class TilesetLoader {
   updateBoundsAndCenter(state) {
     if (!state) return false;
 
-    const { tileset, tilesGroup, upGroup, modelGroup, autoCenter } = state;
+    const { tileset, tilesGroup, upGroup, geoGroup, modelGroup, autoCenter } = state;
     const metadataBounds = new THREE.Box3();
     const hasMetadataBounds = tileset.getBoundingBox(metadataBounds) && this.isValidBox3(metadataBounds);
 
@@ -379,7 +486,9 @@ export class TilesetLoader {
     // Fallback for early load phase when geometry is not available yet.
     if (hasMetadataBounds) {
       const metadataModelBounds = metadataBounds.clone();
-      const modelSpaceTransform = new THREE.Matrix4().multiplyMatrices(upGroup.matrix, tilesGroup.matrix);
+      const modelSpaceTransform = new THREE.Matrix4()
+        .multiplyMatrices(geoGroup.matrix, upGroup.matrix)
+        .multiply(tilesGroup.matrix);
       metadataModelBounds.applyMatrix4(modelSpaceTransform);
       if (this.isValidBox3(metadataModelBounds)) {
         modelGroup.userData.boundingBox = metadataModelBounds;
@@ -658,8 +767,10 @@ export class TilesetLoader {
       this.configureGltfExtensions(tileset, options);
 
       const modelGroup = new THREE.Group();
+      const geoGroup = new THREE.Group();
       const upGroup = new THREE.Group();
-      modelGroup.add(upGroup);
+      modelGroup.add(geoGroup);
+      geoGroup.add(upGroup);
 
       const tilesGroup = tileset.group;
       upGroup.add(tilesGroup);
@@ -668,10 +779,13 @@ export class TilesetLoader {
       const state = {
         tileset,
         modelGroup,
+        geoGroup,
         upGroup,
         tilesGroup,
         autoCenter: options.autoCenter !== false,
         hasAutoCentered: false,
+        geospatialReorientationMode: this.resolveGeospatialReorientationMode(options.geospatialReorientation),
+        hasGeospatialReoriented: false,
         maxTriangles: Object.prototype.hasOwnProperty.call(options, 'maxTriangles')
           ? ((typeof options.maxTriangles === 'number' && options.maxTriangles > 0) ? options.maxTriangles : null)
           : 1000000,
@@ -711,6 +825,7 @@ export class TilesetLoader {
 
       const handleLoad = () => {
         cleanupLoadListeners();
+        this.applyGeospatialReorientation(state);
         this.updateBoundsAndCenter(state);
 
         this.activeTilesets.add(tileset);

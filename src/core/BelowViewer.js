@@ -463,6 +463,7 @@ export class BelowViewer extends EventSystem {
    * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
    * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
    * @param {string} [options.up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+   * @param {boolean|string} [options.geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
    * @param {boolean} [options.autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
    * @param {number} [options.maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
    * @param {number} [options.minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
