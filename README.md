@@ -99,7 +99,7 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
 
 ## Examples
 
-Three different examples are included:
+Examples are included:
 
 ```bash
 git clone https://github.com/patrick-morrison/belowjs
@@ -110,12 +110,14 @@ npm install && npm run build
 - `npm run dev` — Full-featured viewer with model selection and all systems enabled
 - `npm run dev:dragdrop` — File loader with drag-and-drop GLB support and custom UI elements
 - `npm run dev:embed` — Lightweight viewer designed for iframe embedding
+- `npm run dev:tileset` — 3D Tiles streaming example for large datasets
 
 ### Live Examples
 
 - [Basic Viewer](https://patrick-morrison.github.io/belowjs/examples/basic/) — Full-featured multi-model viewer
 - [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — File loader with custom UI; recommended path for Meta Quest Link desktop streaming
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
+- [Tileset Viewer](https://patrick-morrison.github.io/belowjs/examples/tileset/) — 3D Tiles streaming example
 
 ## Installation
 
@@ -208,6 +210,25 @@ new ModelViewer(document.body, {
 ```
 
 Enable `enableScreenshot` to add a button that captures the scene without UI overlays.
+
+### 3D Tiles (Experimental)
+BelowJS can stream 3D Tiles datasets for large environments. Tilesets still require a `tileset.json` root plus streamed tile content hosted alongside it. Point a model at the `tileset.json` and set `type: 'tileset'`:
+
+```javascript
+new ModelViewer('#container', {
+  models: {
+    'site': {
+      url: 'https://example.com/tiles/site/tileset.json',
+      type: 'tileset',
+      name: 'Survey Site',
+      autoCenter: true,
+      maxTriangles: 1000000, // adaptive LOD target for VR
+      errorTarget: 16,
+      optimizedLoadStrategy: true
+    }
+  }
+});
+```
 
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:

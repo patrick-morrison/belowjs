@@ -10,9 +10,25 @@ import { FlyControls } from '../core/FlyControls.js';
 /**
  * @typedef {Object} ModelConfig
  * @property {string} url - Path to the GLB model file
+ * @property {string} [type='gltf'] - Model type ('gltf' or 'tileset')
  * @property {string} name - Display name for the model
  * @property {string} [credit] - Attribution text for the model
  * @property {boolean} [measurable=true] - Whether this model can use the measurement system
+ * @property {number} [errorTarget] - Tileset SSE target for streaming refinement
+ * @property {number} [maxDepth] - Tileset traversal depth limit
+ * @property {boolean} [loadSiblings] - Load sibling tiles for smoother refinement
+ * @property {boolean} [optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+ * @property {number} [maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+ * @property {Object} [fetchOptions] - Fetch options for tileset network requests
+ * @property {string} [up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+ * @property {boolean|string} [geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
+ * @property {boolean} [autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
+ * @property {number} [maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+ * @property {number} [minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
+ * @property {number} [maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
+ * @property {boolean} [enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
+ * @property {string} [dracoDecoderPath] - Optional DRACO decoder path for GLTFExtensionsPlugin
+ * @property {string} [ktx2TranscoderPath] - Optional KTX2 transcoder path for GLTFExtensionsPlugin
  * @property {Object} [initialPositions] - Camera and target positions for this model
  * @property {Object} [initialPositions.desktop] - Desktop viewing positions
  * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
@@ -1788,11 +1804,36 @@ export class ModelViewer extends EventSystem {
 
       const model = await this.belowViewer.loadModel(modelConfig.url, {
         autoFrame: false,  // We'll handle positioning manually
-        initialPositions: modelConfig.initialPositions  // Pass VR/desktop positions
+        initialPositions: modelConfig.initialPositions,  // Pass VR/desktop positions
+        position: modelConfig.position,
+        rotation: modelConfig.rotation,
+        scale: modelConfig.scale,
+        type: modelConfig.type,
+        errorTarget: modelConfig.errorTarget,
+        maxDepth: modelConfig.maxDepth,
+        loadSiblings: modelConfig.loadSiblings,
+        optimizedLoadStrategy: modelConfig.optimizedLoadStrategy,
+        maxTilesProcessed: modelConfig.maxTilesProcessed,
+        fetchOptions: modelConfig.fetchOptions,
+        up: modelConfig.up,
+        geospatialReorientation: modelConfig.geospatialReorientation,
+        autoCenter: modelConfig.autoCenter,
+        maxTriangles: modelConfig.maxTriangles,
+        minErrorTarget: modelConfig.minErrorTarget,
+        maxErrorTarget: modelConfig.maxErrorTarget,
+        enableGltfExtensions: modelConfig.enableGltfExtensions,
+        dracoDecoderPath: modelConfig.dracoDecoderPath,
+        ktx2TranscoderPath: modelConfig.ktx2TranscoderPath
       });
       if (model) {
-
+        const hasInitialDesktopPosition = Boolean(modelConfig.initialPositions?.desktop);
         this.applyInitialPositions(modelConfig, model);
+        const shouldAutoFrameTileset = modelConfig.type === 'tileset'
+          && !hasInitialDesktopPosition
+          && !this.belowViewer.isVRPresenting();
+        if (shouldAutoFrameTileset) {
+          this.belowViewer.frameModel(model);
+        }
 
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);

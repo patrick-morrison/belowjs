@@ -102,29 +102,46 @@ export class Camera extends EventSystem {
    * 
    * @method frameObject
    * @param {THREE.Vector3} center - Center point of the object
-   * @param {number} size - Size/radius of the object
+   * @param {number|THREE.Vector3} size - Bounding size (legacy scalar or box dimensions)
    * @returns {void}
    * 
    * @example
    * // Frame a model based on its bounding box
    * const box = new THREE.Box3().setFromObject(model);
    * const center = box.getCenter(new THREE.Vector3());
-   * const size = box.getSize(new THREE.Vector3()).length();
+   * const size = box.getSize(new THREE.Vector3());
    * camera.frameObject(center, size);
    * 
    * @since 1.0.0
    */
   frameObject(center, size) {
-    const distance = size * 1.5;
+    const sizeVec = (size && size.isVector3)
+      ? size.clone()
+      : new THREE.Vector3(size || 1, size || 1, size || 1);
+
+    const width = Math.max(sizeVec.x, 0.001);
+    const height = Math.max(sizeVec.y, 0.001);
+    const depth = Math.max(sizeVec.z, 0.001);
+
+    const vFov = THREE.MathUtils.degToRad(this.camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * this.camera.aspect);
+
+    const fitHeightDistance = (height * 0.5) / Math.tan(vFov / 2);
+    const fitWidthDistance = (width * 0.5) / Math.tan(hFov / 2);
+
+    const fitOffset = 1.2;
+    const distance = Math.max(fitHeightDistance, fitWidthDistance) * fitOffset + depth * 0.5;
+    const frameDirection = new THREE.Vector3(0.7, 0.5, 0.7).normalize();
+    const cameraPosition = center.clone().add(frameDirection.multiplyScalar(distance));
     
-    this.camera.position.set(
-      center.x + distance * 0.7,
-      center.y + distance * 0.5,
-      center.z + distance * 0.7
-    );
+    this.camera.position.copy(cameraPosition);
+    this.camera.lookAt(center);
     
     if (this.controls) {
       this.controls.target.copy(center);
+      // Keep the full model reachable by user orbit/zoom controls after auto-frame.
+      this.controls.maxDistance = Math.max(this.controls.maxDistance, distance * 4);
+      this.controls.minDistance = Math.min(this.controls.minDistance, Math.max(distance * 0.02, 0.05));
       this.controls.update();
     }
   }

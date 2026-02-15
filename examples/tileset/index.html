@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - 3D Tiles Example</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+
+    <!-- Import map for local testing -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "belowjs": "/dist/belowjs.js"
+        }
+    }
+    </script>
+
+    <!-- BelowJS CSS -->
+    <link rel="stylesheet" href="/dist/belowjs.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #001122;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        #infoTitle.tileset-info-title {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            line-height: 1.1;
+        }
+
+        #infoTitle.tileset-info-title .tileset-info-title__brand {
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        #infoTitle.tileset-info-title .tileset-info-title__site {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #dbeafe;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/patrick-morrison/dentonholme-tiled/main/DentonHolmeMacedon2023_tiles/tileset.json';
+        const params = new URLSearchParams(window.location.search);
+        const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
+        const upAxis = params.get('up') || '+Y';
+
+        const viewer = new ModelViewer('#viewer', {
+            showInfo: true,
+            enableVR: true,
+            enableScreenshot: true,
+            enableFullscreen: true,
+            models: {
+                tileset: {
+                    url: tilesetUrl,
+                    type: 'tileset',
+                    name: 'Tiled Datest',
+                    credit: 'Denton Holme and Macedon 2023',
+                    up: upAxis,
+                    autoCenter: true,
+                    initialPositions: {
+                        desktop: {
+                            camera: { x: 74.088, y: -108.156, z: -12.676 },
+                            target: { x: 71.603, y: -110.98, z: -9.382 }
+                        },
+                        vr: {
+                            dolly: { x: 74.088, y: -108.156, z: -12.676 },
+                            rotation: { x: 0, y: 2.495, z: 0 }
+                        }
+                    }
+                }
+            },
+            viewerConfig: {
+                scene: {
+                    background: '#001122',
+                    fog: { enabled: false }
+                },
+                renderer: {
+                    logarithmicDepthBuffer: true
+                }
+            }
+        });
+
+        const applyCustomInfoTitle = () => {
+            const infoTitle = document.getElementById('infoTitle');
+            if (!infoTitle) return;
+            infoTitle.classList.add('tileset-info-title');
+            infoTitle.innerHTML = `
+                <span class="tileset-info-title__brand">BelowJS Tiled Model Streaming</span>
+                <span class="tileset-info-title__site">Denton Holme and Macedon Wrecks 2023</span>
+            `;
+        };
+
+        applyCustomInfoTitle();
+        viewer.on('initialized', applyCustomInfoTitle);
+    </script>
+</body>
+</html>

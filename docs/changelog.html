@@ -205,6 +205,29 @@
 
             <div class="version-section">
                 <div class="version-header">
+                    <div class="version-number">1.7.0</div>
+                    <div class="version-tag">In Progress</div>
+                    <div class="version-date">Upcoming</div>
+                </div>
+
+                <p>Tileset workflow and documentation updates in progress.</p>
+
+                <div class="changes-list">
+                    <h4>Added</h4>
+                    <ul>
+                        <li><span class="change-type new">New</span> Tiles docs now link directly to the <a href="examples/tileset/" target="_blank">live tileset example</a> and the <a href="guides/agisoft-tiled-models.html">tiled-models guide</a></li>
+                    </ul>
+
+                    <h4>Changed</h4>
+                    <ul>
+                        <li><span class="change-type improved">Improved</span> <code>tileset</code> example defaults now target the Denton Holme and Macedon 2023 dataset</li>
+                        <li><span class="change-type improved">Improved</span> <code>examples/tileset/convert-3tz.sh</code> now uses generic default paths: <code>wreck.3tz</code> and <code>wreck-tiles/</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
                     <div class="version-number">1.6.0</div>
                     <div class="version-tag">Minor</div>
                     <div class="version-date">February 15, 2026</div>
@@ -256,6 +279,8 @@
                         <li><span class="change-type new">New</span> <code>stereo()</code> console command for enabling/disabling stereo mode and adjusting eye separation</li>
                         <li><span class="change-type new">New</span> Z key to toggle between dive mode and studio mode</li>
                         <li><span class="change-type new">New</span> H key to take screenshot</li>
+                        <li><span class="change-type new">New</span> Experimental 3D Tiles streaming loader for massive datasets</li>
+                        <li><span class="change-type new">New</span> <code>tileset</code> example (<code>npm run dev:tileset</code>) with NASA-AMMOS sample dataset default and URL override support</li>
                     </ul>
 
                     <h4>Changed</h4>
@@ -271,6 +296,7 @@
                         <li><span class="change-type fixed">Fixed</span> VR button visibility management with fly mode controls</li>
                         <li><span class="change-type fixed">Fixed</span> Support for deprecated KHR_materials_pbrSpecularGlossiness GLTF extension by converting to standard PBR materials</li>
                         <li><span class="change-type fixed">Fixed</span> Support for logarithmicDepthBuffer renderer option (suppresses ConfigValidator warning)</li>
+                        <li><span class="change-type fixed">Fixed</span> 3D Tiles auto-centering and auto-framing when streaming tiles are not fully available on first bounds pass</li>
                     </ul>
                 </div>
             </div>

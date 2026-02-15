@@ -12,6 +12,7 @@
     "dev:dragdrop": "vite serve --open examples/dragdrop/",
     "dev:embed": "vite serve --open examples/embed/",
     "dev:animation": "vite serve --open examples/animation/",
+    "dev:tileset": "vite serve --open examples/tileset/",
     "build": "vite build",
     "preview": "vite preview",
     "docs:serve": "python -m http.server 8000 --directory docs",
@@ -53,6 +54,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "3d-tiles-renderer": "^0.4.20",
     "three": "0.179.1"
   },
   "devDependencies": {

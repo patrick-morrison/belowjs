@@ -5,6 +5,17 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- 3D Tiles docs now include direct links to the [live tileset example](docs/examples/tileset/index.html) and the [tiled-model workflow guide](docs/guides/agisoft-tiled-models.html).
+
+### Changed
+- `tileset` example defaults now point to the Denton Holme and Macedon 2023 dataset.
+- `convert-3tz.sh` default paths are now generic: `wreck.3tz` -> `wreck-tiles/`.
+
+---
+
 ## [1.6.0] - 2026-02-15
 
 ### Added
@@ -35,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `stereo()` console command for enabling/disabling stereo mode and adjusting eye separation
 - Z key to toggle between dive mode and studio mode
 - H key to take screenshot
+- Experimental 3D Tiles streaming loader for massive datasets
+- New `tileset` example (`npm run dev:tileset`) with a NASA-AMMOS sample dataset default and URL override support
 
 ### Changed
 - Material conversion upgraded from MeshLambertMaterial to MeshStandardMaterial with shipwreck-appropriate PBR defaults (roughness 0.8, metalness 0.3)
@@ -46,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VR button visibility management with fly mode controls
 - Support for deprecated KHR_materials_pbrSpecularGlossiness GLTF extension by converting to standard PBR materials
 - Support for logarithmicDepthBuffer renderer option (suppresses ConfigValidator warning)
+- 3D Tiles auto-centering and auto-framing when streaming tiles are not fully available on first bounds pass
 
 ---
 

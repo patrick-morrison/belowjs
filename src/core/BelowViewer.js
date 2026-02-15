@@ -4,6 +4,7 @@ import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { Scene } from './Scene.js';
 import { Camera } from './Camera.js';
 import { ModelLoader } from '../models/ModelLoader.js';
+import { TilesetLoader } from '../models/TilesetLoader.js';
 import { disposeObject3D } from '../utils/ThreeCleanupUtils.js';
 import { VRManager } from './VRManager.js';
 import { ARManager } from './ARManager.js';
@@ -196,6 +197,7 @@ export class BelowViewer extends EventSystem {
     this.sceneManager = null;
     this.cameraManager = null;
     this.modelLoader = null;
+    this.tilesetLoader = null;
     this.vrManager = null;
     this.arManager = null;
     this.stereoCamera = null;
@@ -231,6 +233,7 @@ export class BelowViewer extends EventSystem {
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
       this.modelLoader = new ModelLoader(this.renderer);
+      this.tilesetLoader = new TilesetLoader(this.renderer, this.cameraManager.camera);
       this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || false;
       this.initStereo();
       if (this.renderer?.getPixelRatio) {
@@ -435,6 +438,9 @@ export class BelowViewer extends EventSystem {
     
     this.cameraManager.setSize(width, height);
     this.renderer.setSize(width, height);
+    if (this.tilesetLoader) {
+      this.tilesetLoader.updateResolution();
+    }
     
     this.emit('resize', { width, height });
   }
@@ -449,6 +455,22 @@ export class BelowViewer extends EventSystem {
    * @param {AbortSignal} [options.signal] - AbortSignal for cancelling the load
    * @param {Function} [options.onProgress] - Progress callback function
    * @param {Object} [options.initialPositions] - Camera positions for this model
+   * @param {string} [options.type='gltf'] - Model type ('gltf' or 'tileset')
+   * @param {number} [options.errorTarget] - Tileset SSE target for streaming refinement
+   * @param {number} [options.maxDepth] - Tileset traversal depth limit
+   * @param {boolean} [options.loadSiblings] - Load sibling tiles for smoother refinement
+   * @param {boolean} [options.optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+   * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+   * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
+   * @param {string} [options.up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
+   * @param {boolean|string} [options.geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
+   * @param {boolean} [options.autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
+   * @param {number} [options.maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+   * @param {number} [options.minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
+   * @param {number} [options.maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
+   * @param {boolean} [options.enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
+   * @param {string} [options.dracoDecoderPath] - Optional DRACO decoder path for GLTFExtensionsPlugin
+   * @param {string} [options.ktx2TranscoderPath] - Optional KTX2 transcoder path for GLTFExtensionsPlugin
    * @returns {Promise<THREE.Object3D>} Promise that resolves to the loaded model
    * 
    * @fires BelowViewer#model-loaded - When model loads successfully
@@ -498,7 +520,37 @@ export class BelowViewer extends EventSystem {
         }
       };
       
-      const model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
+      let model;
+      let tileset = null;
+      if (options.type === 'tileset') {
+        if (onStageChange) {
+          onStageChange('downloading');
+        }
+        const tilesetResult = await this.tilesetLoader.load(url, {
+          signal,
+          errorTarget: options.errorTarget,
+          maxDepth: options.maxDepth,
+          loadSiblings: options.loadSiblings,
+          optimizedLoadStrategy: options.optimizedLoadStrategy,
+          maxTilesProcessed: options.maxTilesProcessed,
+          fetchOptions: options.fetchOptions,
+          up: options.up,
+          autoCenter: options.autoCenter,
+          maxTriangles: options.maxTriangles,
+          minErrorTarget: options.minErrorTarget,
+          maxErrorTarget: options.maxErrorTarget,
+          enableGltfExtensions: options.enableGltfExtensions,
+          dracoDecoderPath: options.dracoDecoderPath,
+          ktx2TranscoderPath: options.ktx2TranscoderPath
+        });
+        model = tilesetResult.group;
+        tileset = tilesetResult.tileset;
+        if (onStageChange) {
+          onStageChange('processing');
+        }
+      } else {
+        model = await this.modelLoader.load(url, onProgress, signal, onStageChange);
+      }
       
       if (signal.aborted) {
         return null;
@@ -522,7 +574,7 @@ export class BelowViewer extends EventSystem {
       const originalCenter = this.centerModelAndRecalculateBounds(model);
       
       this.sceneManager.add(model);
-      this.loadedModels.push({ model, url, options, originalCenter });
+      this.loadedModels.push({ model, url, options, originalCenter, tileset });
       
       if (this.loadedModels.length === 1 && options.autoFrame !== false) {
         this.frameModel(model);
@@ -562,16 +614,46 @@ export class BelowViewer extends EventSystem {
   }
 
   frameModel(model) {
-    if (!model.userData.boundingBox) {
-      const box = new THREE.Box3().setFromObject(model);
-      model.userData.boundingBox = box;
+    const box = this.getValidModelBoundingBox(model);
+    if (!box) {
+      return;
     }
-    
-    const box = model.userData.boundingBox;
-    const size = box.getSize(new THREE.Vector3()).length();
+
+    const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     
     this.cameraManager.frameObject(center, size);
+  }
+
+  isValidBox3(box) {
+    if (!box || !(box instanceof THREE.Box3)) {
+      return false;
+    }
+
+    if (box.isEmpty()) {
+      return false;
+    }
+
+    return Number.isFinite(box.min.x)
+      && Number.isFinite(box.min.y)
+      && Number.isFinite(box.min.z)
+      && Number.isFinite(box.max.x)
+      && Number.isFinite(box.max.y)
+      && Number.isFinite(box.max.z);
+  }
+
+  getValidModelBoundingBox(model) {
+    if (this.isValidBox3(model?.userData?.boundingBox)) {
+      return model.userData.boundingBox;
+    }
+
+    const computedBox = new THREE.Box3().setFromObject(model);
+    if (this.isValidBox3(computedBox)) {
+      model.userData.boundingBox = computedBox;
+      return computedBox;
+    }
+
+    return null;
   }
 
   /**
@@ -582,25 +664,29 @@ export class BelowViewer extends EventSystem {
    * @returns {THREE.Vector3} The original center offset for reference.
    */
   centerModelAndRecalculateBounds(model) {
-    if (!model.userData.boundingBox) {
-      const box = new THREE.Box3().setFromObject(model);
-      model.userData.boundingBox = box;
+    const box = this.getValidModelBoundingBox(model);
+    if (!box) {
+      return new THREE.Vector3();
     }
-    
-    const box = model.userData.boundingBox;
+
     const center = box.getCenter(new THREE.Vector3());
-    
-
     model.position.sub(center);
-    
 
-    model.userData.boundingBox = new THREE.Box3().setFromObject(model);
+    const recomputedBox = new THREE.Box3().setFromObject(model);
+    if (this.isValidBox3(recomputedBox)) {
+      model.userData.boundingBox = recomputedBox;
+    } else {
+      // Tilesets can still be streaming and have no loaded meshes yet.
+      // Preserve a usable box by translating the known bounds by the applied center offset.
+      model.userData.boundingBox = box.clone().translate(center.clone().multiplyScalar(-1));
+    }
     
     return center; // Return the original center offset for reference
   }
 
   startRenderLoop() {
     let lastTime = 0;
+    let lastVRTilesUpdateTimeMs = 0;
     
     const animate = (time) => {
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
@@ -624,14 +710,50 @@ export class BelowViewer extends EventSystem {
       
       const isXRPresenting = this.renderer?.xr?.isPresenting;
       if (this.renderer && this.sceneManager && this.cameraManager) {
-        if (!this.skipRenderDuringLoad || isXRPresenting) {
-          // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
-          // (VR headsets provide native stereoscopic rendering)
-          if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
-            this.renderSbsStereo();
-          } else {
-            this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+        const renderScene = () => {
+          if (!this.skipRenderDuringLoad || isXRPresenting) {
+            // Use SBS stereo rendering only when enabled and NOT in VR/XR mode
+            // (VR headsets provide native stereoscopic rendering)
+            if (this.stereoEnabled && !isXRPresenting && this.stereoMode === 'sbs') {
+              this.renderSbsStereo();
+            } else {
+              this.renderer.render(this.sceneManager.scene, this.cameraManager.camera);
+            }
           }
+        };
+
+        // In VR, prioritize rendering first and throttle tile update work to
+        // reduce locomotion hitches from streaming/parsing bursts.
+        if (isXRPresenting) {
+          renderScene();
+
+          if (this.tilesetLoader) {
+            const movement = this.vrManager?.getVRStatus?.().movement;
+            const isMoving = movement?.isMoving === true;
+            const nowMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+              ? performance.now()
+              : time;
+
+            const minUpdateIntervalMs = isMoving ? 28 : 14;
+            const shouldUpdateTiles = (nowMs - lastVRTilesUpdateTimeMs) >= minUpdateIntervalMs;
+
+            if (shouldUpdateTiles) {
+              const activeTilesCamera = this.renderer.xr.getCamera(this.cameraManager.camera);
+              this.tilesetLoader.update(activeTilesCamera, {
+                queueOptions: {
+                  maxTasks: isMoving ? 1 : 2,
+                  timeBudgetMs: isMoving ? 0.7 : 1.5
+                }
+              });
+              lastVRTilesUpdateTimeMs = nowMs;
+            }
+          }
+        } else {
+          if (this.tilesetLoader) {
+            const activeTilesCamera = this.cameraManager.camera;
+            this.tilesetLoader.update(activeTilesCamera);
+          }
+          renderScene();
         }
       }
     };
@@ -835,8 +957,11 @@ export class BelowViewer extends EventSystem {
   removeModel(model) {
     const index = this.loadedModels.findIndex(item => item.model === model);
     if (index >= 0) {
-      const { url } = this.loadedModels[index];
+      const { url, tileset } = this.loadedModels[index];
       this.sceneManager.remove(model);
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
+      }
       disposeObject3D(model);
       this.loadedModels.splice(index, 1);
       this.emit('model-removed', { model });
@@ -855,7 +980,10 @@ export class BelowViewer extends EventSystem {
 
     const urlsToRelease = new Set(this.loadedModels.map(({ url }) => url));
 
-    this.loadedModels.forEach(({ model }) => {
+    this.loadedModels.forEach(({ model, tileset }) => {
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
+      }
       disposeObject3D(model);
       this.sceneManager.remove(model);
     });
@@ -908,9 +1036,12 @@ export class BelowViewer extends EventSystem {
       this.renderer.setAnimationLoop(null);
     }
     
-    this.loadedModels.forEach(({ model }) => {
+    this.loadedModels.forEach(({ model, tileset }) => {
       if (model.parent) {
         model.parent.remove(model);
+      }
+      if (tileset && this.tilesetLoader) {
+        this.tilesetLoader.disposeTileset(tileset);
       }
       disposeObject3D(model);
     });
@@ -934,6 +1065,11 @@ export class BelowViewer extends EventSystem {
     if (this.modelLoader) {
       this.modelLoader.dispose();
       this.modelLoader = null;
+    }
+
+    if (this.tilesetLoader) {
+      this.tilesetLoader.dispose();
+      this.tilesetLoader = null;
     }
     
     window.removeEventListener('resize', this.onWindowResize.bind(this));

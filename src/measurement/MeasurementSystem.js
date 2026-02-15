@@ -85,26 +85,40 @@ export class MeasurementSystem {
    * @since 1.0.0
    */
   setRaycastTargets(targets) {
-    const meshTargets = [];
-    const addMeshes = obj => {
+    const normalizedTargets = [];
+    const addTargets = obj => {
       if (Array.isArray(obj)) {
-        obj.forEach(addMeshes);
+        obj.forEach(addTargets);
       } else if (obj && typeof obj === 'object') {
-        if (obj.isMesh && obj.geometry && !this.isMeasurementHelper(obj)) {
+        // Keep object roots instead of flattening to meshes so streamed content
+        // (e.g. 3D Tiles) can be raycast as children appear over time.
+        if (obj.isObject3D || obj.isMesh || obj.traverse) {
           obj.updateMatrixWorld(true);
-          meshTargets.push(obj);
-        } else if (obj.traverse) {
-          obj.traverse(child => {
-            if (child.isMesh && child.geometry && !this.isMeasurementHelper(child)) {
-              child.updateMatrixWorld(true);
-              meshTargets.push(child);
-            }
-          });
+          normalizedTargets.push(obj);
         }
       }
     };
-    addMeshes(targets);
-    this._raycastTargets = meshTargets;
+    addTargets(targets);
+    this._raycastTargets = normalizedTargets;
+  }
+
+  getValidIntersections(raycaster, targets = null) {
+    const raycastTargets = (targets && targets.length > 0)
+      ? targets
+      : ((this._raycastTargets && this._raycastTargets.length > 0) ? this._raycastTargets : []);
+
+    if (!raycastTargets || raycastTargets.length === 0) {
+      return [];
+    }
+
+    const intersects = raycaster.intersectObjects(raycastTargets, true);
+    return intersects.filter(intersect => {
+      const isUnifiedSphere = this.unifiedMeasurementPoints.some(point => point.sphere === intersect.object);
+      const isUnifiedLine = intersect.object === this.unifiedMeasurementLine;
+      const isMeasurementHelper = this.isMeasurementHelper(intersect.object);
+      
+      return !isUnifiedSphere && !isUnifiedLine && !isMeasurementHelper;
+    });
   }
 
   isMeasurementHelper(obj) {
@@ -498,7 +512,7 @@ export class MeasurementSystem {
         if (this._raycastTargets && this._raycastTargets.length > 0 && this.camera) {
           const dir = vrPos.clone().sub(this.camera.position).normalize();
           const raycaster = new THREE.Raycaster(this.camera.position, dir);
-          const intersects = raycaster.intersectObjects(this._raycastTargets, true);
+          const intersects = this.getValidIntersections(raycaster);
           if (intersects.length > 0) {
             clampedPos = intersects[0].point;
           }
@@ -746,14 +760,8 @@ export class MeasurementSystem {
     const rayDirection = new THREE.Vector3(0, 0, -1).applyMatrix4(tempMatrix);
     controller.getWorldPosition(rayOrigin);
     const raycaster = new THREE.Raycaster(rayOrigin, rayDirection.normalize());
-    const intersects = raycaster.intersectObjects(this.scene.children, true);
-    const validIntersects = intersects.filter(intersect => {
-      const isUnifiedSphere = this.unifiedMeasurementPoints.some(point => point.sphere === intersect.object);
-      const isUnifiedLine = intersect.object === this.unifiedMeasurementLine;
-      const isMeasurementHelper = this.isMeasurementHelper(intersect.object);
-      
-      return !isUnifiedSphere && !isUnifiedLine && !isMeasurementHelper;
-    });
+    const fallbackTargets = (this.scene && this.scene.children) ? this.scene.children : [];
+    const validIntersects = this.getValidIntersections(raycaster, fallbackTargets);
     return validIntersects.length > 0 ? validIntersects[0] : null;
   }
 
@@ -1213,23 +1221,7 @@ export class MeasurementSystem {
 
     this.raycaster.setFromCamera(this.mouse, camera);
 
-    const raycastTargets = (this._raycastTargets && this._raycastTargets.length > 0) ? this._raycastTargets : [];
-    if (raycastTargets.length === 0) {
-      return;
-    }
-    const intersects = this.raycaster.intersectObjects(raycastTargets, true);
-
-    if (intersects.length === 0) {
-      return;
-    }
-
-    const validIntersects = intersects.filter(intersect => {
-      const isUnifiedSphere = this.unifiedMeasurementPoints.some(point => point.sphere === intersect.object);
-      const isUnifiedLine = intersect.object === this.unifiedMeasurementLine;
-      const isMeasurementHelper = this.isMeasurementHelper(intersect.object);
-      
-      return !isUnifiedSphere && !isUnifiedLine && !isMeasurementHelper;
-    });
+    const validIntersects = this.getValidIntersections(this.raycaster);
     if (validIntersects.length > 0) {
       if (isDoubleClick) {
         this.focusOnPoint(validIntersects[0].point);
