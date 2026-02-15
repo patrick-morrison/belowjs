@@ -985,11 +985,6 @@ export class ModelViewer extends EventSystem {
     if (this.ui.info) {
       this.ui.info.style.display = 'none';
     }
-    if (this.ui.selector) {
-      this.ui.selector.style.pointerEvents = 'none';
-      this.ui.selector.style.opacity = '0.5';
-    }
-
     // Show VR loading indicator if loading is in progress
     if (this.isLoading) {
       this.updateVRLoadingIndicator();

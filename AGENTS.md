@@ -90,5 +90,5 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.7.1)
-- Fixed: Keyboard screenshot shortcut (`H`) no longer triggers while typing in editable form fields
+## Current (1.7.2)
+- Fixed: Model selector and dive mode toggle remain usable after opening the Quest system menu during immersive viewing
