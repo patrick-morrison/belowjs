@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INPUT="${1:-$SCRIPT_DIR/AwhinaTiled.3tz}"
-OUTPUT_DIR="${2:-$SCRIPT_DIR/AwhinaTiled_tiles}"
+INPUT="${1:-$SCRIPT_DIR/wreck.3tz}"
+OUTPUT_DIR="${2:-$SCRIPT_DIR/wreck-tiles}"
 TARGET_VERSION="${3:-1.1}"
 TMP_DIR="${OUTPUT_DIR}_tmp_convert"
 

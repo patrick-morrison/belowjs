@@ -52,7 +52,7 @@
     <script type="module">
         import { ModelViewer } from 'belowjs';
 
-        const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/NASA-AMMOS/3DTilesSampleData/master/msl-dingo-gap/0528_0260184_to_s64o256_colorize/scene-tileset.json';
+        const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/patrick-morrison/dentonholme-tiled/main/DentonHolmeMacedon2023_tiles/tileset.json';
         const FALLBACK_TILESET_URL = 'https://raw.githubusercontent.com/CesiumGS/3d-tiles-samples/main/1.0/TilesetWithDiscreteLOD/tileset.json';
 
         const params = new URLSearchParams(window.location.search);
@@ -60,8 +60,8 @@
         const isNasaAmmosTileset = /NASA-AMMOS\/3DTilesSampleData/i.test(tilesetUrl);
         const isLikelyMetashapeTileset = /(?:^|[\/\\])[^/?#]*\.psx(?:[_./-]|$)|_psx_tiles/i.test(tilesetUrl);
         const upAxis = params.get('up') || (isNasaAmmosTileset ? '-Z' : (isLikelyMetashapeTileset ? '+Z' : '+Y'));
-        const modelName = params.get('name') || 'NASA-AMMOS MSL Dingo Gap';
-        const modelCredit = params.get('credit') || (tilesetUrl === FALLBACK_TILESET_URL ? 'CesiumGS' : 'NASA-AMMOS');
+        const modelName = params.get('name') || 'Denton Holme and Macedon 2023';
+        const modelCredit = params.get('credit') || (tilesetUrl === FALLBACK_TILESET_URL ? 'CesiumGS' : 'WreckSploration');
 
         new ModelViewer('#viewer', {
             showInfo: true,

@@ -105,7 +105,8 @@
             <h2>Metashape to BelowJS</h2>
             <p>Metashape exports tiled datasets as <code>.3tz</code>, which is an archive. BelowJS does not load the archive directly; it loads the root <code>tileset.json</code> inside the converted folder. The workflow is: export <code>3D Tiles (*.3tz)</code> in Metashape, run the conversion script in this repo, then load the resulting <code>tileset.json</code> URL in the tileset example.</p>
             <pre><code>examples/tileset/convert-3tz.sh</code></pre>
-            <pre><code>http://localhost:5173/examples/tileset/index.html?url=http://localhost:5173/examples/tileset/AwhinaTiled_tiles/tileset.json&amp;up=+Z</code></pre>
+            <pre><code>http://localhost:5173/examples/tileset/index.html?url=http://localhost:5173/examples/tileset/wreck-tiles/tileset.json&amp;up=+Z</code></pre>
+            <p>Live example: <a href="../examples/tileset/" target="_blank">BelowJS 3D Tiles streaming demo</a>.</p>
             <p>For orientation, start with <code>up=+Z</code> for Metashape exports. If the model is rotated incorrectly, test <code>+Y</code>, <code>-Y</code>, or <code>-Z</code>.</p>
 
             <h2>Viewer Config and VR</h2>

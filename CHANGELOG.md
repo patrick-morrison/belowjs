@@ -5,6 +5,17 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- 3D Tiles docs now include direct links to the [live tileset example](docs/examples/tileset/index.html) and the [tiled-model workflow guide](docs/guides/agisoft-tiled-models.html).
+
+### Changed
+- `tileset` example defaults now point to the Denton Holme and Macedon 2023 dataset.
+- `convert-3tz.sh` default paths are now generic: `wreck.3tz` -> `wreck-tiles/`.
+
+---
+
 ## [1.6.0] - 2026-02-15
 
 ### Added

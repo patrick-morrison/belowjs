@@ -41,7 +41,7 @@
     <script type="module">
         import { ModelViewer } from 'belowjs';
 
-        const DEFAULT_TILESET_URL = './DentonHolmeMacedon2023_tiles/tileset.json';
+        const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/patrick-morrison/dentonholme-tiled/main/DentonHolmeMacedon2023_tiles/tileset.json';
         const params = new URLSearchParams(window.location.search);
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
         const upAxis = params.get('up') || '+Y';
