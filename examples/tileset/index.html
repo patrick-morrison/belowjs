@@ -33,6 +33,27 @@
             inset: 0;
             z-index: 0;
         }
+
+        #infoTitle.tileset-info-title {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            line-height: 1.1;
+        }
+
+        #infoTitle.tileset-info-title .tileset-info-title__brand {
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        #infoTitle.tileset-info-title .tileset-info-title__site {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #dbeafe;
+        }
     </style>
 </head>
 <body>
@@ -46,7 +67,7 @@
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
         const upAxis = params.get('up') || '+Y';
 
-        new ModelViewer('#viewer', {
+        const viewer = new ModelViewer('#viewer', {
             showInfo: true,
             enableVR: true,
             enableScreenshot: true,
@@ -81,6 +102,19 @@
                 }
             }
         });
+
+        const applyCustomInfoTitle = () => {
+            const infoTitle = document.getElementById('infoTitle');
+            if (!infoTitle) return;
+            infoTitle.classList.add('tileset-info-title');
+            infoTitle.innerHTML = `
+                <span class="tileset-info-title__brand">BelowJS Tiled Model Streaming</span>
+                <span class="tileset-info-title__site">Denton Holme and Macedon Wrecks 2023</span>
+            `;
+        };
+
+        applyCustomInfoTitle();
+        viewer.on('initialized', applyCustomInfoTitle);
     </script>
 </body>
 </html>

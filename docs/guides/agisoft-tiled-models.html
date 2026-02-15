@@ -89,59 +89,60 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Tiled Models</h1>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, 8 February 2026</em></p>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, February 15, 2026</em></p>
 
-            <p>This is a practical guide for using 3D Tiles in BelowJS.</p>
-
-            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0; color: #92400e; line-height: 1.5;">
-                    <strong>⚠️ Experimental:</strong> 3D Tiles support is under active development. It works well for most datasets, but test your specific tileset early to catch edge cases.
+            <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #334155; line-height: 1.5;">
+                    <strong>Note:</strong> 3D Tiles support is currently experimental and may change in future releases. It is planned to stabilise in BelowJS v2, targeted for later in 2026.
                 </p>
             </div>
 
             <h2>Do You Need Tilesets?</h2>
-            <p>Most projects should stay with a single <a href="optimisation.html">.glb file</a>. It is easier to host, easier to debug, and usually performs well after optimisation. As a rule of thumb, keep single-file delivery when you can stay at or below ~1.2 million polygons and ~100 MB. Move to 3D Tiles when the optimised model still exceeds those limits, or when the site is large enough that level-of-detail streaming is needed.</p>
+            <p>BelowJS supports both single-file GLB models and streamed 3D Tiles datasets. Use a standard model entry (default <code>type: 'gltf'</code>) for single-file delivery, or set <code>type: 'tileset'</code> when you need hierarchical streaming from a root <code>tileset.json</code>. For Quest-targeted GLBs, a practical upper limit is around <code>1.2 million polygons</code>; if you cannot stay near that after optimisation, use tilesets.</p>
+            <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.2rem; margin: 1.25rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #334155; line-height: 1.5;">
+                    <strong>Denton Holme and Macedon 2023 example (local export):</strong><br>
+                    <code>455.25 MB</code> total converted dataset size, <code>6,336,051</code> vertices at finest-detail leaf tiles, and texture area equivalent to about <code>77</code> x <code>4K</code> textures.<br>
+                    At this scale, full-detail loading can be very slow over the internet, and pushing full detail on a standalone Quest headset can freeze the device. We have tested datasets up to <code>20 million</code> vertices; in theory, this streaming approach should scale arbitrarily, similar to how Google Earth streams the entire planet.
+                </p>
+            </div>
 
             <h2>Metashape to BelowJS</h2>
-            <p>Metashape exports tiled datasets as <code>.3tz</code>, which is an archive. BelowJS does not load the archive directly; it loads the root <code>tileset.json</code> inside the converted folder. The workflow is: export <code>3D Tiles (*.3tz)</code> in Metashape, run the conversion script in this repo, then load the resulting <code>tileset.json</code> URL in the tileset example.</p>
-            <pre><code>examples/tileset/convert-3tz.sh</code></pre>
+            <p>Metashape exports tiled datasets as <code>.3tz</code>, which is an archive. If you are using Metashape, this corresponds to its <code>Cesium 3D Tiles v1.1 (*.3tz)</code> export option. BelowJS does not load the archive directly; it loads the root <code>tileset.json</code> inside a converted folder. The workflow is: export <code>*.3tz</code>, run the <a href="https://github.com/patrick-morrison/belowjs/blob/main/examples/tileset/convert-3tz.sh" target="_blank"><code>convert-3tz.sh</code> conversion script</a>, then load the resulting <code>tileset.json</code> URL in the <a href="../examples/tileset/" target="_blank">tiled model example</a>.</p>
+            <p>The script is a wrapper around <code>3d-tiles-tools</code>: it runs <code>convert</code>, then <code>upgrade --targetVersion</code> (1.0 or 1.1, default 1.1), verifies <code>tileset.json</code> exists after each step, and removes the extra <code>App/</code> wrapper folder. If you prefer your own pipeline, run equivalent steps and load the resulting <code>tileset.json</code>.</p>
             <pre><code>http://localhost:5173/examples/tileset/index.html?url=http://localhost:5173/examples/tileset/wreck-tiles/tileset.json&amp;up=+Z</code></pre>
             <p>Live example: <a href="../examples/tileset/" target="_blank">BelowJS 3D Tiles streaming demo</a>.</p>
-            <p>For orientation, start with <code>up=+Z</code> for Metashape exports. If the model is rotated incorrectly, test <code>+Y</code>, <code>-Y</code>, or <code>-Z</code>.</p>
+            <p><code>up</code> supports <code>+Y</code>, <code>-Y</code>, <code>+Z</code>, <code>-Z</code>, <code>+X</code>, and <code>-X</code> (default <code>+Y</code>). Geospatial reorientation defaults to <code>'auto'</code>; set <code>geospatialReorientation: 'force'</code> to always level a tileset, or <code>false</code> to disable it.</p>
 
-            <h2>Viewer Config and VR</h2>
+            <h2>Viewer Config</h2>
             <pre><code>{
   type: 'tileset',
   url: '.../tileset.json',
   up: '+Z',
+  geospatialReorientation: 'auto',
   autoCenter: true,
   maxTriangles: 1000000
 }</code></pre>
-            <p>In this config, <code>url</code> must point to the root <code>tileset.json</code>, <code>up</code> sets axis orientation, and <code>autoCenter</code> keeps navigation stable. The key performance control is <code>maxTriangles</code>. For Quest 3, start around <code>750000</code> to <code>1000000</code>. For Quest 2, start lower.</p>
-            <p>The loader streams tiles by camera view, showing coarse tiles in the distance and refining detail where you are looking. In VR it adapts detail in real time against the <code>maxTriangles</code> budget by adjusting <code>errorTarget</code>, which helps keep frame rate stable while moving. If performance drops, lower <code>maxTriangles</code> first, then increase <code>errorTarget</code> (for example <code>16-20</code>).</p>
+            <p><code>url</code> must point to the root <code>tileset.json</code>. Loader defaults include <code>geospatialReorientation: 'auto'</code>, <code>autoCenter: true</code>, <code>errorTarget: 12</code>, <code>maxDepth: 25</code>, <code>loadSiblings: true</code>, <code>optimizedLoadStrategy: false</code>, and <code>maxTilesProcessed: 224</code>. Set <code>maxTriangles</code> explicitly in your model config (the example uses <code>1000000</code>).</p>
+            <p>At runtime, BelowJS updates traversal cameras/resolution and adjusts quality adaptively by changing <code>errorTarget</code> and <code>maxTilesProcessed</code> based on camera motion and rendered triangle counts.</p>
 
             <h2>Troubleshooting</h2>
-            <h3>Tileset does not load</h3>
-            <p>Serve over HTTP(S), not <code>file://</code>. Confirm the URL points to <code>tileset.json</code>.</p>
-
-            <h3>Model is sideways or upside-down</h3>
-            <p>Set the correct <code>up</code> axis. Try <code>+Z</code>, <code>-Z</code>, <code>+Y</code>, <code>-Y</code>.</p>
-
-            <h3>VR performance is poor</h3>
-            <p>Reduce <code>maxTriangles</code> (for example <code>500000</code> on Quest 2, <code>750000</code> on Quest 3), then increase <code>errorTarget</code>.</p>
-
-            <h3>Textures look wrong</h3>
-            <p>Re-run <code>convert-3tz.sh</code> and check terminal errors. Bad source tiles can also cause this.</p>
+            <ul>
+                <li><strong>Not loading:</strong> serve over HTTP(S), not <code>file://</code>, and confirm the URL points to <code>tileset.json</code>.</li>
+                <li><strong>Wrong orientation:</strong> set <code>up</code> correctly; try <code>+Z</code>, <code>-Z</code>, <code>+Y</code>, <code>-Y</code>, <code>+X</code>, <code>-X</code>.</li>
+                <li><strong>Unexpected tilt on geospatial data:</strong> try <code>geospatialReorientation: 'force'</code> or set it to <code>false</code> if auto-leveling is not wanted.</li>
+                <li><strong>Performance issues:</strong> lower <code>maxTriangles</code> and/or raise <code>errorTarget</code>; these directly reduce rendered detail.</li>
+                <li><strong>Texture/transcoding issues:</strong> verify conversion output and keep <code>enableGltfExtensions: true</code> (default). If self-hosting transcoders, set <code>dracoDecoderPath</code> and <code>ktx2TranscoderPath</code> explicitly.</li>
+            </ul>
 
             <h2>References</h2>
             <ul>
-                <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools</a> - the converter we use under the hood</li>
-                <li><a href="https://download.agisoft.com/metashape-java-api/latest/com/agisoft/metashape/tasks/ExportTiledModel.html" target="_blank">Agisoft ExportTiledModel reference</a> - export settings documentation</li>
-                <li><a href="https://www.agisoft.com/pdf/metashape_2_1_en.pdf" target="_blank">Agisoft Metashape manual</a> - full Metashape workflow</li>
+                <li><a href="https://nasa-ammos.github.io/3DTilesSampleData/" target="_blank">NASA-AMMOS 3D Tiles viewer</a> - reference viewer and sample datasets for sanity checks</li>
+                <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools</a> - the CLI used by <code>convert-3tz.sh</code> to convert and upgrade Metashape exports</li>
             </ul>
 
             <h2>Next Steps</h2>
-            <p>After loading works, tune performance with the <a href="optimisation.html">optimisation guide</a> and deploy the tileset folder as static files.</p>
+            <p>After loading works, deploy the tileset folder as static files.</p>
         </div>
     </div>
 
