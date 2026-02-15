@@ -200,22 +200,39 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.5.0</code>
+                <code>npm install belowjs@1.6.0</code>
             </div>
 
             <div class="version-section">
                 <div class="version-header">
                     <div class="version-number">1.6.0</div>
                     <div class="version-tag">Minor</div>
-                    <div class="version-date">Unreleased</div>
+                    <div class="version-date">February 15, 2026</div>
                 </div>
 
-                <p>Upcoming minor release.</p>
+                <p>Comfort APIs, per-model measurability controls, and viewer resiliency improvements.</p>
 
                 <div class="changes-list">
+                    <h4>Added</h4>
+                    <ul>
+                        <li><span class="change-type new">New</span> Programmatic comfort-mode APIs (work in and out of active VR sessions):
+                            <code>setComfortMode(enabled)</code>, <code>toggleComfortMode()</code>, <code>getComfortMode()</code>,
+                            <code>setVRComfortMode(enabled)</code>, <code>toggleVRComfortMode()</code>, <code>isVRComfortModeEnabled()</code></li>
+                        <li><span class="change-type new">New</span> Per-model measurement availability via optional <code>models[modelKey].measurable</code> (defaults to <code>true</code> for backward compatibility)</li>
+                        <li><span class="change-type new">New</span> Non-measurable model UX for measurement panel: stays visible but disabled/unusable, blocks desktop/VR measurement input, and shows native tooltip text (<code>This model is marked as not measurable</code>)</li>
+                    </ul>
+
+                    <h4>Changed</h4>
+                    <ul>
+                        <li><span class="change-type improved">Improved</span> Comfort toggle styling tightened; active state keeps a clear green ring</li>
+                        <li><span class="change-type improved">Improved</span> Comfort teleport visuals tuned: thinner arc, lower marker/floor intensity, and range adjusted to 1.5m-20m</li>
+                    </ul>
+
                     <h4>Fixed</h4>
                     <ul>
                         <li><span class="change-type fixed">Fixed</span> Prevent unintended switches to dive mode during immersive AR sessions (keyboard/controller toggles are ignored in AR, and AR session start enforces survey mode)</li>
+                        <li><span class="change-type fixed">Fixed</span> Graceful viewer recovery after tab focus/context interruptions: auto-retry model loading on refocus and recover from <code>webglcontextlost</code>/<code>webglcontextrestored</code> blank-screen states</li>
+                        <li><span class="change-type fixed">Fixed</span> Programmatic comfort-mode changes now sync immediately to the comfort glyph during active VR sessions</li>
                         <li><span class="change-type fixed">Fixed</span> Double-click focus now behaves correctly with desktop measurement enabled: measurement mode owns double-click interaction and focus animation can be interrupted by user input</li>
                     </ul>
                 </div>

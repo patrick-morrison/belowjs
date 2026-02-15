@@ -5,10 +5,23 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.0] - Unreleased
+## [1.6.0] - 2026-02-15
+
+### Added
+- Programmatic comfort-mode APIs (work in and out of active VR sessions):
+  - `ModelViewer`: `setComfortMode(enabled)`, `toggleComfortMode()`, `getComfortMode()`
+  - `BelowViewer`: `setVRComfortMode(enabled)`, `toggleVRComfortMode()`, `isVRComfortModeEnabled()`
+- Per-model measurement availability via optional `models[modelKey].measurable` (defaults to `true` for backward compatibility)
+- Non-measurable model UX for measurement panel: stays visible but disabled/unusable, blocks desktop/VR measurement input, and shows native tooltip text (`This model is marked as not measurable`)
+
+### Changed
+- Comfort toggle styling tightened; active state keeps a clear green ring
+- Comfort teleport visuals tuned: thinner arc, lower marker/floor intensity, and range adjusted to 1.5m-20m
 
 ### Fixed
 - Prevent unintended switches to dive mode during immersive AR sessions (keyboard/controller toggles are ignored in AR, and AR session start enforces survey mode)
+- Graceful viewer recovery after tab focus/context interruptions: auto-retry model loading on refocus and recover from `webglcontextlost`/`webglcontextrestored` blank-screen states
+- Programmatic comfort-mode changes now sync immediately to the comfort glyph during active VR sessions
 - Double-click focus now behaves correctly with desktop measurement enabled: measurement mode owns double-click interaction and focus animation can be interrupted by user input
 
 ---

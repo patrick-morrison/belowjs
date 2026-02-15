@@ -8772,7 +8772,11 @@ class Zc {
 }
 class $c {
   constructor(e, t) {
-    this.scene = e, this.camera = t, this.teleportController = null, this.teleportMarker = null, this.teleportCurve = null, this.teleportFloor = null, this.validTeleportPosition = null, this.teleportThreshold = 0.7, this.teleportReleaseThreshold = 0.3, this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportFloorHeight = null, this.teleportFloorMin = -10, this.teleportFloorMax = 10, this.lastSnapTurnTime = 0, this.onTeleport = null, this.onTeleportStart = null, this.onTeleportEnd = null;
+    this.scene = e, this.camera = t, this.style = {
+      neutralColor: 14870768,
+      accentColor: 9741240,
+      floorColor: 6583435
+    }, this.teleportController = null, this.teleportMarker = null, this.teleportCurve = null, this.teleportFloor = null, this.validTeleportPosition = null, this.teleportThreshold = 0.7, this.teleportReleaseThreshold = 0.3, this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportMinDistance = 1.5, this.teleportMaxDistance = 20, this.teleportFloorHeight = null, this.teleportFloorMin = -10, this.teleportFloorMax = 10, this.lastSnapTurnTime = 0, this.onTeleport = null, this.onTeleportStart = null, this.onTeleportEnd = null;
   }
   init() {
     this.setupTeleportation();
@@ -8785,36 +8789,34 @@ class $c {
       new m.Vector3(0, 0, 0),
       new m.Vector3(0, 1, -5)
     ], t = new m.CatmullRomCurve3(e), s = new m.TubeGeometry(t, 20, 0.03, 8, !1), i = new m.MeshBasicMaterial({
-      color: 16777215,
+      color: this.style.accentColor,
       transparent: !0,
-      opacity: 0.8,
+      opacity: 0.62,
       side: m.DoubleSide
     });
     if (this.teleportCurve = new m.Mesh(s, i), this.teleportCurve.visible = !1, this.scene.add(this.teleportCurve), !this.teleportMarker) {
-      const n = new m.RingGeometry(0.4, 0.6, 20), o = new m.MeshBasicMaterial({
-        color: 16777215,
+      const n = new m.RingGeometry(0.34, 0.5, 28), o = new m.MeshBasicMaterial({
+        color: this.style.neutralColor,
         transparent: !0,
-        opacity: 0.9,
+        opacity: 0.78,
         side: m.DoubleSide
       });
       this.teleportMarker = new m.Mesh(n, o), this.teleportMarker.rotation.x = -Math.PI / 2, this.teleportMarker.visible = !1, this.scene.add(this.teleportMarker);
-      const r = new m.RingGeometry(0.3, 0.7, 20), l = new m.MeshBasicMaterial({
-        color: 16777215,
+      const r = new m.RingGeometry(0.46, 0.72, 28), l = new m.MeshBasicMaterial({
+        color: this.style.accentColor,
         transparent: !0,
-        opacity: 0.3,
+        opacity: 0.18,
         side: m.DoubleSide
       }), c = new m.Mesh(r, l);
       c.rotation.x = -Math.PI / 2, this.teleportMarker.add(c);
     }
     if (!this.teleportFloor) {
-      const n = new m.PlaneGeometry(100, 100), o = new m.MeshBasicMaterial({
-        color: 65280,
+      const n = new m.PlaneGeometry(14, 14), o = new m.MeshBasicMaterial({
+        color: this.style.floorColor,
         transparent: !0,
-        opacity: 0.1,
-        // Very subtle when visible
+        opacity: 0.06,
         side: m.DoubleSide,
         visible: !1
-        // Invisible by default
       });
       this.teleportFloor = new m.Mesh(n, o), this.teleportFloor.rotation.x = -Math.PI / 2, this.teleportFloor.visible = !1, this.scene.add(this.teleportFloor);
     }
@@ -8873,7 +8875,7 @@ class $c {
     this.teleportController.getWorldQuaternion(t);
     const s = new m.Vector3(0, 0, -1);
     s.applyQuaternion(t);
-    const i = 3, n = 30, o = Math.min(this.teleportMaxMagnitude / this.teleportThreshold, 1), r = n - i, l = Math.pow(o, 0.7), c = i + r * l, A = [], h = 40, d = -9.8;
+    const i = this.teleportMinDistance, n = this.teleportMaxDistance, o = Math.min(this.teleportMaxMagnitude / this.teleportThreshold, 1), r = n - i, l = Math.pow(o, 0.78), c = i + r * l, A = [], h = 32, d = -9.8;
     let u = Math.sqrt(c * Math.abs(d) / 2);
     if (s.y > 0.3 ? u *= 1 - s.y * 0.5 : s.y < -0.5 && (u *= 1 + Math.abs(s.y) * 0.3), Math.sqrt(s.x * s.x + s.z * s.z) > 0.1) {
       const x = Math.min(1, c / (u * 2));
@@ -8913,13 +8915,13 @@ class $c {
       R > A.length / 3 && (I = new m.Vector3(x.x, f, x.z), A.length = R + 1, A[R] = I);
     }
     if (A.length > 1) {
-      const x = new m.CatmullRomCurve3(A), R = new m.TubeGeometry(x, 20, 0.03, 6, !1);
+      const x = new m.CatmullRomCurve3(A), R = new m.TubeGeometry(x, 20, 0.022, 6, !1);
       this.teleportCurve.geometry && this.teleportCurve.geometry.dispose(), this.teleportCurve.geometry = R;
     }
-    this.teleportMarker && I && (this.teleportMarker.position.copy(I), this.teleportMarker.visible = !0, this.teleportFloorHeight < -0.5 ? this.teleportMarker.material.color.setHex(8965375) : this.teleportFloorHeight > 0.5 ? this.teleportMarker.material.color.setHex(16777096) : this.teleportMarker.material.color.setHex(16777215));
+    this.teleportMarker && I && (this.teleportMarker.position.copy(I), this.teleportMarker.visible = !0, this.teleportMarker.material.color.setHex(this.style.neutralColor));
   }
   updateTeleportFloor() {
-    this.teleportFloor && this.teleportFloorHeight !== null && (this.teleportFloor.position.y = this.teleportFloorHeight, this.teleportFloor.visible = !0, this.teleportFloor.material.visible = !0, this.teleportFloor.material.opacity = 0.15, this.teleportFloorHeight < -0.5 ? this.teleportFloor.material.color.setHex(4491519) : this.teleportFloorHeight > 0.5 ? this.teleportFloor.material.color.setHex(16777028) : this.teleportFloor.material.color.setHex(4521864), this.updateTeleportArc());
+    this.teleportFloor && this.teleportFloorHeight !== null && (this.teleportFloor.position.y = this.teleportFloorHeight, this.teleportFloor.visible = !0, this.teleportFloor.material.visible = !0, this.teleportFloor.material.opacity = 0.06, this.teleportFloor.material.color.setHex(this.style.floorColor), this.updateTeleportArc());
   }
   updateTeleportArcHeight() {
     this.updateTeleportFloor();
@@ -8929,7 +8931,7 @@ class $c {
       const e = this.teleportMarker.position.clone(), t = this.camera.parent.position, s = Math.sqrt(
         Math.pow(e.x - t.x, 2) + Math.pow(e.z - t.z, 2)
       );
-      if (s >= 3 && s <= 30) {
+      if (s >= this.teleportMinDistance && s <= this.teleportMaxDistance) {
         const i = new m.Vector3(e.x, this.teleportFloorHeight, e.z);
         this.validTeleportPosition = i, this.executeTeleport(), this.teleportFloorHeight = null;
       }
@@ -9109,10 +9111,10 @@ class eA {
     return e === "comfort" ? (this.setComfortSettings({
       locomotionMode: "teleport",
       turningMode: "snap",
-      snapTurnAngle: 30,
+      snapTurnAngle: 22.5,
       reducedMotion: !0,
       showTeleportArc: !0,
-      comfortSpeed: 0.3
+      comfortSpeed: 0.45
     }), !0) : e === "free" ? (this.setComfortSettings({
       locomotionMode: "smooth",
       turningMode: "smooth",
@@ -9307,7 +9309,7 @@ class sA {
       autoRotateSpeed: null,
       controls: null
       // Reference to controls object
-    }, this._initialPositions = null, this.lastComfortLog = 0, this.onModeToggle = null, this.onSessionStart = null, this.onSessionEnd = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.init();
+    }, this._initialPositions = null, this.lastComfortLog = 0, this.onModeToggle = null, this.onSessionStart = null, this.onSessionEnd = null, this.onMovementStart = null, this.onMovementStop = null, this.onMovementUpdate = null, this.onComfortModeChange = null, this.init();
   }
   init() {
     this.vrCore.init(), this.vrControllers.init(), this.vrTeleport.init(), this.vrLocomotion.init(), this.setupModuleConnections();
@@ -9408,7 +9410,47 @@ class sA {
    * @since 1.0.0
    */
   setComfortPreset(e) {
-    this.vrLocomotion.setComfortPreset(e);
+    const t = this.isComfortModeEnabled(), s = this.vrLocomotion.setComfortPreset(e);
+    if (s && typeof this.onComfortModeChange == "function") {
+      const i = this.isComfortModeEnabled();
+      this.onComfortModeChange({
+        enabled: i,
+        changed: i !== t,
+        preset: i ? "comfort" : "free",
+        inVR: this.isVRPresenting,
+        settings: this.getComfortSettings()
+      });
+    }
+    return s;
+  }
+  /**
+   * Enable or disable comfort mode explicitly.
+   *
+   * Works both inside and outside active VR sessions by updating locomotion state.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setComfortMode(e) {
+    return this.setComfortPreset(e ? "comfort" : "free");
+  }
+  /**
+   * Toggle comfort mode.
+   *
+   * @returns {boolean} The new comfort mode state.
+   */
+  toggleComfortMode() {
+    const e = !this.isComfortModeEnabled();
+    return this.setComfortMode(e), e;
+  }
+  /**
+   * Check whether comfort mode is currently enabled.
+   *
+   * @returns {boolean}
+   */
+  isComfortModeEnabled() {
+    const e = this.vrLocomotion.getComfortSettings();
+    return e.locomotionMode === "teleport" && e.reducedMotion === !0;
   }
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
@@ -10856,7 +10898,34 @@ class hA extends yt {
    * @since 1.0.0
    */
   setVRComfortPreset(e) {
-    this.vrManager && this.vrManager.setComfortPreset(e);
+    return this.vrManager ? this.vrManager.setComfortPreset(e) : !1;
+  }
+  /**
+   * Enable or disable comfort mode.
+   *
+   * Works while in VR and before entering VR by pre-configuring locomotion settings.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setVRComfortMode(e) {
+    return this.vrManager ? this.vrManager.setComfortMode(e) : !1;
+  }
+  /**
+   * Toggle comfort mode and return the new state.
+   *
+   * @returns {boolean}
+   */
+  toggleVRComfortMode() {
+    return this.vrManager ? this.vrManager.toggleComfortMode() : !1;
+  }
+  /**
+   * Check if comfort mode is enabled.
+   *
+   * @returns {boolean}
+   */
+  isVRComfortModeEnabled() {
+    return this.vrManager ? this.vrManager.isComfortModeEnabled() : !1;
   }
   applyInitialPositions(e) {
     if (!e) return;
@@ -11750,7 +11819,7 @@ class pA {
     this.ghostSpheres = {
       left: null,
       right: null
-    }, this.MAX_SPHERES = 2, this.measurementSpheres = [], this.measurementLine = null, this.measurementLabel = null, this.previousTriggerState = {}, this.unifiedMeasurementPoints = [], this.unifiedMeasurementLine = null, this.desktopMeasurementPoints = [], this.desktopMeasurementLine = null, typeof window < "u" && (window.measurementSystem = this), this.scene = e, this.camera = t, this.renderer = s, this.uiParent = o || null, this.getRaycastInfo = typeof r == "function" ? r : null, this.controls = i, this.dolly = n, this.config = l, this.theme = c, this.showMeasurementLabels = A, this._raycastTargets = e && e.children ? e.children : [], this.enabled = !0, this.isVR = !1, this.measurementPanel = null, this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !0, this.desktopMeasurementPoints = [], this.connectionLine = null, this.desktopMeasurementLine = null, this.measurementSprite = null, this.measurementCanvas = null, this.measurementTexture = null, this.lastClickTime = 0, this.lastTriggerTime = 0, this._wasInVR = !1, this.focusAnimation = null, this._cancelFocusOnUserInput = null, this.mouse = new m.Vector2(), this.raycaster = new m.Raycaster();
+    }, this.MAX_SPHERES = 2, this.measurementSpheres = [], this.measurementLine = null, this.measurementLabel = null, this.previousTriggerState = {}, this.unifiedMeasurementPoints = [], this.unifiedMeasurementLine = null, this.desktopMeasurementPoints = [], this.desktopMeasurementLine = null, typeof window < "u" && (window.measurementSystem = this), this.scene = e, this.camera = t, this.renderer = s, this.uiParent = o || null, this.getRaycastInfo = typeof r == "function" ? r : null, this.controls = i, this.dolly = n, this.config = l, this.theme = c, this.showMeasurementLabels = A, this._raycastTargets = e && e.children ? e.children : [], this.enabled = !0, this.isVR = !1, this.measurementPanel = null, this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !0, this.measurementAvailable = !0, this.desktopMeasurementPoints = [], this.connectionLine = null, this.desktopMeasurementLine = null, this.measurementSprite = null, this.measurementCanvas = null, this.measurementTexture = null, this.lastClickTime = 0, this.lastTriggerTime = 0, this._wasInVR = !1, this.focusAnimation = null, this._cancelFocusOnUserInput = null, this.mouse = new m.Vector2(), this.raycaster = new m.Raycaster();
     const h = () => {
       let d = null, u = null;
       const g = null, p = null;
@@ -11852,7 +11921,10 @@ class pA {
     }), this.unifiedMeasurementPoints.length = 0), this.unifiedMeasurementLine && (this.scene.remove(this.unifiedMeasurementLine), this.unifiedMeasurementLine = null), this.measurementSprite && (this.measurementSprite.visible = !1, this.scene.remove(this.measurementSprite), this.measurementSprite = null), this.updateMeasurementPanel();
   }
   clearVRMeasurement() {
-    this.measurementSpheres && (this.measurementSpheres.forEach((e) => this.scene.remove(e)), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null), this.placedSpheres && (this.placedSpheres.forEach((e) => this.scene.remove(e)), this.placedSpheres.length = 0), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSprite && (this.measurementSprite.visible = !1), this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
+    this.measurementSpheres && (this.measurementSpheres.forEach((e) => this.scene.remove(e)), this.measurementSpheres.length = 0), this.measurementLine && (this.scene.remove(this.measurementLine), this.measurementLine = null), this.measurementLabel && (this.scene.remove(this.measurementLabel), this.measurementLabel = null), this.placedSpheres && (this.placedSpheres.forEach((e) => this.scene.remove(e)), this.placedSpheres.length = 0), this.connectionLine && (this.scene.remove(this.connectionLine), this.connectionLine = null), this.measurementSprite && (this.measurementSprite.visible = !1), this.measurementSystemEnabled = this.measurementAvailable, this.updateMeasurementPanel();
+  }
+  setMeasurementAvailability(e) {
+    this.measurementAvailable = e !== !1, this.measurementAvailable ? (this.measurementSystemEnabled = !0, this.renderer && this.renderer.xr && this.renderer.xr.isPresenting && (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0))) : (this.desktopMeasurementMode = !1, this.measurementSystemEnabled = !1, this.clearUnifiedMeasurement(), this.clearLegacyDesktopMeasurement(), this.clearLegacyVRMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1), this.setRaycastTargets([])), this.updateMeasurementPanel();
   }
   /**
    * Clear legacy VR measurements (old system compatibility)
@@ -11874,7 +11946,7 @@ class pA {
         ]), t = this.vrLineMaterial || new m.LineBasicMaterial({ color: 16777215, transparent: !0, opacity: 0.8, depthTest: !1 });
         this.connectionLine = new m.Line(e, t), this.scene.add(this.connectionLine), this.createMeasurementDisplay(this.measurementSpheres[0].position.distanceTo(this.measurementSpheres[1].position)), this.measurementSprite && !this.scene.children.includes(this.measurementSprite) && this.scene.add(this.measurementSprite);
       }
-      this.measurementSystemEnabled = !0, this.updateMeasurementPanel();
+      this.measurementSystemEnabled = this.measurementAvailable, this.updateMeasurementPanel();
     }
   }
   syncToDesktop() {
@@ -11980,6 +12052,7 @@ class pA {
   _onVRTriggerDown() {
   }
   _onVRTriggerUp(e) {
+    if (!this.measurementAvailable) return;
     const t = e.target, s = performance.now();
     if (!(this.lastTriggerTime && s - this.lastTriggerTime < 200) && (this.lastTriggerTime = s, this.measurementSystemEnabled)) {
       const i = new m.Vector3();
@@ -12102,6 +12175,10 @@ class pA {
   createMeasurementPanel() {
     const e = document.createElement("div");
     e.className = `measurement-panel${this.theme === "light" ? " light-theme" : ""}`, e.addEventListener("click", () => {
+      if (!this.measurementAvailable) {
+        this.updateMeasurementPanel();
+        return;
+      }
       this.renderer && this.renderer.xr && this.renderer.xr.isPresenting ? (this.measurementSystemEnabled = !this.measurementSystemEnabled, this.measurementSystemEnabled ? (this.ghostSpheres.left && (this.ghostSpheres.left.visible = !0), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !0), this.resetGhostSpherePositions()) : (this.clearUnifiedMeasurement(), this.ghostSpheres.left && (this.ghostSpheres.left.visible = !1), this.ghostSpheres.right && (this.ghostSpheres.right.visible = !1)), this.updateMeasurementPanel()) : (this.desktopMeasurementMode = !this.desktopMeasurementMode, this.desktopMeasurementMode || this.clearUnifiedMeasurement(), this.updateMeasurementPanel());
     }), (this.uiParent || this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement || document.body).appendChild(e), this.measurementPanel = e;
   }
@@ -12110,7 +12187,14 @@ class pA {
     if (!e) return;
     const t = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting, s = this.unifiedMeasurementPoints ? this.unifiedMeasurementPoints.length : 0, i = s === 2, n = t ? this.measurementSystemEnabled : this.desktopMeasurementMode;
     let o;
-    if (i && (o = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position)), e.classList.remove("disabled", "active", "measured"), !n)
+    if (i && (o = this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position)), e.classList.remove("disabled", "active", "measured", "unavailable"), e.style.opacity = "", e.style.cursor = "pointer", e.setAttribute("aria-disabled", "false"), e.removeAttribute("title"), !this.measurementAvailable) {
+      e.classList.add("disabled", "unavailable"), e.style.opacity = "0.55", e.style.cursor = "not-allowed", e.setAttribute("aria-disabled", "true"), e.title = "This model is marked as not measurable", e.innerHTML = `
+        <div>MEASURE</div>
+        <div style="font-size: 12px; margin-top: 4px;">Not available</div>
+      `;
+      return;
+    }
+    if (!n)
       e.classList.add("disabled"), e.innerHTML = `
         <div>MEASURE</div>
         <div style="font-size: 12px; margin-top: 4px;">Click to enable</div>
@@ -12144,6 +12228,8 @@ class pA {
     }, 10);
   }
   onMouseClick(e) {
+    if (!this.measurementAvailable)
+      return;
     const t = Date.now(), s = t - this.lastClickTime < 300;
     if (this.lastClickTime = t, this.isDragging || !this.desktopMeasurementMode)
       return;
@@ -12225,12 +12311,13 @@ class pA {
 }
 class Ci {
   constructor(e, t = {}) {
-    this.vrManager = e, this.isComfortMode = !1, this._iconRendered = !1, this.options = {
+    this.vrManager = e, this.isComfortMode = !1, this._iconRendered = !1, this.lastToggleAt = 0, this.options = {
       containerId: t.containerId || "modelSelector",
       useInlineLayout: t.useInlineLayout !== !1,
       position: t.position || "bottom-right",
       offsetX: t.offsetX || 20,
       offsetY: t.offsetY || 120,
+      toggleCooldownMs: t.toggleCooldownMs || 180,
       ...t
     }, this.element = null, this.init();
   }
@@ -12246,12 +12333,12 @@ class Ci {
       console.warn("VRComfortGlyph: modeToggleContainer not found, falling back to floating mode"), this.createFloatingElement();
       return;
     }
-    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-circle comfort-off", this.renderIcon(), this.element.tabIndex = 0, this.element.role = "button", this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable");
+    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-circle comfort-off", this.renderIcon(), this.element.tabIndex = 0, this.element.role = "button", this.element.title = "Comfort Mode Off", this.element.setAttribute("aria-label", "Comfort mode off. Click to enable.");
     const t = e.querySelector(".semantic-toggle");
     t ? e.insertBefore(this.element, t.nextSibling) : e.appendChild(this.element), this.updateInlineVisualState();
   }
   createFloatingElement() {
-    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-glyph comfort-off", this.renderIcon(), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.tabIndex = 0, this.element.role = "button", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement");
+    this.element = document.createElement("div"), this.element.id = "vrComfortGlyph", this.element.className = "vr-comfort-glyph comfort-off", this.renderIcon(), this.element.title = "Comfort Mode Off", this.element.tabIndex = 0, this.element.role = "button", this.element.setAttribute("aria-label", "Comfort mode off. Click to enable.");
     const e = this.options.containerId ? document.getElementById(this.options.containerId) : document.body;
     e ? e.appendChild(this.element) : (console.warn("VRComfortGlyph: Container not found, appending to body"), document.body.appendChild(this.element));
   }
@@ -12262,19 +12349,19 @@ class Ci {
     e.id = "vr-comfort-glyph-styles", e.textContent = `
       .vr-comfort-glyph {
         position: absolute;
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
-        background: rgba(0, 0, 0, 0.6);
-        border: 2px solid #666;
+        background: rgba(15, 23, 42, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
-        font-size: 18px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 140ms ease, color 120ms ease;
+        font-size: 16px;
         z-index: 10000;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(8px);
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -12285,8 +12372,8 @@ class Ci {
       }
       
       .vr-comfort-circle {
-        width: 60px;
-        height: 60px;
+        width: 54px;
+        height: 54px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -12295,9 +12382,9 @@ class Ci {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
-        font-size: 18px;
-        margin-left: 12px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 140ms ease, color 120ms ease;
+        font-size: 16px;
+        margin-left: 10px;
         position: relative;
         user-select: none;
         -webkit-user-select: none;
@@ -12310,8 +12397,8 @@ class Ci {
       }
       
       .vr-comfort-circle:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.18);
       }
       
   .vr-comfort-circle:focus-visible {
@@ -12332,23 +12419,23 @@ class Ci {
       }
       
       .vr-comfort-circle.comfort-off:hover {
-        color: rgba(255, 255, 255, 0.7) !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: rgba(255, 255, 255, 0.68) !important;
+        background: rgba(255, 255, 255, 0.09) !important;
+        border-color: rgba(255, 255, 255, 0.18) !important;
         box-shadow: none !important;
       }
       
       .vr-comfort-circle.comfort-on {
-        color: #4ade80 !important;
-        background: rgba(74, 222, 128, 0.1) !important;
-        border-color: rgba(74, 222, 128, 0.3) !important;
-        box-shadow: 0 0 20px rgba(74, 222, 128, 0.1) !important;
+        color: rgba(236, 253, 245, 0.98) !important;
+        background: rgba(74, 222, 128, 0.14) !important;
+        border-color: rgba(74, 222, 128, 0.8) !important;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.86), 0 6px 18px rgba(2, 6, 23, 0.24) !important;
       }
       
       .vr-comfort-circle.comfort-on:hover {
-        background: rgba(74, 222, 128, 0.15) !important;
-        border-color: rgba(74, 222, 128, 0.4) !important;
-        box-shadow: 0 0 30px rgba(74, 222, 128, 0.15) !important;
+        background: rgba(74, 222, 128, 0.2) !important;
+        border-color: rgba(74, 222, 128, 0.9) !important;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.92), 0 8px 22px rgba(2, 6, 23, 0.3) !important;
       }
       
       #modeToggleContainer {
@@ -12364,7 +12451,7 @@ class Ci {
       }
       
       .vr-comfort-glyph:hover {
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(15, 23, 42, 0.7);
       }
       
   .vr-comfort-glyph:focus-visible {
@@ -12372,31 +12459,29 @@ class Ci {
         outline-offset: 2px;
       }
   .vr-comfort-glyph.comfort-on:focus-visible { outline-color: #4ade80; }
-  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: #666; }
+  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: rgba(255,255,255,0.35); }
       
       .vr-comfort-glyph.comfort-off {
-        color: #666;
-        border-color: #666;
-        background: rgba(0, 0, 0, 0.6);
+        color: rgba(226, 232, 240, 0.55);
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(15, 23, 42, 0.58);
         box-shadow: none;
-        filter: none;
       }
       
       .vr-comfort-glyph.comfort-on {
-        color: #4ade80;
-        border-color: #4ade80;
-        background: rgba(74, 222, 128, 0.1);
-        box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
-        filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
+        color: rgba(236, 253, 245, 0.98);
+        border-color: rgba(74, 222, 128, 0.8);
+        background: rgba(74, 222, 128, 0.15);
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.86), 0 6px 20px rgba(2, 6, 23, 0.25);
       }
 
       
       .vr-comfort-emoji {
         display: block;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 1;
         transform: translateY(0.5px);
-        transition: transform 120ms ease;
+        transition: transform 90ms ease;
       }
       .vr-comfort-circle:active .vr-comfort-emoji,
       .vr-comfort-glyph:active .vr-comfort-emoji {
@@ -12425,10 +12510,10 @@ class Ci {
       
       @media (max-width: 768px) {
         .vr-comfort-circle {
-          width: 50px;
-          height: 50px;
-          font-size: 18px;
-          margin-left: 10px;
+          width: 48px;
+          height: 48px;
+          font-size: 16px;
+          margin-left: 8px;
         }
         
         #modeToggleContainer {
@@ -12438,9 +12523,9 @@ class Ci {
         
         
         .vr-comfort-glyph {
-          width: 48px !important;
-          height: 48px !important;
-          font-size: 24px !important;
+          width: 42px !important;
+          height: 42px !important;
+          font-size: 20px !important;
         }
         
         .vr-comfort-glyph.position-bottom-right {
@@ -12474,23 +12559,29 @@ class Ci {
     this.element && (this.options.useInlineLayout ? this.updateInlineVisualState() : this.updateFloatingVisualState());
   }
   updateInlineVisualState() {
-    this.element && (this.element.classList.remove("comfort-off", "comfort-on"), this.element.style.removeProperty("background"), this.element.style.removeProperty("border-color"), this.element.style.removeProperty("color"), this.element.style.removeProperty("box-shadow"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable")));
+    this.element && (this.element.classList.remove("comfort-off", "comfort-on"), this.element.style.removeProperty("background"), this.element.style.removeProperty("border-color"), this.element.style.removeProperty("color"), this.element.style.removeProperty("box-shadow"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode On", this.element.setAttribute("aria-label", "Comfort mode on. Click to disable.")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode Off", this.element.setAttribute("aria-label", "Comfort mode off. Click to enable.")));
   }
   updateFloatingVisualState() {
-    this.element && (this.updatePosition(), this.element.classList.remove("comfort-off", "comfort-on"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode: ON (Teleport Movement)", this.element.setAttribute("aria-label", "Comfort Mode is ON - Click to disable")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode: OFF (Smooth Movement)", this.element.setAttribute("aria-label", "Comfort Mode is OFF - Click to enable comfortable movement")), this.renderIcon());
+    this.element && (this.updatePosition(), this.element.classList.remove("comfort-off", "comfort-on"), this.isComfortMode ? (this.element.classList.add("comfort-on"), this.element.title = "Comfort Mode On", this.element.setAttribute("aria-label", "Comfort mode on. Click to disable.")) : (this.element.classList.add("comfort-off"), this.element.title = "Comfort Mode Off", this.element.setAttribute("aria-label", "Comfort mode off. Click to enable.")), this.renderIcon());
+  }
+  applyComfortMode(e, { emitEvent: t = !0, applyToManager: s = !0 } = {}) {
+    if (this.isComfortMode = e === !0, s && this.vrManager && this.vrManager.setComfortPreset(this.isComfortMode ? "comfort" : "free"), this.updateVisualState(), t && this.element) {
+      const i = new CustomEvent("vrcomfortchange", {
+        detail: {
+          isComfortMode: this.isComfortMode,
+          preset: this.isComfortMode ? "comfort" : "free"
+        }
+      });
+      this.element.dispatchEvent(i);
+    }
   }
   toggle() {
-    this.isComfortMode = !this.isComfortMode, this.vrManager && (this.isComfortMode ? this.vrManager.setComfortPreset("comfort") : this.vrManager.setComfortPreset("free")), this.updateVisualState();
-    const e = new CustomEvent("vrcomfortchange", {
-      detail: {
-        isComfortMode: this.isComfortMode,
-        preset: this.isComfortMode ? "comfort" : "free"
-      }
-    });
-    this.element.dispatchEvent(e);
+    const e = Date.now();
+    e - this.lastToggleAt < this.options.toggleCooldownMs || (this.lastToggleAt = e, this.applyComfortMode(!this.isComfortMode, { emitEvent: !0, applyToManager: !0 }));
   }
-  setComfortMode(e) {
-    this.isComfortMode !== e && this.toggle();
+  setComfortMode(e, { emitEvent: t = !0, applyToManager: s = !0 } = {}) {
+    const i = e === !0;
+    this.isComfortMode !== i ? this.applyComfortMode(i, { emitEvent: t, applyToManager: s }) : this.updateVisualState();
   }
   getComfortMode() {
     return this.isComfortMode;
@@ -13248,6 +13339,7 @@ class PA extends yt {
       flyControls: { type: "object", default: {} },
       enableVRAudio: { type: "boolean", default: !1 },
       audioPath: { type: "string", default: "./sound/" },
+      enableAutoRecovery: { type: "boolean", default: !0 },
       viewerConfig: {
         type: "object",
         default: {
@@ -13259,7 +13351,7 @@ class PA extends yt {
       initialModel: { type: "string", default: null },
       initialPositions: { type: "object", default: null }
     };
-    this.config = new cs(s).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.uiRoot = null, this.stereoUiMirror = null, this.stereoUiObserver = null, this.stereoUiSyncQueued = !1, this.stereoUiActive = !1, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.flyControls = null, this.lastComfortMode = null, this._vrButtonWasVisible = !1, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.lastManualLoadingMessage = "", this.stageOverrideActive = !1, this.vrUpdateLoop = null, typeof window < "u" && (window.modelViewer = this), this.init();
+    this.config = new cs(s).validate(t), this.options = this.config, this.currentModelKey = null, this.belowViewer = null, this.ui = {}, this.uiRoot = null, this.stereoUiMirror = null, this.stereoUiObserver = null, this.stereoUiSyncQueued = !1, this.stereoUiActive = !1, this.measurementSystem = null, this.comfortGlyph = null, this.diveSystem = null, this.fullscreenButton = null, this.screenshotButton = null, this.flyControls = null, this.lastComfortMode = null, this._vrButtonWasVisible = !1, this.isLoading = !1, this.loadingMessage = "", this.loadingModelName = "", this.loadingPercentage = 0, this.lastManualLoadingMessage = "", this.stageOverrideActive = !1, this.vrUpdateLoop = null, this.lastRequestedModelKey = null, this.recoveryHandlers = null, this.recoveryTimer = null, this.recoveryCooldownMs = 1200, this.lastRecoveryAttemptAt = 0, this.recoveryAttempts = 0, this.maxRecoveryAttempts = 3, this.hadContextLoss = !1, this.isDisposed = !1, typeof window < "u" && (window.modelViewer = this), this.init();
   }
   init() {
     const e = {
@@ -13273,9 +13365,9 @@ class PA extends yt {
       ...this.config.audioPath && { audioPath: this.config.audioPath },
       ...typeof this.config.enableVRAudio < "u" && { enableVRAudio: this.config.enableVRAudio }
     };
-    if (this.belowViewer = new hA(this.container, e), this.setupEventForwarding(), this.belowViewer.on("initialized", () => {
-      this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
-    }), this.belowViewer.isInitialized && (this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
+    if (this.belowViewer = new hA(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
+      this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
+    }), this.belowViewer.isInitialized && (this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
       setTimeout(() => this.loadModel(t), 100);
     }
@@ -13304,30 +13396,68 @@ class PA extends yt {
       t();
     }
     if (this.belowViewer.loadedModels && this.belowViewer.loadedModels.length > 0) {
-      const t = this.belowViewer.loadedModels[0].model;
-      this.measurementSystem.setRaycastTargets(t);
+      const t = this.belowViewer.loadedModels[0].model, s = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+      this.applyModelMeasurementConfig(s, t);
     }
   }
-  async _maybeAttachVRComfortGlyph() {
-    if (!(!this.config.enableVRComfortGlyph || this.comfortGlyph) && this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore && (await this.belowViewer.vrManager.vrCore.checkVRSupported(), !!this.belowViewer.vrManager.vrCore.isVRSupported)) {
-      if (this.comfortGlyph = new Ci(this.belowViewer.vrManager, {
-        position: "bottom-right",
-        offsetX: 20,
-        offsetY: 70
-      }), this.lastComfortMode = this.comfortGlyph.isComfortMode, this.comfortGlyph.element.addEventListener("vrcomfortchange", (e) => {
-        this.lastComfortMode = e.detail.isComfortMode;
-      }), this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
-        const e = this.belowViewer.vrManager.vrCore.onSessionStart;
-        this.belowViewer.vrManager.vrCore.onSessionStart = async () => {
-          e && await e(), this.lastComfortMode !== null && setTimeout(() => {
-            this.lastComfortMode ? this.belowViewer.vrManager.setComfortPreset("comfort") : this.belowViewer.vrManager.setComfortPreset("free"), this.comfortGlyph.setComfortMode(this.lastComfortMode);
-          }, 50);
-        };
-      }
-      document.addEventListener("keydown", (e) => {
-        e.code === "KeyC" && (e.ctrlKey || e.metaKey) && (e.preventDefault(), this.comfortGlyph && this.comfortGlyph.toggle());
-      }), window.addEventListener("beforeunload", () => this.comfortGlyph && this.comfortGlyph.dispose());
+  isModelMeasurable(e) {
+    return !e || e.measurable !== !1;
+  }
+  applyModelMeasurementConfig(e, t = null) {
+    if (!this.measurementSystem) return;
+    const s = this.isModelMeasurable(e);
+    if (typeof this.measurementSystem.setMeasurementAvailability == "function" ? this.measurementSystem.setMeasurementAvailability(s) : (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement(), this.measurementSystem.desktopMeasurementMode = !1, this.measurementSystem.measurementSystemEnabled = s, this.measurementSystem.updateMeasurementPanel()), this.measurementSystem.ghostSpheres) {
+      const i = s && this.measurementSystem.isVR;
+      this.measurementSystem.ghostSpheres.left && (this.measurementSystem.ghostSpheres.left.visible = i), this.measurementSystem.ghostSpheres.right && (this.measurementSystem.ghostSpheres.right.visible = i);
     }
+    if (s && t) {
+      this.measurementSystem.setRaycastTargets(t);
+      return;
+    }
+    this.measurementSystem.setRaycastTargets([]);
+  }
+  async _maybeAttachVRComfortGlyph() {
+    if (!this.config.enableVRComfortGlyph || this.comfortGlyph || !this.belowViewer.vrManager || !this.belowViewer.vrManager.vrCore || (await this.belowViewer.vrManager.vrCore.checkVRSupported(), !this.belowViewer.vrManager.vrCore.isVRSupported)) return;
+    this.comfortGlyph = new Ci(this.belowViewer.vrManager, {
+      position: "bottom-right",
+      offsetX: 20,
+      offsetY: 70
+    });
+    const e = this.belowViewer.getVRComfortSettings ? this.belowViewer.getVRComfortSettings() : null, t = e ? e.locomotionMode === "teleport" && e.reducedMotion === !0 : !1, s = typeof this.lastComfortMode == "boolean" ? this.lastComfortMode : t;
+    if (this.lastComfortMode = s, this.comfortGlyph.setComfortMode(s, {
+      emitEvent: !1,
+      applyToManager: !1
+    }), this.comfortGlyph.element.addEventListener("vrcomfortchange", (i) => {
+      this.lastComfortMode = i.detail.isComfortMode;
+    }), this.belowViewer.vrManager) {
+      const i = this.belowViewer.vrManager.onComfortModeChange;
+      this.belowViewer.vrManager.onComfortModeChange = (n) => {
+        i && i(n);
+        const o = n && typeof n.enabled == "boolean" ? n.enabled : this.belowViewer.vrManager.isComfortModeEnabled();
+        this.lastComfortMode = o, this.comfortGlyph && this.comfortGlyph.setComfortMode(o, {
+          emitEvent: !1,
+          applyToManager: !1
+        }), this.emit("comfort-mode-change", {
+          enabled: o,
+          inVR: this.belowViewer.vrManager.isVRPresenting,
+          preset: o ? "comfort" : "free"
+        });
+      };
+    }
+    if (this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
+      const i = this.belowViewer.vrManager.vrCore.onSessionStart;
+      this.belowViewer.vrManager.vrCore.onSessionStart = async () => {
+        i && await i(), this.lastComfortMode !== null && setTimeout(() => {
+          this.lastComfortMode ? this.belowViewer.vrManager.setComfortPreset("comfort") : this.belowViewer.vrManager.setComfortPreset("free"), this.comfortGlyph.setComfortMode(this.lastComfortMode, {
+            emitEvent: !1,
+            applyToManager: !1
+          });
+        }, 50);
+      };
+    }
+    document.addEventListener("keydown", (i) => {
+      i.code === "KeyC" && (i.ctrlKey || i.metaKey) && (i.preventDefault(), this.comfortGlyph && this.comfortGlyph.toggle());
+    }), window.addEventListener("beforeunload", () => this.comfortGlyph && this.comfortGlyph.dispose());
   }
   _maybeAttachDiveSystem() {
     if (!this.config.enableDiveSystem || this.diveSystem) return;
@@ -13413,6 +13543,70 @@ class PA extends yt {
   _handleVRButtonVisibility(e) {
     const t = this.belowViewer?.vrManager?.vrCore?.vrButton;
     t && (e ? window.getComputedStyle(t).visibility !== "hidden" && (this._vrButtonWasVisible = !0, t.style.setProperty("visibility", "hidden", "important"), t.style.setProperty("opacity", "0", "important"), t.style.setProperty("pointer-events", "none", "important")) : this._vrButtonWasVisible && (t.style.setProperty("visibility", "visible", "important"), t.style.setProperty("opacity", "1", "important"), t.style.setProperty("pointer-events", "auto", "important"), this._vrButtonWasVisible = !1));
+  }
+  setupRecoveryHandlers() {
+    if (this.recoveryHandlers || !this.config.enableAutoRecovery || typeof window > "u" || typeof document > "u") return;
+    const e = this.belowViewer?.renderer?.domElement;
+    if (!e) return;
+    const t = () => {
+      document.hidden || this.queueRecovery("visibility-change", { forceReload: this.hadContextLoss });
+    }, s = () => {
+      this.queueRecovery("window-focus", { forceReload: !1 });
+    }, i = (o) => {
+      o && typeof o.preventDefault == "function" && o.preventDefault(), this.hadContextLoss = !0;
+    }, n = () => {
+      this.queueRecovery("context-restored", { forceReload: !0, delayMs: 120 });
+    };
+    document.addEventListener("visibilitychange", t), window.addEventListener("focus", s), e.addEventListener("webglcontextlost", i, !1), e.addEventListener("webglcontextrestored", n, !1), this.recoveryHandlers = {
+      canvas: e,
+      onVisibilityChange: t,
+      onWindowFocus: s,
+      onContextLost: i,
+      onContextRestored: n
+    };
+  }
+  queueRecovery(e, { forceReload: t = !1, delayMs: s = 200 } = {}) {
+    this.isDisposed || !this.config.enableAutoRecovery || (this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.recoveryTimer = setTimeout(() => {
+      this.recoveryTimer = null, this.tryRecoverFromInterruption(e, { forceReload: t });
+    }, s));
+  }
+  async tryRecoverFromInterruption(e, { forceReload: t = !1 } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery || typeof document < "u" && document.hidden) return;
+    if (this.isLoading) {
+      this.queueRecovery(e, { forceReload: !0, delayMs: 600 });
+      return;
+    }
+    const s = Date.now();
+    if (s - this.lastRecoveryAttemptAt < this.recoveryCooldownMs)
+      return;
+    this.lastRecoveryAttemptAt = s;
+    const i = this.belowViewer?.getLoadedModels?.()?.length || 0;
+    if (!(t || this.hadContextLoss || i === 0)) {
+      this.forceRefreshFrame();
+      return;
+    }
+    const o = Object.keys(this.config.models)[0], r = this.currentModelKey || this.lastRequestedModelKey || o;
+    if (!r || !this.config.models[r]) {
+      this.forceRefreshFrame();
+      return;
+    }
+    if (this.recoveryAttempts += 1, this.updateStatus("Recovering viewer..."), await this.loadModel(r), (this.belowViewer?.getLoadedModels?.()?.length || 0) > 0) {
+      this.hadContextLoss = !1, this.recoveryAttempts = 0, this.forceRefreshFrame(), this.emit("viewer-recovered", { reason: e, modelKey: r });
+      return;
+    }
+    this.recoveryAttempts < this.maxRecoveryAttempts ? this.queueRecovery(e, {
+      forceReload: !0,
+      delayMs: 400 + this.recoveryAttempts * 300
+    }) : this.updateStatus("Recovery failed. Try selecting the model again.");
+  }
+  forceRefreshFrame() {
+    const e = this.belowViewer?.renderer, t = this.belowViewer?.sceneManager?.scene, s = this.belowViewer?.cameraManager?.camera;
+    if (!(!e || !t || !s))
+      try {
+        const i = e.xr?.isPresenting;
+        this.belowViewer?.stereoEnabled && !i && this.belowViewer?.stereoMode === "sbs" && typeof this.belowViewer.renderSbsStereo == "function" ? this.belowViewer.renderSbsStereo() : e.render(t, s);
+      } catch {
+      }
   }
   toggleFullscreen() {
     if (this.isFullscreen()) {
@@ -13792,7 +13986,7 @@ class PA extends yt {
       console.error("Model not found:", e);
       return;
     }
-    this.currentModelKey = e, this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), this.belowViewer?.getLoadedModels()?.length > 0 && this.setManualLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
+    this.lastRequestedModelKey = e, this.currentModelKey = e, this.hadContextLoss = !1, this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.ui.dropdown && (this.ui.dropdown.value = e), this.showLoading("Preparing to load...", t.name || e), this.belowViewer?.getLoadedModels()?.length > 0 && this.setManualLoadingMessage("Cleaning up previous model..."), document.title = `BelowJS – ${t.name || e}`;
     try {
       this.measurementSystem && (this.measurementSystem.clearUnifiedMeasurement(), this.measurementSystem.clearLegacyVRMeasurement(), this.measurementSystem.clearLegacyDesktopMeasurement()), this.belowViewer.clearModels(), this.belowViewer.vrManager && (this.belowViewer.vrManager.stopMovement(), this.belowViewer.vrManager.resetTeleportState()), await new Promise((o) => setTimeout(o, 50));
       const n = await this.belowViewer.loadModel(t.url, {
@@ -13822,10 +14016,10 @@ class PA extends yt {
       });
       if (n) {
         const o = !!t.initialPositions?.desktop;
-        this.applyInitialPositions(t, n), t.type === "tileset" && !o && !this.belowViewer.isVRPresenting() && this.belowViewer.frameModel(n), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets(n), this.modelReady = !0, this.emit("model-switched", { modelKey: e, model: n, config: t }), this.emit("modelLoaded", { modelKey: e, model: n, config: t });
-      }
+        this.applyInitialPositions(t, n), t.type === "tileset" && !o && !this.belowViewer.isVRPresenting() && this.belowViewer.frameModel(n), this.hideLoading(), this.updateStatus(`Loaded: ${t.name || e}`), this.applyModelMeasurementConfig(t, n), this.modelReady = !0, this.recoveryAttempts = 0, this.emit("model-switched", { modelKey: e, model: n, config: t }), this.emit("modelLoaded", { modelKey: e, model: n, config: t });
+      } else this.currentModelKey === e && this.queueRecovery("empty-load-result", { forceReload: !0, delayMs: 350 });
     } catch (n) {
-      n.message !== "Loading cancelled" && (console.error("Failed to load model:", n), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.measurementSystem && this.measurementSystem.setRaycastTargets([]));
+      n.message !== "Loading cancelled" && (console.error("Failed to load model:", n), this.hideLoading(), this.updateStatus(`Error loading ${t.name || e}`), this.applyModelMeasurementConfig(t, null), this.currentModelKey === e && (typeof document > "u" || !document.hidden) && this.queueRecovery("model-load-error", { forceReload: !0, delayMs: 500 }));
     }
   }
   applyInitialPositions(e, t) {
@@ -13931,7 +14125,8 @@ class PA extends yt {
     }
   }
   onModelLoaded({ model: e }) {
-    this.measurementSystem && this.measurementSystem.setRaycastTargets(e), this.flyControls && this.flyControls.setModelSizeFromObject(e);
+    const t = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+    this.applyModelMeasurementConfig(t, e), this.flyControls && this.flyControls.setModelSizeFromObject(e);
   }
   onModelLoadError({ error: e }) {
     this.hideLoading(), this.updateStatus(`Failed to load model: ${e.message}`);
@@ -14110,8 +14305,48 @@ class PA extends yt {
       return this.belowViewer.setVRComfortSettings(e);
   }
   setVRComfortPreset(e) {
-    if (this.belowViewer && this.belowViewer.setVRComfortPreset)
-      return this.belowViewer.setVRComfortPreset(e);
+    const t = e === "comfort", s = e === "free", i = this.belowViewer && this.belowViewer.setVRComfortPreset ? this.belowViewer.setVRComfortPreset(e) : !1;
+    return (t || s) && (this.lastComfortMode = t, this.comfortGlyph && this.comfortGlyph.setComfortMode(t, {
+      emitEvent: !1,
+      applyToManager: !1
+    })), i;
+  }
+  /**
+   * Enable or disable comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setComfortMode(e) {
+    const t = e === !0, s = this.belowViewer && this.belowViewer.setVRComfortMode ? this.belowViewer.setVRComfortMode(t) : !1;
+    return this.lastComfortMode = t, this.comfortGlyph && this.comfortGlyph.setComfortMode(t, {
+      emitEvent: !1,
+      applyToManager: !1
+    }), s;
+  }
+  /**
+   * Toggle comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @returns {boolean} New comfort mode state
+   */
+  toggleComfortMode() {
+    const e = !this.getComfortMode();
+    return this.setComfortMode(e), e;
+  }
+  /**
+   * Check current comfort mode state.
+   *
+   * @returns {boolean}
+   */
+  getComfortMode() {
+    if (typeof this.lastComfortMode == "boolean")
+      return this.lastComfortMode;
+    const e = this.getVRComfortSettings();
+    return e ? e.locomotionMode === "teleport" && e.reducedMotion === !0 : !1;
   }
   /**
    * Get current VR comfort settings
@@ -14176,6 +14411,10 @@ class PA extends yt {
    * @since 1.0.0
    */
   dispose() {
+    if (this.isDisposed = !0, this.recoveryTimer && (clearTimeout(this.recoveryTimer), this.recoveryTimer = null), this.recoveryHandlers) {
+      const { canvas: e, onVisibilityChange: t, onWindowFocus: s, onContextLost: i, onContextRestored: n } = this.recoveryHandlers;
+      typeof document < "u" && t && document.removeEventListener("visibilitychange", t), typeof window < "u" && s && window.removeEventListener("focus", s), e && i && e.removeEventListener("webglcontextlost", i, !1), e && n && e.removeEventListener("webglcontextrestored", n, !1), this.recoveryHandlers = null;
+    }
     if (typeof window < "u" && window.modelViewer === this && (window.modelViewer = null), this.focusEventHandlers && this.belowViewer?.renderer?.domElement) {
       const e = this.belowViewer.renderer.domElement;
       e.removeEventListener("mousedown", this.focusEventHandlers.onMouseDown), e.removeEventListener("mousemove", this.focusEventHandlers.onMouseMove), e.removeEventListener("mouseup", this.focusEventHandlers.onMouseUp), e.removeEventListener("click", this.focusEventHandlers.onMouseClick), this.focusEventHandlers = null;

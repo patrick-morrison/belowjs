@@ -134,6 +134,20 @@
             
             <p>Another approach is to add a 1-meter cube, then scale visually until it matches a 1 m scale bar. This is good to reasonable accuracy, but not ideal.</p>
 
+            <h2>When Scale Is Uncertain</h2>
+            <p>If you cannot scale a model reliably yet, scale it as best you can for comfortable VR exploration, then disable measurement for that model so users do not treat distances as authoritative.</p>
+            <p>Set <code>measurable: false</code> in the model config before loading:</p>
+            <pre><code>new ModelViewer('#viewer', {
+  models: {
+    draft: {
+      url: 'draft-site.glb',
+      name: 'Draft Site (VR preview)',
+      measurable: false
+    }
+  }
+});</code></pre>
+            <p>This keeps the measurement panel visible but clearly unavailable for that model.</p>
+
             <h2>Next Steps</h2>
             <p>Once you have your model properly scaled and oriented, export it as a GLB file and move to <a href="optimisation.html">Model Optimisation</a> to reduce file sizes and improve performance for web and VR platforms.</p>
         </div>

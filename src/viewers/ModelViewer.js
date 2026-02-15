@@ -13,6 +13,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {string} [type='gltf'] - Model type ('gltf' or 'tileset')
  * @property {string} name - Display name for the model
  * @property {string} [credit] - Attribution text for the model
+ * @property {boolean} [measurable=true] - Whether this model can use the measurement system
  * @property {number} [errorTarget] - Tileset SSE target for streaming refinement
  * @property {number} [maxDepth] - Tileset traversal depth limit
  * @property {boolean} [loadSiblings] - Load sibling tiles for smoother refinement
@@ -104,6 +105,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {CameraConfig} [viewerConfig.camera] - Camera configuration
  * @property {Object} [viewerConfig.renderer] - Renderer configuration
  * @property {Object} [viewerConfig.stereo] - Stereo rendering configuration
+ * @property {boolean} [enableAutoRecovery=true] - Retry loading when tab focus/context interruptions leave the viewer blank
  * @property {string} [initialModel] - Key of model to load initially
  * @property {Object} [initialPositions] - Override initial positions for loaded model
  */
@@ -136,7 +138,8 @@ import { FlyControls } from '../core/FlyControls.js';
  *     'wreck': {
  *       url: 'models/shipwreck.glb',
  *       name: 'Historic Shipwreck',
- *       credit: 'Maritime Museum'
+ *       credit: 'Maritime Museum',
+ *       measurable: true
  *     }
  *   },
  *   enableVR: true,
@@ -163,7 +166,8 @@ import { FlyControls } from '../core/FlyControls.js';
  *     },
  *     'model2': {
  *       url: 'path/to/model2.glb',
- *       name: 'Model 2'
+ *       name: 'Model 2',
+ *       measurable: false
  *     }
  *   },
  *   enableVR: true,
@@ -211,6 +215,7 @@ export class ModelViewer extends EventSystem {
       flyControls: { type: 'object', default: {} },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
+      enableAutoRecovery: { type: 'boolean', default: true },
       viewerConfig: {
         type: 'object',
         default: {
@@ -251,6 +256,17 @@ export class ModelViewer extends EventSystem {
     this.lastManualLoadingMessage = '';
     this.stageOverrideActive = false;
     this.vrUpdateLoop = null;
+
+    // Recovery state for focus/context interruptions
+    this.lastRequestedModelKey = null;
+    this.recoveryHandlers = null;
+    this.recoveryTimer = null;
+    this.recoveryCooldownMs = 1200;
+    this.lastRecoveryAttemptAt = 0;
+    this.recoveryAttempts = 0;
+    this.maxRecoveryAttempts = 3;
+    this.hadContextLoss = false;
+    this.isDisposed = false;
     
     if (typeof window !== 'undefined') {
       window.modelViewer = this;
@@ -275,9 +291,11 @@ export class ModelViewer extends EventSystem {
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
 
     this.setupEventForwarding();
+    this.setupRecoveryHandlers();
 
 
     this.belowViewer.on('initialized', () => {
+      this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
@@ -289,6 +307,7 @@ export class ModelViewer extends EventSystem {
 
 
     if (this.belowViewer.isInitialized) {
+      this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
       this._maybeAttachVRComfortGlyph();
@@ -333,8 +352,45 @@ export class ModelViewer extends EventSystem {
     }
     if (this.belowViewer.loadedModels && this.belowViewer.loadedModels.length > 0) {
       const modelRoot = this.belowViewer.loadedModels[0].model;
-      this.measurementSystem.setRaycastTargets(modelRoot);
+      const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+      this.applyModelMeasurementConfig(modelConfig, modelRoot);
     }
+  }
+
+  isModelMeasurable(modelConfig) {
+    return !modelConfig || modelConfig.measurable !== false;
+  }
+
+  applyModelMeasurementConfig(modelConfig, model = null) {
+    if (!this.measurementSystem) return;
+
+    const measurable = this.isModelMeasurable(modelConfig);
+    if (typeof this.measurementSystem.setMeasurementAvailability === 'function') {
+      this.measurementSystem.setMeasurementAvailability(measurable);
+    } else {
+      this.measurementSystem.clearUnifiedMeasurement();
+      this.measurementSystem.clearLegacyVRMeasurement();
+      this.measurementSystem.clearLegacyDesktopMeasurement();
+      this.measurementSystem.desktopMeasurementMode = false;
+      this.measurementSystem.measurementSystemEnabled = measurable;
+      this.measurementSystem.updateMeasurementPanel();
+    }
+
+    if (this.measurementSystem.ghostSpheres) {
+      const showGhostSpheres = measurable && this.measurementSystem.isVR;
+      if (this.measurementSystem.ghostSpheres.left) {
+        this.measurementSystem.ghostSpheres.left.visible = showGhostSpheres;
+      }
+      if (this.measurementSystem.ghostSpheres.right) {
+        this.measurementSystem.ghostSpheres.right.visible = showGhostSpheres;
+      }
+    }
+
+    if (measurable && model) {
+      this.measurementSystem.setRaycastTargets(model);
+      return;
+    }
+    this.measurementSystem.setRaycastTargets([]);
   }
 
   async _maybeAttachVRComfortGlyph() {
@@ -353,10 +409,46 @@ export class ModelViewer extends EventSystem {
       offsetX: 20,
       offsetY: 70
     });
-    this.lastComfortMode = this.comfortGlyph.isComfortMode;
+
+    const settings = this.belowViewer.getVRComfortSettings ? this.belowViewer.getVRComfortSettings() : null;
+    const fallbackMode = settings
+      ? settings.locomotionMode === 'teleport' && settings.reducedMotion === true
+      : false;
+    const initialComfortMode = typeof this.lastComfortMode === 'boolean'
+      ? this.lastComfortMode
+      : fallbackMode;
+    this.lastComfortMode = initialComfortMode;
+    this.comfortGlyph.setComfortMode(initialComfortMode, {
+      emitEvent: false,
+      applyToManager: false
+    });
+
     this.comfortGlyph.element.addEventListener('vrcomfortchange', (event) => {
       this.lastComfortMode = event.detail.isComfortMode;
     });
+    if (this.belowViewer.vrManager) {
+      const originalComfortChange = this.belowViewer.vrManager.onComfortModeChange;
+      this.belowViewer.vrManager.onComfortModeChange = (data) => {
+        if (originalComfortChange) {
+          originalComfortChange(data);
+        }
+        const enabled = data && typeof data.enabled === 'boolean'
+          ? data.enabled
+          : this.belowViewer.vrManager.isComfortModeEnabled();
+        this.lastComfortMode = enabled;
+        if (this.comfortGlyph) {
+          this.comfortGlyph.setComfortMode(enabled, {
+            emitEvent: false,
+            applyToManager: false
+          });
+        }
+        this.emit('comfort-mode-change', {
+          enabled,
+          inVR: this.belowViewer.vrManager.isVRPresenting,
+          preset: enabled ? 'comfort' : 'free'
+        });
+      };
+    }
     if (this.belowViewer.vrManager && this.belowViewer.vrManager.vrCore) {
       // Chain with existing onSessionStart callback instead of replacing it
       const originalCallback = this.belowViewer.vrManager.vrCore.onSessionStart;
@@ -373,7 +465,10 @@ export class ModelViewer extends EventSystem {
             } else {
               this.belowViewer.vrManager.setComfortPreset('free');
             }
-            this.comfortGlyph.setComfortMode(this.lastComfortMode);
+            this.comfortGlyph.setComfortMode(this.lastComfortMode, {
+              emitEvent: false,
+              applyToManager: false
+            });
           }, 50);
         }
       };
@@ -616,6 +711,133 @@ export class ModelViewer extends EventSystem {
         vrButton.style.setProperty('pointer-events', 'auto', 'important');
         this._vrButtonWasVisible = false;
       }
+    }
+  }
+
+  setupRecoveryHandlers() {
+    if (this.recoveryHandlers || !this.config.enableAutoRecovery) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const canvas = this.belowViewer?.renderer?.domElement;
+    if (!canvas) return;
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        this.queueRecovery('visibility-change', { forceReload: this.hadContextLoss });
+      }
+    };
+
+    const onWindowFocus = () => {
+      this.queueRecovery('window-focus', { forceReload: false });
+    };
+
+    const onContextLost = (event) => {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      this.hadContextLoss = true;
+    };
+
+    const onContextRestored = () => {
+      this.queueRecovery('context-restored', { forceReload: true, delayMs: 120 });
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onWindowFocus);
+    canvas.addEventListener('webglcontextlost', onContextLost, false);
+    canvas.addEventListener('webglcontextrestored', onContextRestored, false);
+
+    this.recoveryHandlers = {
+      canvas,
+      onVisibilityChange,
+      onWindowFocus,
+      onContextLost,
+      onContextRestored
+    };
+  }
+
+  queueRecovery(reason, { forceReload = false, delayMs = 200 } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery) return;
+
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
+
+    this.recoveryTimer = setTimeout(() => {
+      this.recoveryTimer = null;
+      this.tryRecoverFromInterruption(reason, { forceReload });
+    }, delayMs);
+  }
+
+  async tryRecoverFromInterruption(reason, { forceReload = false } = {}) {
+    if (this.isDisposed || !this.config.enableAutoRecovery) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+    if (this.isLoading) {
+      this.queueRecovery(reason, { forceReload: true, delayMs: 600 });
+      return;
+    }
+
+    const now = Date.now();
+    if (now - this.lastRecoveryAttemptAt < this.recoveryCooldownMs) {
+      return;
+    }
+    this.lastRecoveryAttemptAt = now;
+
+    const loadedCount = this.belowViewer?.getLoadedModels?.()?.length || 0;
+    const shouldReload = forceReload || this.hadContextLoss || loadedCount === 0;
+
+    if (!shouldReload) {
+      this.forceRefreshFrame();
+      return;
+    }
+
+    const fallbackKey = Object.keys(this.config.models)[0];
+    const modelKey = this.currentModelKey || this.lastRequestedModelKey || fallbackKey;
+    if (!modelKey || !this.config.models[modelKey]) {
+      this.forceRefreshFrame();
+      return;
+    }
+
+    this.recoveryAttempts += 1;
+    this.updateStatus('Recovering viewer...');
+    await this.loadModel(modelKey);
+
+    const recovered = (this.belowViewer?.getLoadedModels?.()?.length || 0) > 0;
+    if (recovered) {
+      this.hadContextLoss = false;
+      this.recoveryAttempts = 0;
+      this.forceRefreshFrame();
+      this.emit('viewer-recovered', { reason, modelKey });
+      return;
+    }
+
+    if (this.recoveryAttempts < this.maxRecoveryAttempts) {
+      this.queueRecovery(reason, {
+        forceReload: true,
+        delayMs: 400 + this.recoveryAttempts * 300
+      });
+    } else {
+      this.updateStatus('Recovery failed. Try selecting the model again.');
+    }
+  }
+
+  forceRefreshFrame() {
+    const renderer = this.belowViewer?.renderer;
+    const scene = this.belowViewer?.sceneManager?.scene;
+    const camera = this.belowViewer?.cameraManager?.camera;
+    if (!renderer || !scene || !camera) return;
+
+    try {
+      const isXRPresenting = renderer.xr?.isPresenting;
+      if (this.belowViewer?.stereoEnabled && !isXRPresenting && this.belowViewer?.stereoMode === 'sbs' &&
+        typeof this.belowViewer.renderSbsStereo === 'function') {
+        this.belowViewer.renderSbsStereo();
+      } else {
+        renderer.render(scene, camera);
+      }
+    } catch {
+      // Ignore one-off render errors and rely on next animation frame.
     }
   }
 
@@ -1539,7 +1761,13 @@ export class ModelViewer extends EventSystem {
       console.error('Model not found:', modelKey);
       return;
     }
+    this.lastRequestedModelKey = modelKey;
     this.currentModelKey = modelKey;
+    this.hadContextLoss = false;
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
 
     if (this.ui.dropdown) {
       this.ui.dropdown.value = modelKey;
@@ -1610,14 +1838,15 @@ export class ModelViewer extends EventSystem {
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);
 
-        if (this.measurementSystem) {
-          this.measurementSystem.setRaycastTargets(model);
-        }
+        this.applyModelMeasurementConfig(modelConfig, model);
         
 
         this.modelReady = true;
+        this.recoveryAttempts = 0;
         this.emit('model-switched', { modelKey, model, config: modelConfig });
         this.emit('modelLoaded', { modelKey, model, config: modelConfig });
+      } else if (this.currentModelKey === modelKey) {
+        this.queueRecovery('empty-load-result', { forceReload: true, delayMs: 350 });
       }
     } catch (error) {
       if (error.message !== 'Loading cancelled') {
@@ -1626,8 +1855,12 @@ export class ModelViewer extends EventSystem {
         this.updateStatus(`Error loading ${modelConfig.name || modelKey}`);
         
 
-        if (this.measurementSystem) {
-          this.measurementSystem.setRaycastTargets([]);
+        this.applyModelMeasurementConfig(modelConfig, null);
+        if (this.currentModelKey === modelKey) {
+          const shouldRetryNow = typeof document === 'undefined' || !document.hidden;
+          if (shouldRetryNow) {
+            this.queueRecovery('model-load-error', { forceReload: true, delayMs: 500 });
+          }
         }
       }
     }
@@ -1869,9 +2102,8 @@ export class ModelViewer extends EventSystem {
   }
   
   onModelLoaded({ model }) {
-    if (this.measurementSystem) {
-      this.measurementSystem.setRaycastTargets(model);
-    }
+    const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
+    this.applyModelMeasurementConfig(modelConfig, model);
     if (this.flyControls) {
       this.flyControls.setModelSizeFromObject(model);
     }
@@ -2099,9 +2331,76 @@ export class ModelViewer extends EventSystem {
   }
   
   setVRComfortPreset(preset) {
-    if (this.belowViewer && this.belowViewer.setVRComfortPreset) {
-      return this.belowViewer.setVRComfortPreset(preset);
+    const isComfort = preset === 'comfort';
+    const isFree = preset === 'free';
+    const changed = this.belowViewer && this.belowViewer.setVRComfortPreset
+      ? this.belowViewer.setVRComfortPreset(preset)
+      : false;
+
+    if (isComfort || isFree) {
+      this.lastComfortMode = isComfort;
+      if (this.comfortGlyph) {
+        this.comfortGlyph.setComfortMode(isComfort, {
+          emitEvent: false,
+          applyToManager: false
+        });
+      }
     }
+
+    return changed;
+  }
+
+  /**
+   * Enable or disable comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setComfortMode(enabled) {
+    const target = enabled === true;
+    const changed = this.belowViewer && this.belowViewer.setVRComfortMode
+      ? this.belowViewer.setVRComfortMode(target)
+      : false;
+
+    this.lastComfortMode = target;
+    if (this.comfortGlyph) {
+      this.comfortGlyph.setComfortMode(target, {
+        emitEvent: false,
+        applyToManager: false
+      });
+    }
+
+    return changed;
+  }
+
+  /**
+   * Toggle comfort mode.
+   *
+   * Works both inside and outside active VR sessions.
+   *
+   * @returns {boolean} New comfort mode state
+   */
+  toggleComfortMode() {
+    const next = !this.getComfortMode();
+    this.setComfortMode(next);
+    return next;
+  }
+
+  /**
+   * Check current comfort mode state.
+   *
+   * @returns {boolean}
+   */
+  getComfortMode() {
+    if (typeof this.lastComfortMode === 'boolean') {
+      return this.lastComfortMode;
+    }
+
+    const settings = this.getVRComfortSettings();
+    if (!settings) return false;
+    return settings.locomotionMode === 'teleport' && settings.reducedMotion === true;
   }
   
   /**
@@ -2186,6 +2485,27 @@ export class ModelViewer extends EventSystem {
    * @since 1.0.0
    */
   dispose() {
+    this.isDisposed = true;
+    if (this.recoveryTimer) {
+      clearTimeout(this.recoveryTimer);
+      this.recoveryTimer = null;
+    }
+    if (this.recoveryHandlers) {
+      const { canvas, onVisibilityChange, onWindowFocus, onContextLost, onContextRestored } = this.recoveryHandlers;
+      if (typeof document !== 'undefined' && onVisibilityChange) {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+      }
+      if (typeof window !== 'undefined' && onWindowFocus) {
+        window.removeEventListener('focus', onWindowFocus);
+      }
+      if (canvas && onContextLost) {
+        canvas.removeEventListener('webglcontextlost', onContextLost, false);
+      }
+      if (canvas && onContextRestored) {
+        canvas.removeEventListener('webglcontextrestored', onContextRestored, false);
+      }
+      this.recoveryHandlers = null;
+    }
     if (typeof window !== 'undefined' && window.modelViewer === this) {
       window.modelViewer = null;
     }

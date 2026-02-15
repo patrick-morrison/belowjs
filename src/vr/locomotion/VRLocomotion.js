@@ -360,10 +360,10 @@ export class VRLocomotion {
       this.setComfortSettings({
         locomotionMode: 'teleport',
         turningMode: 'snap',
-        snapTurnAngle: 30,
+        snapTurnAngle: 22.5,
         reducedMotion: true,
         showTeleportArc: true,
-        comfortSpeed: 0.3
+        comfortSpeed: 0.45
       });
       return true;
     } else if (preset === 'free') {

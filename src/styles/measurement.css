@@ -79,3 +79,23 @@
   background: rgba(0, 0, 0, 0.85);
   box-shadow: 0 0 24px rgba(59, 130, 246, 0.2);
 }
+
+.measurement-panel.unavailable,
+.measurement-panel.unavailable:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.measurement-panel.light-theme.unavailable,
+.measurement-panel.light-theme.unavailable:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+  box-shadow: none;
+  cursor: not-allowed;
+}

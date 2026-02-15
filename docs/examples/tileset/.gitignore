@@ -1,0 +1,7 @@
+# Generated tileset datasets (local/dev artifacts)
+.DS_Store
+*.3tz
+*.3dtiles
+**/tileset.json
+**/Data/
+**/App/

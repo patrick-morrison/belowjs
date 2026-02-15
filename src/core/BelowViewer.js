@@ -1182,8 +1182,48 @@ export class BelowViewer extends EventSystem {
    */
   setVRComfortPreset(preset) {
     if (this.vrManager) {
-      this.vrManager.setComfortPreset(preset);
+      return this.vrManager.setComfortPreset(preset);
     }
+    return false;
+  }
+
+  /**
+   * Enable or disable comfort mode.
+   *
+   * Works while in VR and before entering VR by pre-configuring locomotion settings.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setVRComfortMode(enabled) {
+    if (this.vrManager) {
+      return this.vrManager.setComfortMode(enabled);
+    }
+    return false;
+  }
+
+  /**
+   * Toggle comfort mode and return the new state.
+   *
+   * @returns {boolean}
+   */
+  toggleVRComfortMode() {
+    if (this.vrManager) {
+      return this.vrManager.toggleComfortMode();
+    }
+    return false;
+  }
+
+  /**
+   * Check if comfort mode is enabled.
+   *
+   * @returns {boolean}
+   */
+  isVRComfortModeEnabled() {
+    if (this.vrManager) {
+      return this.vrManager.isComfortModeEnabled();
+    }
+    return false;
   }
 
 

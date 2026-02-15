@@ -6,7 +6,7 @@
 
 📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Current Version:** `1.5.0` - Fly mode controls, experimental stereoscopic viewing, and improved material rendering.
+> **Current Version:** `1.6.0` - Comfort-mode APIs, per-model measurability controls, and stronger recovery after context interruptions.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -39,7 +39,8 @@ import 'belowjs/dist/belowjs.css';
 const config = {
     models: {
         'kxi': {
-            url: 'shipwreck.glb'
+            url: 'shipwreck.glb',
+            measurable: true // optional, defaults to true
         }
     }
 };
@@ -59,11 +60,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.js"
         }
     }
     </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>
@@ -75,7 +76,8 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
         const config = {
             models: {
                 'kxi': {
-                    url: 'shipwreck.glb'
+                    url: 'shipwreck.glb',
+                    measurable: true // optional, defaults to true
                 }
             }
         };
@@ -162,7 +164,22 @@ import { ModelViewer } from 'belowjs';
 import 'belowjs/dist/belowjs.css';
 
 new ModelViewer('#container', {
-  models: { 'ship': { url: 'model.glb', name: 'Historic Ship' } }
+  models: {
+    'ship': { url: 'model.glb', name: 'Historic Ship', measurable: true }
+  }
+});
+```
+
+### Per-Model Measurement Availability
+```javascript
+new ModelViewer('#container', {
+  models: {
+    'draftSite': {
+      url: 'draft-site.glb',
+      name: 'Draft Site',
+      measurable: false // disable measurements for uncertain scale
+    }
+  }
 });
 ```
 

@@ -94,6 +94,7 @@ export class VRManager {
     this.onMovementStart = null;
     this.onMovementStop = null;
     this.onMovementUpdate = null;
+    this.onComfortModeChange = null;
     
     this.init();
   }
@@ -288,7 +289,52 @@ export class VRManager {
    * @since 1.0.0
    */
   setComfortPreset(preset) {
-    this.vrLocomotion.setComfortPreset(preset);
+    const wasComfort = this.isComfortModeEnabled();
+    const applied = this.vrLocomotion.setComfortPreset(preset);
+    if (applied && typeof this.onComfortModeChange === 'function') {
+      const isComfort = this.isComfortModeEnabled();
+      this.onComfortModeChange({
+        enabled: isComfort,
+        changed: isComfort !== wasComfort,
+        preset: isComfort ? 'comfort' : 'free',
+        inVR: this.isVRPresenting,
+        settings: this.getComfortSettings()
+      });
+    }
+    return applied;
+  }
+
+  /**
+   * Enable or disable comfort mode explicitly.
+   *
+   * Works both inside and outside active VR sessions by updating locomotion state.
+   *
+   * @param {boolean} enabled
+   * @returns {boolean}
+   */
+  setComfortMode(enabled) {
+    return this.setComfortPreset(enabled ? 'comfort' : 'free');
+  }
+
+  /**
+   * Toggle comfort mode.
+   *
+   * @returns {boolean} The new comfort mode state.
+   */
+  toggleComfortMode() {
+    const next = !this.isComfortModeEnabled();
+    this.setComfortMode(next);
+    return next;
+  }
+
+  /**
+   * Check whether comfort mode is currently enabled.
+   *
+   * @returns {boolean}
+   */
+  isComfortModeEnabled() {
+    const settings = this.vrLocomotion.getComfortSettings();
+    return settings.locomotionMode === 'teleport' && settings.reducedMotion === true;
   }
   
 

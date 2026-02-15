@@ -10,6 +10,7 @@ export class VRComfortGlyph {
     this.vrManager = vrManager;
     this.isComfortMode = false;
     this._iconRendered = false;
+    this.lastToggleAt = 0;
     
 
     this.options = {
@@ -18,6 +19,7 @@ export class VRComfortGlyph {
       position: options.position || 'bottom-right',
       offsetX: options.offsetX || 20,
       offsetY: options.offsetY || 120,
+      toggleCooldownMs: options.toggleCooldownMs || 180,
       ...options
     };
     
@@ -56,8 +58,8 @@ export class VRComfortGlyph {
     this.renderIcon();
     this.element.tabIndex = 0;
     this.element.role = 'button';
-    this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
-    this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable');
+    this.element.title = 'Comfort Mode Off';
+    this.element.setAttribute('aria-label', 'Comfort mode off. Click to enable.');
     
 
     const semanticToggle = modeToggleContainer.querySelector('.semantic-toggle');
@@ -76,10 +78,10 @@ export class VRComfortGlyph {
     this.element.id = 'vrComfortGlyph';
     this.element.className = 'vr-comfort-glyph comfort-off';
     this.renderIcon();
-    this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
+    this.element.title = 'Comfort Mode Off';
     this.element.tabIndex = 0;
     this.element.role = 'button';
-    this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
+    this.element.setAttribute('aria-label', 'Comfort mode off. Click to enable.');
     
 
     const container = this.options.containerId ? 
@@ -105,19 +107,19 @@ export class VRComfortGlyph {
     styleSheet.textContent = `
       .vr-comfort-glyph {
         position: absolute;
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
-        background: rgba(0, 0, 0, 0.6);
-        border: 2px solid #666;
+        background: rgba(15, 23, 42, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
-        font-size: 18px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 140ms ease, color 120ms ease;
+        font-size: 16px;
         z-index: 10000;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(8px);
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -128,8 +130,8 @@ export class VRComfortGlyph {
       }
       
       .vr-comfort-circle {
-        width: 60px;
-        height: 60px;
+        width: 54px;
+        height: 54px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -138,9 +140,9 @@ export class VRComfortGlyph {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 180ms ease, color 120ms ease, filter 180ms ease;
-        font-size: 18px;
-        margin-left: 12px;
+        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 140ms ease, color 120ms ease;
+        font-size: 16px;
+        margin-left: 10px;
         position: relative;
         user-select: none;
         -webkit-user-select: none;
@@ -153,8 +155,8 @@ export class VRComfortGlyph {
       }
       
       .vr-comfort-circle:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.18);
       }
       
   .vr-comfort-circle:focus-visible {
@@ -175,23 +177,23 @@ export class VRComfortGlyph {
       }
       
       .vr-comfort-circle.comfort-off:hover {
-        color: rgba(255, 255, 255, 0.7) !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: rgba(255, 255, 255, 0.68) !important;
+        background: rgba(255, 255, 255, 0.09) !important;
+        border-color: rgba(255, 255, 255, 0.18) !important;
         box-shadow: none !important;
       }
       
       .vr-comfort-circle.comfort-on {
-        color: #4ade80 !important;
-        background: rgba(74, 222, 128, 0.1) !important;
-        border-color: rgba(74, 222, 128, 0.3) !important;
-        box-shadow: 0 0 20px rgba(74, 222, 128, 0.1) !important;
+        color: rgba(236, 253, 245, 0.98) !important;
+        background: rgba(74, 222, 128, 0.14) !important;
+        border-color: rgba(74, 222, 128, 0.8) !important;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.86), 0 6px 18px rgba(2, 6, 23, 0.24) !important;
       }
       
       .vr-comfort-circle.comfort-on:hover {
-        background: rgba(74, 222, 128, 0.15) !important;
-        border-color: rgba(74, 222, 128, 0.4) !important;
-        box-shadow: 0 0 30px rgba(74, 222, 128, 0.15) !important;
+        background: rgba(74, 222, 128, 0.2) !important;
+        border-color: rgba(74, 222, 128, 0.9) !important;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.92), 0 8px 22px rgba(2, 6, 23, 0.3) !important;
       }
       
       #modeToggleContainer {
@@ -207,7 +209,7 @@ export class VRComfortGlyph {
       }
       
       .vr-comfort-glyph:hover {
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(15, 23, 42, 0.7);
       }
       
   .vr-comfort-glyph:focus-visible {
@@ -215,31 +217,29 @@ export class VRComfortGlyph {
         outline-offset: 2px;
       }
   .vr-comfort-glyph.comfort-on:focus-visible { outline-color: #4ade80; }
-  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: #666; }
+  .vr-comfort-glyph.comfort-off:focus-visible { outline-color: rgba(255,255,255,0.35); }
       
       .vr-comfort-glyph.comfort-off {
-        color: #666;
-        border-color: #666;
-        background: rgba(0, 0, 0, 0.6);
+        color: rgba(226, 232, 240, 0.55);
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(15, 23, 42, 0.58);
         box-shadow: none;
-        filter: none;
       }
       
       .vr-comfort-glyph.comfort-on {
-        color: #4ade80;
-        border-color: #4ade80;
-        background: rgba(74, 222, 128, 0.1);
-        box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
-        filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
+        color: rgba(236, 253, 245, 0.98);
+        border-color: rgba(74, 222, 128, 0.8);
+        background: rgba(74, 222, 128, 0.15);
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.86), 0 6px 20px rgba(2, 6, 23, 0.25);
       }
 
       
       .vr-comfort-emoji {
         display: block;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 1;
         transform: translateY(0.5px);
-        transition: transform 120ms ease;
+        transition: transform 90ms ease;
       }
       .vr-comfort-circle:active .vr-comfort-emoji,
       .vr-comfort-glyph:active .vr-comfort-emoji {
@@ -268,10 +268,10 @@ export class VRComfortGlyph {
       
       @media (max-width: 768px) {
         .vr-comfort-circle {
-          width: 50px;
-          height: 50px;
-          font-size: 18px;
-          margin-left: 10px;
+          width: 48px;
+          height: 48px;
+          font-size: 16px;
+          margin-left: 8px;
         }
         
         #modeToggleContainer {
@@ -281,9 +281,9 @@ export class VRComfortGlyph {
         
         
         .vr-comfort-glyph {
-          width: 48px !important;
-          height: 48px !important;
-          font-size: 24px !important;
+          width: 42px !important;
+          height: 42px !important;
+          font-size: 20px !important;
         }
         
         .vr-comfort-glyph.position-bottom-right {
@@ -373,13 +373,13 @@ export class VRComfortGlyph {
     if (this.isComfortMode) {
 
       this.element.classList.add('comfort-on');
-      this.element.title = 'Comfort Mode: ON (Teleport Movement)';
-      this.element.setAttribute('aria-label', 'Comfort Mode is ON - Click to disable');
+      this.element.title = 'Comfort Mode On';
+      this.element.setAttribute('aria-label', 'Comfort mode on. Click to disable.');
     } else {
 
       this.element.classList.add('comfort-off');
-      this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
-      this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable');
+      this.element.title = 'Comfort Mode Off';
+      this.element.setAttribute('aria-label', 'Comfort mode off. Click to enable.');
     }
     
   }
@@ -396,46 +396,53 @@ export class VRComfortGlyph {
     if (this.isComfortMode) {
 
       this.element.classList.add('comfort-on');
-      this.element.title = 'Comfort Mode: ON (Teleport Movement)';
-      this.element.setAttribute('aria-label', 'Comfort Mode is ON - Click to disable');
+      this.element.title = 'Comfort Mode On';
+      this.element.setAttribute('aria-label', 'Comfort mode on. Click to disable.');
     } else {
 
       this.element.classList.add('comfort-off');
-      this.element.title = 'Comfort Mode: OFF (Smooth Movement)';
-      this.element.setAttribute('aria-label', 'Comfort Mode is OFF - Click to enable comfortable movement');
+      this.element.title = 'Comfort Mode Off';
+      this.element.setAttribute('aria-label', 'Comfort mode off. Click to enable.');
     }
     this.renderIcon();
     
   }
-  
-  toggle() {
-    this.isComfortMode = !this.isComfortMode;
-    
-    if (this.vrManager) {
-      if (this.isComfortMode) {
 
-        this.vrManager.setComfortPreset('comfort');
-      } else {
+  applyComfortMode(enabled, { emitEvent = true, applyToManager = true } = {}) {
+    this.isComfortMode = enabled === true;
 
-        this.vrManager.setComfortPreset('free');
-      }
+    if (applyToManager && this.vrManager) {
+      this.vrManager.setComfortPreset(this.isComfortMode ? 'comfort' : 'free');
     }
-    
-    this.updateVisualState();
-    
 
-    const event = new CustomEvent('vrcomfortchange', {
-      detail: {
-        isComfortMode: this.isComfortMode,
-        preset: this.isComfortMode ? 'comfort' : 'free'
-      }
-    });
-    this.element.dispatchEvent(event);
+    this.updateVisualState();
+
+    if (emitEvent && this.element) {
+      const event = new CustomEvent('vrcomfortchange', {
+        detail: {
+          isComfortMode: this.isComfortMode,
+          preset: this.isComfortMode ? 'comfort' : 'free'
+        }
+      });
+      this.element.dispatchEvent(event);
+    }
   }
   
-  setComfortMode(enabled) {
-    if (this.isComfortMode !== enabled) {
-      this.toggle();
+  toggle() {
+    const now = Date.now();
+    if (now - this.lastToggleAt < this.options.toggleCooldownMs) {
+      return;
+    }
+    this.lastToggleAt = now;
+    this.applyComfortMode(!this.isComfortMode, { emitEvent: true, applyToManager: true });
+  }
+  
+  setComfortMode(enabled, { emitEvent = true, applyToManager = true } = {}) {
+    const target = enabled === true;
+    if (this.isComfortMode !== target) {
+      this.applyComfortMode(target, { emitEvent, applyToManager });
+    } else {
+      this.updateVisualState();
     }
   }
   

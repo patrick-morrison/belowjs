@@ -201,6 +201,9 @@
             <p>Full-featured multi-model viewer with VR support, measurement tools, and dive mode.</p>
             <p class="example-note"><strong>Note:</strong> Copy this one to make your own viewer. This and a handful of
                 model files is all you need.</p>
+            <p class="example-note"><strong>Measurement tip:</strong> If a model cannot be scaled reliably yet, scale it
+                as best you can for VR viewing and set <code>measurable: false</code> on that model at load time so users
+                do not treat measurements as authoritative.</p>
             <div class="example-links">
                 <a href="examples/basic/" target="_blank" class="button demo-btn">View Live Demo</a>
                 <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/basic" target="_blank"
@@ -312,12 +315,12 @@ npm run dev</code></pre>
     &lt;script type="importmap"&gt;
     {
         "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.js"
         }
     }
     &lt;/script&gt;
-    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css"&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.css"&gt;
     &lt;style&gt;
         body, html { margin: 0; padding: 0; overflow: hidden; }
     &lt;/style&gt;
@@ -327,7 +330,7 @@ npm run dev</code></pre>
         import { ModelViewer } from 'belowjs';
         
         new ModelViewer('body', {
-            models: { 'ship': { url: 'model.glb' } }
+            models: { 'ship': { url: 'model.glb', measurable: true } }
         });
     &lt;/script&gt;
 &lt;/body&gt;
