@@ -179,6 +179,12 @@ import { FlyControls } from '../core/FlyControls.js';
  * @since 1.0.0
  */
 export class ModelViewer extends EventSystem {
+  static _isEditableTarget(target) {
+    if (!(target instanceof HTMLElement)) return false;
+    const tag = target.tagName;
+    return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || target.isContentEditable;
+  }
+
   /**
    * Creates a new ModelViewer instance
    * 
@@ -475,6 +481,7 @@ export class ModelViewer extends EventSystem {
     }
 
     document.addEventListener('keydown', (event) => {
+      if (ModelViewer._isEditableTarget(event.target)) return;
       if (event.code === 'KeyC' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         if (this.comfortGlyph) this.comfortGlyph.toggle();
@@ -498,6 +505,7 @@ export class ModelViewer extends EventSystem {
     }, 100);
 
     document.addEventListener('keydown', (event) => {
+      if (ModelViewer._isEditableTarget(event.target)) return;
       if (event.code === 'KeyZ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         if (this.belowViewer?.arManager?.isActive?.()) {
           return;
