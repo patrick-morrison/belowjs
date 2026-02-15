@@ -6,7 +6,7 @@
 
 📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Current Version:** `1.5.0` - Fly mode controls, experimental stereoscopic viewing, and improved material rendering.
+> **Current Version:** `1.6.0` - Comfort-mode APIs, per-model measurability controls, and stronger recovery after context interruptions.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -60,11 +60,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.js"
         }
     }
     </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.5.0/dist/belowjs.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.6.0/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>

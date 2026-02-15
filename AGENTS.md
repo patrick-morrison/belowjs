@@ -39,7 +39,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
    - `README.md` (version badge text + CDN URLs in Quick Start section)
    - `AGENTS.md` (Current version section below)
 8) **VERIFY**: Check all docs files have correct version
-   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.4.2"` (should be empty)
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.6.0"` (should be empty)
 9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -90,11 +90,11 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.5.0)
-- New: Fly mode controls with F key or Shift+~ to activate
-- New: Experimental stereoscopic viewing mode with configurable eye separation
-- New: Z key to toggle between dive mode and studio mode
-- New: H key to take screenshot
-- Improved: Material conversion upgraded to MeshStandardMaterial with PBR defaults
-- Fixed: Support for deprecated KHR_materials_pbrSpecularGlossiness GLTF extension
-- Fixed: Support for logarithmicDepthBuffer renderer option
+## Current (1.6.0)
+- New: Programmatic comfort-mode APIs for ModelViewer and BelowViewer
+- New: Per-model measurement availability via optional `models[modelKey].measurable`
+- New: Disabled-state measurement UX with tooltip for non-measurable models
+- Improved: Comfort toggle styling with clearer active green ring
+- Improved: Comfort teleport visuals with thinner arc and tuned range
+- Fixed: Prevent mode switches to dive mode during immersive AR sessions
+- Fixed: Recovery after tab focus/context loss with model reload and WebGL context restore handling
