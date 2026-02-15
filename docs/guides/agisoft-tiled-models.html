@@ -91,24 +91,17 @@
             <h1>Tiled Models</h1>
             <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, February 15, 2026</em></p>
 
-            <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0; color: #334155; line-height: 1.5;">
-                    <strong>Note:</strong> 3D Tiles support is currently experimental and may change in future releases. It is planned to stabilise in BelowJS v2, targeted for later in 2026.
+            <h2>BelowJS supports tiled models to handle massive scenes</h2>
+            <p>BelowJS supports both single-file GLB models and streamed 3D Tiles datasets. Use a standard model entry (default <code>type: 'gltf'</code>) for single-file delivery, or set <code>type: 'tileset'</code> when you need hierarchical streaming from a root <code>tileset.json</code>. For Quest-targeted GLBs, a practical upper limit is around 1.2 million polygons; if you cannot stay near that after optimisation, use tilesets.</p>
+            <p>At this scale, a single full-resolution model would be very slow to load over the internet, and trying to render all detail at once on a standalone Quest headset can freeze the device. With tilesets, BelowJS streams only the detail needed for the current view. During VR sessions, BelowJS prioritises rendering, then throttles and schedules tile queue work with small per-frame budgets to reduce locomotion hitches while streaming.</p>
+            <p>We have tested datasets up to 20 million vertices; in theory, this streaming approach should scale arbitrarily, similar to how Google Earth streams the entire planet.</p>
+
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin: 1.5rem 0 2rem 0;">
+                <img src="screenshots/tileset.gif" alt="Denton Holme and Macedon model loading in BelowJS with progressive 3D Tiles streaming" style="width: 100%; height: auto; border-radius: 8px; display: block;">
+                <p style="text-align: center; margin: 0.75rem auto 0.1rem auto; max-width: 95%; font-size: 0.93em; color: #475569; line-height: 1.55;">
+                    <strong><a href="../examples/tileset/" target="_blank">Denton Holme and Macedon 2023 example</a>:</strong> 455.25 MB total converted dataset size, 6,336,051 vertices at finest-detail leaf tiles, and texture area equivalent to about 77 x 4K textures. Tile detail streams in progressively as you move.
                 </p>
             </div>
-
-            <h2>Do You Need Tilesets?</h2>
-            <p>BelowJS supports both single-file GLB models and streamed 3D Tiles datasets. Use a standard model entry (default <code>type: 'gltf'</code>) for single-file delivery, or set <code>type: 'tileset'</code> when you need hierarchical streaming from a root <code>tileset.json</code>. For Quest-targeted GLBs, a practical upper limit is around <code>1.2 million polygons</code>; if you cannot stay near that after optimisation, use tilesets.</p>
-            <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.2rem; margin: 1.25rem 0; border-radius: 4px;">
-                <p style="margin: 0 0 0.6rem 0; color: #334155; line-height: 1.5;">
-                    <strong><a href="../examples/tileset/" target="_blank">Denton Holme and Macedon 2023 example</a> (local export):</strong>
-                    <code>455.25 MB</code> total converted dataset size, <code>6,336,051</code> vertices at finest-detail leaf tiles, and texture area equivalent to about <code>77</code> x <code>4K</code> textures.
-                </p>
-                <p style="margin: 0; color: #334155; line-height: 1.5;">
-                    At this scale, a single full-resolution model would be very slow to load over the internet, and trying to render all detail at once on a standalone Quest headset can freeze the device. With tilesets, BelowJS streams only the detail needed for the current view. We have tested datasets up to <code>20 million</code> vertices; in theory, this streaming approach should scale arbitrarily, similar to how Google Earth streams the entire planet.
-                </p>
-            </div>
-
             <h2>Metashape to BelowJS</h2>
             <p>Metashape exports tiled datasets as <code>.3tz</code>, which is an archive. If you are using Metashape, this corresponds to its <code>Cesium 3D Tiles v1.1 (*.3tz)</code> export option. BelowJS does not load the archive directly; it loads the root <code>tileset.json</code> inside a converted folder. The workflow is: export <code>*.3tz</code>, run the <a href="https://github.com/patrick-morrison/belowjs/blob/main/examples/tileset/convert-3tz.sh" target="_blank"><code>convert-3tz.sh</code> conversion script</a>, then load the resulting <code>tileset.json</code> URL in the <a href="../examples/tileset/" target="_blank">tiled model example</a>.</p>
             <p>The script is a wrapper around <code>3d-tiles-tools</code>: it runs <code>convert</code>, then <code>upgrade --targetVersion</code> (1.0 or 1.1, default 1.1), verifies <code>tileset.json</code> exists after each step, and removes the extra <code>App/</code> wrapper folder. If you prefer your own pipeline, run equivalent steps and load the resulting <code>tileset.json</code>.</p>
@@ -136,11 +129,16 @@
                 <li><strong>Performance issues:</strong> lower <code>maxTriangles</code> and/or raise <code>errorTarget</code>; these directly reduce rendered detail.</li>
                 <li><strong>Texture/transcoding issues:</strong> verify conversion output and keep <code>enableGltfExtensions: true</code> (default). If self-hosting transcoders, set <code>dracoDecoderPath</code> and <code>ktx2TranscoderPath</code> explicitly.</li>
             </ul>
+            <div style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 1.2rem; margin: 1.25rem 0 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #334155; line-height: 1.5;">
+                    <strong>Note:</strong> 3D Tiles support was released in 1.7 and is currently experimental. It is planned to stabilise in BelowJS v2 later this year.
+                </p>
+            </div>
 
             <h2>References</h2>
             <ul>
-                <li><a href="https://nasa-ammos.github.io/3DTilesSampleData/" target="_blank">NASA-AMMOS 3D Tiles viewer</a> - reference viewer and sample datasets for sanity checks</li>
-                <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools</a> - the CLI used by <code>convert-3tz.sh</code> to convert and upgrade Metashape exports</li>
+                <li><a href="https://github.com/NASA-AMMOS/3DTilesRendererJS" target="_blank">NASA-AMMOS 3DTilesRendererJS (GitHub)</a> - powers tiled-model loading in BelowJS; we tune it, add more robust VR scheduling, and link with the rest of the BelowJS features</li>
+                <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools (GitHub)</a> - the CLI used by <code>convert-3tz.sh</code> to convert and upgrade Metashape exports</li>
             </ul>
 
             <h2>Next Steps</h2>
