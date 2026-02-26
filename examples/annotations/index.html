@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BelowJS - Annotations Example</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📍</text></svg>">
+
+    <!-- Import map for local testing -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "belowjs": "/dist/belowjs.js"
+        }
+    }
+    </script>
+
+    <link rel="stylesheet" href="/dist/belowjs.css">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #011322;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        #viewer {
+            position: fixed;
+            inset: 0;
+        }
+
+        .example-hud {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 200;
+            pointer-events: none;
+            max-width: min(520px, calc(100% - 24px));
+            background: rgba(0, 0, 0, 0.74);
+            color: rgba(233, 245, 255, 0.95);
+            border: 1px solid rgba(125, 183, 230, 0.32);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            line-height: 1.45;
+            backdrop-filter: blur(8px);
+        }
+
+        .example-hud code {
+            color: #8bd4ff;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+    <div class="example-hud">
+        Click numbered markers to navigate between authored notes.<br>
+        Use <code>[</code> and <code>]</code> for previous/next.<br>
+        Author mode starts enabled. Right-click model → <code>Create Marker Here</code>.<br>
+        Export JSON: <code>annotationExport('kxi-annotations.json', { createdBy: 'Your Name' })</code><br>
+        Run <code>annotationHelp()</code> in the console for all commands.
+    </div>
+
+    <script type="module">
+        import { ModelViewer } from 'belowjs';
+
+        const modelAnnotations = {
+            metadata: {
+                createdBy: 'BelowJS Example',
+                createdAt: '2026-02-20T00:00:00.000Z'
+            },
+            annotations: [
+                {
+                    id: 'bow',
+                    title: 'Bow Survey Point',
+                    contentType: 'markdown',
+                    content: '**Forward section** often contains impact clues.\\n\\nUse this authored view to compare hull curvature and plating continuity.',
+                    position: { x: 2.14, y: 1.1, z: -15.37 },
+                    camera: {
+                        desktop: {
+                            camera: { x: 13.729, y: 5.994, z: -25.457 },
+                            target: { x: 2.071, y: 0.702, z: -15.496 }
+                        },
+                        vr: {
+                            dolly: { x: 2.4, y: 1.8, z: -22.5 },
+                            rotation: { x: 0, y: 0.36, z: 0 }
+                        }
+                    },
+                    metadata: {
+                        createdBy: 'BelowJS Example',
+                        createdAt: '2026-02-20T00:00:00.000Z'
+                    }
+                },
+                {
+                    id: 'midships',
+                    title: 'Midships Structure',
+                    contentType: 'html',
+                    content: '<p>This section is useful for comparative documentation between surveys.</p><p><strong>Tip:</strong> Keep this authored camera as a repeatable frame when collecting updated imagery.</p>',
+                    position: { x: -0.88, y: 0.25, z: -12.31 },
+                    camera: {
+                        desktop: {
+                            camera: { x: 8.202, y: 4.846, z: -8.065 },
+                            target: { x: -0.82, y: 0.134, z: -12.215 }
+                        },
+                        vr: {
+                            dolly: { x: 0.5, y: 1.7, z: -8.8 },
+                            rotation: { x: 0, y: 2.65, z: 0 }
+                        }
+                    },
+                    metadata: {
+                        createdBy: 'BelowJS Example',
+                        createdAt: '2026-02-20T00:00:00.000Z'
+                    }
+                },
+                {
+                    id: 'stern',
+                    title: 'Stern Observation',
+                    contentType: 'text',
+                    content: 'This marker demonstrates plain text content. Use authored targets to keep walkthroughs and review handoffs consistent.',
+                    position: { x: 3.26, y: -0.94, z: -18.74 },
+                    camera: {
+                        desktop: {
+                            camera: { x: 16.114, y: 4.284, z: -8.213 },
+                            target: { x: 3.304, y: -0.896, z: -18.712 }
+                        },
+                        vr: {
+                            dolly: { x: 4.4, y: 1.8, z: -11.2 },
+                            rotation: { x: 0, y: 2.18, z: 0 }
+                        }
+                    },
+                    metadata: {
+                        createdBy: 'BelowJS Example',
+                        createdAt: '2026-02-20T00:00:00.000Z'
+                    }
+                }
+            ]
+        };
+
+        const viewer = new ModelViewer(document.getElementById('viewer'), {
+            enableVR: true,
+            showInfo: true,
+            enableMeasurement: true,
+            enableAnnotations: true,
+            annotationCreatedBy: 'BelowJS Example',
+            enableVRComfortGlyph: true,
+            enableFullscreen: true,
+            enableScreenshot: true,
+            autoLoadFirst: true,
+            models: {
+                kxi: {
+                    url: '../basic/models/kxi.glb',
+                    name: 'HNLMS K XI (1946)',
+                    credit: 'WreckSploration',
+                    initialPositions: {
+                        desktop: {
+                            camera: { x: -6.391, y: 12.461, z: -42.105 },
+                            target: { x: 1.529, y: 0.088, z: -14.334 }
+                        },
+                        vr: {
+                            dolly: { x: 0, y: 2, z: 15 },
+                            rotation: { x: 0, y: 0, z: 0 }
+                        }
+                    },
+                    annotations: modelAnnotations
+                }
+            },
+            viewerConfig: {
+                scene: {
+                    background: '#001122'
+                }
+            }
+        });
+
+        viewer.setAnnotationEditMode(true);
+        window.viewer = viewer;
+    </script>
+</body>
+</html>

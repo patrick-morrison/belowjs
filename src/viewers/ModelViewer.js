@@ -3,6 +3,7 @@ import { ConfigValidator } from '../utils/ConfigValidator.js';
 import { BelowViewer } from '../core/BelowViewer.js';
 import { EventSystem } from '../utils/EventSystem.js';
 import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
+import { AnnotationSystem } from '../annotation/AnnotationSystem.js';
 import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 import { DiveSystem } from '../dive/DiveSystem.js';
 import { FlyControls } from '../core/FlyControls.js';
@@ -36,6 +37,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {Object} [initialPositions.vr] - VR viewing positions
  * @property {Object} [initialPositions.vr.dolly] - VR dolly position {x, y, z}
  * @property {Object} [initialPositions.vr.rotation] - VR rotation {x, y, z}
+ * @property {Array|Object|string} [annotations] - Inline annotations array/object or URL to a JSON annotation file
  */
 
 /**
@@ -85,7 +87,9 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean} [showInfo=false] - Show info panel
  * @property {boolean} [enableVR=false] - Enable VR support
  * @property {boolean} [enableMeasurement=false] - Enable measurement system
+ * @property {boolean} [enableAnnotations=true] - Enable authored annotations system
  * @property {string} [measurementTheme='dark'] - Measurement panel theme ('dark' or 'light')
+ * @property {string} [annotationCreatedBy=''] - Default metadata author for newly created annotations
  * @property {boolean} [showMeasurementLabels=false] - Show measurement labels in desktop mode (always shown in VR)
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
  * @property {boolean} [enableDiveSystem=false] - Enable underwater dive system
@@ -210,7 +214,9 @@ export class ModelViewer extends EventSystem {
       enableVR: { type: 'boolean', default: false },
       enableAR: { type: 'boolean', default: false },
       enableMeasurement: { type: 'boolean', default: true },
+      enableAnnotations: { type: 'boolean', default: true },
       measurementTheme: { type: 'string', default: 'dark' },
+      annotationCreatedBy: { type: 'string', default: '' },
       showMeasurementLabels: { type: 'boolean', default: false },
       enableVRComfortGlyph: { type: 'boolean', default: false },
       enableDiveSystem: { type: 'boolean', default: true },
@@ -246,6 +252,7 @@ export class ModelViewer extends EventSystem {
     this.stereoUiSyncQueued = false;
     this.stereoUiActive = false;
     this.measurementSystem = null;
+    this.annotationSystem = null;
     this.comfortGlyph = null;
     this.diveSystem = null;
     this.fullscreenButton = null;
@@ -273,9 +280,13 @@ export class ModelViewer extends EventSystem {
     this.maxRecoveryAttempts = 3;
     this.hadContextLoss = false;
     this.isDisposed = false;
+    this.annotationCameraAnimation = null;
+    this.cancelAnnotationCameraOnInput = null;
+    this._annotationDebugGlobals = [];
     
     if (typeof window !== 'undefined') {
       window.modelViewer = this;
+      this.setupAnnotationDebugCommands();
     }
     
     this.init();
@@ -304,6 +315,7 @@ export class ModelViewer extends EventSystem {
       this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
+      this._maybeAttachAnnotationSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
       this._maybeAttachScreenshotButton();
@@ -316,6 +328,7 @@ export class ModelViewer extends EventSystem {
       this.setupRecoveryHandlers();
       this.setupFocusInteraction();
       this._maybeAttachMeasurementSystem();
+      this._maybeAttachAnnotationSystem();
       this._maybeAttachVRComfortGlyph();
       this._maybeAttachDiveSystem();
       this._maybeAttachScreenshotButton();
@@ -360,6 +373,35 @@ export class ModelViewer extends EventSystem {
       const modelRoot = this.belowViewer.loadedModels[0].model;
       const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
       this.applyModelMeasurementConfig(modelConfig, modelRoot);
+    }
+  }
+
+  _maybeAttachAnnotationSystem() {
+    if (!this.config.enableAnnotations || this.annotationSystem) return;
+
+    this.annotationSystem = new AnnotationSystem({
+      scene: this.belowViewer.sceneManager.scene,
+      camera: this.belowViewer.cameraManager.camera,
+      renderer: this.belowViewer.renderer,
+      controls: this.belowViewer.cameraManager.controls,
+      uiParent: this.getUiContainer(),
+      getRaycastInfo: (event) => this.getPointerRaycastInfo(event),
+      getRaycastTargets: () => this.getAnnotationRaycastTargets(),
+      getCameraSnapshot: () => this.captureCurrentCameraSnapshot(),
+      onRequestNavigate: (annotation, context) => this.navigateToAnnotation(annotation, context),
+      isHelperObject: (object) => this.isMeasurementHelper(object),
+      createdBy: this.config.annotationCreatedBy,
+      theme: this.config.measurementTheme
+    });
+
+    const update = () => this.annotationSystem && this.annotationSystem.update();
+    if (this.belowViewer.onAfterRender) {
+      this.belowViewer.onAfterRender(update);
+    } else if (this.onAfterRender) {
+      this.onAfterRender(update);
+    } else {
+      const loop = () => { update(); requestAnimationFrame(loop); };
+      loop();
     }
   }
 
@@ -975,6 +1017,45 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('vr-movement-start', (data) => this.emit('vr-movement-start', data));
     this.belowViewer.on('vr-movement-stop', (data) => this.emit('vr-movement-stop', data));
     this.belowViewer.on('vr-movement-update', (data) => this.emit('vr-movement-update', data));
+
+    this.belowViewer.on('ar-session-start', (data) => {
+      this.emit('ar-session-start', data);
+      this.onARSessionStart();
+    });
+    this.belowViewer.on('ar-session-end', (data) => {
+      this.emit('ar-session-end', data);
+      this.onARSessionEnd();
+    });
+  }
+
+  attachXRInputsToAnnotations({ retryCount = 0 } = {}) {
+    if (!this.annotationSystem || !this.belowViewer?.renderer?.xr) return;
+    const xr = this.belowViewer.renderer.xr;
+    if (typeof xr.getController !== 'function') return;
+
+    const controller1 = xr.getController(0);
+    const controller2 = xr.getController(1);
+    const controllerGrip1 = xr.getControllerGrip ? xr.getControllerGrip(0) : undefined;
+    const controllerGrip2 = xr.getControllerGrip ? xr.getControllerGrip(1) : undefined;
+    const hand1 = xr.getHand ? xr.getHand(0) : undefined;
+    const hand2 = xr.getHand ? xr.getHand(1) : undefined;
+
+    this.annotationSystem.attachVR({
+      controller1,
+      controller2,
+      controllerGrip1,
+      controllerGrip2,
+      hand1,
+      hand2
+    });
+
+    // Hand/controller objects can appear a moment after XR session start.
+    if (retryCount < 8) {
+      const hasTrackedInput = Boolean((hand1 && hand1.joints) || (hand2 && hand2.joints) || controller1 || controller2);
+      if (!hasTrackedInput) {
+        setTimeout(() => this.attachXRInputsToAnnotations({ retryCount: retryCount + 1 }), 180);
+      }
+    }
   }
 
 
@@ -1034,6 +1115,10 @@ export class ModelViewer extends EventSystem {
       }, 100); // 100ms delay to ensure controllers are ready
     }
 
+    if (this.annotationSystem) {
+      setTimeout(() => this.attachXRInputsToAnnotations(), 100);
+    }
+
   }
 
   onVRSessionEnd() {
@@ -1072,6 +1157,29 @@ export class ModelViewer extends EventSystem {
           this.measurementSystem.ghostSpheres.right.visible = false;
         }
       }
+    }
+    if (this.annotationSystem && typeof this.annotationSystem.detachVR === 'function') {
+      this.annotationSystem.detachVR();
+      this.annotationSystem.update();
+    }
+  }
+
+  onARSessionStart() {
+    if (this.ui.info) {
+      this.ui.info.style.display = 'none';
+    }
+    if (this.annotationSystem) {
+      setTimeout(() => this.attachXRInputsToAnnotations(), 100);
+    }
+  }
+
+  onARSessionEnd() {
+    if (this.ui.info && this.config.showInfo) {
+      this.ui.info.style.display = 'block';
+    }
+    if (this.annotationSystem && typeof this.annotationSystem.detachVR === 'function') {
+      this.annotationSystem.detachVR();
+      this.annotationSystem.update();
     }
   }
 
@@ -1112,6 +1220,7 @@ export class ModelViewer extends EventSystem {
     };
 
     const onMouseClick = (event) => {
+      if (event.defaultPrevented) return;
       const currentTime = Date.now();
       const isDoubleClick = currentTime - lastClickTime < DOUBLE_CLICK_TIME;
       lastClickTime = currentTime;
@@ -1188,6 +1297,9 @@ export class ModelViewer extends EventSystem {
   }
 
   focusOnPoint(event) {
+    if (event && event.defaultPrevented) {
+      return;
+    }
     const raycastInfo = this.getPointerRaycastInfo(event);
     const mouse = raycastInfo?.mouse;
     const camera = raycastInfo?.camera;
@@ -1791,6 +1903,11 @@ export class ModelViewer extends EventSystem {
         this.measurementSystem.clearLegacyVRMeasurement();
         this.measurementSystem.clearLegacyDesktopMeasurement();
       }
+      if (this.annotationSystem) {
+        this.annotationSystem.clearAnnotations();
+        this.annotationSystem.setRaycastTargets([]);
+        this.cancelAnnotationCameraAnimation();
+      }
 
       this.belowViewer.clearModels();
 
@@ -1842,6 +1959,7 @@ export class ModelViewer extends EventSystem {
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);
 
         this.applyModelMeasurementConfig(modelConfig, model);
+        await this.applyModelAnnotations(modelConfig, modelKey, model);
         
 
         this.modelReady = true;
@@ -1859,6 +1977,7 @@ export class ModelViewer extends EventSystem {
         
 
         this.applyModelMeasurementConfig(modelConfig, null);
+        await this.applyModelAnnotations(modelConfig, modelKey, null);
         if (this.currentModelKey === modelKey) {
           const shouldRetryNow = typeof document === 'undefined' || !document.hidden;
           if (shouldRetryNow) {
@@ -1914,6 +2033,367 @@ export class ModelViewer extends EventSystem {
         controls.update();
       }
     }
+  }
+
+  getAnnotationRaycastTargets() {
+    if (this.measurementSystem && Array.isArray(this.measurementSystem._raycastTargets) && this.measurementSystem._raycastTargets.length > 0) {
+      return this.measurementSystem._raycastTargets;
+    }
+
+    const loaded = this.belowViewer?.getLoadedModels?.() || [];
+    if (loaded.length > 0 && loaded[loaded.length - 1]?.model) {
+      return [loaded[loaded.length - 1].model];
+    }
+
+    const scene = this.belowViewer?.sceneManager?.scene;
+    return scene ? scene.children : [];
+  }
+
+  captureCurrentCameraSnapshot() {
+    const camera = this.belowViewer?.cameraManager?.camera;
+    const controls = this.belowViewer?.cameraManager?.controls;
+    const dolly = this.belowViewer?.dolly;
+
+    const snapshot = {};
+    if (camera && controls) {
+      snapshot.desktop = {
+        camera: {
+          x: Number(camera.position.x.toFixed(4)),
+          y: Number(camera.position.y.toFixed(4)),
+          z: Number(camera.position.z.toFixed(4))
+        },
+        target: {
+          x: Number(controls.target.x.toFixed(4)),
+          y: Number(controls.target.y.toFixed(4)),
+          z: Number(controls.target.z.toFixed(4))
+        }
+      };
+    }
+
+    if (dolly) {
+      snapshot.vr = {
+        dolly: {
+          x: Number(dolly.position.x.toFixed(4)),
+          y: Number(dolly.position.y.toFixed(4)),
+          z: Number(dolly.position.z.toFixed(4))
+        },
+        rotation: {
+          x: Number(dolly.rotation.x.toFixed(4)),
+          y: Number(dolly.rotation.y.toFixed(4)),
+          z: Number(dolly.rotation.z.toFixed(4))
+        }
+      };
+    }
+
+    return snapshot;
+  }
+
+  cancelAnnotationCameraAnimation() {
+    if (this.annotationCameraAnimation) {
+      cancelAnimationFrame(this.annotationCameraAnimation);
+      this.annotationCameraAnimation = null;
+    }
+    if (this.cancelAnnotationCameraOnInput && this.belowViewer?.cameraManager?.controls) {
+      this.belowViewer.cameraManager.controls.removeEventListener('start', this.cancelAnnotationCameraOnInput);
+      this.cancelAnnotationCameraOnInput = null;
+    }
+  }
+
+  animateDesktopCameraTo(cameraPosition, targetPosition, duration = 950) {
+    const camera = this.belowViewer?.cameraManager?.camera;
+    const controls = this.belowViewer?.cameraManager?.controls;
+    if (!camera || !controls) return;
+
+    const toVector3 = (value) => {
+      if (!value) return null;
+      if (value.isVector3) return value.clone();
+      const x = Number(value.x);
+      const y = Number(value.y);
+      const z = Number(value.z);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+        return null;
+      }
+      return new THREE.Vector3(x, y, z);
+    };
+
+    const targetCamera = toVector3(cameraPosition);
+    const targetTarget = toVector3(targetPosition);
+    if (!targetCamera || !targetTarget) return;
+
+    this.cancelAnnotationCameraAnimation();
+
+    const startTarget = controls.target.clone();
+    const startPosition = camera.position.clone();
+    const startTime = performance.now();
+
+    const cancelOnUserInput = () => this.cancelAnnotationCameraAnimation();
+    this.cancelAnnotationCameraOnInput = cancelOnUserInput;
+    controls.addEventListener('start', cancelOnUserInput, { once: true });
+
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      controls.target.lerpVectors(startTarget, targetTarget, eased);
+      camera.position.lerpVectors(startPosition, targetCamera, eased);
+      controls.update();
+
+      if (progress < 1) {
+        this.annotationCameraAnimation = requestAnimationFrame(animate);
+      } else {
+        this.cancelAnnotationCameraAnimation();
+      }
+    };
+
+    this.annotationCameraAnimation = requestAnimationFrame(animate);
+  }
+
+  navigateToAnnotation(annotation, _context = {}) {
+    if (!annotation) return;
+    if (this.belowViewer?.renderer?.xr?.isPresenting) return;
+
+    const desktopCamera = annotation.camera?.desktop?.camera;
+    const desktopTarget = annotation.camera?.desktop?.target;
+
+    if (desktopCamera && desktopTarget) {
+      this.animateDesktopCameraTo(desktopCamera, desktopTarget, 950);
+      return;
+    }
+
+    if (annotation.position && this.belowViewer?.cameraManager) {
+      this.belowViewer.cameraManager.focusOn(annotation.position);
+    }
+  }
+
+  async resolveModelAnnotations(modelConfig) {
+    const source = modelConfig?.annotations;
+    if (!source) return null;
+
+    if (typeof source === 'string') {
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new Error(`Failed to load annotations from ${source}: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    return source;
+  }
+
+  async applyModelAnnotations(modelConfig, modelKey, model) {
+    if (!this.annotationSystem) return;
+
+    if (model) {
+      this.annotationSystem.setRaycastTargets(model);
+    } else {
+      this.annotationSystem.setRaycastTargets([]);
+    }
+
+    const metadata = {
+      createdBy: this.config.annotationCreatedBy || '',
+      modelName: modelConfig?.name || modelKey || ''
+    };
+
+    try {
+      const resolved = await this.resolveModelAnnotations(modelConfig);
+      if (resolved) {
+        this.annotationSystem.setAnnotations(resolved, { modelKey, metadata });
+      } else {
+        this.annotationSystem.setAnnotations([], { modelKey, metadata });
+      }
+    } catch (error) {
+      console.warn('[ModelViewer] Failed to load annotations', error);
+      this.annotationSystem.setAnnotations([], { modelKey, metadata });
+    }
+  }
+
+  setAnnotations(annotations, options = {}) {
+    if (!this.annotationSystem) return [];
+    return this.annotationSystem.setAnnotations(annotations, {
+      modelKey: this.currentModelKey,
+      metadata: {
+        createdBy: this.config.annotationCreatedBy || '',
+        ...(options.metadata || {})
+      }
+    });
+  }
+
+  getAnnotations() {
+    if (!this.annotationSystem) return [];
+    return this.annotationSystem.getAnnotations();
+  }
+
+  downloadAnnotations(filename = null, metadata = {}) {
+    if (!this.annotationSystem) return null;
+    const modelName = this.currentModelKey || 'annotations';
+    const exportName = filename || `${modelName}-annotations.json`;
+    return this.annotationSystem.downloadAnnotations(exportName, {
+      createdBy: this.config.annotationCreatedBy || '',
+      ...metadata
+    });
+  }
+
+  setAnnotationEditMode(enabled) {
+    if (!this.annotationSystem) return false;
+    return this.annotationSystem.setEditMode(enabled);
+  }
+
+  toggleAnnotationEditMode() {
+    if (!this.annotationSystem) return false;
+    return this.annotationSystem.toggleEditMode();
+  }
+
+  isAnnotationEditMode() {
+    return this.annotationSystem ? this.annotationSystem.isEditModeEnabled() : false;
+  }
+
+  openAnnotation(index, options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.openAnnotation(index, options);
+  }
+
+  openAnnotationById(id, options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.openAnnotationById(id, options);
+  }
+
+  openAnnotationNumber(number, options = {}) {
+    const oneBased = Number(number);
+    if (!Number.isFinite(oneBased)) return null;
+    return this.openAnnotation(oneBased - 1, options);
+  }
+
+  nextAnnotation(options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.nextAnnotation(options);
+  }
+
+  previousAnnotation(options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.previousAnnotation(options);
+  }
+
+  getAnnotationIndexById(id) {
+    if (!this.annotationSystem) return -1;
+    return this.annotationSystem.getAnnotationIndexById(id);
+  }
+
+  getAnnotationById(id) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.getAnnotationById(id);
+  }
+
+  addAnnotation(annotation, options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.addAnnotation(annotation, options);
+  }
+
+  createAnnotationAtPosition(position, options = {}) {
+    if (!this.annotationSystem) return null;
+    return this.annotationSystem.createAnnotationAtPoint(position, options);
+  }
+
+  removeAnnotation(index) {
+    if (!this.annotationSystem) return false;
+    return this.annotationSystem.removeAnnotation(index);
+  }
+
+  removeAnnotationById(id) {
+    if (!this.annotationSystem) return false;
+    return this.annotationSystem.removeAnnotationById(id);
+  }
+
+  removeAnnotationNumber(number) {
+    const oneBased = Number(number);
+    if (!Number.isFinite(oneBased)) return false;
+    return this.removeAnnotation(oneBased - 1);
+  }
+
+  setupAnnotationDebugCommands() {
+    if (typeof window === 'undefined' || this._annotationDebugGlobals.length > 0) return;
+
+    window.annotationEdit = (enabled) => {
+      if (typeof enabled === 'boolean') {
+        const state = this.setAnnotationEditMode(enabled);
+        console.log(`[ModelViewer] Annotation edit mode: ${state ? 'ON' : 'OFF'}`);
+        return state;
+      }
+      const state = this.toggleAnnotationEditMode();
+      console.log(`[ModelViewer] Annotation edit mode: ${state ? 'ON' : 'OFF'}`);
+      return state;
+    };
+
+    window.annotationOpen = (index) => this.openAnnotation(Number(index), { navigate: true });
+    window.annotationOpenId = (id) => this.openAnnotationById(id, { navigate: true });
+    window.annotationOpenNumber = (number) => this.openAnnotationNumber(number, { navigate: true });
+    window.annotationNext = () => this.nextAnnotation({ navigate: true });
+    window.annotationPrev = () => this.previousAnnotation({ navigate: true });
+    window.annotationAdd = (annotation = {}, options = {}) => this.addAnnotation(annotation, options);
+    window.annotationCreateAt = (position, options = {}) => this.createAnnotationAtPosition(position, options);
+    window.annotationRemove = (index) => this.removeAnnotation(Number(index));
+    window.annotationRemoveId = (id) => this.removeAnnotationById(id);
+    window.annotationRemoveNumber = (number) => this.removeAnnotationNumber(number);
+    window.annotationExport = (filename = null, metadata = {}) => this.downloadAnnotations(filename, metadata);
+    window.annotationDownload = window.annotationExport;
+    window.annotationById = (id) => this.getAnnotationById(id);
+    window.annotationIndexOf = (id) => this.getAnnotationIndexById(id);
+    window.annotations = () => this.getAnnotations();
+    window.annotationCamera = () => this.captureCurrentCameraSnapshot();
+    window.annotationHelp = () => {
+      console.log('🧭 Annotation debug commands:');
+      console.log('  annotationEdit(true|false?)  - Toggle or set edit mode');
+      console.log('  annotationOpen(index)         - Open annotation by zero-based index');
+      console.log('  annotationOpenNumber(number)  - Open annotation by one-based marker number');
+      console.log('  annotationOpenId(id)          - Open annotation by id');
+      console.log('  annotationNext() / annotationPrev()');
+      console.log('  annotationAdd(annotation)     - Add annotation from object');
+      console.log('  annotationCreateAt({x,y,z})   - Add annotation at world position');
+      console.log('  annotationRemove(index)       - Remove annotation by zero-based index');
+      console.log('  annotationRemoveNumber(n)     - Remove annotation by one-based marker number');
+      console.log('  annotationRemoveId(id)        - Remove annotation by id');
+      console.log('  annotationById(id)            - Get annotation data by id');
+      console.log('  annotationIndexOf(id)         - Get zero-based index for id');
+      console.log('  annotationExport(filename?)   - Download annotations JSON');
+      console.log('  annotationCamera()            - Capture current camera snapshot');
+      console.log('  annotations()                 - List current annotations');
+      console.log('');
+      console.log('Edit mode workflow:');
+      console.log('  1) annotationEdit(true)');
+      console.log('  2) Right-click model in edit mode, then choose "Create Marker Here"');
+      console.log('  3) annotationExport("my-model-annotations.json")');
+    };
+
+    this._annotationDebugGlobals = [
+      'annotationEdit',
+      'annotationOpen',
+      'annotationOpenId',
+      'annotationOpenNumber',
+      'annotationNext',
+      'annotationPrev',
+      'annotationAdd',
+      'annotationCreateAt',
+      'annotationRemove',
+      'annotationRemoveId',
+      'annotationRemoveNumber',
+      'annotationExport',
+      'annotationDownload',
+      'annotationById',
+      'annotationIndexOf',
+      'annotations',
+      'annotationCamera',
+      'annotationHelp'
+    ];
+  }
+
+  cleanupAnnotationDebugCommands() {
+    if (typeof window === 'undefined') return;
+    this._annotationDebugGlobals.forEach((name) => {
+      if (window[name]) {
+        delete window[name];
+      }
+    });
+    this._annotationDebugGlobals = [];
   }
   
   showLoading(message = 'Loading...', modelName = null) {
@@ -2107,6 +2587,9 @@ export class ModelViewer extends EventSystem {
   onModelLoaded({ model }) {
     const modelConfig = this.currentModelKey ? this.config.models[this.currentModelKey] : null;
     this.applyModelMeasurementConfig(modelConfig, model);
+    if (this.annotationSystem && model) {
+      this.annotationSystem.setRaycastTargets(model);
+    }
     if (this.flyControls) {
       this.flyControls.setModelSizeFromObject(model);
     }
@@ -2489,6 +2972,7 @@ export class ModelViewer extends EventSystem {
    */
   dispose() {
     this.isDisposed = true;
+    this.cancelAnnotationCameraAnimation();
     if (this.recoveryTimer) {
       clearTimeout(this.recoveryTimer);
       this.recoveryTimer = null;
@@ -2512,6 +2996,7 @@ export class ModelViewer extends EventSystem {
     if (typeof window !== 'undefined' && window.modelViewer === this) {
       window.modelViewer = null;
     }
+    this.cleanupAnnotationDebugCommands();
     if (this.focusEventHandlers && this.belowViewer?.renderer?.domElement) {
       const domElement = this.belowViewer.renderer.domElement;
       domElement.removeEventListener('mousedown', this.focusEventHandlers.onMouseDown);
@@ -2523,6 +3008,10 @@ export class ModelViewer extends EventSystem {
     if (this.measurementSystem) {
       this.measurementSystem.dispose();
       this.measurementSystem = null;
+    }
+    if (this.annotationSystem) {
+      this.annotationSystem.dispose();
+      this.annotationSystem = null;
     }
     if (this.comfortGlyph) {
       this.comfortGlyph.dispose();

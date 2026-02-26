@@ -45,6 +45,7 @@ export default defineConfig({
   server: {
     port: 5173,
     open: 'examples/basic/',  // Open the basic example by default
+    allowedHosts: true,
     cors: true,
     watch: {
       include: ['src/**/*', 'dist/**/*', 'examples/**/*'],

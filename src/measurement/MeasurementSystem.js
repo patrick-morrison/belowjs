@@ -1145,6 +1145,9 @@ export class MeasurementSystem {
     }, 10);
   }
   onMouseClick(event) {
+    if (event.defaultPrevented) {
+      return;
+    }
     if (!this.measurementAvailable) {
       return;
     }
