@@ -1859,6 +1859,22 @@
 
             const key = e.key.toLowerCase();
 
+            // Keep the custom dive toggle UI in sync when ModelViewer handles Z
+            if (key === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                setTimeout(() => {
+                    const diveSystem = viewer.diveSystem;
+                    if (!diveSystem) return;
+                    const isDiveMode = typeof diveSystem.isDiveMode === 'function'
+                        ? diveSystem.isDiveMode()
+                        : !!diveSystem.isDiveModeEnabled;
+                    if (diveToggle.checked !== isDiveMode) {
+                        diveToggle.checked = isDiveMode;
+                        diveToggle.dispatchEvent(new Event('change'));
+                    }
+                }, 0);
+                return;
+            }
+
             // Playback Controls
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -2235,7 +2251,11 @@
             const diveSystem = viewer.diveSystem;
             if (diveToggle.checked) {
                 if (diveSystem) {
-                    diveSystem.enableDiveMode();
+                    if (typeof diveSystem.setDiveMode === 'function') {
+                        diveSystem.setDiveMode(true);
+                    } else {
+                        diveSystem.enableDiveMode();
+                    }
                     torchControls.classList.add('visible');
                     surveyControls.classList.add('hidden');
                     // Sync values from sliders
@@ -2247,7 +2267,11 @@
                 }
             } else {
                 if (diveSystem) {
-                    diveSystem.disableDiveMode();
+                    if (typeof diveSystem.setDiveMode === 'function') {
+                        diveSystem.setDiveMode(false);
+                    } else {
+                        diveSystem.disableDiveMode();
+                    }
                     torchControls.classList.remove('visible');
                     surveyControls.classList.remove('hidden');
                     // Sync survey brightness
