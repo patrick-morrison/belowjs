@@ -886,13 +886,17 @@
 @media (max-width: 480px) {
     .landing-page {
         padding: 1.5rem 1rem;
-        gap: 1.5rem;
+        gap: 1rem;
         place-items: center;
     }
     
     .hero-content {
         max-width: 100%;
         text-align: center;
+    }
+
+    .version-tag {
+        margin-bottom: 12px;
     }
     
     .demo-section {
