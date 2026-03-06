@@ -33,7 +33,6 @@
         .semantic-toggle {
             display: none !important;
         }
-
     </style>
 </head>
 <body>
@@ -63,6 +62,7 @@
             defaultScale: 0.05  // 5%
           }
         };
+
         const viewerContainer = document.createElement('div');
         viewerContainer.style.position = 'fixed';
         viewerContainer.style.inset = '0';
@@ -117,11 +117,15 @@
         // viewer.arManager.handTracking.setInteractionEnabled(false); // Lock interactions
         // viewer.arManager.handTracking.setInteractionEnabled(true);  // Unlock interactions
 
-        // Load the initial model
-        setTimeout(() => {
-          console.log('📦 Loading model: kxi');
-          viewer.loadModel('kxi');
-        }, 100);
+        function initExample() {
+          // Load the initial model
+          setTimeout(() => {
+            console.log('📦 Loading model: kxi');
+            viewer.loadModel('kxi');
+          }, 100);
+        }
+
+        initExample();
     </script>
 </body>
 </html>

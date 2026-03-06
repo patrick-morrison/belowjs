@@ -5,6 +5,15 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- AR entry now presents as `AR MODE` on handheld devices while continuing to use the standard WebXR `immersive-ar` session flow.
+- The AR example now prepares an iPhone Quick Look fallback from the loaded GLB when WebXR AR is unavailable.
+
+### Fixed
+- Long-pressing the viewer on mobile no longer triggers stray text selection, while form controls and editable fields inside the viewer still allow normal text interaction.
+
 ## [1.7.3] - 2026-03-06
 
 ### Fixed

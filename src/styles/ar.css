@@ -137,6 +137,61 @@ button.ar-button-disabled::before {
   display: none !important;
 }
 
+.quick-look-button {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 180px;
+  height: 56px;
+  padding: 16px 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(100, 200, 255, 0.3);
+  background: rgba(100, 200, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(100, 200, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.quick-look-button.is-visible {
+  display: flex;
+}
+
+.quick-look-button.is-loading,
+.quick-look-button.is-disabled {
+  opacity: 0.7;
+}
+
+.quick-look-button.is-disabled {
+  pointer-events: none;
+}
+
+.quick-look-button img {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Keyframes for hover shimmer */
 @keyframes arShimmer {
   0%   { left: -100% !important; opacity: 0 !important; }
@@ -147,7 +202,8 @@ button.ar-button-disabled::before {
 /* Mobile tweaks */
 @media (max-width: 768px) {
   .ar-button--glass,
-  .ar-button-glass {
+  .ar-button-glass,
+  .quick-look-button {
     bottom: 120px !important;
     padding: 12px 24px !important;
     min-width: 140px !important;
@@ -156,6 +212,22 @@ button.ar-button-disabled::before {
   }
 
   .ar-icon { font-size: 14px !important; }
+}
+
+@media (max-width: 480px) {
+  .ar-button--glass,
+  .ar-button-glass,
+  .quick-look-button {
+    bottom: 108px !important;
+    min-width: 132px !important;
+    height: 42px !important;
+    padding: 10px 18px !important;
+    border-radius: 14px !important;
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+
+  .ar-icon { font-size: 12px !important; }
 }
 
 /* AR-specific UI positioning when in AR mode */
