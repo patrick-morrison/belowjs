@@ -10,11 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Animation example dive toggle now uses the stateful dive-mode API, making fog activation reliable when switching into dive mode.
 - Pressing `Z` now keeps the animation example's custom dive-mode toggle UI in sync with the active dive mode state.
-- Comfort mode teleport arc no longer shoots skyward when pointing the controller downward; the parabola now lands gracefully at a natural distance.
-- Comfort mode no longer allows free vertical (up/down) flight on the right stick — the rig only moves when teleporting.
-- Teleport now triggers on the Y axis (forward push) only; the X axis on the same stick always does snap turn, even while aiming.
-- Either controller can initiate the teleport arc; the other controller's Y axis adjusts floor height (direction corrected: push up to go up).
-- Arc no longer doubles back — a minimum forward component is enforced when pointing near vertical.
+- Comfort-mode teleport now uses Y-only aiming, suspends snap turn while active, supports either controller, and keeps floor-height adjustment on the other controller.
+- Comfort-mode teleport visuals now keep the arc stable and the landing marker clean, with a flat floor ring plus a subtle camera-facing half-arch.
 - Measurement ghost spheres no longer appear oversized after returning from the Quest browser (scale reset was resetting to 1.0 instead of 0.5).
 
 ---

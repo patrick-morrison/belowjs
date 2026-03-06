@@ -20,6 +20,7 @@ export class VRTeleport {
 
     this.teleportController = null;
     this.teleportMarker = null;
+    this.teleportArch = null;
     this.teleportCurve = null;
     this.teleportFloor = null;        // Invisible floor mesh for height adjustment
     this.validTeleportPosition = null;
@@ -90,6 +91,36 @@ export class VRTeleport {
       this.teleportMarker.rotation.x = -Math.PI / 2; // Flat on floor
       this.teleportMarker.visible = false;
       this.scene.add(this.teleportMarker);
+    }
+
+    if (!this.teleportArch) {
+      const markerInnerRadius = 0.34;
+      const markerOuterRadius = 0.5;
+      const archTubeRadius = (markerOuterRadius - markerInnerRadius) / 2;
+      const archRadius = markerInnerRadius + archTubeRadius;
+      const archPoints = [];
+      for (let i = 0; i <= 24; i++) {
+        const angle = (i / 24) * Math.PI;
+        archPoints.push(new THREE.Vector3(
+          Math.cos(angle) * archRadius,
+          Math.sin(angle) * archRadius,
+          0
+        ));
+      }
+
+      const archCurve = new THREE.CatmullRomCurve3(archPoints);
+      const archGeometry = new THREE.TubeGeometry(archCurve, 24, archTubeRadius, 8, false);
+      const archMaterial = new THREE.MeshBasicMaterial({
+        color: this.style.accentColor,
+        transparent: true,
+        opacity: 0.24,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+
+      this.teleportArch = new THREE.Mesh(archGeometry, archMaterial);
+      this.teleportArch.visible = false;
+      this.scene.add(this.teleportArch);
     }
     
 
@@ -227,6 +258,9 @@ export class VRTeleport {
     if (this.teleportMarker) {
       this.teleportMarker.visible = false;
     }
+    if (this.teleportArch) {
+      this.teleportArch.visible = false;
+    }
 
     this.updateTeleportFloor();
   }
@@ -238,6 +272,9 @@ export class VRTeleport {
     }
     if (this.teleportMarker) {
       this.teleportMarker.visible = false;
+    }
+    if (this.teleportArch) {
+      this.teleportArch.visible = false;
     }
     if (this.teleportFloor) {
       this.teleportFloor.visible = false;
@@ -449,6 +486,28 @@ export class VRTeleport {
         this.teleportMarker.visible = false;
       }
     }
+
+    if (this.teleportArch) {
+      if (intersectionPoint) {
+        this.teleportArch.position.copy(intersectionPoint);
+
+        const cameraWorldPos = new THREE.Vector3();
+        this.camera.getWorldPosition(cameraWorldPos);
+        const lookTarget = new THREE.Vector3(
+          cameraWorldPos.x,
+          intersectionPoint.y,
+          cameraWorldPos.z
+        );
+        this.teleportArch.lookAt(lookTarget);
+
+        const dist = cameraWorldPos.distanceTo(intersectionPoint);
+        const opacity = THREE.MathUtils.clamp((dist - 2.5) / 7.5, 0, 1);
+        this.teleportArch.material.opacity = 0.24 * opacity;
+        this.teleportArch.visible = opacity > 0.01;
+      } else {
+        this.teleportArch.visible = false;
+      }
+    }
   }
 
 
@@ -538,6 +597,16 @@ export class VRTeleport {
         this.teleportMarker.material.dispose();
       }
       this.scene.remove(this.teleportMarker);
+    }
+
+    if (this.teleportArch) {
+      if (this.teleportArch.geometry) {
+        this.teleportArch.geometry.dispose();
+      }
+      if (this.teleportArch.material) {
+        this.teleportArch.material.dispose();
+      }
+      this.scene.remove(this.teleportArch);
     }
     
     if (this.teleportFloor) {

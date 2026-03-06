@@ -2869,8 +2869,8 @@ function fl(a) {
   if (h <= 0) return t;
   const C = new at(a, A, h, !0), E = C._nextUint16(), y = C._nextUint16(), m = C._nextUint32(), I = C._nextUint32(), w = C._nextUint32(), B = C._nextUint32(), x = [];
   for (let F = 0; F < n; F++) x.push({ imageFlags: C._nextUint32(), rgbSliceByteOffset: C._nextUint32(), rgbSliceByteLength: C._nextUint32(), alphaSliceByteOffset: C._nextUint32(), alphaSliceByteLength: C._nextUint32() });
-  const v = A + C._offset, S = v + m, Q = S + I, D = Q + w, U = new Uint8Array(a.buffer, a.byteOffset + v, m), T = new Uint8Array(a.buffer, a.byteOffset + S, I), K = new Uint8Array(a.buffer, a.byteOffset + Q, w), G = new Uint8Array(a.buffer, a.byteOffset + D, B);
-  return t.globalData = { endpointCount: E, selectorCount: y, imageDescs: x, endpointsData: U, selectorsData: T, tablesData: K, extendedData: G }, t;
+  const v = A + C._offset, S = v + m, Q = S + I, D = Q + w, G = new Uint8Array(a.buffer, a.byteOffset + v, m), T = new Uint8Array(a.buffer, a.byteOffset + S, I), K = new Uint8Array(a.buffer, a.byteOffset + Q, w), U = new Uint8Array(a.buffer, a.byteOffset + D, B);
+  return t.globalData = { endpointCount: E, selectorCount: y, imageDescs: x, endpointsData: G, selectorsData: T, tablesData: K, extendedData: U }, t;
 }
 let Es, me, ei;
 const ys = { env: { emscripten_notify_memory_growth: function(a) {
@@ -3160,27 +3160,27 @@ te.BasisWorker = function() {
       throw b(), new Error("THREE.KTX2Loader:	Invalid texture");
     if (!p.startTranscoding())
       throw b(), new Error("THREE.KTX2Loader: .startTranscoding failed");
-    const D = [], U = [];
+    const D = [], G = [];
     for (let T = 0; T < w; T++) {
       const K = [];
-      for (let G = 0; G < I; G++) {
+      for (let U = 0; U < I; U++) {
         const F = [];
         let O, ye;
         for (let Ve = 0; Ve < m; Ve++) {
-          const Oe = p.getImageLevelInfo(G, Ve, T);
-          T === 0 && G === 0 && Ve === 0 && (Oe.origWidth % 4 !== 0 || Oe.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), I > 1 ? (O = Oe.origWidth, ye = Oe.origHeight) : (O = Oe.width, ye = Oe.height);
-          let He = new Uint8Array(p.getImageTranscodedSizeInBytes(G, Ve, 0, v));
-          const sr = p.transcodeImage(He, G, Ve, T, v, 0, -1, -1);
+          const Oe = p.getImageLevelInfo(U, Ve, T);
+          T === 0 && U === 0 && Ve === 0 && (Oe.origWidth % 4 !== 0 || Oe.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), I > 1 ? (O = Oe.origWidth, ye = Oe.origHeight) : (O = Oe.width, ye = Oe.height);
+          let He = new Uint8Array(p.getImageTranscodedSizeInBytes(U, Ve, 0, v));
+          const sr = p.transcodeImage(He, U, Ve, T, v, 0, -1, -1);
           if (Q === i.HalfFloatType && (He = new Uint16Array(He.buffer, He.byteOffset, He.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !sr)
             throw b(), new Error("THREE.KTX2Loader: .transcodeImage failed.");
           F.push(He);
         }
         const ot = u(F);
-        K.push({ data: ot, width: O, height: ye }), U.push(ot.buffer);
+        K.push({ data: ot, width: O, height: ye }), G.push(ot.buffer);
       }
       D.push({ mipmaps: K, width: E, height: y, format: S, type: Q });
     }
-    return b(), { faces: D, buffers: U, width: E, height: y, hasAlpha: B, dfdFlags: x, format: S, type: Q };
+    return b(), { faces: D, buffers: G, width: E, height: y, hasAlpha: B, dfdFlags: x, format: S, type: Q };
   }
   const c = [
     {
@@ -3539,9 +3539,9 @@ var Il = function() {
   function l(C, E, y, m, I, w, B) {
     var x = C.exports.sbrk, v = m + 3 & -4, S = x(v * I), Q = x(w.length), D = new Uint8Array(C.exports.memory.buffer);
     D.set(w, Q);
-    var U = E(S, m, I, Q, w.length);
-    if (U == 0 && B && B(S, v, I), y.set(D.subarray(S, S + m * I)), x(S - x(0)), U != 0)
-      throw new Error("Malformed buffer data: " + U);
+    var G = E(S, m, I, Q, w.length);
+    if (G == 0 && B && B(S, v, I), y.set(D.subarray(S, S + m * I)), x(S - x(0)), G != 0)
+      throw new Error("Malformed buffer data: " + G);
   }
   var c = {
     NONE: "",
@@ -3925,8 +3925,8 @@ let Sl = class {
       i.sort((v, S) => {
         const Q = o.has(v), D = o.has(S);
         if (Q === D) {
-          const U = r.has(v), T = r.has(S);
-          return U === T ? -b(v, S) : U ? 1 : -1;
+          const G = r.has(v), T = r.has(S);
+          return G === T ? -b(v, S) : G ? 1 : -1;
         } else
           return Q ? 1 : -1;
       });
@@ -5469,11 +5469,11 @@ class No extends Ul {
           const Q = new M();
           for (let T = 0; T < g; T++)
             Q.x += p[T * 3 + 0] / g, Q.y += p[T * 3 + 1] / g, Q.z += p[T * 3 + 2] / g;
-          const D = [], U = [];
+          const D = [], G = [];
           u.scene.updateMatrixWorld(), u.scene.traverse((T) => {
             if (T.isMesh) {
-              U.push(T);
-              const { geometry: K, material: G } = T, F = new li(K, G, g);
+              G.push(T);
+              const { geometry: K, material: U } = T, F = new li(K, U, g);
               F.position.copy(Q), v && (F.position.x += v[0], F.position.y += v[1], F.position.z += v[2]), D.push(F);
             }
           });
@@ -5513,10 +5513,10 @@ class No extends Ul {
               B[T * 3 + 1],
               B[T * 3 + 2]
             ), x && Nt.multiplyScalar(x[T]);
-            for (let K = 0, G = D.length; K < G; K++) {
+            for (let K = 0, U = D.length; K < U; K++) {
               const F = D[K];
               _s.copy(Ut), S && (F.updateMatrixWorld(), nn.copy(ks).applyMatrix4(F.matrixWorld), this.ellipsoid.getPositionToCartographic(nn, Ps), this.ellipsoid.getEastNorthUpFrame(Ps.lat, Ps.lon, on), _s.setFromRotationMatrix(on)), je.compose(ks, _s, Nt).multiply(d);
-              const O = U[K];
+              const O = G[K];
               sn.multiplyMatrices(je, O.matrixWorld), F.setMatrixAt(T, sn);
             }
           }
@@ -8776,7 +8776,7 @@ class eA {
       neutralColor: 14870768,
       accentColor: 9741240,
       floorColor: 6583435
-    }, this.teleportController = null, this.teleportMarker = null, this.teleportCurve = null, this.teleportFloor = null, this.validTeleportPosition = null, this.currentTeleportTarget = null, this.teleportThreshold = 0.7, this.teleportReleaseThreshold = 0.3, this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportMaxDistance = 20, this.teleportFloorHeight = null, this.teleportFloorMin = -10, this.teleportFloorMax = 10, this.lastSnapTurnTime = 0, this.onTeleport = null, this.onTeleportStart = null, this.onTeleportEnd = null;
+    }, this.teleportController = null, this.teleportMarker = null, this.teleportArch = null, this.teleportCurve = null, this.teleportFloor = null, this.validTeleportPosition = null, this.currentTeleportTarget = null, this.teleportThreshold = 0.7, this.teleportReleaseThreshold = 0.3, this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportMaxDistance = 20, this.teleportFloorHeight = null, this.teleportFloorMin = -10, this.teleportFloorMax = 10, this.lastSnapTurnTime = 0, this.onTeleport = null, this.onTeleportStart = null, this.onTeleportEnd = null;
   }
   init() {
     this.setupTeleportation();
@@ -8802,6 +8802,25 @@ class eA {
         side: f.DoubleSide
       });
       this.teleportMarker = new f.Mesh(n, o), this.teleportMarker.rotation.x = -Math.PI / 2, this.teleportMarker.visible = !1, this.scene.add(this.teleportMarker);
+    }
+    if (!this.teleportArch) {
+      const r = 0.07999999999999999, l = 0.34 + r, c = [];
+      for (let u = 0; u <= 24; u++) {
+        const g = u / 24 * Math.PI;
+        c.push(new f.Vector3(
+          Math.cos(g) * l,
+          Math.sin(g) * l,
+          0
+        ));
+      }
+      const A = new f.CatmullRomCurve3(c), h = new f.TubeGeometry(A, 24, r, 8, !1), d = new f.MeshBasicMaterial({
+        color: this.style.accentColor,
+        transparent: !0,
+        opacity: 0.24,
+        side: f.DoubleSide,
+        depthWrite: !1
+      });
+      this.teleportArch = new f.Mesh(h, d), this.teleportArch.visible = !1, this.scene.add(this.teleportArch);
     }
     if (!this.teleportFloor) {
       const n = new f.PlaneGeometry(14, 14), o = new f.MeshBasicMaterial({
@@ -8852,10 +8871,10 @@ class eA {
     } else this.teleportPressed && (this.teleportMaxMagnitude = Math.max(this.teleportMaxMagnitude, s), this.updateTeleportArc(), s < this.teleportReleaseThreshold && (this.calculateAndExecuteTeleport(), this.hideTeleportArc(), this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportController = null, this.onTeleportEnd && this.onTeleportEnd()));
   }
   showTeleportArc() {
-    this.teleportCurve || this.createTeleportArc(), this.teleportCurve.visible = !0, this.teleportMarker && (this.teleportMarker.visible = !1), this.updateTeleportFloor();
+    this.teleportCurve || this.createTeleportArc(), this.teleportCurve.visible = !0, this.teleportMarker && (this.teleportMarker.visible = !1), this.teleportArch && (this.teleportArch.visible = !1), this.updateTeleportFloor();
   }
   hideTeleportArc() {
-    this.teleportCurve && (this.teleportCurve.visible = !1), this.teleportMarker && (this.teleportMarker.visible = !1), this.teleportFloor && (this.teleportFloor.visible = !1), this.currentTeleportTarget = null;
+    this.teleportCurve && (this.teleportCurve.visible = !1), this.teleportMarker && (this.teleportMarker.visible = !1), this.teleportArch && (this.teleportArch.visible = !1), this.teleportFloor && (this.teleportFloor.visible = !1), this.currentTeleportTarget = null;
   }
   updateTeleportArc() {
     if (!this.teleportController || !this.teleportCurve) return;
@@ -8893,11 +8912,11 @@ class eA {
         s.z + b * Q
       );
       Math.abs(D.y - s.y) > v && (D.y = s.y + Math.sign(D.y - s.y) * v), !w && D.y < B && (w = !0, x = Q), c.push(D);
-      const U = w ? Q - x : 0, T = w && U > 0.1;
+      const G = w ? Q - x : 0, T = w && G > 0.1;
       if (!I && T && D.y <= d) {
         if (S > 0) {
-          const G = c[S - 1], F = (d - G.y) / (D.y - G.y);
-          I = new f.Vector3().lerpVectors(G, D, F), I.y = d;
+          const U = c[S - 1], F = (d - U.y) / (D.y - U.y);
+          I = new f.Vector3().lerpVectors(U, D, F), I.y = d;
         } else
           I = D.clone(), I.y = d;
         c[S] = I, c.length = S + 1;
@@ -8909,13 +8928,13 @@ class eA {
       );
       if (T && K > n) {
         if (S > 0) {
-          const G = c[S - 1], F = Math.sqrt(
-            Math.pow(G.x - s.x, 2) + Math.pow(G.z - s.z, 2)
+          const U = c[S - 1], F = Math.sqrt(
+            Math.pow(U.x - s.x, 2) + Math.pow(U.z - s.z, 2)
           ), O = K > F ? (n - F) / (K - F) : 0.5;
           I = new f.Vector3(
-            G.x + (D.x - G.x) * O,
+            U.x + (D.x - U.x) * O,
             d,
-            G.z + (D.z - G.z) * O
+            U.z + (D.z - U.z) * O
           ), c[S] = I, c.length = S + 1;
         }
         break;
@@ -8931,7 +8950,21 @@ class eA {
       const S = new f.CatmullRomCurve3(c, !1, "centripetal"), Q = new f.TubeGeometry(S, 20, 0.012, 6, !1);
       this.teleportCurve.geometry && this.teleportCurve.geometry.dispose(), this.teleportCurve.geometry = Q;
     }
-    this.currentTeleportTarget = I ? I.clone() : null, this.teleportMarker && (I ? (this.teleportMarker.position.copy(I), this.teleportMarker.rotation.set(-Math.PI / 2, 0, 0), this.teleportMarker.material.opacity = 0.78, this.teleportMarker.material.color.setHex(this.style.neutralColor), this.teleportMarker.visible = !0) : this.teleportMarker.visible = !1);
+    if (this.currentTeleportTarget = I ? I.clone() : null, this.teleportMarker && (I ? (this.teleportMarker.position.copy(I), this.teleportMarker.rotation.set(-Math.PI / 2, 0, 0), this.teleportMarker.material.opacity = 0.78, this.teleportMarker.material.color.setHex(this.style.neutralColor), this.teleportMarker.visible = !0) : this.teleportMarker.visible = !1), this.teleportArch)
+      if (I) {
+        this.teleportArch.position.copy(I);
+        const S = new f.Vector3();
+        this.camera.getWorldPosition(S);
+        const Q = new f.Vector3(
+          S.x,
+          I.y,
+          S.z
+        );
+        this.teleportArch.lookAt(Q);
+        const D = S.distanceTo(I), G = f.MathUtils.clamp((D - 2.5) / 7.5, 0, 1);
+        this.teleportArch.material.opacity = 0.24 * G, this.teleportArch.visible = G > 0.01;
+      } else
+        this.teleportArch.visible = !1;
   }
   updateTeleportFloor() {
     this.teleportFloorHeight !== null && (this.teleportFloor && (this.teleportFloor.position.y = this.teleportFloorHeight), this.updateTeleportArc());
@@ -8966,7 +8999,7 @@ class eA {
     this.teleportPressed = !1, this.teleportMaxMagnitude = 0, this.teleportController = null, this.validTeleportPosition = null, this.hideTeleportArc();
   }
   dispose() {
-    this.teleportCurve && (this.teleportCurve.geometry && this.teleportCurve.geometry.dispose(), this.teleportCurve.material && this.teleportCurve.material.dispose(), this.scene.remove(this.teleportCurve)), this.teleportMarker && (this.teleportMarker.geometry && this.teleportMarker.geometry.dispose(), this.teleportMarker.material && this.teleportMarker.material.dispose(), this.scene.remove(this.teleportMarker)), this.teleportFloor && (this.teleportFloor.geometry && this.teleportFloor.geometry.dispose(), this.teleportFloor.material && this.teleportFloor.material.dispose(), this.scene.remove(this.teleportFloor)), this.resetTeleportState();
+    this.teleportCurve && (this.teleportCurve.geometry && this.teleportCurve.geometry.dispose(), this.teleportCurve.material && this.teleportCurve.material.dispose(), this.scene.remove(this.teleportCurve)), this.teleportMarker && (this.teleportMarker.geometry && this.teleportMarker.geometry.dispose(), this.teleportMarker.material && this.teleportMarker.material.dispose(), this.scene.remove(this.teleportMarker)), this.teleportArch && (this.teleportArch.geometry && this.teleportArch.geometry.dispose(), this.teleportArch.material && this.teleportArch.material.dispose(), this.scene.remove(this.teleportArch)), this.teleportFloor && (this.teleportFloor.geometry && this.teleportFloor.geometry.dispose(), this.teleportFloor.material && this.teleportFloor.material.dispose(), this.scene.remove(this.teleportFloor)), this.resetTeleportState();
   }
   resetSnapTurnState() {
     this.lastSnapTurnTime = 0;
@@ -9052,12 +9085,12 @@ class tA {
           this.camera.getWorldDirection(Q), Q.y = 0, Q.normalize();
           const D = new f.Vector3().crossVectors(Q, this.camera.up).normalize();
           if (Math.abs(y) > 0.1) {
-            const U = this.MOVE_SPEED * v * S * this.currentSpeed * e;
-            n.position.addScaledVector(Q, -y * U), o = !0;
+            const G = this.MOVE_SPEED * v * S * this.currentSpeed * e;
+            n.position.addScaledVector(Q, -y * G), o = !0;
           }
           if (Math.abs(E) > 0.1) {
-            const U = this.MOVE_SPEED * v * S * this.currentSpeed * e;
-            n.position.addScaledVector(D, E * U), o = !0;
+            const G = this.MOVE_SPEED * v * S * this.currentSpeed * e;
+            n.position.addScaledVector(D, E * G), o = !0;
           }
         }
       }
@@ -9074,8 +9107,8 @@ class tA {
           else if (Math.abs(E) > this.inputDeadzone) {
             const Q = this.lastTurnInput * this.turnSmoothingFactor + E * (1 - this.turnSmoothingFactor);
             if (this.lastTurnInput = Q, Math.abs(Q) > this.inputDeadzone) {
-              const D = this.comfortSettings.reducedMotion ? this.TURN_SPEED * 0.5 : this.TURN_SPEED, U = Q * D * Math.min(e, 1 / 30);
-              n.rotation.y -= U, n.rotation.y = this.normalizeAngle(n.rotation.y);
+              const D = this.comfortSettings.reducedMotion ? this.TURN_SPEED * 0.5 : this.TURN_SPEED, G = Q * D * Math.min(e, 1 / 30);
+              n.rotation.y -= G, n.rotation.y = this.normalizeAngle(n.rotation.y);
             }
           } else
             this.lastTurnInput *= 0.9;
