@@ -472,6 +472,26 @@ body, html {
     }
 
     .footer-directory {
-        grid-template-columns: 1fr;
+        display: block;
+        columns: 2;
+        column-gap: 18px;
+    }
+
+    .footer-directory-column h3 {
+        margin-bottom: 10px;
+        font-size: 0.88rem;
+    }
+
+    .footer-directory-column {
+        break-inside: avoid;
+        margin-bottom: 18px;
+    }
+
+    .footer-directory-column li {
+        margin: 6px 0;
+    }
+
+    .footer-directory-column a {
+        font-size: 0.84rem;
     }
 }
