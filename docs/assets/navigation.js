@@ -476,8 +476,7 @@ function initializeFooterDirectory() {
                 { label: 'Embed Viewer', href: resolveDocsPath('examples/embed/') },
                 { label: 'Animation Tool', href: resolveDocsPath('examples/animation/') },
                 { label: 'AR Viewer', href: resolveDocsPath('examples/ar/') },
-                { label: '3D Tiles', href: resolveDocsPath('examples/tileset/') },
-                { label: 'Stereo Viewer', href: resolveDocsPath('examples/stereo/') }
+                { label: '3D Tiles', href: resolveDocsPath('examples/tileset/') }
             ]
         },
         {
