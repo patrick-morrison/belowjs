@@ -9,6 +9,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - Docs analytics is centralized in `docs/assets/navigation.js`; do not add it to `docs/demo.html`
 - Always run `npm run build` before testing examples
 - Use `node docs/copy-examples.js` to re-copy examples and bump CDN version
+- Update the homepage version pill in `docs/index.html` when releasing (version text + release month/date)
 - Keep diffs minimal and focused; don’t fix unrelated issues
 
 ## Core Commands
@@ -37,9 +38,10 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
    - Updates: docs/examples/, docs/installation.html, docs/demo.html, docs/examples.html, docs/changelog.html
 7) Manually update remaining CDN references:
    - `README.md` (version badge text + CDN URLs in Quick Start section)
-   - `AGENTS.md` (Current version section below)
+   - `docs/index.html` (homepage version pill text + release month/date)
+   - `AGENTS.md` and `CLAUDE.md` (release guidance/current version notes)
 8) **VERIFY**: Check all docs files have correct version
-   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.7.1"` (should be empty)
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.7.3"` (should be empty)
 9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -90,5 +92,5 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.7.2)
-- Fixed: Model selector and dive mode toggle remain usable after opening the Quest system menu during immersive viewing
+## Current (1.7.3)
+- Fixed: Comfort-mode teleport now uses Y-only aiming with cleaner landing visuals and suspended snap turn while the arc is active

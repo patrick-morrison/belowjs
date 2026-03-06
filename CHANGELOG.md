@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.7.3] - 2026-03-06
+
 ### Fixed
 - Animation example dive toggle now uses the stateful dive-mode API, making fog activation reliable when switching into dive mode.
 - Pressing `Z` now keeps the animation example's custom dive-mode toggle UI in sync with the active dive mode state.
 - Comfort-mode teleport now uses Y-only aiming, suspends snap turn while active, supports either controller, and keeps floor-height adjustment on the other controller.
 - Comfort-mode teleport visuals now keep the arc stable and the landing marker clean, with a flat floor ring plus a subtle camera-facing half-arch.
 - Measurement ghost spheres no longer appear oversized after returning from the Quest browser (scale reset was resetting to 1.0 instead of 0.5).
-
----
 
 ## [1.7.2] - 2026-02-15
 
