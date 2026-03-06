@@ -911,12 +911,12 @@ export class MeasurementSystem {
       if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.parent === this.controller1) {
         this.ghostSpheres.left.position.set(0, 0, -0.07);
         this.ghostSpheres.left.rotation.set(0, 0, 0);
-        this.ghostSpheres.left.scale.set(1, 1, 1);
+        this.ghostSpheres.left.scale.set(0.5, 0.5, 0.5);
       }
       if (this.ghostSpheres.right && this.controller2 && this.ghostSpheres.right.parent === this.controller2) {
         this.ghostSpheres.right.position.set(0, 0, -0.07);
         this.ghostSpheres.right.rotation.set(0, 0, 0);
-        this.ghostSpheres.right.scale.set(1, 1, 1);
+        this.ghostSpheres.right.scale.set(0.5, 0.5, 0.5);
       }
     }
   }

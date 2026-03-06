@@ -416,14 +416,118 @@ function trackScrollDepthMilestones() {
     });
 }
 
+function getDocsBasePath() {
+    const navigationScript = document.querySelector('script[src$="assets/navigation.js"]');
+    const src = navigationScript && navigationScript.getAttribute('src');
+    if (!src) return '/';
+
+    try {
+        const scriptUrl = new URL(src, window.location.href);
+        return scriptUrl.pathname.replace(/assets\/navigation\.js$/, '');
+    } catch (_err) {
+        return '/';
+    }
+}
+
+function resolveDocsPath(path) {
+    const basePath = getDocsBasePath();
+    return `${basePath}${path}`.replace(/([^:]\/)\/+/g, '$1');
+}
+
+function normalizePathname(pathname) {
+    return pathname.replace(/index\.html$/, '').replace(/\/+$/, '') || '/';
+}
+
+function initializeFooterDirectory() {
+    const footerContainer = document.querySelector('.footer .footer-container');
+    if (!footerContainer) return;
+
+    const sections = [
+        {
+            heading: 'Docs',
+            headingHref: resolveDocsPath('index.html'),
+            links: [
+                { label: 'Installation', href: resolveDocsPath('installation.html') },
+                { label: 'Examples Overview', href: resolveDocsPath('examples.html') },
+                { label: 'Guides Overview', href: resolveDocsPath('guides.html') },
+                { label: 'Implementations', href: resolveDocsPath('implementations.html') },
+                { label: 'Changelog', href: resolveDocsPath('changelog.html') }
+            ]
+        },
+        {
+            heading: 'Guides',
+            headingHref: resolveDocsPath('guides.html'),
+            links: [
+                { label: 'Agisoft Metashape Workflow', href: resolveDocsPath('guides/metashape-workflow.html') },
+                { label: 'Model Setup', href: resolveDocsPath('guides/model-setup.html') },
+                { label: 'Model Optimisation', href: resolveDocsPath('guides/optimisation.html') },
+                { label: 'VR Headsets', href: resolveDocsPath('guides/vr-headsets.html') },
+                { label: 'Sketchfab Models', href: resolveDocsPath('guides/sketchfab-models.html') },
+                { label: 'Animations', href: resolveDocsPath('guides/animation.html') },
+                { label: 'Tiled Models', href: resolveDocsPath('guides/agisoft-tiled-models.html') }
+            ]
+        },
+        {
+            heading: 'Examples',
+            headingHref: resolveDocsPath('examples.html'),
+            links: [
+                { label: 'Basic Viewer', href: resolveDocsPath('examples/basic/') },
+                { label: 'Drag and Drop', href: resolveDocsPath('examples/dragdrop/') },
+                { label: 'Embed Viewer', href: resolveDocsPath('examples/embed/') },
+                { label: 'Animation Tool', href: resolveDocsPath('examples/animation/') },
+                { label: 'AR Viewer', href: resolveDocsPath('examples/ar/') },
+                { label: '3D Tiles', href: resolveDocsPath('examples/tileset/') },
+                { label: 'Stereo Viewer', href: resolveDocsPath('examples/stereo/') }
+            ]
+        },
+        {
+            heading: 'Elsewhere',
+            links: [
+                { label: 'WreckSploration VR', href: 'https://wrecksploration.au/belowvr/', external: true },
+                { label: 'GitHub', href: 'https://github.com/patrick-morrison/belowjs', external: true },
+                { label: 'npm Package', href: 'https://www.npmjs.com/package/belowjs', external: true }
+            ]
+        }
+    ];
+
+    footerContainer.innerHTML = `
+        <div class="footer-directory" aria-label="Documentation footer directory">
+            ${sections.map((section) => `
+                <div class="footer-directory-column">
+                    <h3>${section.headingHref ? `<a href="${section.headingHref}">${section.heading}</a>` : section.heading}</h3>
+                    <ul>
+                        ${section.links.map((link) => `
+                            <li><a href="${link.href}"${link.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${link.label}${link.external ? '<span class="footer-external-indicator" aria-hidden="true">&#8599;</span>' : ''}</a></li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="footer-legal">
+            <p>GPL-3.0 &middot; Open Source</p>
+            <p>Created by <a href="https://padmorrison.com" target="_blank" rel="noopener noreferrer">Patrick Morrison</a></p>
+        </div>
+    `;
+}
+
 // Set active navigation item based on current page
 document.addEventListener('DOMContentLoaded', function() {
-    const currentPath = window.location.pathname;
+    initializeFooterDirectory();
+
+    const currentPath = normalizePathname(window.location.pathname);
     const navLinks = document.querySelectorAll('.nav-links a, .nav-mobile a');
     
     navLinks.forEach(link => {
         const href = link.getAttribute('href');
-        if (href && (currentPath === href || (href !== '/' && currentPath.startsWith(href)))) {
+        const absoluteUrl = href ? toAbsoluteUrl(href) : null;
+        const linkPath = absoluteUrl ? normalizePathname(absoluteUrl.pathname) : null;
+        const sectionPath = linkPath ? linkPath.replace(/\.html$/, '') : null;
+        if (linkPath && (
+            currentPath === linkPath ||
+            (linkPath !== '/' && currentPath.startsWith(`${linkPath}/`)) ||
+            (sectionPath && sectionPath !== linkPath && currentPath.startsWith(`${sectionPath}/`))
+        )) {
             link.classList.add('active');
         }
     });

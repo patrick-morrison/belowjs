@@ -23,11 +23,11 @@ export class VRTeleport {
     this.teleportCurve = null;
     this.teleportFloor = null;        // Invisible floor mesh for height adjustment
     this.validTeleportPosition = null;
+    this.currentTeleportTarget = null;
     this.teleportThreshold = 0.7;      // Joystick must be pushed this far to start aiming
     this.teleportReleaseThreshold = 0.3; // Below this threshold counts as "released"
     this.teleportPressed = false;      // Track if joystick is currently "pressed"
     this.teleportMaxMagnitude = 0;     // Track the maximum magnitude reached during this gesture
-    this.teleportMinDistance = 1.5;
     this.teleportMaxDistance = 20;
     this.teleportFloorHeight = null;  // Will be set to user's current Y on first teleport aim
     this.teleportFloorMin = -10.0;    // Minimum floor height (10m below current)
@@ -87,22 +87,9 @@ export class VRTeleport {
       });
       
       this.teleportMarker = new THREE.Mesh(markerGeometry, markerMaterial);
-      this.teleportMarker.rotation.x = -Math.PI / 2; // Lay flat on ground
+      this.teleportMarker.rotation.x = -Math.PI / 2; // Flat on floor
       this.teleportMarker.visible = false;
       this.scene.add(this.teleportMarker);
-      
-
-      const glowGeometry = new THREE.RingGeometry(0.46, 0.72, 28);
-      const glowMaterial = new THREE.MeshBasicMaterial({
-        color: this.style.accentColor,
-        transparent: true,
-        opacity: 0.18,
-        side: THREE.DoubleSide
-      });
-      
-      const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-      glow.rotation.x = -Math.PI / 2;
-      this.teleportMarker.add(glow);
     }
     
 
@@ -169,6 +156,7 @@ export class VRTeleport {
   
 
   processSnapTurn(inputX, snapTurnAngle = 30) {
+    if (this.teleportPressed) return;
     if (!this.lastSnapTurnTime) this.lastSnapTurnTime = 0;
     const now = Date.now();
     
@@ -195,34 +183,29 @@ export class VRTeleport {
   }
   
 
-  processTeleportation(controller, x, y) {
+  processTeleportation(controller, y) {
+    // Only the Y axis (forward push) triggers/controls the arc.
+    // X axis is handled separately in VRLocomotion for snap turn.
+    const forwardMag = Math.abs(y);
 
-    const magnitude = Math.sqrt(x * x + y * y);
-    const isRightHand = controller && controller.inputSource && controller.inputSource.handedness === 'right';
-    const flippedY = y;
-
-
-    if (magnitude > this.teleportThreshold && !this.teleportPressed) {
+    if (forwardMag > this.teleportThreshold && !this.teleportPressed) {
       this.teleportPressed = true;
-      this.teleportMaxMagnitude = magnitude;
+      this.teleportMaxMagnitude = forwardMag;
       this.teleportController = controller;
 
-      this.teleportFloorHeight = this.camera.parent.position.y;
+      const startY = this.camera.parent.position.y;
+      this.teleportFloorHeight = startY;
+      this.teleportFloorMin = startY - 10.0;
+      this.teleportFloorMax = startY + 10.0;
       this.showTeleportArc();
       if (this.onTeleportStart) {
         this.onTeleportStart();
       }
     } else if (this.teleportPressed) {
-      this.teleportMaxMagnitude = Math.max(this.teleportMaxMagnitude, magnitude);
+      this.teleportMaxMagnitude = Math.max(this.teleportMaxMagnitude, forwardMag);
 
-      if (isRightHand && Math.abs(flippedY) > 0.1) {
-        const floorAdjustSpeed = 4.0 / 60.0;
-        this.teleportFloorHeight += flippedY * floorAdjustSpeed;
-        this.teleportFloorHeight = Math.max(this.teleportFloorMin, Math.min(this.teleportFloorMax, this.teleportFloorHeight));
-        this.updateTeleportFloor();
-      }
       this.updateTeleportArc();
-      if (magnitude < this.teleportReleaseThreshold) {
+      if (forwardMag < this.teleportReleaseThreshold) {
         this.calculateAndExecuteTeleport();
         this.hideTeleportArc();
         this.teleportPressed = false;
@@ -242,11 +225,7 @@ export class VRTeleport {
     }
     this.teleportCurve.visible = true;
     if (this.teleportMarker) {
-      this.teleportMarker.visible = true;
-
-      if (this.teleportMarker.children && this.teleportMarker.children.length > 0) {
-        this.teleportMarker.children.forEach(child => child.visible = true);
-      }
+      this.teleportMarker.visible = false;
     }
 
     this.updateTeleportFloor();
@@ -259,14 +238,11 @@ export class VRTeleport {
     }
     if (this.teleportMarker) {
       this.teleportMarker.visible = false;
-
-      if (this.teleportMarker.children && this.teleportMarker.children.length > 0) {
-        this.teleportMarker.children.forEach(child => child.visible = false);
-      }
     }
     if (this.teleportFloor) {
       this.teleportFloor.visible = false;
     }
+    this.currentTeleportTarget = null;
   }
 
 
@@ -274,72 +250,88 @@ export class VRTeleport {
     if (!this.teleportController || !this.teleportCurve) return;
     
 
-    const controllerPos = new THREE.Vector3();
-    this.teleportController.getWorldPosition(controllerPos);
-    
     const controllerQuat = new THREE.Quaternion();
     this.teleportController.getWorldQuaternion(controllerQuat);
-    
 
     const forwardDir = new THREE.Vector3(0, 0, -1);
     forwardDir.applyQuaternion(controllerQuat);
-    
 
-    const minDistance = this.teleportMinDistance;
+    // Start arc from the ghost sphere tip (7cm forward from controller origin)
+    const controllerPos = new THREE.Vector3();
+    this.teleportController.getWorldPosition(controllerPos);
+    controllerPos.addScaledVector(forwardDir, 0.07);
+
+    // When pointing upward near-vertical, blend in camera forward to prevent arc doubling back.
+    // Only apply when pointing UP — downward near-vertical should arc straight down naturally.
+    const hMag = Math.sqrt(forwardDir.x * forwardDir.x + forwardDir.z * forwardDir.z);
+    if (hMag < 0.12 && forwardDir.y > 0) {
+      const camForward = new THREE.Vector3();
+      this.camera.getWorldDirection(camForward);
+      camForward.y = 0;
+      if (camForward.lengthSq() > 0) {
+        camForward.normalize();
+        const blend = 0.12 - hMag;
+        forwardDir.x += camForward.x * blend;
+        forwardDir.z += camForward.z * blend;
+        forwardDir.normalize();
+      }
+    }
+
     const maxDistance = this.teleportMaxDistance;
     
 
     const normalizedMagnitude = Math.min(this.teleportMaxMagnitude / this.teleportThreshold, 1.0);
-    const distanceRange = maxDistance - minDistance;
-    
-
     const distanceRatio = Math.pow(normalizedMagnitude, 0.78);
-    const targetDistance = minDistance + (distanceRange * distanceRatio);
+    const targetDistance = maxDistance * distanceRatio;
     
 
     const arcPoints = [];
     const steps = 32;
     const gravity = -9.8; // m/s² downward
-    
+
+    // Know the floor height up front so we can throw hard enough to reach it
+    const virtualFloorY = this.teleportFloorHeight;
+    const heightToFloor = virtualFloorY - controllerPos.y; // positive = floor is above us
+
 
     let baseVelocity = Math.sqrt(targetDistance * Math.abs(gravity) / 2); // Physics-based velocity
-    
 
-    if (forwardDir.y > 0.3) {
 
-      baseVelocity *= (1.0 - forwardDir.y * 0.5);
-    } else if (forwardDir.y < -0.5) {
-
-      baseVelocity *= (1.0 + Math.abs(forwardDir.y) * 0.3);
+    // Only reduce velocity when pointing downward — upward throws are not penalised
+    if (forwardDir.y < 0) {
+      // Smoothly reduce velocity as controller pitches down — no threshold jump
+      // At level (y=0): factor=1.0, at straight down (y=-1): factor=0.25
+      baseVelocity *= Math.max(0.25, 1.0 - Math.abs(forwardDir.y) * 0.75);
     }
-    
 
-    const horizontalDistance = Math.sqrt(forwardDir.x * forwardDir.x + forwardDir.z * forwardDir.z);
-    if (horizontalDistance > 0.1) {
-
-      const velocityScale = Math.min(1.0, targetDistance / (baseVelocity * 2.0));
-      baseVelocity *= velocityScale;
-    }
-    
 
     const initialVelX = forwardDir.x * baseVelocity;
-    const initialVelY = Math.max(forwardDir.y * baseVelocity, baseVelocity * 0.3); // Minimum upward component
     const initialVelZ = forwardDir.z * baseVelocity;
-    
+
+    // Fixed loft offset: horizontal gets small upward component, upward angle adds on top.
+    // No max() kink — range increases smoothly and continuously at all angles.
+    let initialVelY = (forwardDir.y + 0.15) * baseVelocity;
+
+    // When the floor is above us, throw harder so the arc naturally reaches that height
+    if (heightToFloor > 0.5) {
+      const minVelToReach = Math.sqrt(2 * Math.abs(gravity) * heightToFloor) * 1.2; // 20% margin for graceful arc
+      initialVelY = Math.max(initialVelY, minVelToReach);
+    }
+
 
     const timeToApex = initialVelY / Math.abs(gravity); // Time to reach peak
-    const maxTime = Math.max(timeToApex * 2.2, 1.5); // Ensure arc completes, minimum 1.5 seconds
-    
+    // Scale minimum time with arc size — short arcs (pointing down) don't need 1.5s
+    const minTime = 0.4 + (1.0 - Math.max(0, -forwardDir.y)) * 1.1; // 0.4s steep down → 1.5s level
+    const maxTime = Math.max(timeToApex * 2.2, minTime);
 
-    const virtualFloorY = this.teleportFloorHeight;
-    
 
     let intersectionPoint = null;
     let peakReached = false;
     let previousY = controllerPos.y;
     let peakTime = 0;
-    
-    const arcBendLimit = 8.0; // Max vertical difference allowed for arc (prevents weird bends)
+
+    // Allow more vertical travel when floor is above or below — dynamic clamp
+    const arcBendLimit = Math.max(8.0, Math.abs(heightToFloor) * 1.5 + 2.0);
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * maxTime; // Time in seconds
 
@@ -379,13 +371,27 @@ export class VRTeleport {
       previousY = point.y;
 
       const horizontalDist = Math.sqrt(
-        Math.pow(point.x - controllerPos.x, 2) + 
+        Math.pow(point.x - controllerPos.x, 2) +
         Math.pow(point.z - controllerPos.z, 2)
       );
-      if (horizontalDist > maxDistance) {
-
-        if (isOnDownwardTrajectory) {
-          intersectionPoint = new THREE.Vector3(point.x, virtualFloorY, point.z);
+      // On the downward arc only: clamp to maxDistance boundary and land there.
+      // While going up, let the arc fly freely — no marker shows during upward phase anyway.
+      if (isOnDownwardTrajectory && horizontalDist > maxDistance) {
+        if (i > 0) {
+          const prevPoint = arcPoints[i - 1];
+          const prevHDist = Math.sqrt(
+            Math.pow(prevPoint.x - controllerPos.x, 2) +
+            Math.pow(prevPoint.z - controllerPos.z, 2)
+          );
+          // Interpolate precisely to the boundary circle — no X,Z jump
+          const ratio = (horizontalDist > prevHDist)
+            ? (maxDistance - prevHDist) / (horizontalDist - prevHDist)
+            : 0.5;
+          intersectionPoint = new THREE.Vector3(
+            prevPoint.x + (point.x - prevPoint.x) * ratio,
+            virtualFloorY,
+            prevPoint.z + (point.z - prevPoint.z) * ratio
+          );
           arcPoints[i] = intersectionPoint;
           arcPoints.length = i + 1;
         }
@@ -419,8 +425,9 @@ export class VRTeleport {
     
 
     if (arcPoints.length > 1) {
-      const curve = new THREE.CatmullRomCurve3(arcPoints);
-      const newGeometry = new THREE.TubeGeometry(curve, 20, 0.022, 6, false);
+      // Centripetal parameterisation prevents cusps and self-intersections
+      const curve = new THREE.CatmullRomCurve3(arcPoints, false, 'centripetal');
+      const newGeometry = new THREE.TubeGeometry(curve, 20, 0.012, 6, false);
       
       if (this.teleportCurve.geometry) {
         this.teleportCurve.geometry.dispose();
@@ -429,28 +436,28 @@ export class VRTeleport {
     }
     
 
-    if (this.teleportMarker && intersectionPoint) {
-      this.teleportMarker.position.copy(intersectionPoint);
-      this.teleportMarker.visible = true;
-      this.teleportMarker.material.color.setHex(this.style.neutralColor);
+    this.currentTeleportTarget = intersectionPoint ? intersectionPoint.clone() : null;
+
+    if (this.teleportMarker) {
+      if (intersectionPoint) {
+        this.teleportMarker.position.copy(intersectionPoint);
+        this.teleportMarker.rotation.set(-Math.PI / 2, 0, 0);
+        this.teleportMarker.material.opacity = 0.78;
+        this.teleportMarker.material.color.setHex(this.style.neutralColor);
+        this.teleportMarker.visible = true;
+      } else {
+        this.teleportMarker.visible = false;
+      }
     }
   }
 
 
   updateTeleportFloor() {
-    if (!this.teleportFloor) return;
-    
-
     if (this.teleportFloorHeight === null) return;
-    this.teleportFloor.position.y = this.teleportFloorHeight;
-    
-
-    this.teleportFloor.visible = true;
-    this.teleportFloor.material.visible = true;
-    this.teleportFloor.material.opacity = 0.06;
-    this.teleportFloor.material.color.setHex(this.style.floorColor);
-    
-
+    // Keep floor mesh position updated for arc logic, but never show it
+    if (this.teleportFloor) {
+      this.teleportFloor.position.y = this.teleportFloorHeight;
+    }
     this.updateTeleportArc();
   }
 
@@ -464,12 +471,8 @@ export class VRTeleport {
 
   calculateAndExecuteTeleport() {
     if (!this.teleportController || this.teleportMaxMagnitude < this.teleportThreshold) return;
-    
-
-
-    if (this.teleportMarker && this.teleportMarker.visible) {
-      const intersectionPoint = this.teleportMarker.position.clone();
-      
+    if (this.currentTeleportTarget) {
+      const intersectionPoint = this.currentTeleportTarget.clone();
 
       const currentUserPos = this.camera.parent.position;
       const horizontalDistance = Math.sqrt(
@@ -478,13 +481,14 @@ export class VRTeleport {
       );
       
 
-      if (horizontalDistance >= this.teleportMinDistance && horizontalDistance <= this.teleportMaxDistance) {
+      if (horizontalDistance <= this.teleportMaxDistance) {
 
         const teleportPosition = new THREE.Vector3(intersectionPoint.x, this.teleportFloorHeight, intersectionPoint.z);
         this.validTeleportPosition = teleportPosition;
         this.executeTeleport();
 
         this.teleportFloorHeight = null;
+        this.currentTeleportTarget = null;
       }
     }
   }

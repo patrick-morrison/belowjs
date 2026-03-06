@@ -49,6 +49,31 @@
     font-weight: 500;
 }
 
+.version-tag {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #15803d;
+    text-decoration: none;
+    background: rgba(21, 128, 61, 0.08);
+    border: 1px solid rgba(21, 128, 61, 0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 20px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.version-tag-link {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.version-tag:hover {
+    color: #166534;
+    background: rgba(21, 128, 61, 0.14);
+    border-color: rgba(21, 128, 61, 0.5);
+}
+
 .description {
     font-size: 1.1em;
     color: #718096;

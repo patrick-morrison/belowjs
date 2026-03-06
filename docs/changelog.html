@@ -196,7 +196,7 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Changelog</h1>
-            <p>Release notes and version history for BelowJS.</p>
+            <p>BelowJS is actively developed by <a href="https://padmorrison.com" target="_blank" rel="noopener noreferrer">Patrick Morrison</a>, built on Three.js and targeting the Quest 3 headset. We are working with groups like <a href="https://wrecksploration.au" target="_blank" rel="noopener noreferrer">WreckSploration</a> to make BelowJS the best way to share shipwreck models on the web and in VR. If a change or feature would make it perfect for you, <a href="https://github.com/patrick-morrison/belowjs/issues" target="_blank" rel="noopener noreferrer">let us know</a>.</p>
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
@@ -210,11 +210,13 @@
                     <div class="version-date">TBD</div>
                 </div>
 
-                <p>Planned patch release focused on animation example dive-mode consistency.</p>
+                <p>Patch release improving comfort mode teleportation and animation example dive-mode consistency.</p>
 
                 <div class="changes-list">
                     <h4>Fixed</h4>
                     <ul>
+                        <li><span class="change-type fixed">Fixed</span> Comfort mode teleport arc no longer shoots skyward when pointing the controller downward; the parabola now lands gracefully at a natural distance</li>
+                        <li><span class="change-type fixed">Fixed</span> Comfort mode no longer allows free vertical (up/down) flight on the right stick — the rig only moves when teleporting</li>
                         <li><span class="change-type fixed">Fixed</span> Animation example dive toggle now uses the stateful dive-mode API, making fog activation reliable when switching into dive mode</li>
                         <li><span class="change-type fixed">Fixed</span> Pressing <code>Z</code> now keeps the animation example's custom dive-mode toggle UI in sync with the active dive mode state</li>
                     </ul>

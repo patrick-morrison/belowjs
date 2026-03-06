@@ -163,6 +163,14 @@ export class VRLocomotion {
       const x = gamepad.axes[2] || 0; // strafe/turn
       const y = gamepad.axes[3] || 0; // walk/fly (-y = forward)
       
+      const canTeleport = this.comfortSettings.locomotionMode === 'teleport' && this.teleportSystem && controller;
+      const teleportActive = this.teleportSystem && this.teleportSystem.teleportPressed;
+      // True when this controller is the one aiming the arc
+      const isAimingController = teleportActive &&
+        this.teleportSystem.teleportController === controller;
+      // True when the OTHER controller is aiming and this one should adjust height
+      const isHeightController = teleportActive && !isAimingController;
+
       if (src.handedness === 'left') {
 
         const gripButton = gamepad.buttons[1];
@@ -172,15 +180,23 @@ export class VRLocomotion {
           isBoosted = true;
         }
 
-        const canTeleport = this.comfortSettings.locomotionMode === 'teleport' && this.teleportSystem && controller;
-        if (canTeleport) {
-          this.teleportSystem.processTeleportation(controller, x, y);
+        if (canTeleport && (isAimingController || !teleportActive)) {
+          // Y axis: teleport. X axis: snap turn (can do both simultaneously)
+          this.teleportSystem.processTeleportation(controller, y);
+          if (this.comfortSettings.turningMode === 'snap') {
+            this.teleportSystem.processSnapTurn(x, this.comfortSettings.snapTurnAngle);
+          }
           continue;
+        } else if (isHeightController) {
+          // Right is aiming — left Y adjusts height (up = up, down = down)
+          if (Math.abs(y) > 0.1) {
+            this.teleportSystem.adjustFloorHeight(-y * (4.0 * deltaTime));
+          }
         } else {
 
           const forward = new THREE.Vector3();
           this.camera.getWorldDirection(forward);
-          forward.y = 0; // Lock to dolly's yaw
+          forward.y = 0;
           forward.normalize();
           const right = new THREE.Vector3().crossVectors(forward, this.camera.up).normalize();
 
@@ -196,37 +212,38 @@ export class VRLocomotion {
           }
         }
       }
-      
+
       if (src.handedness === 'right') {
 
         const gripButton = gamepad.buttons[1];
         const verticalSpeedMultiplier = (gripButton && gripButton.pressed) ? 3 : 1;
         const comfortSpeedMultiplier = this.comfortSettings.reducedMotion ? this.comfortSettings.comfortSpeed : 1.0;
-        
+
         if (gripButton && gripButton.pressed && Math.abs(y) > 0.1) {
           isBoosted = true;
         }
-        
 
-        if (this.teleportSystem && this.teleportSystem.teleportPressed && this.teleportSystem.teleportCurve && this.teleportSystem.teleportCurve.visible) {
-
+        if (canTeleport && (isAimingController || !teleportActive)) {
+          // Y axis: teleport. X axis: snap turn (can do both simultaneously)
+          this.teleportSystem.processTeleportation(controller, y);
+          if (this.comfortSettings.turningMode === 'snap') {
+            this.teleportSystem.processSnapTurn(x, this.comfortSettings.snapTurnAngle);
+          }
+          continue;
+        } else if (isHeightController) {
+          // Left is aiming — right Y adjusts height (up = up, down = down)
           if (Math.abs(y) > 0.1) {
-            const floorAdjustSpeed = 4.0 * deltaTime; // 4 units per second (twice as fast)
-            this.teleportSystem.adjustFloorHeight(y * floorAdjustSpeed);
+            this.teleportSystem.adjustFloorHeight(-y * (4.0 * deltaTime));
           }
         } else {
 
-          
-
           if (this.comfortSettings.turningMode === 'snap' && this.teleportSystem) {
-
             this.teleportSystem.processSnapTurn(x, this.comfortSettings.snapTurnAngle);
           } else {
-
             if (Math.abs(x) > this.inputDeadzone) {
               const smoothedInput = this.lastTurnInput * this.turnSmoothingFactor + x * (1 - this.turnSmoothingFactor);
               this.lastTurnInput = smoothedInput;
-              
+
               if (Math.abs(smoothedInput) > this.inputDeadzone) {
                 const turnSpeed = this.comfortSettings.reducedMotion ? this.TURN_SPEED * 0.5 : this.TURN_SPEED;
                 const turnAmount = smoothedInput * turnSpeed * Math.min(deltaTime, 1/30);
@@ -237,9 +254,8 @@ export class VRLocomotion {
               this.lastTurnInput *= 0.9;
             }
           }
-          
 
-          if (Math.abs(y) > 0.1) {
+          if (Math.abs(y) > 0.1 && this.comfortSettings.locomotionMode !== 'teleport') {
             const rampedSpeed = this.FLY_SPEED * verticalSpeedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;
             rig.position.y -= y * rampedSpeed;
             currentlyMoving = true;
