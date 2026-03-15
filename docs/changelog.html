@@ -201,6 +201,11 @@
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
                 <code>npm install belowjs@1.7.3</code>
+                <div style="margin-top: 0.75rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.85rem;">
+                    or download directly:
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.js','belowjs.js');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.js</a>
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.css','belowjs.css');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.css</a>
+                </div>
             </div>
 
             <div class="version-section">
@@ -684,6 +689,17 @@
 
     <!-- Navigation JavaScript -->
     <script src="assets/navigation.js"></script>
+    <script>
+    function saveFile(url, name) {
+        fetch(url).then(r => r.blob()).then(b => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+    }
+    </script>
 </body>
 
 </html>

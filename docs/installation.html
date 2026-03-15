@@ -122,6 +122,13 @@ const viewer = new ModelViewer('body', {
     models: { 'wreck': { url: 'shipwreck.glb', measurable: true } }
 });</code></pre>
 
+            <h2>Direct Download</h2>
+            <p>Grab the latest files and host them yourself:</p>
+            <div style="display: flex; gap: 1rem; margin: 1rem 0;">
+                <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.js','belowjs.js');return false" style="display: inline-block; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; color: #0d3b66; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.2s;">belowjs.js</a>
+                <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.css','belowjs.css');return false" style="display: inline-block; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; color: #0d3b66; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.2s;">belowjs.css</a>
+            </div>
+
             <h2>npm</h2>
             <p>Use npm when integrating BelowJS into an existing project with a build system (Webpack, Vite, etc.).</p>
 
@@ -255,5 +262,16 @@ npm run build</code></pre>
 
     <!-- Navigation JavaScript -->
     <script src="assets/navigation.js"></script>
+    <script>
+    function saveFile(url, name) {
+        fetch(url).then(r => r.blob()).then(b => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+    }
+    </script>
 </body>
 </html>
