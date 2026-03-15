@@ -31,6 +31,19 @@
         .semantic-toggle {
             display: none !important;
         }
+
+        @media (max-width: 300px) {
+            .measurement-panel,
+            .screenshot-button {
+                display: none !important;
+            }
+
+            .fullscreen-button {
+                top: 20px !important;
+                bottom: auto !important;
+                right: 20px !important;
+            }
+        }
     </style>
     <!-- Analytics script for BelowJS docs site only. Replace/remove for your own deployment. -->
     <script defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
