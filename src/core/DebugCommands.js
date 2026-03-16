@@ -290,6 +290,59 @@ export class DebugCommands {
       return { enabled: enable, eyeSeparation: viewer.stereoEyeSeparation };
     };
     
+    window.tiles = (showVRPanel) => {
+      const tl = viewer.tilesetLoader;
+      const r = viewer.renderer;
+      const info = r?.info;
+
+      if (!tl) {
+        console.log('No tileset loader active');
+        return null;
+      }
+
+      const fps = viewer._smoothedFrameTimeMs > 0
+        ? Math.round(1000 / viewer._smoothedFrameTimeMs)
+        : '?';
+      const frameTimeMs = viewer._smoothedFrameTimeMs?.toFixed(1) || '?';
+      const triangles = info?.render?.triangles || 0;
+      const calls = info?.render?.calls || 0;
+
+      const tileData = [];
+      tl.activeTilesets.forEach((tileset) => {
+        const state = tl.tilesetStates.get(tileset);
+        tileData.push({
+          errorTarget: tileset.errorTarget?.toFixed(2),
+          maxTilesProcessed: tileset.maxTilesProcessed,
+          pendingQueue: tl.pendingQueueTasks.length,
+          maxTriangles: state?.maxTriangles || 'none'
+        });
+      });
+
+      const result = {
+        fps,
+        frameTimeMs,
+        triangles,
+        drawCalls: calls,
+        tilesets: tileData
+      };
+
+      console.log('🧱 Tile streaming stats:');
+      console.log(`  FPS: ${fps} (${frameTimeMs}ms)`);
+      console.log(`  Triangles: ${(triangles / 1e6).toFixed(2)}M`);
+      console.log(`  Draw calls: ${calls}`);
+      tileData.forEach((td, i) => {
+        console.log(`  Tileset ${i}: errorTarget=${td.errorTarget}, maxTilesProcessed=${td.maxTilesProcessed}, pending=${td.pendingQueue}`);
+      });
+
+      // Toggle VR stats panel
+      if (showVRPanel !== undefined) {
+        viewer._vrStatsEnabled = !!showVRPanel;
+        console.log(`  VR stats panel: ${showVRPanel ? 'enabled' : 'disabled'}`);
+      }
+
+      return result;
+    };
+
     window.debugHelp = () => {
       console.log('🔧 BelowJS Debug Commands:');
       console.log('  camera()    - Get current camera position data');
@@ -299,6 +352,7 @@ export class DebugCommands {
       console.log('  particles() - Get particle system information');
       console.log('  vr()        - Get VR state and settings');
       console.log('  stereo()    - Get/set stereo mode and eye separation');
+      console.log('  tiles()     - Get tile streaming stats; tiles(true/false) toggles VR panel');
       console.log('  debugHelp() - Show this help message');
       console.log('');
       console.log('Global objects:');
@@ -319,6 +373,7 @@ export class DebugCommands {
     delete window.particles;
     delete window.vr;
     delete window.stereo;
+    delete window.tiles;
     delete window.debugHelp;
     delete window.belowViewer;
   }

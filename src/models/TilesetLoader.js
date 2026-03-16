@@ -639,7 +639,7 @@ export class TilesetLoader {
     };
   }
 
-  applyAdaptiveQuality(state, camera) {
+  applyAdaptiveQuality(state, camera, smoothedFrameTimeMs = undefined) {
     if (!state?.adaptive || !camera) {
       return;
     }
@@ -704,6 +704,21 @@ export class TilesetLoader {
       }
     }
 
+    // Frame-time emergency response: when actually dropping frames, react fast
+    // by pushing errorTarget up to reduce render cost (fewer/coarser tiles shown).
+    // Uses ~14ms for VR (72Hz Quest) and ~18ms for desktop (60Hz) as thresholds.
+    const frameTimePressured = Number.isFinite(smoothedFrameTimeMs) && smoothedFrameTimeMs > 14;
+    if (frameTimePressured) {
+      const targetMs = smoothedFrameTimeMs > 20 ? 16.0 : 13.9; // desktop vs VR threshold
+      const overshoot = smoothedFrameTimeMs / targetMs;
+      const emergencyTarget = targetErrorTarget * Math.min(overshoot, 2.5);
+      targetErrorTarget = Math.max(targetErrorTarget, emergencyTarget);
+      targetTilesProcessed = Math.max(
+        adaptive.minTilesProcessed,
+        Math.round(targetTilesProcessed * Math.max(0.3, 1.0 / overshoot))
+      );
+    }
+
     targetErrorTarget = this.clamp(targetErrorTarget, minErrorTarget, maxErrorTarget);
     targetTilesProcessed = this.clamp(
       Math.round(targetTilesProcessed),
@@ -711,7 +726,12 @@ export class TilesetLoader {
       adaptive.maxTilesProcessed
     );
 
-    const smoothedErrorTarget = tileset.errorTarget + (targetErrorTarget - tileset.errorTarget) * adaptive.errorLerp;
+    // Use faster lerp when frame-pressured so errorTarget adjusts in ~3 frames
+    // instead of ~8+ with the default 0.12 lerp
+    const effectiveLerp = frameTimePressured
+      ? Math.min(0.5, adaptive.errorLerp * 3)
+      : adaptive.errorLerp;
+    const smoothedErrorTarget = tileset.errorTarget + (targetErrorTarget - tileset.errorTarget) * effectiveLerp;
     if (Math.abs(smoothedErrorTarget - tileset.errorTarget) > 0.04) {
       tileset.errorTarget = smoothedErrorTarget;
     }
@@ -883,7 +903,7 @@ export class TilesetLoader {
       const state = this.tilesetStates.get(tileset);
       if (state) {
         if (state.adaptive) {
-          this.applyAdaptiveQuality(state, camera);
+          this.applyAdaptiveQuality(state, camera, options?.smoothedFrameTimeMs);
         } else {
           this.applyTriangleBudget(state);
         }

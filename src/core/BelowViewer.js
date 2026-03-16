@@ -716,7 +716,13 @@ export class BelowViewer extends EventSystem {
   startRenderLoop() {
     let lastTime = 0;
     let lastVRTilesUpdateTimeMs = 0;
-    
+    let smoothedFrameTimeMs = 16.0;
+    const lastXRQuaternion = new THREE.Quaternion();
+    let xrQuaternionInitialized = false;
+
+    // Expose smoothedFrameTimeMs for debug commands
+    this._smoothedFrameTimeMs = 16.0;
+
     const animate = (time) => {
       if (this.renderPauseDepth > 0) {
         return;
@@ -724,6 +730,13 @@ export class BelowViewer extends EventSystem {
 
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
+
+      // Track frame time with EMA (alpha 0.25) for adaptive quality feedback
+      const rawFrameTimeMs = deltaTime * 1000;
+      if (rawFrameTimeMs > 0 && rawFrameTimeMs < 200) {
+        smoothedFrameTimeMs = smoothedFrameTimeMs * 0.75 + rawFrameTimeMs * 0.25;
+        this._smoothedFrameTimeMs = smoothedFrameTimeMs;
+      }
       
       if (this.vrManager) {
         this.vrManager.update(deltaTime);
@@ -762,7 +775,23 @@ export class BelowViewer extends EventSystem {
 
           if (this.tilesetLoader) {
             const movement = this.vrManager?.getVRStatus?.().movement;
-            const isMoving = movement?.isMoving === true;
+            let isMoving = movement?.isMoving === true;
+
+            // Detect head rotation as movement — turning head near model
+            // should throttle tile work even without controller locomotion
+            const activeTilesCamera = this.renderer.xr.getCamera(this.cameraManager.camera);
+            if (activeTilesCamera) {
+              const currentQuat = activeTilesCamera.quaternion;
+              if (xrQuaternionInitialized) {
+                const headAngularDelta = lastXRQuaternion.angleTo(currentQuat);
+                if (headAngularDelta > 0.01) {
+                  isMoving = true;
+                }
+              }
+              lastXRQuaternion.copy(currentQuat);
+              xrQuaternionInitialized = true;
+            }
+
             const nowMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
               ? performance.now()
               : time;
@@ -771,20 +800,32 @@ export class BelowViewer extends EventSystem {
             const shouldUpdateTiles = (nowMs - lastVRTilesUpdateTimeMs) >= minUpdateIntervalMs;
 
             if (shouldUpdateTiles) {
-              const activeTilesCamera = this.renderer.xr.getCamera(this.cameraManager.camera);
               this.tilesetLoader.update(activeTilesCamera, {
                 queueOptions: {
                   maxTasks: isMoving ? 1 : 2,
                   timeBudgetMs: isMoving ? 0.7 : 1.5
-                }
+                },
+                smoothedFrameTimeMs
               });
               lastVRTilesUpdateTimeMs = nowMs;
             }
           }
+
+          // Update VR stats panel if enabled via tiles(true)
+          if (this._vrStatsEnabled) {
+            const xrCam = this.renderer.xr.getCamera(this.cameraManager.camera);
+            this.updateVRStatsPanel(xrCam);
+          }
         } else {
           if (this.tilesetLoader) {
             const activeTilesCamera = this.cameraManager.camera;
-            this.tilesetLoader.update(activeTilesCamera);
+            this.tilesetLoader.update(activeTilesCamera, {
+              queueOptions: {
+                maxTasks: 16,
+                timeBudgetMs: 6
+              },
+              smoothedFrameTimeMs
+            });
           }
           renderScene();
         }
@@ -793,6 +834,100 @@ export class BelowViewer extends EventSystem {
     
 
     this.renderer.setAnimationLoop(animate);
+  }
+
+  updateVRStatsPanel(camera) {
+    if (!this._vrStatsEnabled || !this.dolly) {
+      if (this._vrStatsSprite && this._vrStatsSprite.parent) {
+        this._vrStatsSprite.parent.remove(this._vrStatsSprite);
+      }
+      return;
+    }
+
+    const now = performance.now();
+    if (this._vrStatsLastUpdate && (now - this._vrStatsLastUpdate) < 250) {
+      return; // Update at ~4Hz to avoid overhead
+    }
+    this._vrStatsLastUpdate = now;
+
+    const fps = this._smoothedFrameTimeMs > 0
+      ? Math.round(1000 / this._smoothedFrameTimeMs)
+      : 0;
+    const info = this.renderer?.info;
+    const triangles = info?.render?.triangles || 0;
+
+    let errorTarget = '?';
+    if (this.tilesetLoader) {
+      this.tilesetLoader.activeTilesets.forEach((tileset) => {
+        errorTarget = tileset.errorTarget?.toFixed(1) || '?';
+      });
+    }
+
+    // Create canvas on first use
+    if (!this._vrStatsCanvas) {
+      this._vrStatsCanvas = document.createElement('canvas');
+      this._vrStatsCanvas.width = 256;
+      this._vrStatsCanvas.height = 128;
+    }
+
+    const ctx = this._vrStatsCanvas.getContext('2d');
+    ctx.clearRect(0, 0, 256, 128);
+
+    // Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.beginPath();
+    ctx.roundRect(4, 4, 248, 120, 8);
+    ctx.fill();
+
+    // FPS line
+    ctx.font = 'bold 28px monospace';
+    ctx.fillStyle = fps >= 65 ? '#00ff00' : fps >= 45 ? '#ffff00' : '#ff4444';
+    ctx.fillText(`${fps} FPS`, 16, 40);
+
+    // Stats
+    ctx.font = '18px monospace';
+    ctx.fillStyle = '#cccccc';
+    ctx.fillText(`Tris: ${(triangles / 1e6).toFixed(2)}M`, 16, 70);
+    ctx.fillText(`Error: ${errorTarget}`, 16, 95);
+
+    // Create or update texture/sprite
+    if (!this._vrStatsTexture) {
+      this._vrStatsTexture = new THREE.CanvasTexture(this._vrStatsCanvas);
+      this._vrStatsTexture.minFilter = THREE.LinearFilter;
+      this._vrStatsTexture.magFilter = THREE.LinearFilter;
+    } else {
+      this._vrStatsTexture.needsUpdate = true;
+    }
+
+    if (!this._vrStatsSprite) {
+      const material = new THREE.SpriteMaterial({
+        map: this._vrStatsTexture,
+        depthTest: false,
+        depthWrite: false,
+        transparent: true
+      });
+      this._vrStatsSprite = new THREE.Sprite(material);
+      this._vrStatsSprite.scale.set(0.3, 0.15, 1);
+      this._vrStatsSprite.renderOrder = 9999;
+    }
+
+    // Attach to dolly if not already
+    if (!this._vrStatsSprite.parent) {
+      this.dolly.add(this._vrStatsSprite);
+    }
+
+    // Position in front of camera, bottom-left of view
+    if (camera) {
+      const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      const pos = camera.position.clone()
+        .add(dir.multiplyScalar(0.5))
+        .add(right.multiplyScalar(-0.2))
+        .add(up.multiplyScalar(-0.15));
+      this._vrStatsSprite.position.copy(pos);
+      this._vrStatsSprite.quaternion.copy(camera.quaternion);
+    }
   }
 
   renderSbsStereo() {
