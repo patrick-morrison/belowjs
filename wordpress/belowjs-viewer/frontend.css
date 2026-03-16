@@ -1,0 +1,22 @@
+/**
+ * BelowJS WordPress front-end styles.
+ */
+
+.belowjs-container {
+	width: 100%;
+	overflow: hidden;
+	border-radius: 4px;
+}
+
+.belowjs-container canvas {
+	display: block;
+}
+
+.belowjs-error {
+	padding: 2em;
+	text-align: center;
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+	border-radius: 4px;
+}

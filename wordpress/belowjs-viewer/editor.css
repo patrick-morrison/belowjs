@@ -1,0 +1,51 @@
+/**
+ * BelowJS Gutenberg block editor styles.
+ */
+
+.belowjs-block-placeholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 250px;
+	padding: 2em;
+	border: 2px dashed #ccc;
+	border-radius: 4px;
+	background: #f9f9f9;
+	text-align: center;
+}
+
+.belowjs-block-placeholder svg {
+	margin-bottom: 1em;
+	opacity: 0.6;
+}
+
+.belowjs-block-preview {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 250px;
+	padding: 2em;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center;
+}
+
+.belowjs-block-preview .belowjs-preview-label {
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+.belowjs-block-preview .belowjs-preview-name {
+	font-size: 20px;
+	font-weight: 600;
+	margin-top: 0.25em;
+}
+
+.belowjs-block-preview .belowjs-preview-url {
+	font-size: 12px;
+	opacity: 0.6;
+	margin-top: 0.5em;
+	word-break: break-all;
+}
