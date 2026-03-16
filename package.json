@@ -14,6 +14,7 @@
     "dev:animation": "vite serve --open examples/animation/",
     "dev:tileset": "vite serve --open examples/tileset/",
     "build": "vite build",
+    "build:wordpress": "vite build --config wordpress/belowjs-viewer/vite.config.js",
     "preview": "vite preview",
     "docs:serve": "python -m http.server 8000 --directory docs",
     "docs:examples": "node docs/copy-examples.js",

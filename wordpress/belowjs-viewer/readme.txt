@@ -23,7 +23,7 @@ BelowJS 3D Viewer lets you embed interactive 3D photogrammetry models directly i
 * Dive mode with underwater lighting and particle effects
 * Optional VR support for WebXR headsets
 * Fullscreen viewing
-* Loads BelowJS from CDN — no heavy assets in your plugin folder
+* Self-contained — Three.js and BelowJS are bundled in the plugin, no CDN dependency
 * Responsive and mobile-friendly
 
 == Usage ==
@@ -74,7 +74,7 @@ Yes — use the `[belowjs]` shortcode in any page builder that supports shortcod
 
 = Where is BelowJS loaded from? =
 
-The viewer JavaScript and CSS are loaded from the jsDelivr CDN. No large assets are stored in the plugin.
+Three.js and BelowJS are bundled directly in the plugin. No external CDN calls are made. To upgrade, rebuild the plugin from the belowjs repository with `npm run build:wordpress`.
 
 == Changelog ==
 

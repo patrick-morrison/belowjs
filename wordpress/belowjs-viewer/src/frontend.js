@@ -1,9 +1,10 @@
 /**
  * BelowJS WordPress front-end initialisation.
  *
- * Finds every .belowjs-container on the page, reads its data-belowjs-config
- * attribute, and boots a ModelViewer instance inside it.
+ * This is the build entry point. Vite bundles Three.js, BelowJS (source),
+ * and the BelowJS stylesheet into a single self-contained output.
  */
+import '../../../src/styles/index.css';
 import { ModelViewer } from 'belowjs';
 
 document.querySelectorAll( '.belowjs-container[data-belowjs-config]' ).forEach( ( container ) => {

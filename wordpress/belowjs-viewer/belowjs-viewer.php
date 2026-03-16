@@ -18,8 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'BELOWJS_VERSION', '1.0.0' );
-define( 'BELOWJS_CDN_VERSION', '1.7.3' );
-define( 'BELOWJS_THREE_VERSION', '0.179.1' );
 define( 'BELOWJS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BELOWJS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -189,29 +187,26 @@ function belowjs_enqueue_frontend() {
 	}
 	$enqueued = true;
 
-	// BelowJS CSS from CDN.
+	// Bundled BelowJS CSS (includes Three.js viewer styles).
 	wp_enqueue_style(
-		'belowjs-css',
-		sprintf( 'https://cdn.jsdelivr.net/npm/belowjs@%s/dist/belowjs.css', BELOWJS_CDN_VERSION ),
+		'belowjs-viewer',
+		BELOWJS_PLUGIN_URL . 'dist/belowjs-viewer.css',
 		array(),
-		BELOWJS_CDN_VERSION
+		BELOWJS_VERSION
 	);
 
 	// Front-end container styles.
 	wp_enqueue_style(
 		'belowjs-frontend',
 		BELOWJS_PLUGIN_URL . 'frontend.css',
-		array( 'belowjs-css' ),
+		array( 'belowjs-viewer' ),
 		BELOWJS_VERSION
 	);
 
-	// Import map for ES modules (Three.js + BelowJS from CDN).
-	add_action( 'wp_head', 'belowjs_print_importmap', 1 );
-
-	// Front-end initialisation script.
+	// Bundled front-end script (Three.js + BelowJS + init, all in one file).
 	wp_enqueue_script(
 		'belowjs-frontend',
-		BELOWJS_PLUGIN_URL . 'frontend.js',
+		BELOWJS_PLUGIN_URL . 'dist/belowjs-viewer.js',
 		array(),
 		BELOWJS_VERSION,
 		true
@@ -219,21 +214,6 @@ function belowjs_enqueue_frontend() {
 
 	// Mark it as an ES module.
 	add_filter( 'script_loader_tag', 'belowjs_module_script_tag', 10, 3 );
-}
-
-/**
- * Print the import map in <head> so ES module imports resolve to the CDN.
- */
-function belowjs_print_importmap() {
-	printf(
-		'<script type="importmap">%s</script>' . "\n",
-		wp_json_encode( array(
-			'imports' => array(
-				'three'   => sprintf( 'https://cdn.jsdelivr.net/npm/three@%s/+esm', BELOWJS_THREE_VERSION ),
-				'belowjs' => sprintf( 'https://cdn.jsdelivr.net/npm/belowjs@%s/dist/belowjs.js', BELOWJS_CDN_VERSION ),
-			),
-		), JSON_UNESCAPED_SLASHES )
-	);
 }
 
 /**
