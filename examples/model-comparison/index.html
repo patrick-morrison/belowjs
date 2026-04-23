@@ -703,6 +703,8 @@
       <div class="seg" role="group" aria-label="View mode">
         <button id="sideBySideBtn" class="seg-btn active" title="Side-by-side view">Split</button>
         <button id="singleBtn" class="seg-btn" title="Single view — press Z to swap">Single</button>
+        <button id="overlayBtn" class="seg-btn" title="Overlay at 50% opacity">50/50</button>
+        <button id="diffBtn" class="seg-btn" title="Red/Blue overlap">R/B</button>
       </div>
       <button id="cameraLockBtn" class="btn btn-icon" title="Lock cameras together"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
       <span id="controlSummary" class="bar-status">0 matched</span>
@@ -715,32 +717,16 @@
         <button id="referenceToggleBtn" class="btn" title="Toggle reference side" style="flex: 0 0 auto;">Ref: A</button>
         <button id="refineBtn" class="btn primary" disabled style="flex: 1;">Refine</button>
         <button id="downloadBtn" class="btn" disabled style="flex: 1;" title="Download B">Save B</button>
+        <button id="screenshotBtn" class="btn icon-btn" disabled style="flex: 0 0 auto;" title="Take screenshot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
         <button id="clearBtn" class="btn danger" disabled style="flex: 0 0 auto;" title="Clear alignment">×</button>
       </div>
-      <div class="metrics" aria-live="polite" style="margin-top:2px">
-        <span class="metric"><span>Matched</span><strong id="matchedStatus">0</strong></span>
-        <span class="metric"><span>Errors</span><strong id="errorStatus">0</strong></span>
-        <span class="metric"><span>RMS</span><strong id="rmsStatus">-</strong></span>
-        <span class="metric"><span>Fit</span><strong id="fitStatus">markers</strong></span>
-      </div>
-      <details class="screenshot-panel">
-        <summary>
-          <span>Screenshots</span>
-          <span class="point-count">no chrome</span>
-        </summary>
-        <div class="screenshot-body">
-          <div class="screenshot-options" aria-label="Visible overlay controls">
-            <label><input id="showPointsToggle" type="checkbox" checked> Points</label>
-            <label><input id="showLinesToggle" type="checkbox" checked> Error lines</label>
-          </div>
-          <div class="screenshot-buttons">
-            <button id="screenshotBtn" class="btn" style="width:100%" disabled>Take screenshot</button>
-          </div>
-        </div>
-      </details>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <span id="methodSummary" style="color:var(--muted);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">marker least squares</span>
-        <button id="methodBtn" class="btn" style="height:26px;font-size:12px;padding:0 9px;flex-shrink:0">Method…</button>
+
+      <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 12px;">
+        <label style="display:flex;align-items:center;gap:4px;"><input id="showPointsToggle" type="checkbox" checked style="margin:0"> Points</label>
+        <label style="display:flex;align-items:center;gap:4px;"><input id="showLinesToggle" type="checkbox" checked style="margin:0"> Error lines</label>
+        <span style="flex:1"></span>
+        <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">markerls</span>
+        <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;">Method…</button>
       </div>
       <details class="point-panel">
         <summary style="display:flex; align-items:center;">
@@ -750,6 +736,12 @@
           <button id="importPtsBtn" class="btn icon-btn" title="Import points" style="height:20px;width:24px;border:none;">↓</button>
           <button id="exportPtsBtn" class="btn icon-btn" title="Export points" style="height:20px;width:24px;border:none;">↑</button>
         </summary>
+        <div class="subtle-metrics" style="display:flex; justify-content:space-between; padding:4px 10px; background:rgba(0,0,0,0.02); font-size:11px; color:var(--muted); border-bottom:1px solid var(--panel-border);">
+           <span title="Matched pairs">M: <strong id="matchedStatus" style="color:var(--text)">0</strong></span>
+           <span title="Errors">E: <strong id="errorStatus" style="color:var(--text)">0</strong></span>
+           <span title="RMS Error">RMS: <strong id="rmsStatus" style="color:var(--text)">-</strong></span>
+           <span title="Fit Mode">Fit: <strong id="fitStatus" style="color:var(--text)">markers</strong></span>
+        </div>
         <div id="pointList" class="point-list" aria-live="polite"></div>
       </details>
     </div>
@@ -758,7 +750,6 @@
   <div id="pointContextMenu" class="context-menu">
     <button id="addPointFromMenu">Add point</button>
     <button id="deletePointFromMenu" class="danger" style="display:none">Delete marker</button>
-    <button id="movePointFromMenu" style="display:none">Move marker…</button>
   </div>
 
   <!-- Import modal -->
@@ -908,6 +899,8 @@
       expandBtn: document.getElementById('expandBtn'),
       sideBySideBtn: document.getElementById('sideBySideBtn'),
       singleBtn: document.getElementById('singleBtn'),
+      overlayBtn: document.getElementById('overlayBtn'),
+      diffBtn: document.getElementById('diffBtn'),
       cameraLockBtn: document.getElementById('cameraLockBtn'),
       referenceToggleBtn: document.getElementById('referenceToggleBtn'),
       refineBtn: document.getElementById('refineBtn'),
@@ -929,7 +922,6 @@
       pointContextMenu: document.getElementById('pointContextMenu'),
       addPointFromMenu: document.getElementById('addPointFromMenu'),
       deletePointFromMenu: document.getElementById('deletePointFromMenu'),
-      movePointFromMenu: document.getElementById('movePointFromMenu'),
       pointList: document.getElementById('pointList'),
       pointCount: document.getElementById('pointCount'),
       matchedStatus: document.getElementById('matchedStatus'),
@@ -956,6 +948,8 @@
 
     els.sideBySideBtn.addEventListener('click', () => setMode('split'));
     els.singleBtn.addEventListener('click', () => setMode('single'));
+    els.overlayBtn.addEventListener('click', () => setMode('overlay'));
+    els.diffBtn.addEventListener('click', () => setMode('diff'));
     els.cameraLockBtn.addEventListener('click', () => setCameraLock(!state.camerasLocked));
     els.expandBtn.addEventListener('click', togglePanel);
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
@@ -1014,13 +1008,6 @@
     els.deletePointFromMenu.addEventListener('click', () => {
       if (state.pendingPoint?.markerPoint) {
         removePoint(state.pendingPoint.markerPoint.side, state.pendingPoint.markerPoint.id);
-      }
-      hidePointContextMenu();
-    });
-
-    els.movePointFromMenu.addEventListener('click', () => {
-      if (state.pendingPoint?.markerPoint) {
-        state.movingMarker = state.pendingPoint.markerPoint;
       }
       hidePointContextMenu();
     });
@@ -1218,7 +1205,7 @@
       updateLabels();
 
       try {
-        const model = await viewer.loadModel(url, { autoFrame: true });
+        const model = await viewer.loadModel(url, { autoFrame: false, alignCenter: false, centerBase: false, autoCenter: false });
         state.models[side] = model;
         model.matrixAutoUpdate = true;
         markModelMaterials(model, side);
@@ -1226,6 +1213,7 @@
         updateMeasurementTarget(side);
         getDropElement(side).style.display = 'none';
         analyzeAndFit();
+        setupMeasurementSync();
       } catch (error) {
         console.error(error);
         state.models[side] = null;
@@ -1320,6 +1308,8 @@
         rightClickCandidate.maxDistance = Math.max(rightClickCandidate.maxDistance, distance);
         if (distance > dragThreshold) {
           rightClickCandidate.dragged = true;
+          // Hide context menu dynamically in case macOS fired contextmenu on mousedown instantly
+          hidePointContextMenu();
         }
       });
 
@@ -1397,7 +1387,6 @@
       state.pendingPoint = { side, worldPoint: worldPoint.clone() };
       els.addPointFromMenu.style.display = '';
       els.deletePointFromMenu.style.display = 'none';
-      els.movePointFromMenu.style.display = 'none';
       positionContextMenu(x, y);
     }
 
@@ -1405,7 +1394,6 @@
       state.pendingPoint = { side, worldPoint: point.local.clone(), markerPoint: point };
       els.addPointFromMenu.style.display = 'none';
       els.deletePointFromMenu.style.display = '';
-      els.movePointFromMenu.style.display = '';
       positionContextMenu(x, y);
     }
 
@@ -1739,9 +1727,8 @@
         els.refineBtn.classList.remove('active');
       }
       els.downloadBtn.disabled = !hasBothModels;
-      els.shotReferenceBtn.disabled = !state.models.reference;
-      els.shotUpdatedBtn.disabled = !state.models.updated;
-      els.shotSplitBtn.disabled = !hasBothModels;
+      els.screenshotBtn.disabled = !state.models.reference && !state.models.updated;
+      els.clearBtn.disabled = !state.models.reference && !state.models.updated;
     }
 
     function setReferenceSide(side) {
@@ -1819,10 +1806,25 @@
       let finalPairs = 0;
       let stableIterations = 0;
 
+      const priorSource = analysis.pairs.map(p => movingPoint(p).local);
+      const priorTarget = analysis.pairs.map(p => referencePoint(p).local);
+
       for (let iteration = 0; iteration < 48; iteration++) {
-        const keepRatio = Math.max(0.62, 0.92 - iteration * 0.01);
+        // Drop keepRatio intensely to ignore non-overlapping extents (robost to partial models)
+        const keepRatio = Math.max(0.20, 0.85 - iteration * 0.03);
         const pairs = buildRobustClosestPairs(source, targetTree, matrix, keepRatio);
         if (pairs.source.length < 8) break;
+
+        // Decaying prior injection: holds the alignment to user markers early, lets geometry take over later
+        const priorInfluence = Math.max(0, 1.0 - (iteration / 25)); // Decays to 0 at iter 25
+        if (priorInfluence > 0) {
+          const priorWeight = (pairs.source.length * priorInfluence) / priorSource.length;
+          for (let i = 0; i < priorSource.length; i++) {
+            pairs.source.push(priorSource[i]);
+            pairs.target.push(priorTarget[i]);
+            pairs.weights.push(priorWeight);
+          }
+        }
 
         const fit = solveWeightedSimilarityTransform(pairs.source, pairs.target, pairs.weights);
         const rms = calculateWeightedRms(pairs.source, pairs.target, pairs.weights, fit.matrix);
@@ -1830,7 +1832,8 @@
 
         matrix = fit.matrix.clone();
         finalRms = rms;
-        finalPairs = pairs.source.length;
+        // Exclude priors from the final pair count metric
+        finalPairs = priorInfluence > 0 ? pairs.source.length - priorSource.length : pairs.source.length;
 
         const improvement = previousRms - rms;
         const tolerance = Math.max(1e-7, previousRms * 0.0004);
@@ -2317,13 +2320,31 @@
     }
 
     function updateLayout() {
-      const single = state.mode === 'single';
-      els.app.classList.toggle('single', single);
+      const mode = state.mode || 'split';
+      const single = mode === 'single';
+      const overlay = mode === 'overlay' || mode === 'diff';
+      
+      els.app.classList.toggle('single', single || overlay);
       els.referencePane.classList.toggle('hidden', single && state.singleSide !== 'reference');
-      els.updatedPane.classList.toggle('hidden', single && state.singleSide !== 'updated');
-      els.sideBySideBtn.classList.toggle('active', !single);
+      els.updatedPane.classList.toggle('hidden', (single && state.singleSide !== 'updated') || overlay);
+      
+      els.sideBySideBtn.classList.toggle('active', mode === 'split');
       els.singleBtn.classList.toggle('active', single);
+      els.overlayBtn.classList.toggle('active', mode === 'overlay');
+      els.diffBtn.classList.toggle('active', mode === 'diff');
+      
       resizeViewers();
+      
+      if (state.models.updated && state.models.reference) {
+         if (overlay) {
+            coreViewer('reference').getScene().add(state.models.updated);
+         } else {
+            coreViewer('updated').getScene().add(state.models.updated);
+         }
+      }
+      
+      applyModelMaterials(mode);
+      
       if (single) {
         syncCamera(state.singleSide, state.singleSide === 'reference' ? 'updated' : 'reference');
       }
@@ -2641,17 +2662,49 @@
       return false;
     }
 
-    function markModelMaterials(model, side) {
-      const tint = side === 'reference' ? new THREE.Color(0xe9fff7) : new THREE.Color(0xfff5dc);
+    function applyModelMaterials(mode) {
+      if (state.models.reference) applyMaterialState(state.models.reference, 'reference', mode);
+      if (state.models.updated) applyMaterialState(state.models.updated, 'updated', mode);
+    }
+    
+    function applyMaterialState(model, side, mode) {
+      // Default tints
+      let tint = side === 'reference' ? new THREE.Color(0xe9fff7) : new THREE.Color(0xfff5dc);
+      let opacity = 1.0;
+      let depthWrite = true;
+      let transparent = false;
+      
+      if (mode === 'overlay') {
+        opacity = 0.5;
+        transparent = true;
+        depthWrite = false;
+      } else if (mode === 'diff') {
+        tint = side === 'reference' ? new THREE.Color(0x0000ff) : new THREE.Color(0xff0000);
+      }
+      
       model.traverse((object) => {
         if (!object.isMesh) return;
         const materials = Array.isArray(object.material) ? object.material : [object.material];
         for (const material of materials) {
           if (!material) continue;
-          material.color?.lerp(tint, 0.08);
+          
+          if (!material.userData.origColor) {
+             material.userData.origColor = material.color.clone();
+             material.userData.origTransparent = material.transparent;
+             material.userData.origDepthWrite = material.depthWrite;
+          }
+          
+          material.color.copy(material.userData.origColor).lerp(tint, mode === 'diff' ? 0.95 : 0.08);
+          material.opacity = opacity;
+          material.transparent = transparent || material.opacity < 1.0;
+          material.depthWrite = depthWrite;
           material.needsUpdate = true;
         }
       });
+    }
+
+    function markModelMaterials(model, side) {
+       applyMaterialState(model, side, state.mode || 'split');
     }
 
     function updateLabels() {
@@ -2682,6 +2735,130 @@
     function isEditableTarget(target) {
       if (!(target instanceof HTMLElement)) return false;
       return ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable;
+    }
+
+    function exportPointsData() {
+      const data = {
+        _info: els.methodModalText.textContent,
+        points: {
+          reference: state.points.reference.map(p => ({
+            id: p.id,
+            name: p.name,
+            local: p.local.toArray()
+          })),
+          updated: state.points.updated.map(p => ({
+            id: p.id,
+            name: p.name,
+            local: p.local.toArray()
+          }))
+        }
+      };
+      
+      const fileContent = `=== Alignment Info ===\n${data._info}\n\n=== Data ===\n${JSON.stringify(data.points, null, 2)}`;
+      const blob = new Blob([fileContent], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `alignment-points-${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    async function importPointsData(file) {
+      try {
+        const text = await file.text();
+        const dataStr = text.split('=== Data ===')[1];
+        if (!dataStr) throw new Error('Could not find === Data === section in file');
+        const points = JSON.parse(dataStr.trim());
+        
+        const doRef = els.importToReference.checked;
+        const doUpd = els.importToUpdated.checked;
+        
+        const importSide = (side, dataList) => {
+          if (!dataList || !state.models[side]) return;
+          for (const item of dataList) {
+            let existing = state.points[side].find(p => p.name === item.name);
+            if (!existing) {
+              const vec = new THREE.Vector3().fromArray(item.local);
+              const worldPoint = state.models[side].localToWorld(vec.clone());
+              addPoint(side, worldPoint);
+              existing = state.points[side][state.points[side].length - 1];
+              existing.name = item.name;
+            } else {
+              existing.local.fromArray(item.local);
+              const worldPoint = state.models[side].localToWorld(existing.local.clone());
+              existing.marker.position.copy(existing.local);
+            }
+          }
+        };
+
+        if (doRef && points.reference) importSide('reference', points.reference);
+        if (doUpd && points.updated) importSide('updated', points.updated);
+        
+        invalidateRefinement();
+        analyzeAndFit();
+      } catch (err) {
+        alert('Failed to import points: ' + err.message);
+      }
+    }
+
+    function setupMeasurementSync() {
+      const refViewer = coreViewer('reference');
+      const updViewer = coreViewer('updated');
+      if (!refViewer || !updViewer) return;
+      const refSystem = refViewer.measurementSystem;
+      const updSystem = updViewer.measurementSystem;
+      if (!refSystem || !updSystem || refSystem._syncPatched) return;
+      
+      const syncPoint = (targetSystem, pointVec, toSide) => {
+        if (state.syncingMeasurement) return;
+        state.syncingMeasurement = true;
+        let syncedPoint = pointVec.clone();
+        if (toSide === 'updated') {
+           const inv = new THREE.Matrix4().copy(state.fit.activeMatrix).invert();
+           syncedPoint.applyMatrix4(inv);
+        } else {
+           syncedPoint.applyMatrix4(state.fit.activeMatrix);
+        }
+        targetSystem.placeUnifiedMeasurementPoint(syncedPoint, 'sync');
+        state.syncingMeasurement = false;
+      };
+      
+      const origRefPlace = refSystem.placeUnifiedMeasurementPoint.bind(refSystem);
+      refSystem.placeUnifiedMeasurementPoint = (pt, source) => {
+        origRefPlace(pt, source);
+        if (source !== 'sync') syncPoint(updSystem, pt, 'updated');
+      };
+      
+      const origUpdPlace = updSystem.placeUnifiedMeasurementPoint.bind(updSystem);
+      updSystem.placeUnifiedMeasurementPoint = (pt, source) => {
+        origUpdPlace(pt, source);
+        if (source !== 'sync') syncPoint(refSystem, pt, 'reference');
+      };
+      
+      const origRefClear = refSystem.clearUnifiedMeasurement.bind(refSystem);
+      refSystem.clearUnifiedMeasurement = () => {
+        origRefClear();
+        if (!state.syncingMeasurement) {
+           state.syncingMeasurement = true;
+           updSystem.clearUnifiedMeasurement();
+           state.syncingMeasurement = false;
+        }
+      };
+      
+      const origUpdClear = updSystem.clearUnifiedMeasurement.bind(updSystem);
+      updSystem.clearUnifiedMeasurement = () => {
+        origUpdClear();
+        if (!state.syncingMeasurement) {
+           state.syncingMeasurement = true;
+           refSystem.clearUnifiedMeasurement();
+           state.syncingMeasurement = false;
+        }
+      };
+      
+      refSystem._syncPatched = true;
+      updSystem._syncPatched = true;
     }
   </script>
 </body>
