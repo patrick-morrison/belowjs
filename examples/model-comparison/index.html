@@ -184,10 +184,28 @@
 
     /* Always-visible compact bar */
     .panel-bar {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
       align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+    }
+
+    .style-row {
+      grid-column: 1 / -1;
+      display: none;
+      padding: 2px 0 4px 0;
+      border-top: 1px solid var(--panel-border);
+      margin-top: 2px;
+    }
+
+    .control-panel.is-combined .style-row {
+      display: flex;
       gap: 6px;
-      padding: 5px 8px;
+    }
+
+    .control-panel.is-combined #cameraLockBtn {
+      display: none;
     }
 
     .bar-status {
@@ -259,17 +277,23 @@
     }
 
     .seg-btn {
-      height: 28px;
-      padding: 0 11px;
+      height: 26px;
+      padding: 0 10px;
       border: none;
       border-right: 1px solid #e2e8f0;
       background: transparent;
       color: var(--muted);
       font: inherit;
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
       transition: background 0.14s, color 0.14s;
+    }
+
+    .style-row .seg-btn {
+      height: 22px;
+      padding: 0 9px;
     }
 
     .seg-btn:last-child {
@@ -518,12 +542,12 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
+      background: rgba(0, 0, 0, 0.45);
       z-index: 5000;
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(10px);
     }
 
     .modal-backdrop.visible {
@@ -531,40 +555,42 @@
     }
 
     .modal {
-      width: min(520px, calc(100vw - 32px));
+      width: min(500px, calc(100vw - 32px));
       border: 1px solid var(--panel-border);
-      border-radius: 10px;
-      background: var(--panel);
-      box-shadow: var(--shadow-hover);
+      border-radius: 12px;
+      background: #ffffff; /* Explicit white for best readability */
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
       overflow: hidden;
+      color: #1a1a1a;
     }
 
     .modal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--panel-border);
-      font-weight: 650;
+      padding: 16px 20px;
+      border-bottom: 1px solid #efefef;
+      font-weight: 700;
+      font-size: 16px;
     }
 
     .modal-body {
-      padding: 14px;
+      padding: 20px;
     }
 
     .method-text {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 1.6;
       white-space: pre-wrap;
       word-break: break-all;
-      padding: 12px;
-      border: 1px solid var(--panel-border);
-      border-radius: 7px;
-      background: var(--panel-soft);
-      color: var(--text);
+      padding: 16px;
+      border: 1px solid #efefef;
+      border-radius: 10px;
+      background: #fdfdfd;
+      color: #333;
       margin: 0;
-      max-height: 300px;
+      max-height: 350px;
       overflow: auto;
       user-select: all;
     }
@@ -572,9 +598,10 @@
     .modal-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 8px;
-      padding: 10px 14px;
-      border-top: 1px solid var(--panel-border);
+      gap: 12px;
+      padding: 16px 20px;
+      border-top: 1px solid #efefef;
+      background: #fafafa;
     }
 
 
@@ -615,6 +642,37 @@
       background: rgba(255, 255, 255, 0.96);
       box-shadow: var(--shadow-hover);
       backdrop-filter: blur(10px);
+    }
+    
+    .computation-spinner {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: inherit;
+    }
+    .computation-spinner.visible {
+      display: flex;
+    }
+    .spinner-ring {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0,0,0,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .context-menu.visible {
@@ -700,21 +758,32 @@
   <div id="controlPanel" class="chrome control-panel">
     <!-- Always-visible bar -->
     <div class="panel-bar">
-      <div class="seg" role="group" aria-label="View mode">
-        <button id="sideBySideBtn" class="seg-btn active" title="Side-by-side view">Split</button>
-        <button id="singleBtn" class="seg-btn" title="Single view — press Z to swap">Single</button>
-        <button id="overlayBtn" class="seg-btn" title="Overlay at 50% opacity">50/50</button>
-        <button id="diffBtn" class="seg-btn" title="Red/Blue overlap">R/B</button>
+      <div class="seg" role="group" aria-label="Layout">
+        <button id="sideBySideBtn" class="seg-btn active">Split</button>
+        <button id="combinedBtn" class="seg-btn">Overlay</button>
       </div>
-      <button id="cameraLockBtn" class="btn btn-icon" title="Lock cameras together"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
       <span id="controlSummary" class="bar-status">0 matched</span>
+      <button id="cameraLockBtn" class="btn btn-icon" title="Lock cameras together"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
       <button id="expandBtn" class="btn btn-expand" title="More controls" aria-expanded="false">⌃</button>
+
+      <!-- Sub-row for styles -->
+      <div id="styleSwitcher" class="style-row">
+        <div class="seg" role="group" aria-label="Overlay style" style="background:none; border:none; padding:0;">
+          <button id="singleBtn" class="seg-btn active">Original</button>
+          <button id="overlayBtn" class="seg-btn">X-Ray</button>
+          <button id="diffBtn" class="seg-btn">Diff</button>
+          <button id="heatmapBtn" class="seg-btn">C2C</button>
+        </div>
+      </div>
     </div>
     <!-- Expandable drawer -->
-    <div class="panel-drawer" id="panelDrawer" aria-hidden="true">
+    <div class="panel-drawer" id="panelDrawer">
       <!-- Action Bar -->
       <div class="action-row" style="display:flex; gap:6px; margin-top:2px;">
-        <button id="referenceToggleBtn" class="btn" title="Toggle reference side" style="flex: 0 0 auto;">Ref: A</button>
+        <div style="display:flex; gap:0;">
+          <button id="referenceToggleBtn" class="btn" title="Toggle reference model" style="border-top-right-radius:0; border-bottom-right-radius:0; padding-right:8px;">Ref: A</button>
+          <button id="swapModelsBtn" class="btn" title="Swap models (Z)" style="border-top-left-radius:0; border-bottom-left-radius:0; padding:0 8px; border-left:1px solid var(--panel-border);">⇄</button>
+        </div>
         <button id="refineBtn" class="btn primary" disabled style="flex: 1;">Refine</button>
         <button id="downloadBtn" class="btn" disabled style="flex: 1;" title="Download B">Save B</button>
         <button id="screenshotBtn" class="btn icon-btn" disabled style="flex: 0 0 auto;" title="Take screenshot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
@@ -727,6 +796,40 @@
         <span style="flex:1"></span>
         <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">markerls</span>
         <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;">Method…</button>
+      </div>
+
+      <!-- Heatmap Controls Slider -->
+      <div id="heatmapControls" style="display:none; margin: 10px 0 4px 0; padding-top: 10px; border-top: 1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px;">
+          <span style="font-size:10px; font-weight: 600; text-transform: uppercase; color: var(--muted);">Visible Distance Range</span>
+          <span id="heatmapRangeLabel" style="font-size:11px; font-family: ui-monospace, monospace; background: var(--bg-surface); padding: 1px 4px; border-radius: 3px;">0.000 - 0.100 m</span>
+        </div>
+        
+        <div id="heatmapControlsSpinner" class="computation-spinner">
+           <div class="spinner-ring"></div>
+           <span>Analyzing Mesh...</span>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+          <div>
+            <div style="font-size:9px; color: var(--muted); margin-bottom: 1px;">Min</div>
+            <input id="heatmapClipMinSlider" type="range" min="0" max="1" step="0.0001" value="0" style="width:100%; height: 20px;">
+          </div>
+          <div>
+            <div style="font-size:9px; color: var(--muted); margin-bottom: 1px;">Max</div>
+            <input id="heatmapClipMaxSlider" type="range" min="0" max="1" step="0.0001" value="1" style="width:100%; height: 20px;">
+          </div>
+        </div>
+
+        </div>
+
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button id="downloadHeatmapBtn" class="btn" style="flex:1; font-size:11px; height:24px;">Save Heatmap GLB</button>
+        </div>
+
+        <div id="heatmapHistogram" style="height:20px; width:100%; margin-top:8px; display:flex; align-items:flex-end; gap:1px; opacity: 0.2;">
+           <!-- Dynamic Bars -->
+        </div>
       </div>
       <details class="point-panel">
         <summary style="display:flex; align-items:center;">
@@ -880,6 +983,11 @@
       }
     };
 
+    const heatmapUniforms = {
+      uMinClip: { value: 0.0 },
+      uMaxClip: { value: 1000.0 }
+    };
+
     const els = {
       app: document.getElementById('app'),
       referencePane: document.getElementById('referencePane'),
@@ -898,14 +1006,19 @@
       controlPanel: document.getElementById('controlPanel'),
       expandBtn: document.getElementById('expandBtn'),
       sideBySideBtn: document.getElementById('sideBySideBtn'),
+      combinedBtn: document.getElementById('combinedBtn'),
+      styleSwitcher: document.getElementById('styleSwitcher'),
       singleBtn: document.getElementById('singleBtn'),
       overlayBtn: document.getElementById('overlayBtn'),
       diffBtn: document.getElementById('diffBtn'),
+      heatmapBtn: document.getElementById('heatmapBtn'),
       cameraLockBtn: document.getElementById('cameraLockBtn'),
       referenceToggleBtn: document.getElementById('referenceToggleBtn'),
+      swapModelsBtn: document.getElementById('swapModelsBtn'),
       refineBtn: document.getElementById('refineBtn'),
       downloadBtn: document.getElementById('downloadBtn'),
       clearBtn: document.getElementById('clearBtn'),
+      downloadHeatmapBtn: document.getElementById('downloadHeatmapBtn'),
       showPointsToggle: document.getElementById('showPointsToggle'),
       showLinesToggle: document.getElementById('showLinesToggle'),
       screenshotBtn: document.getElementById('screenshotBtn'),
@@ -934,7 +1047,14 @@
       methodModalText: document.getElementById('methodModalText'),
       methodModalCopy: document.getElementById('methodModalCopy'),
       methodModalClose: document.getElementById('methodModalClose'),
-      methodModalClose2: document.getElementById('methodModalClose2')
+      methodModalClose2: document.getElementById('methodModalClose2'),
+
+      heatmapControls: document.getElementById('heatmapControls'),
+      heatmapControlsSpinner: document.getElementById('heatmapControlsSpinner'),
+      heatmapRangeLabel: document.getElementById('heatmapRangeLabel'),
+      heatmapClipMinSlider: document.getElementById('heatmapClipMinSlider'),
+      heatmapClipMaxSlider: document.getElementById('heatmapClipMaxSlider'),
+      heatmapHistogram: document.getElementById('heatmapHistogram')
     };
 
     state.viewers.reference = createViewer(els.referenceViewer);
@@ -947,9 +1067,14 @@
     setupPointCreation('updated');
 
     els.sideBySideBtn.addEventListener('click', () => setMode('split'));
+    els.combinedBtn.addEventListener('click', () => {
+      if (state.mode === 'split') setMode('single');
+    });
+    els.swapModelsBtn.addEventListener('click', () => swapSides());
     els.singleBtn.addEventListener('click', () => setMode('single'));
     els.overlayBtn.addEventListener('click', () => setMode('overlay'));
     els.diffBtn.addEventListener('click', () => setMode('diff'));
+    els.heatmapBtn.addEventListener('click', () => setMode('heatmap'));
     els.cameraLockBtn.addEventListener('click', () => setCameraLock(!state.camerasLocked));
     els.expandBtn.addEventListener('click', togglePanel);
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
@@ -961,6 +1086,7 @@
       }
     });
     els.downloadBtn.addEventListener('click', downloadTransformedModel);
+    els.downloadHeatmapBtn.addEventListener('click', downloadHeatmapMesh);
     els.clearBtn.addEventListener('click', clearAlignment);
     els.showPointsToggle.addEventListener('change', () => {
       state.display.points = els.showPointsToggle.checked;
@@ -973,7 +1099,7 @@
     els.screenshotBtn.addEventListener('click', () => {
       if (state.mode === 'single') captureSingleView(state.singleSide);
       else if (state.mode === 'split') captureSplitView();
-      // add logic for overlay later here
+      else captureSingleView('reference'); // overlay, diff, and heatmap all live in the reference canvas
     });
 
     els.importPtsBtn.addEventListener('click', () => {
@@ -1010,6 +1136,18 @@
         removePoint(state.pendingPoint.markerPoint.side, state.pendingPoint.markerPoint.id);
       }
       hidePointContextMenu();
+    });
+
+
+
+    els.heatmapClipMinSlider.addEventListener('input', () => {
+      heatmapUniforms.uMinClip.value = parseFloat(els.heatmapClipMinSlider.value);
+      updateHeatmapColors();
+    });
+
+    els.heatmapClipMaxSlider.addEventListener('input', () => {
+      heatmapUniforms.uMaxClip.value = parseFloat(els.heatmapClipMaxSlider.value);
+      updateHeatmapColors();
     });
 
     els.methodBtn.addEventListener('click', showMethodModal);
@@ -1064,20 +1202,30 @@
     window.addEventListener('keydown', (event) => {
       if (isEditableTarget(event.target)) return;
       if (event.key.toLowerCase() === 'z') {
-        if (state.mode !== 'single') {
-          setMode('single');
-        } else {
-          state.singleSide = state.singleSide === 'reference' ? 'updated' : 'reference';
-          updateLayout();
-        }
+        swapSides();
       } else if (event.key === 'Escape') {
         hidePointContextMenu();
       }
     });
 
-    window.addEventListener('resize', resizeViewers);
+    window.addEventListener('resize', () => resizeViewers());
+    window.addEventListener('load', () => resizeViewers());
+
+    function swapSides() {
+      if (state.mode === 'split') {
+        state.referenceSide = state.referenceSide === 'reference' ? 'updated' : 'reference';
+      } else if (state.mode === 'heatmap') {
+        state.heatmapTarget = state.heatmapTarget === 'reference' ? 'updated' : 'reference';
+        state.lastHeatmapKey = null; // Recompute
+        computeC2CHeatmap();
+      } else {
+        state.singleSide = state.singleSide === 'reference' ? 'updated' : 'reference';
+      }
+      updateLayout();
+    }
 
     updateLayout();
+    resizeViewers();
     updateReferenceControl();
     renderPoints();
     updateActions();
@@ -1181,7 +1329,14 @@
         state.dragDepth[side] = 0;
         drop.classList.remove('dragging');
         const file = event.dataTransfer.files?.[0];
-        if (file) await loadModelFile(side, file);
+        if (!file) return;
+
+        const lowerName = file.name.toLowerCase();
+        if (lowerName.endsWith('.glb')) {
+          await loadModelFile(side, file);
+        } else if (lowerName.endsWith('.txt') || lowerName.endsWith('.json')) {
+          await importPointsData(file);
+        }
       });
     }
 
@@ -1214,6 +1369,7 @@
         getDropElement(side).style.display = 'none';
         analyzeAndFit();
         setupMeasurementSync();
+        resizeViewers();
       } catch (error) {
         console.error(error);
         state.models[side] = null;
@@ -1244,7 +1400,7 @@
       const pointer = new THREE.Vector2();
       let rightClickCandidate = null;
       let markerDrag = null; // { point, pointerId }
-      const dragThreshold = 4;
+      const dragThreshold = 10;
 
       renderer.domElement.addEventListener('pointerdown', (event) => {
         hidePointContextMenu();
@@ -1328,6 +1484,36 @@
           event.stopPropagation();
           return;
         }
+
+        if (rightClickCandidate && event.pointerId === rightClickCandidate.pointerId) {
+          const moved = Math.max(
+            rightClickCandidate.maxDistance,
+            Math.hypot(event.clientX - rightClickCandidate.x, event.clientY - rightClickCandidate.y)
+          );
+          const elapsed = performance.now() - rightClickCandidate.downTime;
+          const stationary = !rightClickCandidate.dragged && moved <= dragThreshold && elapsed < 900;
+          
+          if (stationary && state.models[side]) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, coreViewer(viewer).cameraManager.getCamera());
+            const allHits = raycaster.intersectObject(state.models[side], true);
+            const markerHit = allHits.find((item) => isMarkerObject(item.object));
+            const surfaceHit = allHits.find((item) => !isMarkerObject(item.object));
+
+            if (markerHit) {
+              const point = findPointByMarkerObject(side, markerHit.object);
+              if (point) {
+                showMarkerContextMenu(event.clientX, event.clientY, side, point);
+              }
+            } else if (surfaceHit) {
+              showPointContextMenu(event.clientX, event.clientY, side, surfaceHit.point);
+            }
+          }
+          rightClickCandidate = null;
+          return;
+        }
       });
 
       renderer.domElement.addEventListener('pointercancel', (event) => {
@@ -1342,44 +1528,7 @@
       });
 
       renderer.domElement.addEventListener('contextmenu', (event) => {
-        const moved = rightClickCandidate
-          ? Math.max(
-            rightClickCandidate.maxDistance,
-            Math.hypot(event.clientX - rightClickCandidate.x, event.clientY - rightClickCandidate.y)
-          )
-          : 0;
-        const elapsed = rightClickCandidate ? performance.now() - rightClickCandidate.downTime : Infinity;
-        const stationary = rightClickCandidate && !rightClickCandidate.dragged && moved <= dragThreshold && elapsed < 900;
-        rightClickCandidate = null;
-
-        if (!stationary) {
-          event.preventDefault();
-          hidePointContextMenu();
-          return;
-        }
-
-        if (!state.models[side]) return;
-
-        const rect = renderer.domElement.getBoundingClientRect();
-        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(pointer, coreViewer(viewer).cameraManager.getCamera());
-        const allHits = raycaster.intersectObject(state.models[side], true);
-        const markerHit = allHits.find((item) => isMarkerObject(item.object));
-        const surfaceHit = allHits.find((item) => !isMarkerObject(item.object));
-
         event.preventDefault();
-
-        if (markerHit) {
-          const point = findPointByMarkerObject(side, markerHit.object);
-          if (point) {
-            showMarkerContextMenu(event.clientX, event.clientY, side, point);
-            return;
-          }
-        }
-
-        if (!surfaceHit) return;
-        showPointContextMenu(event.clientX, event.clientY, side, surfaceHit.point);
       });
     }
 
@@ -1903,18 +2052,100 @@
       URL.revokeObjectURL(url);
     }
 
-    function cloneModelForExport(model) {
+    function cloneModelForExport(model, options = {}) {
       const clone = model.clone(true);
       const markers = [];
       clone.traverse((object) => {
         if (object.userData?.isControlMarker) {
           markers.push(object);
+          return;
+        }
+        
+        if (object.isMesh) {
+          // Restore original materials unless baking heatmap
+          if (options.bakeHeatmap && object.userData.c2cDistances) {
+             const distances = object.userData.c2cDistances;
+             const count = distances.length;
+             const range = Math.max(1e-7, options.maxClip - options.minClip);
+             
+             // Create real vertex colors
+             const colors = new Float32Array(count * 3);
+             const color = new THREE.Color();
+             const minClip = options.minClip;
+             
+             for (let i = 0; i < count; i++) {
+                const t = Math.max(0, Math.min(1, (distances[i] - minClip) / range));
+                if (t < 0.5) color.setRGB(t * 2, t * 2, 1);
+                else color.setRGB(1, 1 - (t - 0.5) * 2, 1 - (t - 0.5) * 2);
+                colors[i * 3] = color.r;
+                colors[i * 3 + 1] = color.g;
+                colors[i * 3 + 2] = color.b;
+             }
+             object.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+             
+             // Physically remove trimmed faces
+             if (object.geometry.index) {
+                const indices = object.geometry.index.array;
+                const newIndices = [];
+                for (let i = 0; i < indices.length; i += 3) {
+                   const d1 = distances[indices[i]];
+                   const d2 = distances[indices[i + 1]];
+                   const d3 = distances[indices[i + 2]];
+                   // If any vertex is out of range, drop the face
+                   if (d1 >= options.minClip && d1 <= options.maxClip &&
+                       d2 >= options.minClip && d2 <= options.maxClip &&
+                       d3 >= options.minClip && d3 <= options.maxClip) {
+                      newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+                   }
+                }
+                object.geometry.setIndex(newIndices);
+             }
+
+             const mat = new THREE.MeshStandardMaterial({ 
+                vertexColors: true, 
+                roughness: 0.8,
+                metalness: 0.1
+             });
+             object.material = mat;
+          } else if (object.userData.origMat) {
+             object.material = object.userData.origMat;
+          }
         }
       });
       for (const marker of markers) {
         marker.removeFromParent();
       }
       return clone;
+    }
+
+    async function downloadHeatmapMesh() {
+      const targetSide = state.heatmapTarget || 'updated';
+      const model = state.models[targetSide];
+      if (!model || state.computingHeatmap) return;
+
+      const minClip = heatmapUniforms.uMinClip.value;
+      const maxClip = heatmapUniforms.uMaxClip.value;
+
+      const exportRoot = cloneModelForExport(model, {
+         bakeHeatmap: true,
+         minClip,
+         maxClip
+      });
+      
+      const exporter = new GLTFExporter();
+      const arrayBuffer = await new Promise((resolve, reject) => {
+        exporter.parse(exportRoot, (res) => {
+          resolve(res instanceof ArrayBuffer ? res : new TextEncoder().encode(JSON.stringify(res)).buffer);
+        }, reject, { binary: true });
+      });
+
+      const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${state.filenames[targetSide]}-C2C-heatmap.glb`;
+      link.click();
+      URL.revokeObjectURL(url);
     }
 
     function solveSimilarityTransform(source, target) {
@@ -2321,32 +2552,59 @@
 
     function updateLayout() {
       const mode = state.mode || 'split';
-      const single = mode === 'single';
-      const overlay = mode === 'overlay' || mode === 'diff';
+      const isSplit = mode === 'split';
+      const overlay = mode === 'overlay' || mode === 'diff' || mode === 'heatmap' || mode === 'single';
       
-      els.app.classList.toggle('single', single || overlay);
-      els.referencePane.classList.toggle('hidden', single && state.singleSide !== 'reference');
-      els.updatedPane.classList.toggle('hidden', (single && state.singleSide !== 'updated') || overlay);
+      const targetSide = state.singleSide || 'reference';
+      const otherSideName = targetSide === 'reference' ? 'updated' : 'reference';
+
+      els.app.classList.toggle('single', !isSplit);
+      els.controlPanel.classList.toggle('is-combined', !isSplit);
       
-      els.sideBySideBtn.classList.toggle('active', mode === 'split');
-      els.singleBtn.classList.toggle('active', single);
+      els.referencePane.classList.toggle('hidden', !isSplit && targetSide !== 'reference' && mode === 'single');
+      els.updatedPane.classList.toggle('hidden', (overlay && mode !== 'single') || (!isSplit && targetSide !== 'updated' && mode === 'single'));
+      
+      els.sideBySideBtn.classList.toggle('active', isSplit);
+      els.combinedBtn.classList.toggle('active', !isSplit);
+
+      els.singleBtn.classList.toggle('active', mode === 'single');
       els.overlayBtn.classList.toggle('active', mode === 'overlay');
       els.diffBtn.classList.toggle('active', mode === 'diff');
+      els.heatmapBtn.classList.toggle('active', mode === 'heatmap');
       
       resizeViewers();
       
       if (state.models.updated && state.models.reference) {
-         if (overlay) {
-            coreViewer('reference').getScene().add(state.models.updated);
+         const targetModel = state.models[otherSideName];
+         const baseViewer = coreViewer(targetSide);
+         
+         if (!isSplit && mode !== 'single') {
+            baseViewer.getScene().add(targetModel);
          } else {
-            coreViewer('updated').getScene().add(state.models.updated);
+            // Put it back in its own viewer
+            coreViewer(otherSideName).getScene().add(state.models[otherSideName]);
          }
       }
       
       applyModelMaterials(mode);
+
+      if (mode === 'heatmap') {
+        computeC2CHeatmap();
+      }
       
-      if (single) {
-        syncCamera(state.singleSide, state.singleSide === 'reference' ? 'updated' : 'reference');
+      els.heatmapControls.style.display = mode === 'heatmap' ? 'block' : 'none';
+      if (state.models.reference && state.models.updated) {
+         const targetKey = state.heatmapTarget || 'updated';
+         const sourceKey = targetKey === 'updated' ? 'reference' : 'updated';
+         if (mode === 'heatmap') {
+            state.models[sourceKey].visible = false;
+         } else {
+            state.models[sourceKey].visible = true;
+         }
+      }
+      
+      if (mode === 'single' || mode === 'split') {
+        syncCamera(targetSide, otherSideName);
       }
 
       updateLabels();
@@ -2465,15 +2723,28 @@
       });
     }
 
-    function resizeViewers() {
-      requestAnimationFrame(() => {
-        if (!els.referencePane.classList.contains('hidden')) {
-          coreViewer('reference').onWindowResize();
-        }
-        if (!els.updatedPane.classList.contains('hidden')) {
-          coreViewer('updated').onWindowResize();
-        }
-      });
+    async function resizeViewers() {
+      // Force direct layout update across multiple frames to catch CSS animations
+      for (let i = 0; i < 5; i++) {
+        await waitForFrames(1);
+        ['reference', 'updated'].forEach(side => {
+           const v = coreViewer(side);
+           if (!v) return;
+           const container = v.container;
+           if (!container || container.clientWidth === 0) return;
+           
+           const rect = container.getBoundingClientRect();
+           v.renderer.setPixelRatio(window.devicePixelRatio);
+           v.renderer.setSize(rect.width, rect.height, true);
+           
+           const cam = v.cameraManager?.getCamera();
+           if (cam) {
+              cam.aspect = rect.width / rect.height;
+              cam.updateProjectionMatrix();
+           }
+           if (v.onWindowResize) v.onWindowResize();
+        });
+      }
     }
 
     function clearAlignment() {
@@ -2685,6 +2956,10 @@
         opacity = 0.5;
         transparent = true;
         depthWrite = false;
+      } else if (mode === 'heatmap') {
+        opacity = 1.0;
+        transparent = false;
+        depthWrite = true;
       }
       
       model.traverse((object) => {
@@ -2700,6 +2975,39 @@
           }
           
           material.color.copy(material.userData.origColor).lerp(tint, mode === 'diff' ? 0.95 : 0.08);
+          if (mode === 'heatmap') {
+            material.vertexColors = true;
+            material.color.setHex(0xffffff);
+            
+            if (!material.onBeforeCompileSet) {
+              material.onBeforeCompile = (shader) => {
+                shader.uniforms.uMinClip = heatmapUniforms.uMinClip;
+                shader.uniforms.uMaxClip = heatmapUniforms.uMaxClip;
+                shader.vertexShader = `
+                  attribute float c2cDist;
+                  varying float vC2CDist;
+                  ${shader.vertexShader}
+                `.replace(
+                  '#include <begin_vertex>',
+                  `#include <begin_vertex>
+                   vC2CDist = c2cDist;`
+                );
+                shader.fragmentShader = `
+                  uniform float uMinClip;
+                  uniform float uMaxClip;
+                  varying float vC2CDist;
+                  ${shader.fragmentShader}
+                `.replace(
+                  '#include <dithering_fragment>',
+                  `#include <dithering_fragment>
+                   if (vC2CDist < uMinClip || vC2CDist > uMaxClip) discard;`
+                );
+              };
+              material.onBeforeCompileSet = true;
+            }
+          } else {
+            material.vertexColors = false;
+          }
           material.opacity = opacity;
           material.transparent = transparent || material.opacity < 1.0;
           material.depthWrite = depthWrite;
@@ -2746,20 +3054,27 @@
     }
 
     function exportPointsData() {
+      const pData = {};
+      if (state.models.reference) {
+        const refName = state.filenames.reference || 'reference';
+        pData[refName] = state.points.reference.map(p => ({
+          id: p.id,
+          name: p.name,
+          local: p.local.toArray()
+        }));
+      }
+      if (state.models.updated) {
+        const updName = state.filenames.updated || 'updated';
+        pData[updName] = state.points.updated.map(p => ({
+          id: p.id,
+          name: p.name,
+          local: p.local.toArray()
+        }));
+      }
+
       const data = {
         _info: els.methodModalText.textContent,
-        points: {
-          reference: state.points.reference.map(p => ({
-            id: p.id,
-            name: p.name,
-            local: p.local.toArray()
-          })),
-          updated: state.points.updated.map(p => ({
-            id: p.id,
-            name: p.name,
-            local: p.local.toArray()
-          }))
-        }
+        points: pData
       };
       
       const fileContent = `=== Alignment Info ===\n${data._info}\n\n=== Data ===\n${JSON.stringify(data.points, null, 2)}`;
@@ -2801,8 +3116,18 @@
           }
         };
 
-        if (doRef && points.reference) importSide('reference', points.reference);
-        if (doUpd && points.updated) importSide('updated', points.updated);
+        // Try to match by filename first
+        const refName = state.filenames.reference;
+        const updName = state.filenames.updated;
+        
+        if (doRef) {
+          const list = points[refName] || points['reference'];
+          if (list) importSide('reference', list);
+        }
+        if (doUpd) {
+          const list = points[updName] || points['updated'];
+          if (list) importSide('updated', list);
+        }
         
         invalidateRefinement();
         analyzeAndFit();
@@ -2867,6 +3192,161 @@
       
       refSystem._syncPatched = true;
       updSystem._syncPatched = true;
+    }
+
+    async function computeC2CHeatmap() {
+      if (!state.models.reference || !state.models.updated) return;
+      if (state.computingHeatmap) return;
+      
+      const targetSide = state.heatmapTarget || 'updated';
+      const sourceSide = targetSide === 'reference' ? 'updated' : 'reference';
+      const targetModel = state.models[targetSide];
+      const sourceModel = state.models[sourceSide];
+      
+      // Check if already computed for current matrices and target
+      const currentKey = `${sourceModel.matrixWorld.elements.join(',')}-${targetModel.matrixWorld.elements.join(',')}-${targetSide}`;
+      if (state.lastHeatmapKey === currentKey) return;
+      
+      state.computingHeatmap = true;
+      els.heatmapControlsSpinner.classList.add('visible');
+      const originalBtnText = els.heatmapBtn.textContent;
+      els.heatmapBtn.textContent = '...';
+      
+      try {
+        await waitForFrames(2);
+
+        // 1. Build KD-Tree from source
+        const treePoints = sampleModelPoints(sourceModel, 250000); 
+        const tree = buildKdTree(treePoints);
+
+        const allDistances = [];
+
+        // 2. Iterate Target Model Vertices
+        targetModel.traverse((mesh) => {
+          if (!mesh.isMesh || isMarkerObject(mesh)) return;
+          
+          const geometry = mesh.geometry;
+          const positions = geometry.attributes.position;
+          if (!positions) return;
+
+          const count = positions.count;
+          const distances = new Float32Array(count);
+          const localPos = new THREE.Vector3();
+          
+          const targetToWorld = mesh.matrixWorld;
+          const worldToSourceLocal = new THREE.Matrix4().copy(sourceModel.matrixWorld).invert();
+          const combined = new THREE.Matrix4().multiplyMatrices(worldToSourceLocal, targetToWorld);
+
+          for (let i = 0; i < count; i++) {
+            localPos.fromBufferAttribute(positions, i);
+            localPos.applyMatrix4(combined);
+            const nearest = findNearest(tree, localPos);
+            distances[i] = Math.sqrt(nearest.distanceSq);
+            if (i % 10 === 0) allDistances.push(distances[i]); 
+          }
+
+          mesh.userData.c2cDistances = distances;
+          
+          // Ensure shader knows about distances
+          if (!geometry.getAttribute('c2cDist')) {
+             geometry.setAttribute('c2cDist', new THREE.BufferAttribute(distances, 1));
+          } else {
+             geometry.attributes.c2cDist.array = distances;
+             geometry.attributes.c2cDist.needsUpdate = true;
+          }
+        });
+
+        // 3. Auto-range based on percentiles
+        allDistances.sort((a, b) => a - b);
+        const p05 = allDistances[Math.floor(allDistances.length * 0.05)] || 0;
+        const p95 = allDistances[Math.floor(allDistances.length * 0.95)] || 0.1;
+        
+        // Allow user to see "long tail" up to 20m
+        const sliderLimit = 20.0;
+
+        els.heatmapClipMinSlider.max = sliderLimit;
+        els.heatmapClipMaxSlider.max = sliderLimit;
+        
+        els.heatmapClipMinSlider.value = p05;
+        els.heatmapClipMaxSlider.value = p95;
+        
+        heatmapUniforms.uMinClip.value = p05;
+        heatmapUniforms.uMaxClip.value = p95;
+        
+        updateHeatmapColors();
+        renderHeatmapHistogram(allDistances, p95 * 2.0); 
+
+        state.lastHeatmapKey = currentKey;
+        applyModelMaterials('heatmap');
+        
+      } catch (err) {
+        console.error('Heatmap calculation error:', err);
+      } finally {
+        state.computingHeatmap = false;
+        els.heatmapControlsSpinner.classList.remove('visible');
+        els.heatmapBtn.textContent = originalBtnText;
+      }
+    }
+
+    function renderHeatmapHistogram(samples, maxRange) {
+      const binCount = 40;
+      const bins = new Array(binCount).fill(0);
+      samples.forEach(d => {
+         const b = Math.floor((d / maxRange) * binCount);
+         if (b >= 0 && b < binCount) bins[b]++;
+      });
+      const maxBin = Math.max(...bins) || 1;
+      els.heatmapHistogram.innerHTML = bins.map(count => {
+         const h = (count / maxBin) * 100;
+         return `<div style="flex:1; background:var(--muted); height:${h}%; min-height:1px;"></div>`;
+      }).join('');
+    }
+
+    function updateHeatmapColors() {
+      const targetSide = state.heatmapTarget || 'updated';
+      const targetModel = state.models[targetSide];
+      if (!targetModel) return;
+      
+      const minClip = heatmapUniforms.uMinClip.value;
+      const maxClip = heatmapUniforms.uMaxClip.value;
+      const range = Math.max(1e-7, maxClip - minClip);
+      
+      els.heatmapRangeLabel.textContent = `${minClip.toFixed(3)} - ${maxClip.toFixed(3)} m`;
+
+      const color = new THREE.Color();
+      targetModel.traverse((mesh) => {
+        if (!mesh.isMesh || !mesh.userData.c2cDistances) return;
+        
+        const distances = mesh.userData.c2cDistances;
+        const count = distances.length;
+        let colors = mesh.geometry.getAttribute('color')?.array;
+        
+        if (!colors || colors.length !== count * 3) {
+           colors = new Float32Array(count * 3);
+        }
+
+        for (let i = 0; i < count; i++) {
+          const d = distances[i];
+          const t = Math.max(0, Math.min(1, (d - minClip) / range));
+          
+          if (t < 0.5) {
+             const mix = t * 2;
+             color.setRGB(mix, mix, 1);
+          } else {
+             const mix = 1.0 - (t - 0.5) * 2;
+             color.setRGB(1, mix, mix);
+          }
+          
+          colors[i * 3] = color.r;
+          colors[i * 3 + 1] = color.g;
+          colors[i * 3 + 2] = color.b;
+        }
+
+        if (!mesh.geometry.getAttribute('color')) {
+          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        }
+        mesh.geometry.attributes.color.needsUpdate = true;
+      });
     }
   </script>
 </body>
