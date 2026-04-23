@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BelowJS - Model Comparison</title>
+    <meta name="theme-color" content="#0d3b66">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../icons/favicon-16x16.png">
+    <link rel="icon" href="../../favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../icons/apple-touch-icon.png">
+    <link rel="manifest" href="../../site.webmanifest">
+    <meta name="application-name" content="BelowJS">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BelowJS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#0d3b66">
+
+<!-- Import map for CDN production -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/",
+      "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.js"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.css">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --page-bg: #f5f7fa;
+      --viewer-bg: #f7fafc;
+      --panel: rgba(255, 255, 255, 0.95);
+      --panel-soft: #f8fafc;
+      --panel-border: #e2e8f0;
+      --text: #2d3748;
+      --muted: #718096;
+      --matched: #2f9f75;
+      --unmatched: #d68a1f;
+      --error: #d04a4a;
+      --active: #4299e1;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      --shadow-hover: 0 8px 28px rgba(45, 55, 72, 0.12);
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--page-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--page-bg);
+    }
+
+    .app.single {
+      grid-template-columns: 1fr;
+    }
+
+    .pane {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      border-right: 1px solid var(--panel-border);
+      background: var(--viewer-bg);
+    }
+
+    .pane:last-child {
+      border-right: 0;
+    }
+
+    .pane.hidden {
+      display: none;
+    }
+
+    .viewer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .pane-label {
+      position: absolute;
+      left: 16px;
+      top: 14px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100% - 32px);
+      padding: 8px 11px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+    }
+
+    .dot.reference {
+      background: #8bd4ff;
+    }
+
+    .dot.updated {
+      background: #ffd18a;
+    }
+
+    .file-zone {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      background: rgba(245, 247, 250, 0.84);
+      color: var(--text);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .file-zone.dragging {
+      background: rgba(66, 153, 225, 0.14);
+    }
+
+    .file-panel {
+      width: min(360px, calc(100vw - 56px));
+      padding: 24px;
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      pointer-events: auto;
+    }
+
+    .file-panel strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 20px;
+      font-weight: 650;
+    }
+
+    .file-panel span {
+      display: block;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .chrome {
+      position: fixed;
+      z-index: 20;
+      color: var(--text);
+    }
+
+    .control-panel {
+      left: 16px;
+      bottom: 16px;
+      width: min(420px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .control-panel summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 13px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0);
+      color: var(--text);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .control-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .control-title {
+      font-weight: 650;
+      color: #2d3748;
+    }
+
+    .control-summary {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .panel-body {
+      display: grid;
+      gap: 8px;
+      padding: 0 12px 12px;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .control-row.view-row {
+      grid-template-columns: 1fr 1fr 1.15fr;
+    }
+
+    .control-row.solve-row {
+      grid-template-columns: 0.78fr 1fr 1fr;
+    }
+
+    .control-row.export-row {
+      grid-template-columns: 1fr 0.55fr;
+    }
+
+    .btn {
+      min-width: 36px;
+      height: 34px;
+      padding: 0 11px;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04);
+      transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    .btn.primary {
+      background: #2b6cb0;
+      border-color: #2b6cb0;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(43, 108, 176, 0.18);
+    }
+
+    .btn.primary:hover,
+    .btn.primary:focus-visible {
+      background: #245a94;
+      border-color: #245a94;
+      color: #ffffff;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      background: rgba(238, 244, 248, 0.95);
+      border-color: rgba(66, 153, 225, 0.44);
+      box-shadow: 0 4px 12px rgba(45, 55, 72, 0.08);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .btn.active,
+    .btn.locked {
+      background: rgba(66, 153, 225, 0.12);
+      border-color: rgba(66, 153, 225, 0.58);
+      color: #2b6cb0;
+    }
+
+    .btn.primary:disabled {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04);
+    }
+
+    .btn.danger {
+      border-color: rgba(255, 95, 95, 0.46);
+      color: #a52828;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .point-panel,
+    .method-panel,
+    .screenshot-panel {
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .point-panel summary,
+    .method-panel summary,
+    .screenshot-panel summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 13px;
+      color: var(--text);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .point-panel summary::-webkit-details-marker,
+    .method-panel summary::-webkit-details-marker,
+    .screenshot-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .point-count {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .point-list {
+      max-height: min(42vh, 390px);
+      overflow: auto;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .point-row {
+      display: grid;
+      grid-template-columns: 40px 72px minmax(90px, 1fr) 68px 30px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 12px;
+      border-top: 1px solid var(--panel-border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .point-row:first-child {
+      border-top: 0;
+    }
+
+    .point-id {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 24px;
+      border-radius: 999px;
+      color: #ffffff;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .point-id.matched {
+      background: var(--matched);
+    }
+
+    .point-id.unmatched {
+      background: var(--unmatched);
+    }
+
+    .point-id.error {
+      background: var(--error);
+      color: #fff;
+    }
+
+    .point-side {
+      color: var(--muted);
+      text-transform: capitalize;
+    }
+
+    .point-name {
+      width: 100%;
+      box-sizing: border-box;
+      height: 30px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--text);
+      padding: 0 8px;
+    }
+
+    .point-name:focus {
+      border-color: rgba(66, 153, 225, 0.86);
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.14);
+      outline: none;
+    }
+
+    .point-state {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .point-state.matched {
+      color: #097a55;
+    }
+
+    .point-state.unmatched {
+      color: #9b5b08;
+    }
+
+    .point-state.error {
+      color: #a52828;
+    }
+
+    .icon-btn {
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      padding: 0;
+      color: #a52828;
+    }
+
+    .empty-points {
+      padding: 16px 13px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: var(--panel-border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+      padding: 8px 9px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .metrics strong {
+      color: var(--text);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .method-copy {
+      padding: 0 13px 13px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .screenshot-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 13px 13px;
+    }
+
+    .screenshot-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 6px;
+    }
+
+    .screenshot-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .screenshot-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .context-menu {
+      position: fixed;
+      z-index: 4000;
+      display: none;
+      min-width: 138px;
+      padding: 6px 0;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow-hover);
+      backdrop-filter: blur(10px);
+    }
+
+    .context-menu.visible {
+      display: block;
+    }
+
+    .context-menu button {
+      display: block;
+      width: 100%;
+      padding: 9px 14px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .context-menu button:hover,
+    .context-menu button:focus-visible {
+      background: rgba(47, 111, 218, 0.08);
+      outline: none;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+
+      .pane {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .control-panel {
+        width: calc(100vw - 32px);
+      }
+
+      .control-row.view-row,
+      .control-row.solve-row,
+      .control-row.export-row,
+      .screenshot-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+    <!-- Analytics script for BelowJS docs site only. Replace/remove for your own deployment. -->
+    <script defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
+        src="https://umami.padmorrison.com/script.js"></script>
+</head>
+<body>
+  <main id="app" class="app">
+    <section id="referencePane" class="pane" data-side="reference">
+      <div id="referenceViewer" class="viewer"></div>
+      <div class="pane-label"><span class="dot reference"></span><span id="referenceLabel">Model A</span></div>
+      <div id="referenceDrop" class="file-zone">
+        <div class="file-panel">
+          <strong>Model A</strong>
+          <span>Drop the first GLB or choose a file</span>
+          <button id="referenceChoose" class="btn">Choose GLB</button>
+          <input id="referenceInput" class="file-input" type="file" accept=".glb">
+        </div>
+      </div>
+    </section>
+
+    <section id="updatedPane" class="pane" data-side="updated">
+      <div id="updatedViewer" class="viewer"></div>
+      <div class="pane-label"><span class="dot updated"></span><span id="updatedLabel">Model B</span></div>
+      <div id="updatedDrop" class="file-zone">
+        <div class="file-panel">
+          <strong>Model B</strong>
+          <span>Drop the second GLB or choose a file</span>
+          <button id="updatedChoose" class="btn">Choose GLB</button>
+          <input id="updatedInput" class="file-input" type="file" accept=".glb">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <details id="controlPanel" class="chrome control-panel" open>
+    <summary>
+      <span class="control-title">Model comparison</span>
+      <span id="controlSummary" class="control-summary">0 matched · RMS -</span>
+    </summary>
+    <div class="panel-body">
+      <div class="control-grid" aria-label="Model comparison controls">
+        <div class="control-row view-row">
+          <button id="sideBySideBtn" class="btn active" title="Side-by-side view">Side by side</button>
+          <button id="singleBtn" class="btn" title="Single view; press z to swap model time">Single</button>
+          <button id="cameraLockBtn" class="btn" title="Lock or unlock camera movement between viewers">Lock cameras</button>
+        </div>
+        <div class="control-row solve-row">
+          <button id="referenceToggleBtn" class="btn" title="Choose which model stays fixed as the solve reference">Ref: A</button>
+          <button id="refineBtn" class="btn primary" title="Refine matched points with sampled closest-point fitting" disabled>Refine</button>
+          <button id="resetRefineBtn" class="btn" title="Return to the marker-only solve" disabled>Reset solve</button>
+        </div>
+        <div class="control-row export-row">
+          <button id="downloadBtn" class="btn" title="Download the transformed non-reference model" disabled>Download transformed</button>
+          <button id="clearBtn" class="btn danger" title="Clear points and alignment">Clear</button>
+        </div>
+      </div>
+      <div class="metrics" aria-live="polite">
+        <span class="metric"><span>Matched</span><strong id="matchedStatus">0</strong></span>
+        <span class="metric"><span>Errors</span><strong id="errorStatus">0</strong></span>
+        <span class="metric"><span>RMS</span><strong id="rmsStatus">-</strong></span>
+        <span class="metric"><span>Fit</span><strong id="fitStatus">markers</strong></span>
+      </div>
+      <details class="screenshot-panel">
+        <summary>
+          <span>Screenshots</span>
+          <span class="point-count">no interface chrome</span>
+        </summary>
+        <div class="screenshot-body">
+          <div class="screenshot-options" aria-label="Visible overlay controls">
+            <label><input id="showPointsToggle" type="checkbox" checked> Control points</label>
+            <label><input id="showLinesToggle" type="checkbox" checked> Error lines</label>
+          </div>
+          <div class="screenshot-buttons">
+            <button id="shotReferenceBtn" class="btn" title="Capture Model A with the visible overlay layers" disabled>View A</button>
+            <button id="shotUpdatedBtn" class="btn" title="Capture Model B with the visible overlay layers" disabled>View B</button>
+            <button id="shotSplitBtn" class="btn" title="Capture both models side by side with the visible overlay layers" disabled>Side by side</button>
+          </div>
+        </div>
+      </details>
+      <details class="method-panel">
+        <summary>
+          <span>Method</span>
+          <span id="methodSummary" class="point-count">marker least squares</span>
+        </summary>
+        <div class="method-copy">
+          Matched names provide the initial 3D similarity transform by least-squares absolute orientation. Refine then runs trimmed point-to-point ICP from that initialization: deterministic surface samples are matched by nearest neighbor, large residuals are rejected, Tukey weights down-weight noisy pairs, and weighted least squares iterates until convergence.
+        </div>
+      </details>
+      <details class="point-panel">
+        <summary>
+          <span>Points</span>
+          <span id="pointCount" class="point-count">0 matched</span>
+        </summary>
+        <div id="pointList" class="point-list" aria-live="polite"></div>
+      </details>
+    </div>
+  </details>
+
+  <div id="pointContextMenu" class="context-menu">
+    <button id="addPointFromMenu">Add point</button>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { ModelViewer } from 'belowjs';
+
+    const COLORS = {
+      matched: 0x32d296,
+      unmatched: 0xf2a33a,
+      error: 0xff5f5f
+    };
+
+    const sceneConfig = {
+      scene: {
+        background: { type: 'color', value: '#dfe9ef' }
+      },
+      camera: {
+        position: { x: 0, y: 4, z: 12 },
+        desktop: {
+          enableDamping: true,
+          dampingFactor: 0.08,
+          minDistance: 0.05,
+          maxDistance: 400
+        }
+      },
+      vr: { enabled: false },
+      renderer: {
+        antialias: true,
+        alpha: false,
+        powerPreference: 'high-performance'
+      }
+    };
+
+    const state = {
+      mode: 'split',
+      singleSide: 'reference',
+      referenceSide: 'reference',
+      camerasLocked: false,
+      syncingCamera: false,
+      nextPointNumber: 1,
+      pendingPoint: null,
+      dragDepth: { reference: 0, updated: 0 },
+      viewers: {
+        reference: null,
+        updated: null
+      },
+      models: {
+        reference: null,
+        updated: null
+      },
+      markerScale: {
+        reference: 0.08,
+        updated: 0.08
+      },
+      display: {
+        points: true,
+        errorLines: true
+      },
+      fit: {
+        controlMatrix: null,
+        refinedMatrix: null,
+        refinedActive: false,
+        refineMetrics: null
+      },
+      points: {
+        reference: [],
+        updated: []
+      },
+      urls: {
+        reference: null,
+        updated: null
+      },
+      labels: {
+        reference: 'Model A',
+        updated: 'Model B'
+      },
+      filenames: {
+        reference: 'model-a',
+        updated: 'model-b'
+      },
+      markerGeometry: new THREE.SphereGeometry(1, 24, 16),
+      errorLines: {
+        reference: [],
+        updated: []
+      }
+    };
+
+    const els = {
+      app: document.getElementById('app'),
+      referencePane: document.getElementById('referencePane'),
+      updatedPane: document.getElementById('updatedPane'),
+      referenceViewer: document.getElementById('referenceViewer'),
+      updatedViewer: document.getElementById('updatedViewer'),
+      referenceDrop: document.getElementById('referenceDrop'),
+      updatedDrop: document.getElementById('updatedDrop'),
+      referenceChoose: document.getElementById('referenceChoose'),
+      updatedChoose: document.getElementById('updatedChoose'),
+      referenceInput: document.getElementById('referenceInput'),
+      updatedInput: document.getElementById('updatedInput'),
+      referenceLabel: document.getElementById('referenceLabel'),
+      updatedLabel: document.getElementById('updatedLabel'),
+      controlSummary: document.getElementById('controlSummary'),
+      sideBySideBtn: document.getElementById('sideBySideBtn'),
+      singleBtn: document.getElementById('singleBtn'),
+      cameraLockBtn: document.getElementById('cameraLockBtn'),
+      referenceToggleBtn: document.getElementById('referenceToggleBtn'),
+      refineBtn: document.getElementById('refineBtn'),
+      resetRefineBtn: document.getElementById('resetRefineBtn'),
+      downloadBtn: document.getElementById('downloadBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      showPointsToggle: document.getElementById('showPointsToggle'),
+      showLinesToggle: document.getElementById('showLinesToggle'),
+      shotReferenceBtn: document.getElementById('shotReferenceBtn'),
+      shotUpdatedBtn: document.getElementById('shotUpdatedBtn'),
+      shotSplitBtn: document.getElementById('shotSplitBtn'),
+      pointContextMenu: document.getElementById('pointContextMenu'),
+      addPointFromMenu: document.getElementById('addPointFromMenu'),
+      pointList: document.getElementById('pointList'),
+      pointCount: document.getElementById('pointCount'),
+      matchedStatus: document.getElementById('matchedStatus'),
+      errorStatus: document.getElementById('errorStatus'),
+      rmsStatus: document.getElementById('rmsStatus'),
+      fitStatus: document.getElementById('fitStatus'),
+      methodSummary: document.getElementById('methodSummary')
+    };
+
+    state.viewers.reference = createViewer(els.referenceViewer);
+    state.viewers.updated = createViewer(els.updatedViewer);
+
+    setupFileLoading('reference');
+    setupFileLoading('updated');
+    setupCameraLinking();
+    setupPointCreation('reference');
+    setupPointCreation('updated');
+
+    els.sideBySideBtn.addEventListener('click', () => setMode('split'));
+    els.singleBtn.addEventListener('click', () => setMode('single'));
+    els.cameraLockBtn.addEventListener('click', () => setCameraLock(!state.camerasLocked));
+    els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
+    els.refineBtn.addEventListener('click', refineAlignment);
+    els.resetRefineBtn.addEventListener('click', resetRefinement);
+    els.downloadBtn.addEventListener('click', downloadTransformedModel);
+    els.clearBtn.addEventListener('click', clearAlignment);
+    els.showPointsToggle.addEventListener('change', () => {
+      state.display.points = els.showPointsToggle.checked;
+      updateOverlayVisibility();
+    });
+    els.showLinesToggle.addEventListener('change', () => {
+      state.display.errorLines = els.showLinesToggle.checked;
+      updateOverlayVisibility();
+    });
+    els.shotReferenceBtn.addEventListener('click', () => captureSingleView('reference'));
+    els.shotUpdatedBtn.addEventListener('click', () => captureSingleView('updated'));
+    els.shotSplitBtn.addEventListener('click', captureSplitView);
+    els.addPointFromMenu.addEventListener('click', () => {
+      if (state.pendingPoint) {
+        addPoint(state.pendingPoint.side, state.pendingPoint.worldPoint);
+      }
+      hidePointContextMenu();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#pointContextMenu')) {
+        hidePointContextMenu();
+      }
+    });
+
+    els.pointList.addEventListener('input', (event) => {
+      const input = event.target.closest('[data-point-id]');
+      if (!input) return;
+      const point = findPoint(input.dataset.side, Number(input.dataset.pointId));
+      if (!point) return;
+      point.name = input.value;
+      updatePointLabel(point);
+    });
+
+    els.pointList.addEventListener('change', (event) => {
+      const input = event.target.closest('[data-point-id]');
+      if (!input) return;
+      const point = findPoint(input.dataset.side, Number(input.dataset.pointId));
+      if (!point) return;
+      point.name = cleanName(input.value) || nextPointName();
+      input.value = point.name;
+      updatePointLabel(point);
+      invalidateRefinement();
+      analyzeAndFit();
+    });
+
+    els.pointList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-delete-point-id]');
+      if (!button) return;
+      removePoint(button.dataset.side, Number(button.dataset.deletePointId));
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (isEditableTarget(event.target)) return;
+      if (event.key.toLowerCase() === 'z') {
+        if (state.mode !== 'single') {
+          setMode('single');
+        } else {
+          state.singleSide = state.singleSide === 'reference' ? 'updated' : 'reference';
+          updateLayout();
+        }
+      } else if (event.key === 'Escape') {
+        hidePointContextMenu();
+      }
+    });
+
+    window.addEventListener('resize', resizeViewers);
+
+    updateLayout();
+    updateReferenceControl();
+    renderPoints();
+    updateActions();
+    updateOverlayVisibility();
+
+    function createViewer(container) {
+      const viewer = new ModelViewer(container, {
+        models: {},
+        autoLoadFirst: false,
+        showInfo: false,
+        showStatus: false,
+        showLoadingIndicator: false,
+        showDiveToggle: false,
+        enableVR: false,
+        enableDiveSystem: false,
+        enableMeasurement: true,
+        measurementTheme: 'light',
+        showMeasurementLabels: true,
+        enableFlyControls: false,
+        enableFullscreen: false,
+        enableScreenshot: false,
+        viewerConfig: structuredClone(sceneConfig)
+      });
+      addSurveyLighting(coreViewer(viewer));
+      const controls = coreViewer(viewer).cameraManager.getControls();
+      controls.screenSpacePanning = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
+      return viewer;
+    }
+
+    function coreViewer(viewerOrSide) {
+      const viewer = typeof viewerOrSide === 'string' ? state.viewers[viewerOrSide] : viewerOrSide;
+      return viewer?.belowViewer ?? viewer;
+    }
+
+    function addSurveyLighting(viewer) {
+      const scene = coreViewer(viewer).getScene();
+      scene.add(new THREE.AmbientLight(0xffffff, 0.66));
+
+      const key = new THREE.DirectionalLight(0xffffff, 1.32);
+      key.position.set(50, 100, 50);
+      key.castShadow = true;
+      key.shadow.mapSize.width = 2048;
+      key.shadow.mapSize.height = 2048;
+      key.shadow.camera.near = 0.5;
+      key.shadow.camera.far = 500;
+      key.shadow.camera.left = -150;
+      key.shadow.camera.right = 150;
+      key.shadow.camera.top = 150;
+      key.shadow.camera.bottom = -150;
+      scene.add(key);
+
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.77));
+
+      const fill = new THREE.DirectionalLight(0xffffff, 0.88);
+      fill.position.set(-10, 10, -10);
+      scene.add(fill);
+
+      const bottom = new THREE.DirectionalLight(0xffffff, 0.33);
+      bottom.position.set(0, -10, 0);
+      scene.add(bottom);
+    }
+
+    function updateMeasurementTarget(side) {
+      const viewer = state.viewers[side];
+      const measurement = viewer?.measurementSystem;
+      if (!measurement || !state.models[side]) return;
+      measurement.setMeasurementAvailability?.(true);
+      measurement.setRaycastTargets?.(state.models[side]);
+    }
+
+    function setupFileLoading(side) {
+      const choose = side === 'reference' ? els.referenceChoose : els.updatedChoose;
+      const input = side === 'reference' ? els.referenceInput : els.updatedInput;
+      const pane = side === 'reference' ? els.referencePane : els.updatedPane;
+      const drop = side === 'reference' ? els.referenceDrop : els.updatedDrop;
+
+      choose.addEventListener('click', () => input.click());
+      input.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (file) await loadModelFile(side, file);
+        input.value = '';
+      });
+
+      pane.addEventListener('dragenter', (event) => {
+        event.preventDefault();
+        state.dragDepth[side] += 1;
+        drop.classList.add('dragging');
+      });
+      pane.addEventListener('dragover', (event) => {
+        event.preventDefault();
+      });
+      pane.addEventListener('dragleave', (event) => {
+        event.preventDefault();
+        state.dragDepth[side] = Math.max(0, state.dragDepth[side] - 1);
+        if (state.dragDepth[side] === 0) drop.classList.remove('dragging');
+      });
+      pane.addEventListener('drop', async (event) => {
+        event.preventDefault();
+        state.dragDepth[side] = 0;
+        drop.classList.remove('dragging');
+        const file = event.dataTransfer.files?.[0];
+        if (file) await loadModelFile(side, file);
+      });
+    }
+
+    async function loadModelFile(side, file) {
+      if (!file.name.toLowerCase().endsWith('.glb')) return;
+
+      const viewer = coreViewer(side);
+      invalidateRefinement();
+      if (state.urls[side]) {
+        URL.revokeObjectURL(state.urls[side]);
+      }
+      clearPoints(side);
+      viewer.clearModels();
+      state.models[side] = null;
+      state.viewers[side]?.measurementSystem?.setRaycastTargets?.([]);
+
+      const url = URL.createObjectURL(file);
+      state.urls[side] = url;
+      state.filenames[side] = file.name.replace(/\.glb$/i, '') || sideLabel(side).toLowerCase().replaceAll(' ', '-');
+      state.labels[side] = file.name;
+      updateLabels();
+
+      try {
+        const model = await viewer.loadModel(url, { autoFrame: true });
+        state.models[side] = model;
+        model.matrixAutoUpdate = true;
+        markModelMaterials(model, side);
+        updateMarkerScale(side);
+        updateMeasurementTarget(side);
+        getDropElement(side).style.display = 'none';
+        analyzeAndFit();
+      } catch (error) {
+        console.error(error);
+        state.models[side] = null;
+        getDropElement(side).style.display = 'grid';
+      }
+    }
+
+    function setupCameraLinking() {
+      coreViewer('reference').on('camera-change', () => {
+        if (!state.syncingCamera) syncCamera('reference', 'updated');
+      });
+      coreViewer('updated').on('camera-change', () => {
+        if (!state.syncingCamera) syncCamera('updated', 'reference');
+      });
+    }
+
+    function syncCamera(fromSide, toSide) {
+      const fromViewer = state.viewers[fromSide];
+      const toViewer = state.viewers[toSide];
+      if (!state.camerasLocked || !fromViewer || !toViewer || state.syncingCamera) return;
+      matchCameraPose(fromSide, toSide);
+    }
+
+    function setupPointCreation(side) {
+      const viewer = state.viewers[side];
+      const renderer = coreViewer(viewer).getRenderer();
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let rightClickCandidate = null;
+      const dragThreshold = 3;
+
+      renderer.domElement.addEventListener('pointerdown', (event) => {
+        hidePointContextMenu();
+        if (event.button === 2) {
+          rightClickCandidate = {
+            pointerId: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            maxDistance: 0,
+            dragged: false,
+            downTime: performance.now()
+          };
+        }
+      });
+
+      renderer.domElement.addEventListener('pointermove', (event) => {
+        if (!rightClickCandidate || event.pointerId !== rightClickCandidate.pointerId) return;
+        const distance = Math.hypot(event.clientX - rightClickCandidate.x, event.clientY - rightClickCandidate.y);
+        rightClickCandidate.maxDistance = Math.max(rightClickCandidate.maxDistance, distance);
+        if (distance > dragThreshold) {
+          rightClickCandidate.dragged = true;
+        }
+      });
+
+      renderer.domElement.addEventListener('pointercancel', () => {
+        rightClickCandidate = null;
+      });
+
+      renderer.domElement.addEventListener('contextmenu', (event) => {
+        const moved = rightClickCandidate
+          ? Math.max(
+            rightClickCandidate.maxDistance,
+            Math.hypot(event.clientX - rightClickCandidate.x, event.clientY - rightClickCandidate.y)
+          )
+          : 0;
+        const elapsed = rightClickCandidate ? performance.now() - rightClickCandidate.downTime : Infinity;
+        const stationary = rightClickCandidate && !rightClickCandidate.dragged && moved <= dragThreshold && elapsed < 900;
+        rightClickCandidate = null;
+
+        if (!stationary) {
+          event.preventDefault();
+          hidePointContextMenu();
+          return;
+        }
+
+        if (!state.models[side]) return;
+
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, coreViewer(viewer).cameraManager.getCamera());
+        const hit = raycaster
+          .intersectObject(state.models[side], true)
+          .find((item) => !isMarkerObject(item.object));
+        if (!hit) return;
+
+        event.preventDefault();
+        showPointContextMenu(event.clientX, event.clientY, side, hit.point);
+      });
+    }
+
+    function showPointContextMenu(x, y, side, worldPoint) {
+      state.pendingPoint = {
+        side,
+        worldPoint: worldPoint.clone()
+      };
+      const menu = els.pointContextMenu;
+      menu.classList.add('visible');
+      const rect = menu.getBoundingClientRect();
+      const left = Math.min(x, window.innerWidth - rect.width - 8);
+      const top = Math.min(y, window.innerHeight - rect.height - 8);
+      menu.style.left = `${Math.max(8, left)}px`;
+      menu.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function hidePointContextMenu() {
+      els.pointContextMenu.classList.remove('visible');
+      state.pendingPoint = null;
+    }
+
+    function addPoint(side, worldPoint) {
+      const model = state.models[side];
+      const name = defaultPointName(side);
+      invalidateRefinement();
+      const point = {
+        id: state.nextPointNumber++,
+        side,
+        name,
+        local: model.worldToLocal(worldPoint.clone()),
+        state: 'unmatched',
+        error: null,
+        marker: null
+      };
+
+      point.marker = createMarker(point);
+      model.add(point.marker);
+      state.points[side].push(point);
+      analyzeAndFit();
+    }
+
+    function createMarker(point) {
+      const group = new THREE.Group();
+      group.position.copy(point.local);
+      group.scale.setScalar(state.markerScale[point.side]);
+      group.userData.isControlMarker = true;
+
+      const material = new THREE.MeshBasicMaterial({
+        color: COLORS.unmatched,
+        depthTest: false,
+        depthWrite: false
+      });
+      const sphere = new THREE.Mesh(state.markerGeometry, material);
+      sphere.renderOrder = 100;
+      sphere.userData.isControlMarker = true;
+      group.add(sphere);
+
+      const label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: createLabelTexture(point.name, COLORS.unmatched),
+        depthTest: false,
+        depthWrite: false
+      }));
+      label.position.set(0, 2.8, 0);
+      label.scale.set(5.2, 2.2, 1);
+      label.renderOrder = 101;
+      label.userData.isControlMarker = true;
+      group.add(label);
+
+      group.userData.sphere = sphere;
+      group.userData.label = label;
+      group.visible = state.display.points;
+      return group;
+    }
+
+    function updatePointMarker(point) {
+      if (!point.marker) return;
+      const color = COLORS[point.state] ?? COLORS.unmatched;
+      point.marker.userData.sphere?.material?.color.setHex(color);
+      updatePointLabel(point);
+    }
+
+    function updatePointLabel(point) {
+      const label = point.marker?.userData?.label;
+      if (!label) return;
+      const color = COLORS[point.state] ?? COLORS.unmatched;
+      const oldMap = label.material.map;
+      label.material.map = createLabelTexture(point.name, color);
+      label.material.needsUpdate = true;
+      oldMap?.dispose?.();
+    }
+
+    function createLabelTexture(text, color) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 112;
+      const ctx = canvas.getContext('2d');
+      const label = cleanName(text) || '?';
+      const fill = `#${color.toString(16).padStart(6, '0')}`;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(8, 13, 18, 0.88)';
+      roundedRect(ctx, 10, 16, 236, 80, 34);
+      ctx.fill();
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = fill;
+      ctx.stroke();
+      ctx.fillStyle = '#f8fbfd';
+      ctx.font = '700 42px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label.slice(0, 8), 128, 57);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function roundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, radius);
+      ctx.arcTo(x + width, y + height, x, y + height, radius);
+      ctx.arcTo(x, y + height, x, y, radius);
+      ctx.arcTo(x, y, x + width, y, radius);
+      ctx.closePath();
+    }
+
+    function analyzeAndFit() {
+      const analysis = analyzeMatches();
+      const pairs = analysis.pairs;
+      state.fit.controlMatrix = null;
+      resetModelTransform(state.referenceSide);
+
+      if (pairs.length >= 3 && analysis.duplicateGroups === 0 && state.models.reference && state.models.updated) {
+        const fit = solveSimilarityTransform(
+          pairs.map((pair) => movingPoint(pair).local),
+          pairs.map((pair) => referencePoint(pair).local)
+        );
+        state.fit.controlMatrix = fit.matrix.clone();
+        const activeMatrix = state.fit.refinedActive && state.fit.refinedMatrix
+          ? state.fit.refinedMatrix
+          : state.fit.controlMatrix;
+        applyModelTransform(movingSide(), activeMatrix);
+        updateResiduals(activeMatrix, pairs);
+      } else {
+        invalidateRefinement();
+        els.rmsStatus.textContent = '-';
+        for (const point of allPoints()) point.error = null;
+        clearErrorLines();
+      }
+
+      renderPoints(analysis);
+      updateActions(analysis);
+      updateOverlayVisibility();
+    }
+
+    function analyzeMatches() {
+      const byName = new Map();
+      for (const point of allPoints()) {
+        const key = normalizeName(point.name);
+        if (!key) {
+          point.state = 'error';
+          point.error = null;
+          updatePointMarker(point);
+          continue;
+        }
+        if (!byName.has(key)) {
+          byName.set(key, { name: cleanName(point.name), reference: [], updated: [] });
+        }
+        byName.get(key)[point.side].push(point);
+      }
+
+      const pairs = [];
+      let duplicateGroups = 0;
+      for (const group of byName.values()) {
+        const duplicate = group.reference.length > 1 || group.updated.length > 1;
+        const matched = group.reference.length === 1 && group.updated.length === 1;
+        if (duplicate) duplicateGroups += 1;
+
+        for (const point of [...group.reference, ...group.updated]) {
+          point.state = duplicate ? 'error' : matched ? 'matched' : 'unmatched';
+          point.error = null;
+          updatePointMarker(point);
+        }
+
+        if (matched) {
+          pairs.push({
+            name: group.name,
+            reference: group.reference[0],
+            updated: group.updated[0]
+          });
+        }
+      }
+
+      return {
+        pairs,
+        duplicateGroups
+      };
+    }
+
+    function updateResiduals(matrix, pairs) {
+      let sum = 0;
+      for (const pair of pairs) {
+        const error = movingPoint(pair).local.clone().applyMatrix4(matrix).distanceTo(referencePoint(pair).local);
+        pair.reference.error = error;
+        pair.updated.error = error;
+        sum += error * error;
+      }
+
+      const rms = pairs.length ? Math.sqrt(sum / pairs.length) : null;
+      els.rmsStatus.textContent = rms == null ? '-' : formatDistance(rms);
+      drawErrorLines(matrix, pairs);
+    }
+
+    function drawErrorLines(matrix, pairs) {
+      clearErrorLines();
+      if (!pairs.length) return;
+
+      const maxError = Math.max(...pairs.map((pair) => pair.reference.error ?? 0), 0.0001);
+      for (const pair of pairs) {
+        const solved = movingPoint(pair).local.clone().applyMatrix4(matrix);
+        const target = referencePoint(pair).local.clone().applyMatrix4(state.models[state.referenceSide].matrix);
+        const color = errorLineColor((pair.reference.error ?? 0) / maxError);
+
+        for (const side of ['reference', 'updated']) {
+          const line = createErrorLine(target, solved, color);
+          line.visible = state.display.errorLines;
+          coreViewer(side).getScene().add(line);
+          state.errorLines[side].push(line);
+        }
+      }
+    }
+
+    function updateOverlayVisibility() {
+      for (const point of allPoints()) {
+        if (point.marker) point.marker.visible = state.display.points;
+      }
+      for (const side of ['reference', 'updated']) {
+        for (const line of state.errorLines[side]) {
+          line.visible = state.display.errorLines;
+        }
+      }
+    }
+
+    function createErrorLine(from, to, color) {
+      const geometry = new THREE.BufferGeometry().setFromPoints([from, to]);
+      const material = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: false,
+        depthWrite: false
+      });
+      const line = new THREE.Line(geometry, material);
+      line.renderOrder = 90;
+      line.userData.isControlMarker = true;
+      return line;
+    }
+
+    function errorLineColor(normalizedError) {
+      if (normalizedError < 0.25) return COLORS.matched;
+      if (normalizedError < 0.65) return COLORS.unmatched;
+      return COLORS.error;
+    }
+
+    function renderPoints(analysis = analyzeMatches()) {
+      const points = allPoints().sort((a, b) => a.id - b.id);
+      els.pointList.innerHTML = points.length ? points.map((point) => {
+        const error = point.error == null ? point.state : formatDistance(point.error);
+        return `
+          <div class="point-row">
+            <span class="point-id ${point.state}">${point.id}</span>
+            <span class="point-side">${sideLabel(point.side)}</span>
+            <input class="point-name" data-side="${point.side}" data-point-id="${point.id}" value="${escapeHtml(point.name)}" aria-label="${point.side} point ${point.id} name">
+            <span class="point-state ${point.state}">${error}</span>
+            <button class="btn icon-btn" data-side="${point.side}" data-delete-point-id="${point.id}" title="Delete point">x</button>
+          </div>
+        `;
+      }).join('') : '<div class="empty-points">No points yet</div>';
+
+      els.pointCount.textContent = `${analysis.pairs.length} matched`;
+      els.matchedStatus.textContent = String(analysis.pairs.length);
+      els.errorStatus.textContent = String(analysis.duplicateGroups);
+      els.fitStatus.textContent = state.fit.refinedActive ? 'refined' : 'markers';
+      els.methodSummary.textContent = state.fit.refinedActive && Number.isFinite(state.fit.refineMetrics?.rms)
+        ? `ICP RMS ${formatDistance(state.fit.refineMetrics.rms)}`
+        : state.fit.refinedActive ? 'robust ICP refined' : 'marker least squares';
+      els.controlSummary.textContent = `Ref ${sideShortLabel(state.referenceSide)} · ${analysis.pairs.length} matched · ${analysis.duplicateGroups} errors · RMS ${els.rmsStatus.textContent}`;
+    }
+
+    function updateActions(analysis = analyzeMatches()) {
+      const hasBothModels = state.models.reference && state.models.updated;
+      els.refineBtn.disabled = !hasBothModels || analysis.pairs.length < 3 || analysis.duplicateGroups > 0 || state.fit.refinedActive;
+      els.refineBtn.textContent = state.fit.refinedActive ? 'Refined' : 'Refine';
+      els.resetRefineBtn.disabled = !state.fit.refinedActive;
+      els.downloadBtn.disabled = !hasBothModels;
+      els.shotReferenceBtn.disabled = !state.models.reference;
+      els.shotUpdatedBtn.disabled = !state.models.updated;
+      els.shotSplitBtn.disabled = !hasBothModels;
+    }
+
+    function setReferenceSide(side) {
+      invalidateRefinement();
+      state.referenceSide = side;
+      resetModelTransform('reference');
+      resetModelTransform('updated');
+      updateReferenceControl();
+      analyzeAndFit();
+    }
+
+    function invalidateRefinement() {
+      state.fit.refinedMatrix = null;
+      state.fit.refinedActive = false;
+      state.fit.refineMetrics = null;
+    }
+
+    function updateReferenceControl() {
+      els.referenceToggleBtn.textContent = `Ref: ${sideShortLabel(state.referenceSide)}`;
+      els.referenceToggleBtn.title = `${sideLabel(state.referenceSide)} is fixed. Click to use ${sideLabel(movingSide())} as the reference.`;
+    }
+
+    function referencePoint(pair) {
+      return pair[state.referenceSide];
+    }
+
+    function movingPoint(pair) {
+      return pair[movingSide()];
+    }
+
+    function movingSide() {
+      return otherSide(state.referenceSide);
+    }
+
+    function otherSide(side) {
+      return side === 'reference' ? 'updated' : 'reference';
+    }
+
+    function sideLabel(side) {
+      return side === 'reference' ? 'Model A' : 'Model B';
+    }
+
+    function sideShortLabel(side) {
+      return side === 'reference' ? 'A' : 'B';
+    }
+
+    async function refineAlignment() {
+      const analysis = analyzeMatches();
+      if (
+        state.fit.refinedActive ||
+        !state.models.reference ||
+        !state.models.updated ||
+        analysis.pairs.length < 3 ||
+        analysis.duplicateGroups > 0
+      ) {
+        updateActions(analysis);
+        return;
+      }
+
+      els.refineBtn.disabled = true;
+      els.refineBtn.textContent = 'Refining...';
+      await waitForFrames(1);
+
+      const source = sampleModelPoints(state.models[movingSide()], 12000);
+      const target = sampleModelPoints(state.models[state.referenceSide], 12000);
+      if (source.length < 12 || target.length < 12) {
+        updateActions(analysis);
+        return;
+      }
+
+      const targetTree = buildKdTree(target.slice());
+      let matrix = state.fit.controlMatrix?.clone() ?? state.models[movingSide()].matrix.clone();
+      let previousRms = Infinity;
+      let finalRms = Infinity;
+      let finalPairs = 0;
+      let stableIterations = 0;
+
+      for (let iteration = 0; iteration < 48; iteration++) {
+        const keepRatio = Math.max(0.62, 0.92 - iteration * 0.01);
+        const pairs = buildRobustClosestPairs(source, targetTree, matrix, keepRatio);
+        if (pairs.source.length < 8) break;
+
+        const fit = solveWeightedSimilarityTransform(pairs.source, pairs.target, pairs.weights);
+        const rms = calculateWeightedRms(pairs.source, pairs.target, pairs.weights, fit.matrix);
+        if (!Number.isFinite(rms)) break;
+
+        matrix = fit.matrix.clone();
+        finalRms = rms;
+        finalPairs = pairs.source.length;
+
+        const improvement = previousRms - rms;
+        const tolerance = Math.max(1e-7, previousRms * 0.0004);
+        stableIterations = improvement > tolerance ? 0 : stableIterations + 1;
+        previousRms = rms;
+        if (stableIterations >= 4) break;
+        if (iteration % 4 === 3) await waitForFrames(1);
+      }
+
+      if (!Number.isFinite(finalRms) || finalPairs < 8) {
+        updateActions(analysis);
+        return;
+      }
+
+      state.fit.refinedMatrix = matrix.clone();
+      state.fit.refinedActive = true;
+      state.fit.refineMetrics = {
+        rms: finalRms,
+        pairs: finalPairs
+      };
+      applyModelTransform(movingSide(), matrix);
+      updateResiduals(matrix, analysis.pairs);
+      els.fitStatus.textContent = 'refined';
+      els.methodSummary.textContent = Number.isFinite(finalRms)
+        ? `ICP RMS ${formatDistance(finalRms)}`
+        : 'robust ICP refined';
+      renderPoints(analysis);
+      updateActions(analysis);
+    }
+
+    function resetRefinement() {
+      if (!state.fit.refinedActive) return;
+      invalidateRefinement();
+      analyzeAndFit();
+    }
+
+    async function downloadTransformedModel() {
+      const side = movingSide();
+      const model = state.models[side];
+      if (!model) return;
+
+      const exportRoot = cloneModelForExport(model);
+      const exporter = new GLTFExporter();
+      const arrayBuffer = await new Promise((resolve, reject) => {
+        exporter.parse(
+          exportRoot,
+          (result) => {
+            if (result instanceof ArrayBuffer) {
+              resolve(result);
+            } else {
+              resolve(new TextEncoder().encode(JSON.stringify(result)).buffer);
+            }
+          },
+          reject,
+          { binary: true }
+        );
+      });
+
+      const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${state.filenames[side]}-aligned-to-${sideShortLabel(state.referenceSide).toLowerCase()}.glb`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function cloneModelForExport(model) {
+      const clone = model.clone(true);
+      const markers = [];
+      clone.traverse((object) => {
+        if (object.userData?.isControlMarker) {
+          markers.push(object);
+        }
+      });
+      for (const marker of markers) {
+        marker.removeFromParent();
+      }
+      return clone;
+    }
+
+    function solveSimilarityTransform(source, target) {
+      return solveWeightedSimilarityTransform(source, target);
+    }
+
+    function solveWeightedSimilarityTransform(source, target, weights = null) {
+      const n = source.length;
+      let totalWeight = 0;
+      const sourceCentroid = new THREE.Vector3();
+      const targetCentroid = new THREE.Vector3();
+
+      for (let i = 0; i < n; i++) {
+        const weight = weights?.[i] ?? 1;
+        if (weight <= 0) continue;
+        totalWeight += weight;
+        sourceCentroid.addScaledVector(source[i], weight);
+        targetCentroid.addScaledVector(target[i], weight);
+      }
+
+      if (totalWeight <= 1e-12) {
+        return {
+          matrix: new THREE.Matrix4(),
+          scale: 1,
+          rotation: new THREE.Quaternion(),
+          translation: new THREE.Vector3()
+        };
+      }
+
+      sourceCentroid.multiplyScalar(1 / totalWeight);
+      targetCentroid.multiplyScalar(1 / totalWeight);
+
+      const h = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ];
+      let sourceVariance = 0;
+
+      for (let i = 0; i < n; i++) {
+        const weight = weights?.[i] ?? 1;
+        if (weight <= 0) continue;
+        const p = source[i].clone().sub(sourceCentroid);
+        const q = target[i].clone().sub(targetCentroid);
+        sourceVariance += weight * p.lengthSq();
+        h[0][0] += weight * p.x * q.x;
+        h[0][1] += weight * p.x * q.y;
+        h[0][2] += weight * p.x * q.z;
+        h[1][0] += weight * p.y * q.x;
+        h[1][1] += weight * p.y * q.y;
+        h[1][2] += weight * p.y * q.z;
+        h[2][0] += weight * p.z * q.x;
+        h[2][1] += weight * p.z * q.y;
+        h[2][2] += weight * p.z * q.z;
+      }
+
+      const rotation = quaternionFromCrossCovariance(h);
+      const rotationMatrix = new THREE.Matrix4().makeRotationFromQuaternion(rotation);
+      const rotatedSource = sourceCentroid.clone().applyMatrix4(rotationMatrix);
+      let scale = 1;
+      if (sourceVariance > 1e-12) {
+        let numerator = 0;
+        for (let i = 0; i < n; i++) {
+          const weight = weights?.[i] ?? 1;
+          if (weight <= 0) continue;
+          const p = source[i].clone().sub(sourceCentroid).applyMatrix4(rotationMatrix);
+          const q = target[i].clone().sub(targetCentroid);
+          numerator += weight * q.dot(p);
+        }
+        scale = numerator / sourceVariance;
+      }
+
+      if (!Number.isFinite(scale) || scale <= 1e-8) {
+        scale = 1;
+      }
+
+      const translation = targetCentroid.clone().sub(rotatedSource.multiplyScalar(scale));
+      const matrix = new THREE.Matrix4()
+        .compose(translation, rotation, new THREE.Vector3(scale, scale, scale));
+
+      return { matrix, scale, rotation, translation };
+    }
+
+    function quaternionFromCrossCovariance(h) {
+      const hxx = h[0][0];
+      const hxy = h[0][1];
+      const hxz = h[0][2];
+      const hyx = h[1][0];
+      const hyy = h[1][1];
+      const hyz = h[1][2];
+      const hzx = h[2][0];
+      const hzy = h[2][1];
+      const hzz = h[2][2];
+      const trace = hxx + hyy + hzz;
+      const n = [
+        [trace, hyz - hzy, hzx - hxz, hxy - hyx],
+        [hyz - hzy, hxx - hyy - hzz, hxy + hyx, hzx + hxz],
+        [hzx - hxz, hxy + hyx, -hxx + hyy - hzz, hyz + hzy],
+        [hxy - hyx, hzx + hxz, hyz + hzy, -hxx - hyy + hzz]
+      ];
+      const q = largestEigenvectorSymmetric4(n);
+      return new THREE.Quaternion(q[1], q[2], q[3], q[0]).normalize();
+    }
+
+    function largestEigenvectorSymmetric4(matrix) {
+      const a = matrix.map((row) => row.slice());
+      const eigenvectors = [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+      ];
+
+      for (let iter = 0; iter < 60; iter++) {
+        let p = 0;
+        let q = 1;
+        let max = 0;
+        for (let i = 0; i < 4; i++) {
+          for (let j = i + 1; j < 4; j++) {
+            const value = Math.abs(a[i][j]);
+            if (value > max) {
+              max = value;
+              p = i;
+              q = j;
+            }
+          }
+        }
+        if (max < 1e-12) break;
+
+        const app = a[p][p];
+        const aqq = a[q][q];
+        const apq = a[p][q];
+        const tau = (aqq - app) / (2 * apq);
+        const t = Math.sign(tau || 1) / (Math.abs(tau) + Math.sqrt(1 + tau * tau));
+        const c = 1 / Math.sqrt(1 + t * t);
+        const s = t * c;
+
+        for (let k = 0; k < 4; k++) {
+          if (k === p || k === q) continue;
+          const akp = a[k][p];
+          const akq = a[k][q];
+          a[k][p] = akp * c - akq * s;
+          a[p][k] = a[k][p];
+          a[k][q] = akp * s + akq * c;
+          a[q][k] = a[k][q];
+        }
+
+        a[p][p] = app * c * c - 2 * apq * s * c + aqq * s * s;
+        a[q][q] = app * s * s + 2 * apq * s * c + aqq * c * c;
+        a[p][q] = 0;
+        a[q][p] = 0;
+
+        for (let k = 0; k < 4; k++) {
+          const vkp = eigenvectors[k][p];
+          const vkq = eigenvectors[k][q];
+          eigenvectors[k][p] = vkp * c - vkq * s;
+          eigenvectors[k][q] = vkp * s + vkq * c;
+        }
+      }
+
+      let index = 0;
+      for (let i = 1; i < 4; i++) {
+        if (a[i][i] > a[index][index]) {
+          index = i;
+        }
+      }
+
+      return [
+        eigenvectors[0][index],
+        eigenvectors[1][index],
+        eigenvectors[2][index],
+        eigenvectors[3][index]
+      ];
+    }
+
+    function centroid(points) {
+      const center = new THREE.Vector3();
+      for (const point of points) center.add(point);
+      return center.multiplyScalar(points.length ? 1 / points.length : 1);
+    }
+
+    function applyModelTransform(side, matrix) {
+      const model = state.models[side];
+      if (!model) return;
+      const position = new THREE.Vector3();
+      const quaternion = new THREE.Quaternion();
+      const scale = new THREE.Vector3();
+      matrix.decompose(position, quaternion, scale);
+      model.position.copy(position);
+      model.quaternion.copy(quaternion);
+      model.scale.copy(scale);
+      model.updateMatrixWorld(true);
+    }
+
+    function resetModelTransform(side) {
+      const model = state.models[side];
+      if (!model) return;
+      model.position.set(0, 0, 0);
+      model.quaternion.identity();
+      model.scale.setScalar(1);
+      model.updateMatrixWorld(true);
+    }
+
+    function sampleModelPoints(model, maxPoints) {
+      const triangles = [];
+      const vertexFallback = [];
+      let totalArea = 0;
+      let triangleCount = 0;
+      model.updateMatrixWorld(true);
+      const rootInverse = new THREE.Matrix4().copy(model.matrixWorld).invert();
+
+      model.traverse((object) => {
+        if (!object.isMesh || isMarkerObject(object)) return;
+        const position = object.geometry?.attributes?.position;
+        if (!position) return;
+        const index = object.geometry.index;
+        triangleCount += index ? Math.floor(index.count / 3) : Math.floor(position.count / 3);
+      });
+
+      const triangleStep = Math.max(1, Math.ceil(triangleCount / 60000));
+      let triangleIndex = 0;
+
+      model.traverse((object) => {
+        if (!object.isMesh || isMarkerObject(object)) return;
+        const position = object.geometry?.attributes?.position;
+        if (!position) return;
+
+        const index = object.geometry.index;
+        const count = index ? Math.floor(index.count / 3) : Math.floor(position.count / 3);
+        for (let i = 0; i < count; i++) {
+          const aIndex = index ? index.getX(i * 3) : i * 3;
+          const bIndex = index ? index.getX(i * 3 + 1) : i * 3 + 1;
+          const cIndex = index ? index.getX(i * 3 + 2) : i * 3 + 2;
+
+          if (triangleIndex % triangleStep === 0) {
+            const a = new THREE.Vector3().fromBufferAttribute(position, aIndex).applyMatrix4(object.matrixWorld).applyMatrix4(rootInverse);
+            const b = new THREE.Vector3().fromBufferAttribute(position, bIndex).applyMatrix4(object.matrixWorld).applyMatrix4(rootInverse);
+            const c = new THREE.Vector3().fromBufferAttribute(position, cIndex).applyMatrix4(object.matrixWorld).applyMatrix4(rootInverse);
+            const area = triangleArea(a, b, c);
+            if (area > 1e-12) {
+              totalArea += area;
+              triangles.push({ a, b, c, cumulativeArea: totalArea });
+            }
+          }
+          triangleIndex += 1;
+        }
+
+        const vertexStep = Math.max(1, Math.ceil(position.count / Math.max(1, Math.floor(maxPoints / 8))));
+        for (let i = 0; i < position.count; i += vertexStep) {
+          vertexFallback.push(new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(object.matrixWorld).applyMatrix4(rootInverse));
+        }
+      });
+
+      if (!triangles.length || totalArea <= 0) {
+        return strideSample(vertexFallback, maxPoints);
+      }
+
+      const sampled = [];
+      for (let i = 0; i < maxPoints; i++) {
+        const areaTarget = totalArea * ((i + 0.5) / maxPoints);
+        const triangle = triangleAtArea(triangles, areaTarget);
+        sampled.push(sampleTrianglePoint(triangle, i));
+      }
+      return sampled;
+    }
+
+    function triangleArea(a, b, c) {
+      return b.clone().sub(a).cross(c.clone().sub(a)).length() * 0.5;
+    }
+
+    function triangleAtArea(triangles, areaTarget) {
+      let low = 0;
+      let high = triangles.length - 1;
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (triangles[mid].cumulativeArea < areaTarget) {
+          low = mid + 1;
+        } else {
+          high = mid;
+        }
+      }
+      return triangles[low];
+    }
+
+    function sampleTrianglePoint(triangle, index) {
+      let u = fractional(index * 0.7548776662466927 + 0.5);
+      let v = fractional(index * 0.5698402909980532 + 0.25);
+      if (u + v > 1) {
+        u = 1 - u;
+        v = 1 - v;
+      }
+      return triangle.a.clone()
+        .add(triangle.b.clone().sub(triangle.a).multiplyScalar(u))
+        .add(triangle.c.clone().sub(triangle.a).multiplyScalar(v));
+    }
+
+    function strideSample(points, maxPoints) {
+      if (points.length <= maxPoints) return points;
+      const stride = points.length / maxPoints;
+      const sampled = [];
+      for (let i = 0; i < maxPoints; i++) {
+        sampled.push(points[Math.floor(i * stride)]);
+      }
+      return sampled;
+    }
+
+    function fractional(value) {
+      return value - Math.floor(value);
+    }
+
+    function buildKdTree(points, depth = 0) {
+      if (!points.length) return null;
+      const axis = depth % 3;
+      const key = axis === 0 ? 'x' : axis === 1 ? 'y' : 'z';
+      points.sort((a, b) => a[key] - b[key]);
+      const median = Math.floor(points.length / 2);
+      return {
+        point: points[median],
+        axis,
+        left: buildKdTree(points.slice(0, median), depth + 1),
+        right: buildKdTree(points.slice(median + 1), depth + 1)
+      };
+    }
+
+    function findNearest(node, query, best = { point: null, distanceSq: Infinity }) {
+      if (!node) return best;
+
+      const distanceSq = query.distanceToSquared(node.point);
+      if (distanceSq < best.distanceSq) {
+        best = { point: node.point, distanceSq };
+      }
+
+      const axisValue = node.axis === 0 ? query.x - node.point.x : node.axis === 1 ? query.y - node.point.y : query.z - node.point.z;
+      const near = axisValue < 0 ? node.left : node.right;
+      const far = axisValue < 0 ? node.right : node.left;
+      best = findNearest(near, query, best);
+      if (axisValue * axisValue < best.distanceSq) {
+        best = findNearest(far, query, best);
+      }
+      return best;
+    }
+
+    function buildRobustClosestPairs(source, targetTree, matrix, keepRatio) {
+      const pairs = [];
+      for (const sourcePoint of source) {
+        const transformed = sourcePoint.clone().applyMatrix4(matrix);
+        const best = findNearest(targetTree, transformed);
+        if (best.point) {
+          pairs.push({ source: sourcePoint, target: best.point, distanceSq: best.distanceSq });
+        }
+      }
+
+      pairs.sort((a, b) => a.distanceSq - b.distanceSq);
+      const keep = Math.max(8, Math.floor(pairs.length * keepRatio));
+      const trimmed = pairs.slice(0, keep);
+      const distances = trimmed.map((pair) => Math.sqrt(pair.distanceSq));
+      const median = distances[Math.floor(distances.length / 2)] ?? 0;
+      const deviations = distances.map((distance) => Math.abs(distance - median)).sort((a, b) => a - b);
+      const mad = deviations[Math.floor(deviations.length / 2)] ?? 0;
+      const robustSigma = Math.max(1e-9, 1.4826 * mad, median * 0.25);
+      const cutoff = Math.max(robustSigma * 4.685, distances[Math.max(0, Math.floor(distances.length * 0.9) - 1)] ?? robustSigma);
+      const sourceOut = [];
+      const targetOut = [];
+      const weights = [];
+
+      for (const pair of trimmed) {
+        const distance = Math.sqrt(pair.distanceSq);
+        const normalized = distance / cutoff;
+        if (normalized >= 1) continue;
+        const weight = Math.max(0.02, Math.pow(1 - normalized * normalized, 2));
+        sourceOut.push(pair.source);
+        targetOut.push(pair.target);
+        weights.push(weight);
+      }
+
+      return {
+        source: sourceOut,
+        target: targetOut,
+        weights
+      };
+    }
+
+    function calculateWeightedRms(source, target, weights, matrix) {
+      let sum = 0;
+      let totalWeight = 0;
+      for (let i = 0; i < source.length; i++) {
+        const weight = weights?.[i] ?? 1;
+        if (weight <= 0) continue;
+        sum += weight * source[i].clone().applyMatrix4(matrix).distanceToSquared(target[i]);
+        totalWeight += weight;
+      }
+      return Math.sqrt(sum / Math.max(totalWeight, 1e-12));
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      updateLayout();
+    }
+
+    function updateLayout() {
+      const single = state.mode === 'single';
+      els.app.classList.toggle('single', single);
+      els.referencePane.classList.toggle('hidden', single && state.singleSide !== 'reference');
+      els.updatedPane.classList.toggle('hidden', single && state.singleSide !== 'updated');
+      els.sideBySideBtn.classList.toggle('active', !single);
+      els.singleBtn.classList.toggle('active', single);
+      resizeViewers();
+      if (single) {
+        syncCamera(state.singleSide, state.singleSide === 'reference' ? 'updated' : 'reference');
+      }
+    }
+
+    function setCameraLock(locked) {
+      if (locked) {
+        const sourceSide = state.mode === 'single' ? state.singleSide : 'reference';
+        matchCameraPose(sourceSide, sourceSide === 'reference' ? 'updated' : 'reference');
+      }
+      state.camerasLocked = locked;
+      els.cameraLockBtn.classList.toggle('locked', locked);
+      els.cameraLockBtn.textContent = locked ? 'Unlock cameras' : 'Lock cameras';
+    }
+
+    function matchCameraPose(fromSide, toSide) {
+      const fromViewer = state.viewers[fromSide];
+      const toViewer = state.viewers[toSide];
+      if (!fromViewer || !toViewer || state.syncingCamera) return;
+
+      const fromCamera = coreViewer(fromViewer).cameraManager.getCamera();
+      const fromControls = coreViewer(fromViewer).cameraManager.getControls();
+      const toCamera = coreViewer(toViewer).cameraManager.getCamera();
+      const toControls = coreViewer(toViewer).cameraManager.getControls();
+
+      state.syncingCamera = true;
+      toCamera.position.copy(fromCamera.position);
+      toCamera.quaternion.copy(fromCamera.quaternion);
+      toCamera.zoom = fromCamera.zoom;
+      toCamera.updateProjectionMatrix();
+      toControls.target.copy(fromControls.target);
+      toControls.update();
+      state.syncingCamera = false;
+    }
+
+    async function captureSingleView(side) {
+      if (!state.models[side]) return;
+      await withTemporaryLayout({ mode: 'single', singleSide: side }, async () => {
+        const canvas = renderViewerCanvas(side);
+        downloadCanvas(canvas, `${state.filenames[side]}-${overlayFilenamePart()}-view.png`);
+      });
+    }
+
+    async function captureSplitView() {
+      if (!state.models.reference || !state.models.updated) return;
+      await withTemporaryLayout({ mode: 'split' }, async () => {
+        const left = renderViewerCanvas('reference');
+        const right = renderViewerCanvas('updated');
+        const canvas = document.createElement('canvas');
+        canvas.width = left.width + right.width;
+        canvas.height = Math.max(left.height, right.height);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f5f7fa';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(left, 0, 0);
+        ctx.drawImage(right, left.width, 0);
+        downloadCanvas(canvas, `model-comparison-${overlayFilenamePart()}-side-by-side.png`);
+      });
+    }
+
+    async function withTemporaryLayout(options, task) {
+      const previous = {
+        mode: state.mode,
+        singleSide: state.singleSide
+      };
+      if (options.mode) state.mode = options.mode;
+      if (options.singleSide) state.singleSide = options.singleSide;
+      updateLayout();
+      await waitForFrames(2);
+      try {
+        await task();
+      } finally {
+        state.mode = previous.mode;
+        state.singleSide = previous.singleSide;
+        updateLayout();
+      }
+    }
+
+    function renderViewerCanvas(side) {
+      const viewer = coreViewer(side);
+      const renderer = viewer.getRenderer();
+      renderer.render(viewer.sceneManager.scene, viewer.cameraManager.camera);
+      return renderer.domElement;
+    }
+
+    function downloadCanvas(canvas, filename) {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function overlayFilenamePart() {
+      const parts = [];
+      if (state.display.points) parts.push('points');
+      if (state.display.errorLines) parts.push('lines');
+      return parts.length ? parts.join('-') : 'clean';
+    }
+
+    function waitForFrames(count = 1) {
+      return new Promise((resolve) => {
+        const tick = () => {
+          count -= 1;
+          if (count <= 0) {
+            resolve();
+          } else {
+            requestAnimationFrame(tick);
+          }
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+
+    function resizeViewers() {
+      requestAnimationFrame(() => {
+        if (!els.referencePane.classList.contains('hidden')) {
+          coreViewer('reference').onWindowResize();
+        }
+        if (!els.updatedPane.classList.contains('hidden')) {
+          coreViewer('updated').onWindowResize();
+        }
+      });
+    }
+
+    function clearAlignment() {
+      invalidateRefinement();
+      clearPoints('reference');
+      clearPoints('updated');
+      clearErrorLines();
+      resetModelTransform('reference');
+      resetModelTransform('updated');
+      state.nextPointNumber = 1;
+      els.rmsStatus.textContent = '-';
+      analyzeAndFit();
+    }
+
+    function clearPoints(side) {
+      for (const point of state.points[side]) {
+        disposeMarker(point.marker);
+        point.marker?.removeFromParent();
+      }
+      state.points[side] = [];
+      clearErrorLines();
+      if (state.models[side]) {
+        updateMeasurementTarget(side);
+      } else {
+        state.viewers[side]?.measurementSystem?.setRaycastTargets?.([]);
+      }
+      resetModelTransform(side);
+    }
+
+    function removePoint(side, id) {
+      const points = state.points[side];
+      const index = points.findIndex((point) => point.id === id);
+      if (index < 0) return;
+      const [point] = points.splice(index, 1);
+      disposeMarker(point.marker);
+      point.marker?.removeFromParent();
+      invalidateRefinement();
+      analyzeAndFit();
+    }
+
+    function clearErrorLines() {
+      for (const side of ['reference', 'updated']) {
+        const scene = coreViewer(side)?.getScene();
+        for (const line of state.errorLines[side]) {
+          scene?.remove(line);
+          line.geometry?.dispose?.();
+          line.material?.dispose?.();
+        }
+        state.errorLines[side] = [];
+      }
+    }
+
+    function disposeMarker(marker) {
+      marker?.traverse?.((object) => {
+        if (object.material?.map) object.material.map.dispose();
+        object.material?.dispose?.();
+      });
+    }
+
+    function updateMarkerScale(side) {
+      const box = coreViewer(side).getValidModelBoundingBox(state.models[side]);
+      const size = box?.getSize(new THREE.Vector3()) ?? new THREE.Vector3(10, 10, 10);
+      state.markerScale[side] = Math.max(0.025, Math.min(size.length() * 0.008, 1.2));
+    }
+
+    function defaultPointName(side) {
+      const otherSide = side === 'reference' ? 'updated' : 'reference';
+      const ownNames = new Set(state.points[side].map((point) => normalizeName(point.name)));
+      const waiting = state.points[otherSide]
+        .filter((point) => !ownNames.has(normalizeName(point.name)))
+        .sort((a, b) => a.id - b.id);
+      if (waiting[0]) return waiting[0].name;
+      return nextPointName();
+    }
+
+    function nextPointName() {
+      const used = new Set(allPoints().map((point) => normalizeName(point.name)));
+      let index = 1;
+      while (used.has(`p${index}`)) index += 1;
+      return `P${index}`;
+    }
+
+    function allPoints() {
+      return [...state.points.reference, ...state.points.updated];
+    }
+
+    function findPoint(side, id) {
+      return state.points[side]?.find((point) => point.id === id) ?? null;
+    }
+
+    function normalizeName(name) {
+      return cleanName(name).toLowerCase();
+    }
+
+    function cleanName(name) {
+      return String(name ?? '').trim();
+    }
+
+    function isMarkerObject(object) {
+      let current = object;
+      while (current) {
+        if (current.userData?.isControlMarker) return true;
+        current = current.parent;
+      }
+      return false;
+    }
+
+    function markModelMaterials(model, side) {
+      const tint = side === 'reference' ? new THREE.Color(0xe9fff7) : new THREE.Color(0xfff5dc);
+      model.traverse((object) => {
+        if (!object.isMesh) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        for (const material of materials) {
+          if (!material) continue;
+          material.color?.lerp(tint, 0.08);
+          material.needsUpdate = true;
+        }
+      });
+    }
+
+    function updateLabels() {
+      els.referenceLabel.textContent = state.labels.reference;
+      els.updatedLabel.textContent = state.labels.updated;
+    }
+
+    function getDropElement(side) {
+      return side === 'reference' ? els.referenceDrop : els.updatedDrop;
+    }
+
+    function formatDistance(value) {
+      if (!Number.isFinite(value)) return '-';
+      if (value >= 100) return value.toFixed(0);
+      if (value >= 10) return value.toFixed(1);
+      if (value >= 1) return value.toFixed(2);
+      return value.toFixed(3);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    function isEditableTarget(target) {
+      if (!(target instanceof HTMLElement)) return false;
+      return ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable;
+    }
+  </script>
+    <!-- Docs event tracking for this site only. Remove if you are reusing this example elsewhere. -->
+    <script src="../../assets/navigation.js"></script>
+</body>
+</html>

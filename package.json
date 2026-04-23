@@ -12,6 +12,7 @@
     "dev:dragdrop": "vite serve --open examples/dragdrop/",
     "dev:embed": "vite serve --open examples/embed/",
     "dev:animation": "vite serve --open examples/animation/",
+    "dev:model-comparison": "vite serve --open examples/model-comparison/",
     "dev:tileset": "vite serve --open examples/tileset/",
     "build": "vite build",
     "preview": "vite preview",
