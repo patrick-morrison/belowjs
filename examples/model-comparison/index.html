@@ -2348,6 +2348,8 @@
       if (single) {
         syncCamera(state.singleSide, state.singleSide === 'reference' ? 'updated' : 'reference');
       }
+
+      updateLabels();
     }
 
     function setCameraLock(locked) {
@@ -2680,6 +2682,9 @@
         depthWrite = false;
       } else if (mode === 'diff') {
         tint = side === 'reference' ? new THREE.Color(0x0000ff) : new THREE.Color(0xff0000);
+        opacity = 0.5;
+        transparent = true;
+        depthWrite = false;
       }
       
       model.traverse((object) => {
@@ -2708,8 +2713,11 @@
     }
 
     function updateLabels() {
-      els.referenceLabel.textContent = state.labels.reference;
-      els.updatedLabel.textContent = state.labels.updated;
+      const mode = state.mode || 'split';
+      const refSuffix = mode === 'diff' ? ' (Layer A - Blue)' : '';
+      const updSuffix = mode === 'diff' ? ' (Layer B - Red)' : '';
+      els.referenceLabel.textContent = state.labels.reference + refSuffix;
+      els.updatedLabel.textContent = state.labels.updated + updSuffix;
     }
 
     function getDropElement(side) {
