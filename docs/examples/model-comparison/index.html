@@ -159,12 +159,16 @@
       align-items: center;
       gap: 8px;
       max-width: calc(100% - 32px);
-      padding: 8px 11px;
+      padding: 10px 14px;
       border: 1px solid var(--panel-border);
       border-radius: 8px;
       background: var(--panel);
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
@@ -238,7 +242,8 @@
     .control-panel {
       left: 16px;
       bottom: 16px;
-      width: min(380px, calc(100vw - 32px));
+      width: min(460px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
       border: 1px solid var(--panel-border);
       border-radius: 10px;
       background: var(--panel);
@@ -302,23 +307,18 @@
       transform: rotate(180deg);
     }
 
-    .control-panel.analysis-open .btn-expand {
-      display: none;
-    }
-
     /* Expandable drawer */
     .panel-drawer {
       display: none;
       border-top: 1px solid var(--panel-border);
       padding: 8px 10px 10px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: calc(100vh - 80px);
+      scrollbar-gutter: stable;
     }
 
     .control-panel.open .panel-drawer {
-      display: grid;
-      gap: 6px;
-    }
-
-    .control-panel.analysis-open .panel-drawer {
       display: grid;
       gap: 6px;
     }
@@ -517,6 +517,7 @@
     .point-list {
       max-height: min(42vh, 390px);
       overflow: auto;
+      scrollbar-gutter: stable;
       border-top: 1px solid var(--panel-border);
     }
 
@@ -1003,12 +1004,12 @@
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 12px;">
-        <label style="display:flex;align-items:center;gap:4px;"><input id="showPointsToggle" type="checkbox" checked style="margin:0"> Points</label>
-        <label style="display:flex;align-items:center;gap:4px;"><input id="showLinesToggle" type="checkbox" checked style="margin:0"> Error lines</label>
-        <span style="flex:1"></span>
-        <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Add 3 matched points to solve</span>
-        <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;">Method…</button>
+      <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 8px;">
+        <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input id="showPointsToggle" type="checkbox" checked style="margin:0"> Points</label>
+        <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input id="showLinesToggle" type="checkbox" checked style="margin:0"> Error lines</label>
+        <span style="flex:1;min-width:0"></span>
+        <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">Add 3 matched points to solve</span>
+        <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;flex-shrink:0;">Method…</button>
       </div>
 
       <!-- Heatmap Controls Slider -->
@@ -1184,7 +1185,7 @@
           enableDamping: true,
           dampingFactor: 0.08,
           minDistance: 0.05,
-          maxDistance: 400
+          maxDistance: 10000
         }
       },
       vr: { enabled: false },
@@ -1258,7 +1259,10 @@
       },
       exportingAnalysisGlb: false,
       computingHeatmap: false,
-      lastHeatmapKey: null,
+      lastHeatmapKeys: {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      },
       analysisRangeByModeTarget: {
         heatmap: {
           reference: null,
@@ -1268,6 +1272,10 @@
           reference: null,
           updated: null
         }
+      },
+      analysisGlobalRange: {
+        heatmap: null,
+        heightmap: null
       }
     };
 
@@ -1542,6 +1550,8 @@
         return;
       }
 
+      const oldSide = activeCombinedSide();
+
       if (state.mode === 'split') {
         state.lastCombinedMode = 'single';
         state.mode = 'single';
@@ -1550,10 +1560,15 @@
         state.singleSide = otherSide(state.singleSide);
       } else if (isAnalysisMode(state.mode)) {
         state.heatmapTarget = otherSide(state.heatmapTarget);
-        state.lastHeatmapKey = null;
       } else {
         state.combinedSide = otherSide(state.combinedSide);
       }
+
+      const newSide = activeCombinedSide();
+      if (oldSide !== newSide) {
+        matchCameraPose(oldSide, newSide);
+      }
+
       updateLayout();
     }
 
@@ -1678,7 +1693,12 @@
 
       const viewer = coreViewer(side);
       invalidateRefinement();
-      state.lastHeatmapKey = null;
+      state.lastHeatmapKeys = {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      };
+      state.analysisGlobalRange.heatmap = null;
+      state.analysisGlobalRange.heightmap = null;
       if (state.urls[side]) {
         URL.revokeObjectURL(state.urls[side]);
       }
@@ -1868,6 +1888,8 @@
               .find((item) => !isMarkerObject(item.object));
             if (surfaceHit) {
               showAnalysisProbeFromHit(side, surfaceHit);
+            } else {
+              clearAnalysisProbe(side);
             }
           }
 
@@ -2636,7 +2658,10 @@
     }
 
     function invalidateHeatmap() {
-      state.lastHeatmapKey = null;
+      state.lastHeatmapKeys = {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      };
     }
 
     function normalizeMode(mode) {
@@ -3528,13 +3553,15 @@
     }
 
     function togglePanel() {
-      if (isAnalysisMode()) return;
       const open = els.controlPanel.classList.toggle('open');
       els.expandBtn.setAttribute('aria-expanded', String(open));
     }
 
     function setMode(mode) {
       const nextMode = normalizeMode(mode);
+      if (isAnalysisMode(nextMode) && !isAnalysisMode(state.mode)) {
+        els.controlPanel.classList.add('open');
+      }
       state.mode = nextMode;
       if (nextMode !== 'split') {
         state.lastCombinedMode = nextMode;
@@ -3551,8 +3578,7 @@
 
       els.app.classList.toggle('single', !isSplit);
       els.controlPanel.classList.toggle('is-combined', !isSplit);
-      els.controlPanel.classList.toggle('analysis-open', isAnalysisMode(mode));
-      els.expandBtn.setAttribute('aria-expanded', String(els.controlPanel.classList.contains('open') || isAnalysisMode(mode)));
+      els.expandBtn.setAttribute('aria-expanded', String(els.controlPanel.classList.contains('open')));
 
       els.referencePane.classList.toggle('hidden', !isSplit && combinedSide !== 'reference');
       els.updatedPane.classList.toggle('hidden', !isSplit && combinedSide !== 'updated');
@@ -3589,10 +3615,6 @@
           state.models[otherSide(state.heatmapTarget)].visible = false;
         }
       }
-      
-      if (mode === 'single' || mode === 'split') {
-        syncCamera(combinedSide, otherSideName);
-      }
 
       updateAnalysisProbeVisibility();
       syncAnalysisProbeScale('reference');
@@ -3624,14 +3646,31 @@
       const toCamera = coreViewer(toViewer).cameraManager.getCamera();
       const toControls = coreViewer(toViewer).cameraManager.getControls();
 
-      state.syncingCamera = true;
-      toCamera.position.copy(fromCamera.position);
-      toCamera.quaternion.copy(fromCamera.quaternion);
-      toCamera.zoom = fromCamera.zoom;
-      toCamera.updateProjectionMatrix();
-      toControls.target.copy(fromControls.target);
-      toControls.update();
-      state.syncingCamera = false;
+      try {
+        state.syncingCamera = true;
+        toCamera.position.copy(fromCamera.position);
+        toCamera.quaternion.copy(fromCamera.quaternion);
+        toCamera.zoom = fromCamera.zoom;
+        toCamera.updateProjectionMatrix();
+
+        if (toControls && toControls.target) {
+          if (fromControls && fromControls.target) {
+            toControls.target.copy(fromControls.target);
+          } else {
+            // fromControls is likely FlyControls (no target).
+            // Synthesize a target in front of the camera so OrbitControls doesn't snap back.
+            const dist = toControls.target.distanceTo(toCamera.position) || 10;
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(toCamera.quaternion);
+            toControls.target.copy(toCamera.position).add(forward.multiplyScalar(dist));
+          }
+        }
+
+        if (toControls && typeof toControls.update === 'function') {
+          toControls.update();
+        }
+      } finally {
+        state.syncingCamera = false;
+      }
     }
 
     async function captureSingleView(side) {
@@ -4620,7 +4659,24 @@
         sourceModel.matrixWorld.elements.join(','),
         targetModel.matrixWorld.elements.join(',')
       ].join('|');
-      if (state.lastHeatmapKey === currentKey) return;
+      
+      const isCached = state.lastHeatmapKeys[analysisMode][targetSide] === currentKey;
+      if (isCached) {
+        const dataKey = currentAnalysisAttribute(analysisMode);
+        const allSamples = [];
+        targetModel.traverse((mesh) => {
+          if (mesh.isMesh && mesh.userData[dataKey]) {
+            const vals = mesh.userData[dataKey];
+            for (let i = 0; i < vals.length; i += 10) allSamples.push(vals[i]);
+          }
+        });
+        allSamples.sort((a, b) => a - b);
+        
+        updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
+        applyModelMaterials(analysisMode);
+        updateUiState();
+        return;
+      }
       
       state.computingHeatmap = true;
       els.heatmapControlsSpinner.classList.add('visible');
@@ -4631,10 +4687,19 @@
       try {
         await waitForFrames(2);
 
+        // Build KD tree in world space so distances match real-world units
+        // (sampleModelPoints returns points in model-root local space; convert back to world)
+        const localSamples = sampleModelPoints(sourceModel, 80000);
+        if (!localSamples.length) throw new Error('Source model has no measurable surface.');
+        const srcWorldMat = sourceModel.matrixWorld;
         const treePoints = analysisMode === 'heightmap'
-          ? sampleProjectedHeightPoints(sourceModel, 80000)
-          : sampleModelPoints(sourceModel, 80000);
-        if (!treePoints.length) throw new Error('Source model has no measurable surface.');
+          ? localSamples.map(p => {
+              const wp = p.clone().applyMatrix4(srcWorldMat);
+              const proj = new THREE.Vector3(wp.x, 0, wp.z);
+              proj.heightValue = wp.y;
+              return proj;
+            })
+          : localSamples.map(p => p.clone().applyMatrix4(srcWorldMat));
         const tree = buildKdTree(treePoints);
 
         const allSamples = [];
@@ -4653,14 +4718,10 @@
           const values = new Float32Array(count);
           const localPos = new THREE.Vector3();
           const projectedPos = new THREE.Vector3();
-          
-          const targetToWorld = mesh.matrixWorld;
-          const worldToSourceLocal = new THREE.Matrix4().copy(sourceModel.matrixWorld).invert();
-          const combined = new THREE.Matrix4().multiplyMatrices(worldToSourceLocal, targetToWorld);
 
           for (let i = 0; i < count; i++) {
             localPos.fromBufferAttribute(positions, i);
-            localPos.applyMatrix4(combined);
+            localPos.applyMatrix4(mesh.matrixWorld); // target local → world space
             let value = 0;
             if (analysisMode === 'heightmap') {
               projectedPos.set(localPos.x, 0, localPos.z);
@@ -4686,32 +4747,9 @@
         });
 
         allSamples.sort((a, b) => a - b);
-        const savedRange = currentAnalysisRangeStore(analysisMode)[targetSide];
+        updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
 
-        if (analysisMode === 'heightmap') {
-          const maxAbs = Math.max(...allSamples.map((value) => Math.abs(value)), 0.1);
-          els.heatmapClipMinSlider.min = String(-maxAbs);
-          els.heatmapClipMaxSlider.min = String(-maxAbs);
-          els.heatmapClipMinSlider.max = String(maxAbs);
-          els.heatmapClipMaxSlider.max = String(maxAbs);
-          els.heatmapClipMinSlider.value = String(savedRange?.min ?? -maxAbs);
-          els.heatmapClipMaxSlider.value = String(savedRange?.max ?? maxAbs);
-          renderHeatmapHistogram(allSamples, -maxAbs, maxAbs);
-        } else {
-          const maxDistance = allSamples[allSamples.length - 1] || 0.1;
-          const sliderLimit = Math.max(0.1, maxDistance);
-          els.heatmapClipMinSlider.min = '0';
-          els.heatmapClipMaxSlider.min = '0';
-          els.heatmapClipMinSlider.max = String(sliderLimit);
-          els.heatmapClipMaxSlider.max = String(sliderLimit);
-          els.heatmapClipMinSlider.value = String(savedRange?.min ?? 0);
-          els.heatmapClipMaxSlider.value = String(savedRange?.max ?? sliderLimit);
-          renderHeatmapHistogram(allSamples, 0, sliderLimit);
-        }
-        
-        syncHeatmapClipRange();
-
-        state.lastHeatmapKey = currentKey;
+        state.lastHeatmapKeys[analysisMode][targetSide] = currentKey;
         applyModelMaterials(analysisMode);
         updateUiState();
         
@@ -4782,6 +4820,49 @@
       currentAnalysisRangeStore()[state.heatmapTarget] = { min: minClip, max: maxClip };
       updateHeatmapRangeVisual(minClip, maxClip, sliderMin, sliderMax);
       updateHeatmapColors();
+    }
+
+    function updateHeatmapUiForSamples(allSamples, analysisMode, targetSide) {
+      const savedRange = currentAnalysisRangeStore(analysisMode)[targetSide];
+      const globalRange = state.analysisGlobalRange[analysisMode] || {};
+
+      if (analysisMode === 'heightmap') {
+        const computedMaxAbs = Math.max(...allSamples.map(Math.abs), 0.001);
+        const maxAbs = Math.max(computedMaxAbs, globalRange.maxAbs ?? 0);
+        state.analysisGlobalRange[analysisMode] = { ...globalRange, maxAbs };
+
+        const absVals = allSamples.map(Math.abs).sort((a, b) => a - b);
+        const p99Abs = absVals[Math.min(Math.floor(absVals.length * 0.99), absVals.length - 1)] || maxAbs;
+        const initMax = Math.max(p99Abs, globalRange.initMax ?? 0);
+        state.analysisGlobalRange[analysisMode].initMax = initMax;
+
+        els.heatmapClipMinSlider.min = String(-maxAbs);
+        els.heatmapClipMaxSlider.min = String(-maxAbs);
+        els.heatmapClipMinSlider.max = String(maxAbs);
+        els.heatmapClipMaxSlider.max = String(maxAbs);
+        els.heatmapClipMinSlider.value = String(savedRange?.min ?? -initMax);
+        els.heatmapClipMaxSlider.value = String(savedRange?.max ?? initMax);
+        renderHeatmapHistogram(allSamples, -maxAbs, maxAbs);
+      } else {
+        const computedMax = allSamples[allSamples.length - 1] || 0.001;
+        const sliderLimit = Math.max(0.001, computedMax, globalRange.sliderLimit ?? 0);
+
+        const p99Index = Math.min(Math.floor(allSamples.length * 0.99), allSamples.length - 1);
+        const p99 = allSamples[p99Index] || computedMax;
+        const initMax = Math.max(p99, globalRange.initMax ?? 0);
+
+        state.analysisGlobalRange[analysisMode] = { ...globalRange, sliderLimit, initMax };
+
+        els.heatmapClipMinSlider.min = '0';
+        els.heatmapClipMaxSlider.min = '0';
+        els.heatmapClipMinSlider.max = String(sliderLimit);
+        els.heatmapClipMaxSlider.max = String(sliderLimit);
+        els.heatmapClipMinSlider.value = String(savedRange?.min ?? 0);
+        els.heatmapClipMaxSlider.value = String(savedRange?.max ?? initMax);
+        renderHeatmapHistogram(allSamples, 0, sliderLimit);
+      }
+      
+      syncHeatmapClipRange();
     }
 
     function updateHeatmapRangeVisual(minClip, maxClip, sliderMin, sliderMax) {

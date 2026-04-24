@@ -1874,6 +1874,8 @@
               .find((item) => !isMarkerObject(item.object));
             if (surfaceHit) {
               showAnalysisProbeFromHit(side, surfaceHit);
+            } else {
+              clearAnalysisProbe(side);
             }
           }
 
