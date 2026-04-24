@@ -145,9 +145,10 @@
                 <li><strong>X-Ray:</strong> helps check broad overlap between the two meshes</li>
                 <li><strong>Diff:</strong> tints the surfaces separately to reveal offsets and intersections</li>
                 <li><strong>C2C:</strong> computes nearest-surface distance from one model to the other</li>
+                <li><strong>Height:</strong> computes vertical-only distance from one model to the other</li>
             </ul>
 
-            <p>The C2C view uses a white-to-red distance ramp, where white is near-zero difference and deeper red shows
+            <p>The C2C and Height views use a distance color ramp, where white is near-zero difference and deeper colors show
                 larger offsets. The visible range slider trims the display so you can focus on the useful part of the
                 distribution rather than the full long tail.</p>
 
@@ -187,7 +188,7 @@ npm run dev:basic</code></pre>
             <h3>Practical notes</h3>
             <ul>
                 <li>Use desktop. The comparison tool is intentionally blocked on small screens.</li>
-                <li>Use C2C after the marker solve is already reasonable.</li>
+                <li>Use C2C or Height after the marker solve is already reasonable.</li>
                 <li>If one model is only a partial reconstruction, trust the point solve first and treat refinement carefully.</li>
                 <li>If the result looks wrong, the usual cause is poor or unevenly distributed control points.</li>
             </ul>
