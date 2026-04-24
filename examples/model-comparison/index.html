@@ -148,12 +148,16 @@
       align-items: center;
       gap: 8px;
       max-width: calc(100% - 32px);
-      padding: 8px 11px;
+      padding: 10px 14px;
       border: 1px solid var(--panel-border);
       border-radius: 8px;
       background: var(--panel);
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
@@ -292,10 +296,6 @@
       transform: rotate(180deg);
     }
 
-    .control-panel.analysis-open .btn-expand {
-      display: none;
-    }
-
     /* Expandable drawer */
     .panel-drawer {
       display: none;
@@ -308,11 +308,6 @@
     }
 
     .control-panel.open .panel-drawer {
-      display: grid;
-      gap: 6px;
-    }
-
-    .control-panel.analysis-open .panel-drawer {
       display: grid;
       gap: 6px;
     }
@@ -1176,7 +1171,7 @@
           enableDamping: true,
           dampingFactor: 0.08,
           minDistance: 0.05,
-          maxDistance: 400
+          maxDistance: 10000
         }
       },
       vr: { enabled: false },
@@ -3542,13 +3537,15 @@
     }
 
     function togglePanel() {
-      if (isAnalysisMode()) return;
       const open = els.controlPanel.classList.toggle('open');
       els.expandBtn.setAttribute('aria-expanded', String(open));
     }
 
     function setMode(mode) {
       const nextMode = normalizeMode(mode);
+      if (isAnalysisMode(nextMode) && !isAnalysisMode(state.mode)) {
+        els.controlPanel.classList.add('open');
+      }
       state.mode = nextMode;
       if (nextMode !== 'split') {
         state.lastCombinedMode = nextMode;
@@ -3565,8 +3562,7 @@
 
       els.app.classList.toggle('single', !isSplit);
       els.controlPanel.classList.toggle('is-combined', !isSplit);
-      els.controlPanel.classList.toggle('analysis-open', isAnalysisMode(mode));
-      els.expandBtn.setAttribute('aria-expanded', String(els.controlPanel.classList.contains('open') || isAnalysisMode(mode)));
+      els.expandBtn.setAttribute('aria-expanded', String(els.controlPanel.classList.contains('open')));
 
       els.referencePane.classList.toggle('hidden', !isSplit && combinedSide !== 'reference');
       els.updatedPane.classList.toggle('hidden', !isSplit && combinedSide !== 'updated');
