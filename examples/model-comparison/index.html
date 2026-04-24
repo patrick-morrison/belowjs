@@ -227,7 +227,8 @@
     .control-panel {
       left: 16px;
       bottom: 16px;
-      width: min(380px, calc(100vw - 32px));
+      width: min(460px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
       border: 1px solid var(--panel-border);
       border-radius: 10px;
       background: var(--panel);
@@ -239,7 +240,7 @@
     /* Always-visible compact bar */
     .panel-bar {
       display: grid;
-      grid-template-columns: auto 1fr auto auto;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
       align-items: center;
       gap: 8px;
       padding: 6px 10px;
@@ -256,6 +257,8 @@
     .control-panel.is-combined .style-row {
       display: flex;
       gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
     .control-panel.is-combined #cameraLockBtn {
@@ -289,14 +292,27 @@
       transform: rotate(180deg);
     }
 
+    .control-panel.analysis-open .btn-expand {
+      display: none;
+    }
+
     /* Expandable drawer */
     .panel-drawer {
       display: none;
       border-top: 1px solid var(--panel-border);
       padding: 8px 10px 10px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: calc(100vh - 80px);
+      scrollbar-gutter: stable;
     }
 
     .control-panel.open .panel-drawer {
+      display: grid;
+      gap: 6px;
+    }
+
+    .control-panel.analysis-open .panel-drawer {
       display: grid;
       gap: 6px;
     }
@@ -363,6 +379,28 @@
     .seg-btn:hover:not(.active) {
       background: rgba(66,153,225,0.05);
       color: var(--text);
+    }
+
+    #refineProfileRow {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      min-width: 0;
+    }
+
+    #refineProfileRow .seg {
+      display: flex;
+      min-width: 0;
+    }
+
+    #refineProfileRow .seg-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .btn {
@@ -473,6 +511,7 @@
     .point-list {
       max-height: min(42vh, 390px);
       overflow: auto;
+      scrollbar-gutter: stable;
       border-top: 1px solid var(--panel-border);
     }
 
@@ -947,12 +986,21 @@
         <button id="clearBtn" class="btn danger" disabled style="flex: 0 0 auto;" title="Clear alignment">×</button>
       </div>
 
-      <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 12px;">
-        <label style="display:flex;align-items:center;gap:4px;"><input id="showPointsToggle" type="checkbox" checked style="margin:0"> Points</label>
-        <label style="display:flex;align-items:center;gap:4px;"><input id="showLinesToggle" type="checkbox" checked style="margin:0"> Error lines</label>
-        <span style="flex:1"></span>
-        <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Add 3 matched points to solve</span>
-        <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;">Method…</button>
+      <div id="refineProfileRow">
+        <span style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--muted); white-space:nowrap;">Refine Bias</span>
+        <div class="seg" role="group" aria-label="Refinement profile">
+          <button id="refineAnchoredBtn" class="seg-btn active" title="Stay close to marker alignment. Best for partial burial or uneven overlap.">Anchored</button>
+          <button id="refineBalancedBtn" class="seg-btn" title="Balanced marker and surface refinement.">Balanced</button>
+          <button id="refineSurfaceBtn" class="seg-btn" title="Let surface overlap move more freely. Best when both meshes are clean and complete.">Surface</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 8px;">
+        <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input id="showPointsToggle" type="checkbox" checked style="margin:0"> Points</label>
+        <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;"><input id="showLinesToggle" type="checkbox" checked style="margin:0"> Error lines</label>
+        <span style="flex:1;min-width:0"></span>
+        <span id="methodSummary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">Add 3 matched points to solve</span>
+        <button id="methodBtn" class="btn" style="height:20px; font-size:11px; padding:0 6px;flex-shrink:0;">Method…</button>
       </div>
 
       <!-- Heatmap Controls Slider -->
@@ -1075,6 +1123,46 @@
     const SIGNED_DIFF_RED = new THREE.Color(0xc53b3b);
     const SIGNED_DIFF_BLUE = new THREE.Color(0x366bd8);
     const SIGNED_DIFF_WHITE = new THREE.Color(0xffffff);
+    const ANALYSIS_PROBE_TEXT = new THREE.Color(0x1f2937);
+    const ANALYSIS_PROBE_DOT = new THREE.Color(0x0f172a);
+    const REFINE_PROFILES = {
+      anchored: {
+        label: 'Anchored',
+        summary: 'Stays close to markers',
+        sampleCount: 9000,
+        maxIterations: 30,
+        keepRatioStart: 0.5,
+        keepRatioEnd: 0.12,
+        priorDecayIterations: 42,
+        priorFloor: 0.32,
+        distanceGateMultiplier: 2.5,
+        minDistanceGate: 0.06
+      },
+      balanced: {
+        label: 'Balanced',
+        summary: 'Good default for most compares',
+        sampleCount: 12000,
+        maxIterations: 42,
+        keepRatioStart: 0.78,
+        keepRatioEnd: 0.2,
+        priorDecayIterations: 28,
+        priorFloor: 0.08,
+        distanceGateMultiplier: 4.5,
+        minDistanceGate: 0.08
+      },
+      surface: {
+        label: 'Surface',
+        summary: 'Lets the mesh lead more',
+        sampleCount: 15000,
+        maxIterations: 54,
+        keepRatioStart: 0.9,
+        keepRatioEnd: 0.28,
+        priorDecayIterations: 16,
+        priorFloor: 0,
+        distanceGateMultiplier: 8,
+        minDistanceGate: 0.12
+      }
+    };
 
     const MARKER_LABEL_SCREEN = { minWidth: 44, height: 24, paddingX: 14 };
 
@@ -1108,6 +1196,8 @@
       heatmapTarget: 'updated',
       camerasLocked: false,
       syncingCamera: false,
+      refining: false,
+      refineProfile: 'anchored',
       nextPointNumber: 1,
       pendingPoint: null,
       dragDepth: { reference: 0, updated: 0 },
@@ -1154,8 +1244,16 @@
         reference: [],
         updated: []
       },
+      analysisProbe: {
+        reference: null,
+        updated: null
+      },
+      exportingAnalysisGlb: false,
       computingHeatmap: false,
-      lastHeatmapKey: null,
+      lastHeatmapKeys: {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      },
       analysisRangeByModeTarget: {
         heatmap: {
           reference: null,
@@ -1165,6 +1263,10 @@
           reference: null,
           updated: null
         }
+      },
+      analysisGlobalRange: {
+        heatmap: null,
+        heightmap: null
       }
     };
 
@@ -1199,9 +1301,13 @@
       heatmapBtn: document.getElementById('heatmapBtn'),
       heightmapBtn: document.getElementById('heightmapBtn'),
       cameraLockBtn: document.getElementById('cameraLockBtn'),
+      refineProfileRow: document.getElementById('refineProfileRow'),
       referenceToggleBtn: document.getElementById('referenceToggleBtn'),
       swapModelsBtn: document.getElementById('swapModelsBtn'),
       refineBtn: document.getElementById('refineBtn'),
+      refineAnchoredBtn: document.getElementById('refineAnchoredBtn'),
+      refineBalancedBtn: document.getElementById('refineBalancedBtn'),
+      refineSurfaceBtn: document.getElementById('refineSurfaceBtn'),
       downloadBtn: document.getElementById('downloadBtn'),
       clearBtn: document.getElementById('clearBtn'),
       downloadHeatmapBtn: document.getElementById('downloadHeatmapBtn'),
@@ -1270,6 +1376,9 @@
     els.heightmapBtn.addEventListener('click', () => setMode('heightmap'));
     els.cameraLockBtn.addEventListener('click', () => setCameraLock(!state.camerasLocked));
     els.expandBtn.addEventListener('click', togglePanel);
+    els.refineAnchoredBtn.addEventListener('click', () => setRefineProfile('anchored'));
+    els.refineBalancedBtn.addEventListener('click', () => setRefineProfile('balanced'));
+    els.refineSurfaceBtn.addEventListener('click', () => setRefineProfile('surface'));
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
     els.refineBtn.addEventListener('click', () => {
       if (state.fit.refinedActive) {
@@ -1432,6 +1541,8 @@
         return;
       }
 
+      const oldSide = activeCombinedSide();
+
       if (state.mode === 'split') {
         state.lastCombinedMode = 'single';
         state.mode = 'single';
@@ -1440,10 +1551,15 @@
         state.singleSide = otherSide(state.singleSide);
       } else if (isAnalysisMode(state.mode)) {
         state.heatmapTarget = otherSide(state.heatmapTarget);
-        state.lastHeatmapKey = null;
       } else {
         state.combinedSide = otherSide(state.combinedSide);
       }
+
+      const newSide = activeCombinedSide();
+      if (oldSide !== newSide) {
+        matchCameraPose(oldSide, newSide);
+      }
+
       updateLayout();
     }
 
@@ -1568,10 +1684,16 @@
 
       const viewer = coreViewer(side);
       invalidateRefinement();
-      state.lastHeatmapKey = null;
+      state.lastHeatmapKeys = {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      };
+      state.analysisGlobalRange.heatmap = null;
+      state.analysisGlobalRange.heightmap = null;
       if (state.urls[side]) {
         URL.revokeObjectURL(state.urls[side]);
       }
+      clearAnalysisProbe(side);
       clearPoints(side);
       state.models[side]?.removeFromParent?.();
       viewer.clearModels();
@@ -1608,11 +1730,15 @@
         if (!state.syncingCamera) syncCamera('reference', 'updated');
         syncMarkerScale('reference');
         syncMarkerScale('updated');
+        syncAnalysisProbeScale('reference');
+        syncAnalysisProbeScale('updated');
       });
       coreViewer('updated').on('camera-change', () => {
         if (!state.syncingCamera) syncCamera('updated', 'reference');
         syncMarkerScale('reference');
         syncMarkerScale('updated');
+        syncAnalysisProbeScale('reference');
+        syncAnalysisProbeScale('updated');
       });
     }
 
@@ -1628,6 +1754,7 @@
       const renderer = coreViewer(viewer).getRenderer();
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
+      let leftClickCandidate = null;
       let rightClickCandidate = null;
       let markerDrag = null; // { point, pointerId }
       const dragThreshold = 10;
@@ -1655,6 +1782,17 @@
               return;
             }
           }
+        }
+
+        if (event.button === 0 && isAnalysisMode() && side === state.heatmapTarget) {
+          leftClickCandidate = {
+            pointerId: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            maxDistance: 0,
+            dragged: false,
+            downTime: performance.now()
+          };
         }
 
         if (event.button === 2) {
@@ -1689,6 +1827,14 @@
           return;
         }
 
+        if (leftClickCandidate && event.pointerId === leftClickCandidate.pointerId) {
+          const distance = Math.hypot(event.clientX - leftClickCandidate.x, event.clientY - leftClickCandidate.y);
+          leftClickCandidate.maxDistance = Math.max(leftClickCandidate.maxDistance, distance);
+          if (distance > dragThreshold) {
+            leftClickCandidate.dragged = true;
+          }
+        }
+
         if (!rightClickCandidate || event.pointerId !== rightClickCandidate.pointerId) return;
         const distance = Math.hypot(event.clientX - rightClickCandidate.x, event.clientY - rightClickCandidate.y);
         rightClickCandidate.maxDistance = Math.max(rightClickCandidate.maxDistance, distance);
@@ -1713,6 +1859,30 @@
           markerDrag = null;
           event.stopPropagation();
           return;
+        }
+
+        if (leftClickCandidate && event.pointerId === leftClickCandidate.pointerId) {
+          const moved = Math.max(
+            leftClickCandidate.maxDistance,
+            Math.hypot(event.clientX - leftClickCandidate.x, event.clientY - leftClickCandidate.y)
+          );
+          const elapsed = performance.now() - leftClickCandidate.downTime;
+          const stationary = !leftClickCandidate.dragged && moved <= dragThreshold && elapsed < 900;
+
+          if (stationary && state.models[side] && isAnalysisMode() && side === state.heatmapTarget) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, coreViewer(viewer).cameraManager.getCamera());
+            const surfaceHit = raycaster
+              .intersectObject(state.models[side], true)
+              .find((item) => !isMarkerObject(item.object));
+            if (surfaceHit) {
+              showAnalysisProbeFromHit(side, surfaceHit);
+            }
+          }
+
+          leftClickCandidate = null;
         }
 
         if (rightClickCandidate && event.pointerId === rightClickCandidate.pointerId) {
@@ -1754,6 +1924,7 @@
           if (controls) controls.enabled = true;
           markerDrag = null;
         }
+        leftClickCandidate = null;
         rightClickCandidate = null;
       });
 
@@ -1953,6 +2124,45 @@
       return { texture, screenWidth, screenHeight };
     }
 
+    function createProbeLabelTexture(text, accentColor = ANALYSIS_PROBE_TEXT.getHex()) {
+      const label = cleanName(text) || '?';
+      const fill = `#${accentColor.toString(16).padStart(6, '0')}`;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const fontPx = 24;
+      const paddingX = 18;
+      const paddingY = 12;
+
+      ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
+      const textWidth = Math.ceil(ctx.measureText(label).width);
+      const innerWidth = Math.max(textWidth + paddingX * 2, 104);
+      const innerHeight = fontPx + paddingY * 2;
+      canvas.width = innerWidth + 12;
+      canvas.height = innerHeight + 12;
+      ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      roundedRect(ctx, 6, 6, canvas.width - 12, canvas.height - 12, Math.min(22, (canvas.height - 12) / 2));
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = fill;
+      ctx.stroke();
+      ctx.fillStyle = fill;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, canvas.width / 2, canvas.height / 2 + 1);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(8, coreViewer('reference')?.getRenderer?.()?.capabilities?.getMaxAnisotropy?.() ?? 1);
+      texture.needsUpdate = true;
+
+      const screenHeight = 22;
+      const screenWidth = Math.max(80, Math.round((canvas.width / canvas.height) * screenHeight));
+      return { texture, screenWidth, screenHeight };
+    }
+
     function roundedRect(ctx, x, y, width, height, radius) {
       ctx.beginPath();
       ctx.moveTo(x + radius, y);
@@ -2136,6 +2346,7 @@
       els.matchedStatus.textContent = String(analysis.pairs.length);
       els.errorStatus.textContent = String(analysis.duplicateGroups);
       els.fitStatus.textContent = state.fit.refinedActive ? 'refined' : 'markers';
+      const profile = currentRefineProfile();
       const methodDesc = !hasAnyModel()
         ? 'Load two models to compare'
         : !hasBothModels()
@@ -2145,8 +2356,8 @@
             : analysis.pairs.length < 3
               ? 'Add 3 matched points to solve'
               : state.fit.refinedActive && Number.isFinite(state.fit.refineMetrics?.rms)
-                ? `ICP RMS ${formatDistance(state.fit.refineMetrics.rms)}`
-                : state.fit.refinedActive ? 'robust ICP refined' : 'marker least squares';
+                ? `${REFINE_PROFILES[state.fit.refineMetrics?.profile]?.label ?? profile.label} ICP ${formatDistance(state.fit.refineMetrics.rms)}`
+                : state.fit.refinedActive ? `${REFINE_PROFILES[state.fit.refineMetrics?.profile]?.label ?? profile.label} ICP refined` : `marker least squares · ${profile.label.toLowerCase()} refine`;
       els.methodSummary.textContent = methodDesc;
       const rms = els.rmsStatus.textContent;
       if (!hasAnyModel()) {
@@ -2170,9 +2381,16 @@
       const bothModels = hasBothModels();
       const anyModels = hasAnyModel();
       const canRefine = bothModels && analysis.pairs.length >= 3 && analysis.duplicateGroups === 0;
+      updateRefineProfileControls();
+      els.refineProfileRow.style.display = bothModels ? 'flex' : 'none';
       if (state.fit.refinedActive) {
         els.refineBtn.disabled = false;
         els.refineBtn.textContent = 'Reset';
+        els.refineBtn.classList.remove('primary');
+        els.refineBtn.classList.add('active');
+      } else if (state.refining) {
+        els.refineBtn.disabled = true;
+        els.refineBtn.textContent = 'Refining...';
         els.refineBtn.classList.remove('primary');
         els.refineBtn.classList.add('active');
       } else {
@@ -2266,7 +2484,7 @@
     }
 
     function currentAnalysisTitle(mode = state.mode) {
-      return mode === 'heightmap' ? 'Visible Vertical Difference' : 'Visible Distance Range';
+      return mode === 'heightmap' ? 'Height Colour Range' : 'Distance Colour Range';
     }
 
     function currentAnalysisDisplayName(mode = state.mode) {
@@ -2332,6 +2550,43 @@
       return new THREE.Matrix4().fromArray(elements);
     }
 
+    function currentRefineProfile() {
+      return REFINE_PROFILES[state.refineProfile] ?? REFINE_PROFILES.anchored;
+    }
+
+    function setRefineProfile(profileKey) {
+      if (!REFINE_PROFILES[profileKey] || state.refineProfile === profileKey) return;
+      state.refineProfile = profileKey;
+      updateRefineProfileControls();
+
+      if (state.fit.refinedActive && hasBothModels()) {
+        invalidateRefinement();
+        analyzeAndFit();
+        refineAlignment();
+      } else {
+        updateActions();
+      }
+    }
+
+    function updateRefineProfileControls() {
+      els.refineAnchoredBtn.classList.toggle('active', state.refineProfile === 'anchored');
+      els.refineBalancedBtn.classList.toggle('active', state.refineProfile === 'balanced');
+      els.refineSurfaceBtn.classList.toggle('active', state.refineProfile === 'surface');
+      const disabled = state.refining || !hasBothModels();
+      els.refineAnchoredBtn.disabled = disabled;
+      els.refineBalancedBtn.disabled = disabled;
+      els.refineSurfaceBtn.disabled = disabled;
+    }
+
+    function markerRmsForPairs(matrix, pairs) {
+      if (!matrix || !pairs.length) return 0;
+      let sum = 0;
+      for (const pair of pairs) {
+        sum += movingPoint(pair).local.clone().applyMatrix4(matrix).distanceToSquared(referencePoint(pair).local);
+      }
+      return Math.sqrt(sum / Math.max(pairs.length, 1));
+    }
+
     function restoreSavedFit(savedFit) {
       if (!savedFit || !hasBothModels()) return false;
 
@@ -2342,12 +2597,17 @@
       state.fit.controlMatrix = controlMatrix ?? refinedMatrix.clone();
       state.fit.refinedMatrix = refinedMatrix;
       state.fit.refinedActive = Boolean(savedFit.refinedActive && refinedMatrix);
+      if (savedFit.profile && REFINE_PROFILES[savedFit.profile]) {
+        state.refineProfile = savedFit.profile;
+      }
       state.fit.refineMetrics = savedFit.refineMetrics
         ? {
             rms: Number(savedFit.refineMetrics.rms),
-            pairs: Number(savedFit.refineMetrics.pairs)
+            pairs: Number(savedFit.refineMetrics.pairs),
+            profile: savedFit.refineMetrics.profile ?? savedFit.profile ?? state.refineProfile
           }
         : null;
+      updateRefineProfileControls();
 
       const analysis = analyzeMatches();
       const matrix = activeFitMatrix();
@@ -2387,7 +2647,10 @@
     }
 
     function invalidateHeatmap() {
-      state.lastHeatmapKey = null;
+      state.lastHeatmapKeys = {
+        heatmap: { reference: null, updated: null },
+        heightmap: { reference: null, updated: null }
+      };
     }
 
     function normalizeMode(mode) {
@@ -2431,6 +2694,7 @@
     async function refineAlignment() {
       const analysis = analyzeMatches();
       if (
+        state.refining ||
         state.fit.refinedActive ||
         !state.models.reference ||
         !state.models.updated ||
@@ -2441,82 +2705,93 @@
         return;
       }
 
+      const profile = currentRefineProfile();
+      const markerMatrix = state.fit.controlMatrix?.clone() ?? state.models[movingSide()].matrix.clone();
+      const markerRms = markerRmsForPairs(markerMatrix, analysis.pairs);
+
+      state.refining = true;
       els.refineBtn.disabled = true;
       els.refineBtn.textContent = 'Refining...';
+      updateRefineProfileControls();
       await waitForFrames(1);
-
-      const source = sampleModelPoints(state.models[movingSide()], 12000);
-      const target = sampleModelPoints(state.models[state.referenceSide], 12000);
-      if (source.length < 12 || target.length < 12) {
-        updateActions(analysis);
-        return;
-      }
-
-      const targetTree = buildKdTree(target.slice());
-      let matrix = state.fit.controlMatrix?.clone() ?? state.models[movingSide()].matrix.clone();
-      let previousRms = Infinity;
-      let finalRms = Infinity;
-      let finalPairs = 0;
-      let stableIterations = 0;
-
-      const priorSource = analysis.pairs.map(p => movingPoint(p).local);
-      const priorTarget = analysis.pairs.map(p => referencePoint(p).local);
-
-      for (let iteration = 0; iteration < 48; iteration++) {
-        // Drop keepRatio intensely to ignore non-overlapping extents (robost to partial models)
-        const keepRatio = Math.max(0.20, 0.85 - iteration * 0.03);
-        const pairs = buildRobustClosestPairs(source, targetTree, matrix, keepRatio);
-        if (pairs.source.length < 8) break;
-
-        // Decaying prior injection: holds the alignment to user markers early, lets geometry take over later
-        const priorInfluence = Math.max(0, 1.0 - (iteration / 25)); // Decays to 0 at iter 25
-        if (priorInfluence > 0) {
-          const priorWeight = (pairs.source.length * priorInfluence) / priorSource.length;
-          for (let i = 0; i < priorSource.length; i++) {
-            pairs.source.push(priorSource[i]);
-            pairs.target.push(priorTarget[i]);
-            pairs.weights.push(priorWeight);
-          }
+      try {
+        const source = sampleModelPoints(state.models[movingSide()], profile.sampleCount);
+        const target = sampleModelPoints(state.models[state.referenceSide], profile.sampleCount);
+        if (source.length < 12 || target.length < 12) {
+          updateActions(analysis);
+          return;
         }
 
-        const fit = solveWeightedSimilarityTransform(pairs.source, pairs.target, pairs.weights);
-        const rms = calculateWeightedRms(pairs.source, pairs.target, pairs.weights, fit.matrix);
-        if (!Number.isFinite(rms)) break;
+        const targetTree = buildKdTree(target.slice());
+        let matrix = markerMatrix.clone();
+        let previousRms = Infinity;
+        let finalRms = Infinity;
+        let finalPairs = 0;
+        let stableIterations = 0;
 
-        matrix = fit.matrix.clone();
-        finalRms = rms;
-        // Exclude priors from the final pair count metric
-        finalPairs = priorInfluence > 0 ? pairs.source.length - priorSource.length : pairs.source.length;
+        const priorSource = analysis.pairs.map(p => movingPoint(p).local);
+        const priorTarget = analysis.pairs.map(p => referencePoint(p).local);
+        const maxCorrespondenceDistance = Math.max(profile.minDistanceGate, markerRms * profile.distanceGateMultiplier);
 
-        const improvement = previousRms - rms;
-        const tolerance = Math.max(1e-7, previousRms * 0.0004);
-        stableIterations = improvement > tolerance ? 0 : stableIterations + 1;
-        previousRms = rms;
-        if (stableIterations >= 4) break;
-        if (iteration % 4 === 3) await waitForFrames(1);
-      }
+        for (let iteration = 0; iteration < profile.maxIterations; iteration++) {
+          const t = profile.maxIterations > 1 ? iteration / (profile.maxIterations - 1) : 1;
+          const keepRatio = THREE.MathUtils.lerp(profile.keepRatioStart, profile.keepRatioEnd, t);
+          const pairs = buildRobustClosestPairs(source, targetTree, matrix, keepRatio, maxCorrespondenceDistance);
+          if (pairs.source.length < 8) break;
 
-      if (!Number.isFinite(finalRms) || finalPairs < 8) {
+          const priorInfluence = Math.max(profile.priorFloor, 1.0 - (iteration / Math.max(profile.priorDecayIterations, 1)));
+          if (priorInfluence > 0) {
+            const priorWeight = (pairs.source.length * priorInfluence) / priorSource.length;
+            for (let i = 0; i < priorSource.length; i++) {
+              pairs.source.push(priorSource[i]);
+              pairs.target.push(priorTarget[i]);
+              pairs.weights.push(priorWeight);
+            }
+          }
+
+          const fit = solveWeightedSimilarityTransform(pairs.source, pairs.target, pairs.weights);
+          const rms = calculateWeightedRms(pairs.source, pairs.target, pairs.weights, fit.matrix);
+          if (!Number.isFinite(rms)) break;
+
+          matrix = fit.matrix.clone();
+          finalRms = rms;
+          finalPairs = priorInfluence > 0 ? pairs.source.length - priorSource.length : pairs.source.length;
+
+          const improvement = previousRms - rms;
+          const tolerance = Math.max(1e-7, previousRms * 0.0004);
+          stableIterations = improvement > tolerance ? 0 : stableIterations + 1;
+          previousRms = rms;
+          if (stableIterations >= 4) break;
+          if (iteration % 4 === 3) await waitForFrames(1);
+        }
+
+        if (!Number.isFinite(finalRms) || finalPairs < 8) {
+          updateActions(analysis);
+          return;
+        }
+
+        state.fit.refinedMatrix = matrix.clone();
+        state.fit.refinedActive = true;
+        state.fit.refineMetrics = {
+          rms: finalRms,
+          pairs: finalPairs,
+          profile: state.refineProfile
+        };
+        applyModelTransform(movingSide(), matrix);
+        updateResiduals(matrix, analysis.pairs);
+        els.fitStatus.textContent = 'refined';
+        els.methodSummary.textContent = Number.isFinite(finalRms)
+          ? `${profile.label} ICP ${formatDistance(finalRms)}`
+          : `${profile.label} ICP refined`;
+        renderPoints(analysis);
         updateActions(analysis);
-        return;
-      }
-
-      state.fit.refinedMatrix = matrix.clone();
-      state.fit.refinedActive = true;
-      state.fit.refineMetrics = {
-        rms: finalRms,
-        pairs: finalPairs
-      };
-      applyModelTransform(movingSide(), matrix);
-      updateResiduals(matrix, analysis.pairs);
-      els.fitStatus.textContent = 'refined';
-      els.methodSummary.textContent = Number.isFinite(finalRms)
-        ? `ICP RMS ${formatDistance(finalRms)}`
-        : 'robust ICP refined';
-      renderPoints(analysis);
-      updateActions(analysis);
-      if (isAnalysisMode(state.mode) && hasBothModels()) {
-        computeC2CHeatmap();
+        if (isAnalysisMode(state.mode) && hasBothModels()) {
+          computeC2CHeatmap();
+        }
+      } finally {
+        state.refining = false;
+        updateRefineProfileControls();
+        updateActions(analysis);
       }
     }
 
@@ -2570,7 +2845,20 @@
         clone.transparent = original.transparent;
         clone.opacity = original.opacity;
         clone.depthWrite = original.depthWrite;
+        clone.depthTest = original.depthTest;
         clone.vertexColors = original.vertexColors;
+        clone.polygonOffset = original.polygonOffset;
+        clone.polygonOffsetFactor = original.polygonOffsetFactor;
+        clone.polygonOffsetUnits = original.polygonOffsetUnits;
+        clone.map = original.map;
+        clone.alphaMap = original.alphaMap;
+        clone.aoMap = original.aoMap;
+        clone.bumpMap = original.bumpMap;
+        clone.emissiveMap = original.emissiveMap;
+        clone.lightMap = original.lightMap;
+        clone.metalnessMap = original.metalnessMap;
+        clone.normalMap = original.normalMap;
+        clone.roughnessMap = original.roughnessMap;
         clone.onBeforeCompile = original.onBeforeCompile;
         clone.customProgramCacheKey = original.customProgramCacheKey;
       }
@@ -2605,6 +2893,152 @@
       }
     }
 
+    function setAnalysisColor(value, options, color) {
+      if (options.analysisMode === 'heightmap') {
+        setSignedDifferenceColor(value, Math.max(Math.abs(options.minClip), Math.abs(options.maxClip)), color);
+      } else {
+        const range = Math.max(1e-7, options.maxClip - options.minClip);
+        setHeatmapColor(value, options.minClip, range, color);
+      }
+    }
+
+    function preferredAnalysisTextureSize(map) {
+      const width = Number(map?.image?.width);
+      const height = Number(map?.image?.height);
+      const validWidth = Number.isFinite(width) && width >= 64;
+      const validHeight = Number.isFinite(height) && height >= 64;
+      return {
+        width: validWidth ? Math.min(2048, Math.round(width)) : 1024,
+        height: validHeight ? Math.min(2048, Math.round(height)) : 1024
+      };
+    }
+
+    function buildTriangleRangesForMaterial(geometry, materialIndex) {
+      const hasIndex = Boolean(geometry.index);
+      const totalIndexCount = hasIndex ? geometry.index.count : geometry.attributes.position.count;
+      const groups = geometry.groups?.length
+        ? geometry.groups
+        : [{ start: 0, count: totalIndexCount, materialIndex: 0 }];
+
+      return groups
+        .filter((group) => (group.materialIndex ?? 0) === materialIndex)
+        .map((group) => ({
+          start: group.start,
+          end: group.start + group.count
+        }));
+    }
+
+    function buildAnalysisTextureForMaterial(geometry, values, materialIndex, baseMap, options) {
+      const uv = geometry.getAttribute('uv');
+      const position = geometry.getAttribute('position');
+      if (!uv || !position || !values?.length) return null;
+
+      const triangleRanges = buildTriangleRangesForMaterial(geometry, materialIndex);
+      if (!triangleRanges.length) return null;
+
+      const { width, height } = preferredAnalysisTextureSize(baseMap);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.createImageData(width, height);
+      const pixels = imageData.data;
+
+      const colorA = new THREE.Color();
+      const colorB = new THREE.Color();
+      const colorC = new THREE.Color();
+      const color = new THREE.Color();
+      const index = geometry.index;
+
+      const writePixel = (x, y, r, g, b) => {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        const offset = (y * width + x) * 4;
+        pixels[offset] = Math.round(THREE.MathUtils.clamp(r, 0, 1) * 255);
+        pixels[offset + 1] = Math.round(THREE.MathUtils.clamp(g, 0, 1) * 255);
+        pixels[offset + 2] = Math.round(THREE.MathUtils.clamp(b, 0, 1) * 255);
+        pixels[offset + 3] = 255;
+      };
+
+      for (const range of triangleRanges) {
+        for (let i = range.start; i < range.end; i += 3) {
+          const aIndex = index ? index.getX(i) : i;
+          const bIndex = index ? index.getX(i + 1) : i + 1;
+          const cIndex = index ? index.getX(i + 2) : i + 2;
+          if ([aIndex, bIndex, cIndex].some((idx) => idx >= values.length || idx >= uv.count)) continue;
+
+          const ax = uv.getX(aIndex) * (width - 1);
+          const ay = (1 - uv.getY(aIndex)) * (height - 1);
+          const bx = uv.getX(bIndex) * (width - 1);
+          const by = (1 - uv.getY(bIndex)) * (height - 1);
+          const cx = uv.getX(cIndex) * (width - 1);
+          const cy = (1 - uv.getY(cIndex)) * (height - 1);
+
+          const denom = ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
+          if (Math.abs(denom) < 1e-9) continue;
+
+          setAnalysisColor(values[aIndex], options, colorA);
+          setAnalysisColor(values[bIndex], options, colorB);
+          setAnalysisColor(values[cIndex], options, colorC);
+
+          const minX = Math.max(0, Math.floor(Math.min(ax, bx, cx)));
+          const maxX = Math.min(width - 1, Math.ceil(Math.max(ax, bx, cx)));
+          const minY = Math.max(0, Math.floor(Math.min(ay, by, cy)));
+          const maxY = Math.min(height - 1, Math.ceil(Math.max(ay, by, cy)));
+
+          for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+              const px = x + 0.5;
+              const py = y + 0.5;
+              const w1 = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / denom;
+              const w2 = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / denom;
+              const w3 = 1 - w1 - w2;
+              if (w1 < -1e-4 || w2 < -1e-4 || w3 < -1e-4) continue;
+
+              color.setRGB(
+                colorA.r * w1 + colorB.r * w2 + colorC.r * w3,
+                colorA.g * w1 + colorB.g * w2 + colorC.g * w3,
+                colorA.b * w1 + colorB.b * w2 + colorC.b * w3
+              );
+              writePixel(x, y, color.r, color.g, color.b);
+            }
+          }
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.flipY = baseMap?.flipY ?? false;
+      texture.wrapS = baseMap?.wrapS ?? THREE.ClampToEdgeWrapping;
+      texture.wrapT = baseMap?.wrapT ?? THREE.ClampToEdgeWrapping;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = true;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function analysisValuesForExport(object, options) {
+      const attributeName = options.analysisBufferAttribute;
+      const attributeArray = attributeName ? object.geometry?.getAttribute?.(attributeName)?.array : null;
+      if (attributeArray?.length) return attributeArray;
+
+      const stored = object.userData?.[options.analysisDataKey];
+      if (ArrayBuffer.isView(stored) && stored.length) return stored;
+      if (Array.isArray(stored) && stored.length) return stored;
+      if (stored && typeof stored === 'object') {
+        const numericKeys = Object.keys(stored)
+          .filter((key) => /^\d+$/.test(key))
+          .map((key) => Number(key))
+          .sort((a, b) => a - b);
+        if (numericKeys.length) {
+          return Float32Array.from(numericKeys.map((key) => Number(stored[key]) || 0));
+        }
+      }
+
+      return null;
+    }
+
     function cloneModelForExport(model, options = {}) {
       const clone = model.clone(true);
       const markers = [];
@@ -2619,52 +3053,47 @@
           object.material = Array.isArray(object.material)
             ? object.material.map(cloneMaterialForExport)
             : cloneMaterialForExport(object.material);
-          if (options.bakeAnalysis && object.userData[options.analysisDataKey]) {
-             const values = object.userData[options.analysisDataKey];
+          if (options.bakeAnalysis) {
+             const values = analysisValuesForExport(object, options);
+             if (!values?.length) return;
              const count = values.length;
-             const range = Math.max(1e-7, options.maxClip - options.minClip);
-             
-             // Create real vertex colors
-             const colors = new Float32Array(count * 3);
-             const color = new THREE.Color();
-             const minClip = options.minClip;
-             
-             for (let i = 0; i < count; i++) {
-                if (options.analysisMode === 'heightmap') {
-                  setSignedDifferenceColor(values[i], Math.max(Math.abs(options.minClip), Math.abs(options.maxClip)), color);
-                } else {
-                  setHeatmapColor(values[i], minClip, range, color);
-                }
-                colors[i * 3] = color.r;
-                colors[i * 3 + 1] = color.g;
-                colors[i * 3 + 2] = color.b;
-             }
-             object.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-             
-             // Physically remove trimmed faces
-             if (object.geometry.index) {
-                const indices = object.geometry.index.array;
-                const newIndices = [];
-                for (let i = 0; i < indices.length; i += 3) {
-                   const d1 = values[indices[i]];
-                   const d2 = values[indices[i + 1]];
-                   const d3 = values[indices[i + 2]];
-                   // If any vertex is out of range, drop the face
-                   if (d1 >= options.minClip && d1 <= options.maxClip &&
-                       d2 >= options.minClip && d2 <= options.maxClip &&
-                       d3 >= options.minClip && d3 <= options.maxClip) {
-                      newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
-                   }
-                }
-                object.geometry.setIndex(newIndices);
+             const applyBakedTexture = (material, materialIndex) => {
+               const bakedMap = buildAnalysisTextureForMaterial(object.geometry, values, materialIndex, material?.map, options);
+               if (!bakedMap) return false;
+               material.map = bakedMap;
+               if (material.color) material.color.setHex(0xffffff);
+               material.vertexColors = false;
+               material.transparent = false;
+               material.opacity = 1;
+               material.needsUpdate = true;
+               return true;
+             };
+
+             let bakedTextureApplied = false;
+             if (Array.isArray(object.material)) {
+               object.material.forEach((material, materialIndex) => {
+                 bakedTextureApplied = applyBakedTexture(material, materialIndex) || bakedTextureApplied;
+               });
+             } else if (object.material) {
+               bakedTextureApplied = applyBakedTexture(object.material, 0);
              }
 
-             const mat = new THREE.MeshStandardMaterial({ 
-                vertexColors: true, 
-                roughness: 0.8,
-                metalness: 0.1
-             });
-             object.material = mat;
+             if (!bakedTextureApplied) {
+               const colors = new Float32Array(count * 3);
+               const color = new THREE.Color();
+               for (let i = 0; i < count; i++) {
+                  setAnalysisColor(values[i], options, color);
+                  colors[i * 3] = color.r;
+                  colors[i * 3 + 1] = color.g;
+                  colors[i * 3 + 2] = color.b;
+               }
+               object.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+               object.material = new THREE.MeshStandardMaterial({ 
+                  vertexColors: true, 
+                  roughness: 0.8,
+                  metalness: 0.1
+               });
+             }
           }
         }
       });
@@ -2677,35 +3106,44 @@
     async function downloadHeatmapMesh() {
       const targetSide = state.heatmapTarget || 'updated';
       const model = state.models[targetSide];
-      if (!model || state.computingHeatmap || !hasHeatmapData(targetSide)) return;
+      if (!model || state.computingHeatmap || state.exportingAnalysisGlb || !hasHeatmapData(targetSide)) return;
 
-      const minClip = heatmapUniforms.uMinClip.value;
-      const maxClip = heatmapUniforms.uMaxClip.value;
+      state.exportingAnalysisGlb = true;
+      updateUiState();
 
-      const exportRoot = cloneModelForExport(model, {
-         bakeAnalysis: true,
-         analysisMode: currentAnalysisMode(),
-         analysisDataKey: currentAnalysisAttribute(),
-         minClip,
-         maxClip
-      });
-      
-      const exporter = new GLTFExporter();
-      const arrayBuffer = await new Promise((resolve, reject) => {
-        exporter.parse(exportRoot, (res) => {
-          resolve(res instanceof ArrayBuffer ? res : new TextEncoder().encode(JSON.stringify(res)).buffer);
-        }, reject, { binary: true });
-      });
+      try {
+        const minClip = heatmapUniforms.uMinClip.value;
+        const maxClip = heatmapUniforms.uMaxClip.value;
 
-      const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = currentAnalysisMode() === 'heightmap'
-        ? `${state.filenames[targetSide]}-height-compare.glb`
-        : `${state.filenames[targetSide]}-C2C-heatmap.glb`;
-      link.click();
-      URL.revokeObjectURL(url);
+        const exportRoot = cloneModelForExport(model, {
+           bakeAnalysis: true,
+           analysisMode: currentAnalysisMode(),
+           analysisDataKey: currentAnalysisAttribute(),
+           analysisBufferAttribute: currentAnalysisBufferAttribute(),
+           minClip,
+           maxClip
+        });
+        
+        const exporter = new GLTFExporter();
+        const arrayBuffer = await new Promise((resolve, reject) => {
+          exporter.parse(exportRoot, (res) => {
+            resolve(res instanceof ArrayBuffer ? res : new TextEncoder().encode(JSON.stringify(res)).buffer);
+          }, reject, { binary: true });
+        });
+
+        const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = currentAnalysisMode() === 'heightmap'
+          ? `${state.filenames[targetSide]}-height-compare.glb`
+          : `${state.filenames[targetSide]}-C2C-heatmap.glb`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } finally {
+        state.exportingAnalysisGlb = false;
+        updateUiState();
+      }
     }
 
     function solveSimilarityTransform(source, target) {
@@ -3050,12 +3488,13 @@
       return best;
     }
 
-    function buildRobustClosestPairs(source, targetTree, matrix, keepRatio) {
+    function buildRobustClosestPairs(source, targetTree, matrix, keepRatio, maxDistance = Infinity) {
       const pairs = [];
+      const maxDistanceSq = Number.isFinite(maxDistance) ? maxDistance * maxDistance : Infinity;
       for (const sourcePoint of source) {
         const transformed = sourcePoint.clone().applyMatrix4(matrix);
         const best = findNearest(targetTree, transformed);
-        if (best.point) {
+        if (best.point && best.distanceSq <= maxDistanceSq) {
           pairs.push({ source: sourcePoint, target: best.point, distanceSq: best.distanceSq });
         }
       }
@@ -3103,6 +3542,7 @@
     }
 
     function togglePanel() {
+      if (isAnalysisMode()) return;
       const open = els.controlPanel.classList.toggle('open');
       els.expandBtn.setAttribute('aria-expanded', String(open));
     }
@@ -3125,6 +3565,8 @@
 
       els.app.classList.toggle('single', !isSplit);
       els.controlPanel.classList.toggle('is-combined', !isSplit);
+      els.controlPanel.classList.toggle('analysis-open', isAnalysisMode(mode));
+      els.expandBtn.setAttribute('aria-expanded', String(els.controlPanel.classList.contains('open') || isAnalysisMode(mode)));
 
       els.referencePane.classList.toggle('hidden', !isSplit && combinedSide !== 'reference');
       els.updatedPane.classList.toggle('hidden', !isSplit && combinedSide !== 'updated');
@@ -3161,11 +3603,10 @@
           state.models[otherSide(state.heatmapTarget)].visible = false;
         }
       }
-      
-      if (mode === 'single' || mode === 'split') {
-        syncCamera(combinedSide, otherSideName);
-      }
 
+      updateAnalysisProbeVisibility();
+      syncAnalysisProbeScale('reference');
+      syncAnalysisProbeScale('updated');
       updateLabels();
       updateUiState();
     }
@@ -3193,14 +3634,31 @@
       const toCamera = coreViewer(toViewer).cameraManager.getCamera();
       const toControls = coreViewer(toViewer).cameraManager.getControls();
 
-      state.syncingCamera = true;
-      toCamera.position.copy(fromCamera.position);
-      toCamera.quaternion.copy(fromCamera.quaternion);
-      toCamera.zoom = fromCamera.zoom;
-      toCamera.updateProjectionMatrix();
-      toControls.target.copy(fromControls.target);
-      toControls.update();
-      state.syncingCamera = false;
+      try {
+        state.syncingCamera = true;
+        toCamera.position.copy(fromCamera.position);
+        toCamera.quaternion.copy(fromCamera.quaternion);
+        toCamera.zoom = fromCamera.zoom;
+        toCamera.updateProjectionMatrix();
+
+        if (toControls && toControls.target) {
+          if (fromControls && fromControls.target) {
+            toControls.target.copy(fromControls.target);
+          } else {
+            // fromControls is likely FlyControls (no target).
+            // Synthesize a target in front of the camera so OrbitControls doesn't snap back.
+            const dist = toControls.target.distanceTo(toCamera.position) || 10;
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(toCamera.quaternion);
+            toControls.target.copy(toCamera.position).add(forward.multiplyScalar(dist));
+          }
+        }
+
+        if (toControls && typeof toControls.update === 'function') {
+          toControls.update();
+        }
+      } finally {
+        state.syncingCamera = false;
+      }
     }
 
     async function captureSingleView(side) {
@@ -3310,12 +3768,14 @@
            }
            if (v.onWindowResize) v.onWindowResize();
            syncMarkerScale(side);
+           syncAnalysisProbeScale(side);
         });
       }
     }
 
     function clearAlignment() {
       invalidateRefinement();
+      clearAllAnalysisProbes();
       clearPoints('reference');
       clearPoints('updated');
       clearErrorLines();
@@ -3327,6 +3787,7 @@
     }
 
     function clearPoints(side) {
+      clearAnalysisProbe(side);
       for (const point of state.points[side]) {
         disposeMarker(point.marker);
         point.marker?.removeFromParent();
@@ -3407,6 +3868,139 @@
       };
     }
 
+    function probeDotScaleForSide(side) {
+      return state.markerScale[side] * 0.42;
+    }
+
+    function analysisProbeAccent(mode, value) {
+      if (mode === 'heightmap') {
+        return value < 0 ? SIGNED_DIFF_RED.getHex() : SIGNED_DIFF_BLUE.getHex();
+      }
+      return ANALYSIS_PROBE_TEXT.getHex();
+    }
+
+    function analysisProbeText(mode, value) {
+      if (mode === 'heightmap') {
+        return `Height diff ${value >= 0 ? '+' : ''}${formatDistance(value)} m`;
+      }
+      return `C2C ${formatDistance(Math.max(0, value))} m`;
+    }
+
+    function createAnalysisProbe(side) {
+      const model = state.models[side];
+      if (!model) return null;
+
+      const group = new THREE.Group();
+      group.visible = false;
+      group.userData.isControlMarker = true;
+
+      const ring = new THREE.Mesh(state.markerGeometry, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.98,
+        depthTest: false,
+        depthWrite: false
+      }));
+      ring.renderOrder = 104;
+      ring.userData.isControlMarker = true;
+      ring.raycast = () => {};
+      group.add(ring);
+
+      const dot = new THREE.Mesh(state.markerGeometry, new THREE.MeshBasicMaterial({
+        color: ANALYSIS_PROBE_DOT,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: false,
+        depthWrite: false
+      }));
+      dot.renderOrder = 105;
+      dot.userData.isControlMarker = true;
+      dot.raycast = () => {};
+      group.add(dot);
+
+      const initialTexture = createProbeLabelTexture('C2C 0.000 m');
+      const label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: initialTexture.texture,
+        transparent: true,
+        opacity: 0.98,
+        depthTest: false,
+        depthWrite: false
+      }));
+      label.center.set(0.5, 0);
+      label.renderOrder = 106;
+      label.userData.isControlMarker = true;
+      label.userData.screenWidth = initialTexture.screenWidth;
+      label.userData.screenHeight = initialTexture.screenHeight;
+      label.raycast = () => {};
+      group.add(label);
+
+      group.userData.ring = ring;
+      group.userData.dot = dot;
+      group.userData.label = label;
+      model.add(group);
+      state.analysisProbe[side] = group;
+      return group;
+    }
+
+    function clearAnalysisProbe(side) {
+      const probe = state.analysisProbe[side];
+      if (!probe) return;
+      disposeMarker(probe);
+      probe.removeFromParent();
+      state.analysisProbe[side] = null;
+    }
+
+    function clearAllAnalysisProbes() {
+      clearAnalysisProbe('reference');
+      clearAnalysisProbe('updated');
+    }
+
+    function updateAnalysisProbe(side, localPoint, labelText, mode, value) {
+      const probe = state.analysisProbe[side] ?? createAnalysisProbe(side);
+      if (!probe) return;
+
+      const accent = analysisProbeAccent(mode, value);
+      const labelTexture = createProbeLabelTexture(labelText, accent);
+      const label = probe.userData.label;
+      const oldMap = label.material.map;
+      label.material.map = labelTexture.texture;
+      label.material.needsUpdate = true;
+      label.userData.screenWidth = labelTexture.screenWidth;
+      label.userData.screenHeight = labelTexture.screenHeight;
+      oldMap?.dispose?.();
+
+      probe.position.copy(localPoint);
+      probe.userData.mode = mode;
+      probe.userData.value = value;
+      probe.visible = isAnalysisMode() && side === state.heatmapTarget;
+      probe.userData.dot.material.color.setHex(accent);
+      syncAnalysisProbeScale(side);
+    }
+
+    function syncAnalysisProbeScale(side) {
+      const probe = state.analysisProbe[side];
+      if (!probe || !state.models[side]) return;
+
+      const modelWorldScale = new THREE.Vector3().setFromMatrixScale(state.models[side].matrixWorld).x;
+      const localScale = probeDotScaleForSide(side) / Math.max(modelWorldScale, 1e-6);
+
+      probe.userData.ring?.scale.setScalar(localScale * 1.28);
+      probe.userData.dot?.scale.setScalar(localScale);
+
+      const label = probe.userData.label;
+      if (label) {
+        label.position.set(0, localScale * 1.9, 0);
+        const worldPosition = new THREE.Vector3();
+        probe.getWorldPosition(worldPosition);
+        const labelSize = labelWorldSizeForSide(side, worldPosition, label.userData.screenWidth, label.userData.screenHeight);
+        label.scale.set(
+          labelSize.width / Math.max(modelWorldScale, 1e-6),
+          labelSize.height / Math.max(modelWorldScale, 1e-6),
+          1
+        );
+      }
+    }
+
     function applyMarkerVisualScale(marker, localScale, modelWorldScale = 1, side = marker?.userData?.pointSide) {
       if (!marker) return;
 
@@ -3452,6 +4046,44 @@
       return null;
     }
 
+    function interpolatedAnalysisValueAtHit(hit, mode = currentAnalysisMode()) {
+      const mesh = hit?.object;
+      const geometry = mesh?.geometry;
+      const face = hit?.face;
+      const attribute = geometry?.getAttribute?.(currentAnalysisBufferAttribute(mode));
+      const positions = geometry?.getAttribute?.('position');
+      if (!mesh || !geometry || !face || !attribute || !positions) return null;
+
+      const a = new THREE.Vector3().fromBufferAttribute(positions, face.a);
+      const b = new THREE.Vector3().fromBufferAttribute(positions, face.b);
+      const c = new THREE.Vector3().fromBufferAttribute(positions, face.c);
+      const localHit = mesh.worldToLocal(hit.point.clone());
+      const barycoord = new THREE.Vector3();
+      THREE.Triangle.getBarycoord(localHit, a, b, c, barycoord);
+
+      return (
+        attribute.getX(face.a) * barycoord.x +
+        attribute.getX(face.b) * barycoord.y +
+        attribute.getX(face.c) * barycoord.z
+      );
+    }
+
+    function showAnalysisProbeFromHit(side, hit) {
+      if (!isAnalysisMode() || side !== state.heatmapTarget || !state.models[side]) return;
+      const value = interpolatedAnalysisValueAtHit(hit, currentAnalysisMode());
+      if (!Number.isFinite(value)) return;
+      const localPoint = state.models[side].worldToLocal(hit.point.clone());
+      updateAnalysisProbe(side, localPoint, analysisProbeText(currentAnalysisMode(), value), currentAnalysisMode(), value);
+    }
+
+    function updateAnalysisProbeVisibility() {
+      for (const side of ['reference', 'updated']) {
+        const probe = state.analysisProbe[side];
+        if (!probe) continue;
+        probe.visible = isAnalysisMode() && side === state.heatmapTarget;
+      }
+    }
+
     function showMethodModal() {
       els.methodModalText.textContent = buildMethodText();
       els.methodModal.classList.add('visible');
@@ -3476,6 +4108,9 @@
       if (state.fit.refineMetrics) {
         lines.push(`ICP pairs used:  ${state.fit.refineMetrics.pairs}`);
         lines.push(`ICP RMS:         ${Number.isFinite(state.fit.refineMetrics.rms) ? formatDistance(state.fit.refineMetrics.rms) : '-'}`);
+        if (state.fit.refineMetrics.profile && REFINE_PROFILES[state.fit.refineMetrics.profile]) {
+          lines.push(`ICP profile:     ${REFINE_PROFILES[state.fit.refineMetrics.profile].label}`);
+        }
       }
 
       if (state.fit.controlMatrix) {
@@ -3608,38 +4243,6 @@
       material.customProgramCacheKey = original.customProgramCacheKey;
     }
 
-    function applyHeatmapShader(material, attributeName) {
-      if (!material?.userData) return;
-      const shaderKey = `compareHeatmapShader:${attributeName}`;
-      if (!material.userData[shaderKey]) {
-        material.userData[shaderKey] = (shader) => {
-          shader.uniforms.uMinClip = heatmapUniforms.uMinClip;
-          shader.uniforms.uMaxClip = heatmapUniforms.uMaxClip;
-          shader.vertexShader = `
-            attribute float ${attributeName};
-            varying float vC2CDist;
-            ${shader.vertexShader}
-          `.replace(
-            '#include <begin_vertex>',
-            `#include <begin_vertex>
-             vC2CDist = ${attributeName};`
-          );
-          shader.fragmentShader = `
-            uniform float uMinClip;
-            uniform float uMaxClip;
-            varying float vC2CDist;
-            ${shader.fragmentShader}
-          `.replace(
-            '#include <dithering_fragment>',
-            `#include <dithering_fragment>
-             if (vC2CDist < uMinClip || vC2CDist > uMaxClip) discard;`
-          );
-        };
-      }
-      material.onBeforeCompile = material.userData[shaderKey];
-      material.customProgramCacheKey = () => `belowjs-model-comparison-${attributeName}`;
-    }
-    
     function applyMaterialState(model, side, mode) {
       let tint = side === 'reference' ? new THREE.Color(0xe9fff7) : new THREE.Color(0xfff5dc);
       let opacity = 1.0;
@@ -3691,7 +4294,6 @@
             material.metalnessMap = null;
             material.normalMap = null;
             material.roughnessMap = null;
-            applyHeatmapShader(material, analysisBufferAttribute);
           }
           material.opacity = opacity;
           material.transparent = transparent || material.opacity < 1.0;
@@ -3779,7 +4381,7 @@
       els.diffBtn.disabled = !bothModels;
       els.heatmapBtn.disabled = !bothModels;
       els.heightmapBtn.disabled = !bothModels;
-      els.downloadHeatmapBtn.disabled = !bothModels || !isAnalysisMode(state.mode) || !hasHeatmapData();
+      els.downloadHeatmapBtn.disabled = !bothModels || !isAnalysisMode(state.mode) || !hasHeatmapData() || state.exportingAnalysisGlb;
       els.importPtsBtn.disabled = !anyModels;
       els.exportPtsBtn.disabled = allPoints().length === 0;
 
@@ -3790,7 +4392,9 @@
       els.screenshotBtn.title = screenshotDescription();
       els.downloadBtn.title = exportDescription();
       els.downloadBtn.textContent = exportSide ? `Save ${sideShortLabel(exportSide)}` : 'Save';
-      els.downloadHeatmapBtn.textContent = state.mode === 'heightmap' ? 'Save Height GLB' : 'Save Heatmap GLB';
+      els.downloadHeatmapBtn.textContent = state.exportingAnalysisGlb
+        ? 'Exporting...'
+        : state.mode === 'heightmap' ? 'Save Height GLB' : 'Save Heatmap GLB';
       els.downloadHeatmapBtn.title = bothModels
         ? state.mode === 'heightmap'
           ? `Export ${sideLabel(state.heatmapTarget)} with the current signed vertical difference colors`
@@ -3840,10 +4444,12 @@
           controlMatrix: state.fit.controlMatrix?.elements ? Array.from(state.fit.controlMatrix.elements) : null,
           refinedMatrix: state.fit.refinedMatrix?.elements ? Array.from(state.fit.refinedMatrix.elements) : null,
           refinedActive: Boolean(state.fit.refinedActive),
+          profile: state.fit.refineMetrics?.profile ?? state.refineProfile,
           refineMetrics: state.fit.refineMetrics
             ? {
                 rms: state.fit.refineMetrics.rms,
-                pairs: state.fit.refineMetrics.pairs
+                pairs: state.fit.refineMetrics.pairs,
+                profile: state.fit.refineMetrics.profile ?? state.refineProfile
               }
             : null
         },
@@ -4041,7 +4647,24 @@
         sourceModel.matrixWorld.elements.join(','),
         targetModel.matrixWorld.elements.join(',')
       ].join('|');
-      if (state.lastHeatmapKey === currentKey) return;
+      
+      const isCached = state.lastHeatmapKeys[analysisMode][targetSide] === currentKey;
+      if (isCached) {
+        const dataKey = currentAnalysisAttribute(analysisMode);
+        const allSamples = [];
+        targetModel.traverse((mesh) => {
+          if (mesh.isMesh && mesh.userData[dataKey]) {
+            const vals = mesh.userData[dataKey];
+            for (let i = 0; i < vals.length; i += 10) allSamples.push(vals[i]);
+          }
+        });
+        allSamples.sort((a, b) => a - b);
+        
+        updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
+        applyModelMaterials(analysisMode);
+        updateUiState();
+        return;
+      }
       
       state.computingHeatmap = true;
       els.heatmapControlsSpinner.classList.add('visible');
@@ -4052,10 +4675,19 @@
       try {
         await waitForFrames(2);
 
+        // Build KD tree in world space so distances match real-world units
+        // (sampleModelPoints returns points in model-root local space; convert back to world)
+        const localSamples = sampleModelPoints(sourceModel, 80000);
+        if (!localSamples.length) throw new Error('Source model has no measurable surface.');
+        const srcWorldMat = sourceModel.matrixWorld;
         const treePoints = analysisMode === 'heightmap'
-          ? sampleProjectedHeightPoints(sourceModel, 80000)
-          : sampleModelPoints(sourceModel, 80000);
-        if (!treePoints.length) throw new Error('Source model has no measurable surface.');
+          ? localSamples.map(p => {
+              const wp = p.clone().applyMatrix4(srcWorldMat);
+              const proj = new THREE.Vector3(wp.x, 0, wp.z);
+              proj.heightValue = wp.y;
+              return proj;
+            })
+          : localSamples.map(p => p.clone().applyMatrix4(srcWorldMat));
         const tree = buildKdTree(treePoints);
 
         const allSamples = [];
@@ -4074,14 +4706,10 @@
           const values = new Float32Array(count);
           const localPos = new THREE.Vector3();
           const projectedPos = new THREE.Vector3();
-          
-          const targetToWorld = mesh.matrixWorld;
-          const worldToSourceLocal = new THREE.Matrix4().copy(sourceModel.matrixWorld).invert();
-          const combined = new THREE.Matrix4().multiplyMatrices(worldToSourceLocal, targetToWorld);
 
           for (let i = 0; i < count; i++) {
             localPos.fromBufferAttribute(positions, i);
-            localPos.applyMatrix4(combined);
+            localPos.applyMatrix4(mesh.matrixWorld); // target local → world space
             let value = 0;
             if (analysisMode === 'heightmap') {
               projectedPos.set(localPos.x, 0, localPos.z);
@@ -4107,32 +4735,9 @@
         });
 
         allSamples.sort((a, b) => a - b);
-        const savedRange = currentAnalysisRangeStore(analysisMode)[targetSide];
+        updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
 
-        if (analysisMode === 'heightmap') {
-          const maxAbs = Math.max(...allSamples.map((value) => Math.abs(value)), 0.1);
-          els.heatmapClipMinSlider.min = String(-maxAbs);
-          els.heatmapClipMaxSlider.min = String(-maxAbs);
-          els.heatmapClipMinSlider.max = String(maxAbs);
-          els.heatmapClipMaxSlider.max = String(maxAbs);
-          els.heatmapClipMinSlider.value = String(savedRange?.min ?? -maxAbs);
-          els.heatmapClipMaxSlider.value = String(savedRange?.max ?? maxAbs);
-          renderHeatmapHistogram(allSamples, -maxAbs, maxAbs);
-        } else {
-          const maxDistance = allSamples[allSamples.length - 1] || 0.1;
-          const sliderLimit = Math.max(0.1, maxDistance);
-          els.heatmapClipMinSlider.min = '0';
-          els.heatmapClipMaxSlider.min = '0';
-          els.heatmapClipMinSlider.max = String(sliderLimit);
-          els.heatmapClipMaxSlider.max = String(sliderLimit);
-          els.heatmapClipMinSlider.value = String(savedRange?.min ?? 0);
-          els.heatmapClipMaxSlider.value = String(savedRange?.max ?? sliderLimit);
-          renderHeatmapHistogram(allSamples, 0, sliderLimit);
-        }
-        
-        syncHeatmapClipRange();
-
-        state.lastHeatmapKey = currentKey;
+        state.lastHeatmapKeys[analysisMode][targetSide] = currentKey;
         applyModelMaterials(analysisMode);
         updateUiState();
         
@@ -4203,6 +4808,49 @@
       currentAnalysisRangeStore()[state.heatmapTarget] = { min: minClip, max: maxClip };
       updateHeatmapRangeVisual(minClip, maxClip, sliderMin, sliderMax);
       updateHeatmapColors();
+    }
+
+    function updateHeatmapUiForSamples(allSamples, analysisMode, targetSide) {
+      const savedRange = currentAnalysisRangeStore(analysisMode)[targetSide];
+      const globalRange = state.analysisGlobalRange[analysisMode] || {};
+
+      if (analysisMode === 'heightmap') {
+        const computedMaxAbs = Math.max(...allSamples.map(Math.abs), 0.001);
+        const maxAbs = Math.max(computedMaxAbs, globalRange.maxAbs ?? 0);
+        state.analysisGlobalRange[analysisMode] = { ...globalRange, maxAbs };
+
+        const absVals = allSamples.map(Math.abs).sort((a, b) => a - b);
+        const p99Abs = absVals[Math.min(Math.floor(absVals.length * 0.99), absVals.length - 1)] || maxAbs;
+        const initMax = Math.max(p99Abs, globalRange.initMax ?? 0);
+        state.analysisGlobalRange[analysisMode].initMax = initMax;
+
+        els.heatmapClipMinSlider.min = String(-maxAbs);
+        els.heatmapClipMaxSlider.min = String(-maxAbs);
+        els.heatmapClipMinSlider.max = String(maxAbs);
+        els.heatmapClipMaxSlider.max = String(maxAbs);
+        els.heatmapClipMinSlider.value = String(savedRange?.min ?? -initMax);
+        els.heatmapClipMaxSlider.value = String(savedRange?.max ?? initMax);
+        renderHeatmapHistogram(allSamples, -maxAbs, maxAbs);
+      } else {
+        const computedMax = allSamples[allSamples.length - 1] || 0.001;
+        const sliderLimit = Math.max(0.001, computedMax, globalRange.sliderLimit ?? 0);
+
+        const p99Index = Math.min(Math.floor(allSamples.length * 0.99), allSamples.length - 1);
+        const p99 = allSamples[p99Index] || computedMax;
+        const initMax = Math.max(p99, globalRange.initMax ?? 0);
+
+        state.analysisGlobalRange[analysisMode] = { ...globalRange, sliderLimit, initMax };
+
+        els.heatmapClipMinSlider.min = '0';
+        els.heatmapClipMaxSlider.min = '0';
+        els.heatmapClipMinSlider.max = String(sliderLimit);
+        els.heatmapClipMaxSlider.max = String(sliderLimit);
+        els.heatmapClipMinSlider.value = String(savedRange?.min ?? 0);
+        els.heatmapClipMaxSlider.value = String(savedRange?.max ?? initMax);
+        renderHeatmapHistogram(allSamples, 0, sliderLimit);
+      }
+      
+      syncHeatmapClipRange();
     }
 
     function updateHeatmapRangeVisual(minClip, maxClip, sliderMin, sliderMax) {
