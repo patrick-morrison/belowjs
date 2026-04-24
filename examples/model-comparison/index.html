@@ -118,6 +118,22 @@
       outline: none;
     }
 
+    .modal-feedback {
+      display: none;
+      margin-top: 12px;
+      padding: 8px 10px;
+      border: 1px solid #f3c7c7;
+      border-radius: 8px;
+      background: #fff4f4;
+      color: #9b2c2c;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .modal-feedback.visible {
+      display: block;
+    }
+
     .pane {
       position: relative;
       min-width: 0;
@@ -1076,6 +1092,7 @@
           <button id="importSelectFileBtn" class="btn primary" style="flex: 1;">Select File</button>
           <input type="file" id="importFileInput" accept=".txt,.json" style="display: none;">
         </div>
+        <div id="importFeedback" class="modal-feedback" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -1319,6 +1336,7 @@
       importToUpdated: document.getElementById('importToUpdated'),
       importRefName: document.getElementById('importRefName'),
       importUpdName: document.getElementById('importUpdName'),
+      importFeedback: document.getElementById('importFeedback'),
       pointContextMenu: document.getElementById('pointContextMenu'),
       addPointFromMenu: document.getElementById('addPointFromMenu'),
       deletePointFromMenu: document.getElementById('deletePointFromMenu'),
@@ -1404,12 +1422,19 @@
       event.stopPropagation();
       els.importRefName.textContent = state.filenames.reference || 'Model A';
       els.importUpdName.textContent = state.filenames.updated || 'Model B';
+      setImportFeedback('');
       els.importModal.classList.add('visible');
     });
 
-    els.closeImportBtn.addEventListener('click', () => els.importModal.classList.remove('visible'));
+    els.closeImportBtn.addEventListener('click', () => {
+      setImportFeedback('');
+      els.importModal.classList.remove('visible');
+    });
     els.importModal.addEventListener('click', (e) => {
-      if (e.target === els.importModal) els.importModal.classList.remove('visible');
+      if (e.target === els.importModal) {
+        setImportFeedback('');
+        els.importModal.classList.remove('visible');
+      }
     });
     
     els.importSelectFileBtn.addEventListener('click', () => {
@@ -1424,8 +1449,11 @@
 
     els.importFileInput.addEventListener('change', async (e) => {
       if (e.target.files.length > 0) {
-        await importPointsData(e.target.files[0]);
-        els.importModal.classList.remove('visible');
+        const imported = await importPointsData(e.target.files[0]);
+        if (imported) {
+          setImportFeedback('');
+          els.importModal.classList.remove('visible');
+        }
         e.target.value = ''; // clear
       }
     });
@@ -4475,6 +4503,11 @@
       URL.revokeObjectURL(link.href);
     }
 
+    function setImportFeedback(message) {
+      els.importFeedback.textContent = message || '';
+      els.importFeedback.classList.toggle('visible', Boolean(message));
+    }
+
     async function importPointsData(file) {
       try {
         const text = await file.text();
@@ -4562,8 +4595,10 @@
         if (shouldRestoreSession) {
           restoreSavedFit(parsed?.fit);
         }
+        return true;
       } catch (err) {
-        alert(`Failed to import points: ${err.message}`);
+        setImportFeedback(`Could not import points: ${err.message}`);
+        return false;
       }
     }
 
