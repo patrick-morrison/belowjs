@@ -4,31 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BelowJS - Model Comparison</title>
-    <meta name="theme-color" content="#0d3b66">
-    <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../../icons/favicon-16x16.png">
-    <link rel="icon" href="../../favicon.ico" sizes="any">
-    <link rel="apple-touch-icon" sizes="180x180" href="../../icons/apple-touch-icon.png">
-    <link rel="manifest" href="../../site.webmanifest">
-    <meta name="application-name" content="BelowJS">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BelowJS">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileColor" content="#0d3b66">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2258%22>MC</text></svg>">
 
-<!-- Import map for CDN production -->
+  <!-- Import map for local testing -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/",
-      "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.js"
+      "three": "/node_modules/three/build/three.module.js",
+      "three/addons/": "/node_modules/three/examples/jsm/",
+      "belowjs": "/dist/belowjs.js"
     }
   }
   </script>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.css">
+  <link rel="stylesheet" href="/dist/belowjs.css">
 
   <style>
     :root {
@@ -1276,9 +1265,6 @@
       }
     }
   </style>
-    <!-- Analytics script for BelowJS docs site only. Replace/remove for your own deployment. -->
-    <script defer data-website-id="f1e6105e-4969-4ffb-a3e1-8d18eca197d7"
-        src="https://umami.padmorrison.com/script.js"></script>
 </head>
 <body>
   <section class="mobile-blocker" aria-labelledby="mobileBlockerTitle">
@@ -6114,7 +6100,5 @@
       });
     }
   </script>
-    <!-- Docs event tracking for this site only. Remove if you are reusing this example elsewhere. -->
-    <script src="../../assets/navigation.js"></script>
 </body>
 </html>

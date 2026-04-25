@@ -123,6 +123,11 @@ function convertToCDN(htmlContent, version, relativeExamplePath) {
     'three": "/node_modules/three/build/three.module.js"',
     'three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm"'
   );
+
+  htmlContent = htmlContent.replace(
+    '"three/addons/": "/node_modules/three/examples/jsm/"',
+    '"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"'
+  );
   
   // Replace local BelowJS import
   htmlContent = htmlContent.replace(
