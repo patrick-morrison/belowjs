@@ -2249,11 +2249,12 @@
       if (state.demoLoading) return;
       state.demoLoading = true;
       updateDemoLaunchBar();
-      state.demoTutorial.active = false;
+      state.demoTutorial.active = true;
       state.demoTutorial.dismissed = false;
       state.demoTutorial.step = 0;
       state.demoTutorial.swapSequence = 0;
       state.demoTutorial.heightmapLoading = false;
+      updateDemoTutorial();
       const originalText = els.loadExampleBtn.innerHTML;
       els.loadExampleBtn.disabled = true;
       els.loadExampleBtn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Loading example...';
@@ -2270,6 +2271,7 @@
       } finally {
         state.demoLoading = false;
         updateDemoLaunchBar();
+        updateDemoTutorial();
         els.loadExampleBtn.disabled = false;
         els.loadExampleBtn.innerHTML = originalText;
       }
@@ -2306,8 +2308,8 @@
           title: '10 years of change on the ALC 40 wreck',
           body: 'This viewer uses <a href="https://belowjs.com" target="_blank" rel="noopener" style="color:inherit">BelowJS</a> to compare how a shipwreck site has changed over time. ALC 40 is a WWII landing craft in the Swan River. Load the 2014 and 2024 surveys, align them, and measure the difference.',
           note: 'Surveys: Kevin Edwards &amp; Darren Cooper (<a href="https://sketchfab.com/3d-models/alc40-8b5c07fc2cac492693174bd6712f6012" target="_blank" rel="noopener" style="color:inherit">MAAWA Sketchfab</a>, 2014) and Patrick Morrison (2024).',
-          button: 'Next',
-          enabled: true
+          button: state.demoLoading ? 'Loading...' : 'Next',
+          enabled: !state.demoLoading
         },
         {
           title: 'Add a control point',
@@ -2438,7 +2440,7 @@
     }
 
     function updateDemoTutorial() {
-      const visible = state.demoTutorial.active && !state.demoTutorial.dismissed && hasBothModels();
+      const visible = state.demoTutorial.active && !state.demoTutorial.dismissed && (hasBothModels() || state.demoTutorial.step === 0);
       els.tutorialPane.hidden = !visible;
       if (!visible) return;
 
