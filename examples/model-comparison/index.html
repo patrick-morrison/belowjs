@@ -155,6 +155,55 @@
       inset: 0;
     }
 
+    .pane-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: rgba(223, 233, 239, 0.76);
+      backdrop-filter: blur(4px);
+      color: var(--text);
+      pointer-events: none;
+    }
+
+    .pane-loading.visible {
+      display: flex;
+    }
+
+    .pane-loading-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      min-width: 164px;
+      padding: 16px 18px;
+      border: 1px solid rgba(203, 213, 224, 0.9);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow-hover);
+      backdrop-filter: blur(10px);
+    }
+
+    .pane-loading-card .spinner-ring {
+      width: 22px;
+      height: 22px;
+      border-width: 3px;
+    }
+
+    .pane-loading-title {
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .pane-loading-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
     .pane-label {
       position: absolute;
       left: 16px;
@@ -211,27 +260,297 @@
     }
 
     .file-panel {
-      width: min(360px, calc(100vw - 56px));
-      padding: 24px;
+      width: min(248px, calc(100vw - 56px));
+      min-height: 0;
+      padding: 16px 18px;
       border: 2px dashed #cbd5e0;
       border-radius: 8px;
       background: var(--panel);
       box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       pointer-events: auto;
+    }
+
+    .file-panel-kicker {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .file-panel strong {
       display: block;
-      margin-bottom: 8px;
-      font-size: 20px;
+      margin-bottom: 6px;
+      font-size: 18px;
       font-weight: 650;
     }
 
     .file-panel span {
       display: block;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .file-panel .subcopy {
+      max-width: 280px;
+      margin-top: -4px;
       margin-bottom: 18px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .file-panel-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .file-panel-link {
+      color: var(--active);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .file-panel-link:hover,
+    .file-panel-link:focus-visible {
+      text-decoration: underline;
+      outline: none;
+    }
+
+    .tutorial-pane {
+      position: fixed;
+      left: calc(50% + 16px);
+      bottom: 96px;
+      z-index: 24;
+      width: min(560px, calc(50vw - 32px));
+      padding: 14px 16px;
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow-hover);
+      backdrop-filter: blur(10px);
+    }
+
+    .tutorial-pane[hidden] {
+      display: none;
+    }
+
+    .tutorial-pane-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .tutorial-pane-step {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .tutorial-pane-title {
+      flex: 1;
+      min-width: 0;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.2;
+    }
+
+    .tutorial-pane-close {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      padding: 0;
+    }
+
+    .tutorial-pane-body {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .tutorial-pane-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .tutorial-pane-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .tutorial-pane-note {
+      flex: 1;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .tutorial-pane-next {
+      min-width: 132px;
+      justify-content: center;
+      border-color: #2f855a;
+      background: #2f855a;
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(47, 133, 90, 0.22);
+    }
+
+    .tutorial-pane-next:hover,
+    .tutorial-pane-next:focus-visible {
+      border-color: #276749;
+      background: #276749;
+      color: #ffffff;
+    }
+
+    .tutorial-pane-next:disabled {
+      border-color: rgba(47, 133, 90, 0.18);
+      background: rgba(47, 133, 90, 0.14);
+      color: rgba(39, 103, 73, 0.7);
+      box-shadow: none;
+    }
+
+    .tutorial-pane-next.is-key-prompt {
+      border-color: rgba(47, 133, 90, 0.42);
+      background: #ffffff;
+      color: #276749;
+      box-shadow: inset 0 0 0 1px rgba(47, 133, 90, 0.16);
+    }
+
+    .tutorial-pane-next.is-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tutorial-pane-next.is-loading::before {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.36);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .tutorial-pane-secondary {
+      border-color: #3e8f71;
+      background: #eef7f3;
+      color: #2f6f58;
+      box-shadow: 0 0 0 0 rgba(62, 143, 113, 0.24);
+      animation: tutorial-cta-pulse 3.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .tutorial-pane-secondary:hover,
+    .tutorial-pane-secondary:focus-visible {
+      border-color: #337a60;
+      background: #e3f2ec;
+      color: #2f6f58;
+    }
+
+    .tutorial-pane-secondary:disabled {
+      animation: none;
+      box-shadow: none;
+    }
+
+    .tutorial-pane-secondary[hidden] {
+      display: none;
+    }
+
+    @keyframes tutorial-cta-pulse {
+      0%,
+      100% {
+        box-shadow:
+          0 0 0 0 rgba(62, 143, 113, 0.2),
+          0 0 0 0 rgba(62, 143, 113, 0.12);
+      }
+      20% {
+        box-shadow:
+          0 0 0 10px rgba(62, 143, 113, 0),
+          0 0 0 22px rgba(62, 143, 113, 0);
+      }
+      45% {
+        box-shadow:
+          0 0 0 0 rgba(62, 143, 113, 0),
+          0 0 0 0 rgba(62, 143, 113, 0);
+      }
+      62% {
+        box-shadow:
+          0 0 0 14px rgba(62, 143, 113, 0),
+          0 0 0 32px rgba(62, 143, 113, 0);
+      }
+    }
+
+    .demo-launch-bar {
+      left: calc(50% + 16px);
+      bottom: 16px;
+      z-index: 23;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(420px, calc(50vw - 32px));
+      padding: 8px 10px;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .demo-launch-bar[hidden] {
+      display: none;
+    }
+
+    .demo-launch-copy {
+      flex: 1;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @keyframes load-demo-pulse {
+      0%,
+      100% {
+        box-shadow:
+          0 8px 20px rgba(39, 103, 73, 0.24),
+          0 0 0 0 rgba(39, 103, 73, 0.22);
+      }
+      22% {
+        box-shadow:
+          0 8px 20px rgba(39, 103, 73, 0.22),
+          0 0 0 12px rgba(39, 103, 73, 0);
+      }
+      52% {
+        box-shadow:
+          0 8px 20px rgba(39, 103, 73, 0.22),
+          0 0 0 0 rgba(39, 103, 73, 0);
+      }
+      72% {
+        box-shadow:
+          0 8px 20px rgba(39, 103, 73, 0.22),
+          0 0 0 18px rgba(39, 103, 73, 0);
+      }
     }
 
     .file-input {
@@ -475,6 +794,29 @@
       cursor: not-allowed;
       opacity: 0.4;
       transform: none;
+    }
+
+    .btn.load-demo-btn {
+      border-color: #276749;
+      background: linear-gradient(180deg, #2f855a 0%, #276749 100%);
+      color: #ffffff;
+      box-shadow:
+        0 8px 20px rgba(39, 103, 73, 0.24),
+        0 0 0 0 rgba(39, 103, 73, 0.24);
+      animation: load-demo-pulse 4.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .btn.load-demo-btn:hover,
+    .btn.load-demo-btn:focus-visible {
+      border-color: #22543d;
+      background: linear-gradient(180deg, #276749 0%, #22543d 100%);
+      color: #ffffff;
+    }
+
+    .btn.load-demo-btn:disabled {
+      animation: none;
+      color: #ffffff;
+      box-shadow: none;
     }
 
     /* Camera-lock icon button */
@@ -936,12 +1278,21 @@
   <main id="app" class="app">
     <section id="referencePane" class="pane" data-side="reference">
       <div id="referenceViewer" class="viewer"></div>
+      <div id="referenceLoading" class="pane-loading" aria-hidden="true">
+        <div class="pane-loading-card">
+          <div class="spinner-ring"></div>
+          <div id="referenceLoadingTitle" class="pane-loading-title">Loading Model A</div>
+          <div class="pane-loading-subtitle">Preparing comparison view…</div>
+        </div>
+      </div>
       <div class="pane-label"><span class="dot reference"></span><span id="referenceLabel">Model A</span></div>
       <div id="referenceDrop" class="file-zone">
         <div class="file-panel">
           <strong>Model A</strong>
-          <span>Drop the first GLB or choose a file</span>
-          <button id="referenceChoose" class="btn">Choose GLB</button>
+          <span>Reference survey</span>
+          <div class="file-panel-actions">
+            <button id="referenceChoose" class="btn">Choose GLB</button>
+          </div>
           <input id="referenceInput" class="file-input" type="file" accept=".glb">
         </div>
       </div>
@@ -949,17 +1300,32 @@
 
     <section id="updatedPane" class="pane" data-side="updated">
       <div id="updatedViewer" class="viewer"></div>
+      <div id="updatedLoading" class="pane-loading" aria-hidden="true">
+        <div class="pane-loading-card">
+          <div class="spinner-ring"></div>
+          <div id="updatedLoadingTitle" class="pane-loading-title">Loading Model B</div>
+          <div class="pane-loading-subtitle">Preparing comparison view…</div>
+        </div>
+      </div>
       <div class="pane-label"><span class="dot updated"></span><span id="updatedLabel">Model B</span></div>
       <div id="updatedDrop" class="file-zone">
         <div class="file-panel">
           <strong>Model B</strong>
-          <span>Drop the second GLB or choose a file</span>
-          <button id="updatedChoose" class="btn">Choose GLB</button>
+          <span>Comparison survey</span>
+          <div class="file-panel-actions">
+            <button id="updatedChoose" class="btn">Choose GLB</button>
+          </div>
           <input id="updatedInput" class="file-input" type="file" accept=".glb">
         </div>
       </div>
     </section>
   </main>
+
+  <div id="demoLaunchBar" class="chrome demo-launch-bar">
+    <span class="demo-launch-copy">Model comparison example</span>
+    <button id="loadExampleBtn" class="btn load-demo-btn" type="button">Load demo</button>
+    <a class="file-panel-link" href="https://patrick-morrison.github.io/belowjs/guides/model-comparison.html" target="_blank" rel="noopener noreferrer">Guide</a>
+  </div>
 
   <div id="controlPanel" class="chrome control-panel">
     <!-- Always-visible bar -->
@@ -1066,6 +1432,22 @@
     </div>
   </div>
 
+  <div id="tutorialPane" class="tutorial-pane" hidden>
+    <div class="tutorial-pane-head">
+      <span id="tutorialStep" class="tutorial-pane-step">Step 1 of 5</span>
+      <div id="tutorialTitle" class="tutorial-pane-title">Example loaded</div>
+      <button id="tutorialCloseBtn" class="btn tutorial-pane-close" type="button" aria-label="Close walkthrough">×</button>
+    </div>
+    <div id="tutorialBody" class="tutorial-pane-body"></div>
+    <div class="tutorial-pane-actions">
+      <div id="tutorialNote" class="tutorial-pane-note"></div>
+      <div class="tutorial-pane-buttons">
+        <button id="tutorialSecondaryBtn" class="btn tutorial-pane-secondary" type="button" hidden>Load tutorial points</button>
+        <button id="tutorialNextBtn" class="btn primary tutorial-pane-next" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
   <div id="pointContextMenu" class="context-menu">
     <button id="addPointFromMenu">Add point</button>
     <button id="deletePointFromMenu" class="danger" style="display:none">Delete marker</button>
@@ -1117,11 +1499,12 @@
   <script type="module">
     import * as THREE from 'three';
     import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import * as WebGLTextureUtils from 'three/addons/utils/WebGLTextureUtils.js';
     import { ModelViewer } from 'belowjs';
 
     const COLORS = {
       matched: 0x3e8f71,
-      unmatched: 0x6f9b84,
+      unmatched: 0xf39c12,
       error: 0xff5f5f
     };
 
@@ -1137,6 +1520,38 @@
     const SIGNED_DIFF_WHITE = new THREE.Color(0xffffff);
     const ANALYSIS_PROBE_TEXT = new THREE.Color(0x1f2937);
     const ANALYSIS_PROBE_DOT = new THREE.Color(0x0f172a);
+    const DEMO_EXAMPLE_MODELS = {
+      reference: {
+        url: './alc40-2024-morrison-belowjs.glb',
+        filename: 'alc40-2024-morrison-belowjs',
+        label: 'ALC40 2024 Morrison',
+        desktopPose: {
+          camera: { x: 8.13, y: 9.21, z: 11.00 },
+          target: { x: -0.66, y: -3.23, z: 1.61 }
+        }
+      },
+      updated: {
+        url: './alc40-2014-maawa-belowjs.glb',
+        filename: 'alc40-2014-maawa-belowjs',
+        label: 'ALC40 2014 MAAWA',
+        desktopPose: {
+          camera: { x: 0.53, y: -89.21, z: -78.54 },
+          target: { x: 0.41, y: -31.28, z: -2.91 }
+        }
+      }
+    };
+    const DEMO_TUTORIAL_POINTS = {
+      reference: [
+        { id: 1, name: 'P1', local: [-1.5737402823087654, -0.06059507843630163, 8.361563782416612] },
+        { id: 4, name: 'P2', local: [2.5056038463416606, 0.0019742496791277375, 7.644837641020247] },
+        { id: 5, name: 'P3', local: [-0.5251860480316339, -0.14615260497375404, -4.927014572365056] }
+      ],
+      updated: [
+        { id: 2, name: 'P1', local: [7.846820913606383, -46.15366949855378, 0.48256724884761937] },
+        { id: 3, name: 'P2', local: [-15.020271938599377, -43.21971594810545, 1.002133333035161] },
+        { id: 6, name: 'P3', local: [-0.8260302968382698, 28.12855639038912, -0.5951947564206819] }
+      ]
+    };
     const REFINE_PROFILES = {
       anchored: {
         label: 'Anchored',
@@ -1176,7 +1591,7 @@
       }
     };
 
-    const MARKER_LABEL_SCREEN = { minWidth: 44, height: 24, paddingX: 14 };
+    const MARKER_LABEL_SCREEN = { minWidth: 34, height: 28, paddingX: 14 };
 
     const sceneConfig = {
       scene: {
@@ -1208,6 +1623,26 @@
       heatmapTarget: 'updated',
       camerasLocked: false,
       syncingCamera: false,
+      demoLoading: false,
+      loadingSides: {
+        reference: false,
+        updated: false
+      },
+      demoTutorial: {
+        active: false,
+        step: 0,
+        dismissed: false,
+        swapSequence: 0,
+        refineTitleTimer: null,
+        heightmapLoading: false
+      },
+      demoGuide: {
+        side: null,
+        point: null,
+        marker: null,
+        pulseFrame: 0,
+        message: ''
+      },
       refining: false,
       refineProfile: 'anchored',
       nextPointNumber: 1,
@@ -1260,6 +1695,10 @@
         reference: null,
         updated: null
       },
+      glbBuffers: {
+        reference: null,
+        updated: null
+      },
       exportingAnalysisGlb: false,
       computingHeatmap: false,
       lastHeatmapKeys: {
@@ -1293,14 +1732,28 @@
       updatedPane: document.getElementById('updatedPane'),
       referenceViewer: document.getElementById('referenceViewer'),
       updatedViewer: document.getElementById('updatedViewer'),
+      referenceLoading: document.getElementById('referenceLoading'),
+      updatedLoading: document.getElementById('updatedLoading'),
+      referenceLoadingTitle: document.getElementById('referenceLoadingTitle'),
+      updatedLoadingTitle: document.getElementById('updatedLoadingTitle'),
       referenceDrop: document.getElementById('referenceDrop'),
       updatedDrop: document.getElementById('updatedDrop'),
       referenceChoose: document.getElementById('referenceChoose'),
       updatedChoose: document.getElementById('updatedChoose'),
+      loadExampleBtn: document.getElementById('loadExampleBtn'),
+      demoLaunchBar: document.getElementById('demoLaunchBar'),
       referenceInput: document.getElementById('referenceInput'),
       updatedInput: document.getElementById('updatedInput'),
       referenceLabel: document.getElementById('referenceLabel'),
       updatedLabel: document.getElementById('updatedLabel'),
+      tutorialPane: document.getElementById('tutorialPane'),
+      tutorialStep: document.getElementById('tutorialStep'),
+      tutorialTitle: document.getElementById('tutorialTitle'),
+      tutorialBody: document.getElementById('tutorialBody'),
+      tutorialNote: document.getElementById('tutorialNote'),
+      tutorialSecondaryBtn: document.getElementById('tutorialSecondaryBtn'),
+      tutorialNextBtn: document.getElementById('tutorialNextBtn'),
+      tutorialCloseBtn: document.getElementById('tutorialCloseBtn'),
       controlSummary: document.getElementById('controlSummary'),
       controlPanel: document.getElementById('controlPanel'),
       expandBtn: document.getElementById('expandBtn'),
@@ -1376,6 +1829,10 @@
     setupPointCreation('updated');
 
     els.sideBySideBtn.addEventListener('click', () => setMode('split'));
+    els.loadExampleBtn.addEventListener('click', loadExamplePair);
+    els.tutorialNextBtn.addEventListener('click', advanceDemoTutorial);
+    els.tutorialSecondaryBtn.addEventListener('click', handleDemoTutorialSecondaryAction);
+    els.tutorialCloseBtn.addEventListener('click', dismissDemoTutorial);
     els.combinedBtn.addEventListener('click', () => {
       if (state.mode === 'split') {
         setMode(hasBothModels() ? (state.lastCombinedMode || 'overlay') : 'single');
@@ -1540,6 +1997,7 @@
       if (isEditableTarget(event.target)) return;
       if (event.key.toLowerCase() === 'z') {
         swapSides();
+        recordDemoTutorialSwapFromKey();
       } else if (event.key === 'Escape') {
         hidePointContextMenu();
       }
@@ -1704,8 +2162,30 @@
 
     async function loadModelFile(side, file) {
       if (!file.name.toLowerCase().endsWith('.glb')) return;
+      const url = URL.createObjectURL(file);
+      const arrayBuffer = await file.arrayBuffer();
+      await loadModelSource(side, {
+        url,
+        filename: file.name.replace(/\.glb$/i, '') || sideLabel(side).toLowerCase().replaceAll(' ', '-'),
+        label: file.name,
+        revokeUrl: true,
+        arrayBuffer
+      });
+    }
 
+    function setPaneLoading(side, visible, title = '') {
+      state.loadingSides[side] = visible;
+      const overlay = side === 'reference' ? els.referenceLoading : els.updatedLoading;
+      const titleEl = side === 'reference' ? els.referenceLoadingTitle : els.updatedLoadingTitle;
+      overlay?.classList.toggle('visible', visible);
+      overlay?.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (title) titleEl.textContent = title;
+      updateDemoLaunchBar();
+    }
+
+    async function loadModelSource(side, source) {
       const viewer = coreViewer(side);
+      setPaneLoading(side, true, `Loading ${sideLabel(side)}`);
       invalidateRefinement();
       state.lastHeatmapKeys = {
         heatmap: { reference: null, updated: null },
@@ -1723,14 +2203,14 @@
       state.models[side] = null;
       state.viewers[side]?.measurementSystem?.setRaycastTargets?.([]);
 
-      const url = URL.createObjectURL(file);
-      state.urls[side] = url;
-      state.filenames[side] = file.name.replace(/\.glb$/i, '') || sideLabel(side).toLowerCase().replaceAll(' ', '-');
-      state.labels[side] = file.name;
+      state.urls[side] = source.revokeUrl ? null : source.url;
+      state.glbBuffers[side] = source.arrayBuffer || null;
+      state.filenames[side] = source.filename || sideLabel(side).toLowerCase().replaceAll(' ', '-');
+      state.labels[side] = source.label || source.filename || sideLabel(side);
       updateLabels();
 
       try {
-        const model = await viewer.loadModel(url, { autoFrame: false, alignCenter: false, centerBase: false, autoCenter: false });
+        const model = await viewer.loadModel(source.url, { autoFrame: false, alignCenter: false, centerBase: false, autoCenter: false });
         state.models[side] = model;
         model.matrixAutoUpdate = true;
         markModelMaterials(model, side);
@@ -1745,7 +2225,449 @@
         console.error(error);
         state.models[side] = null;
         getDropElement(side).style.display = 'grid';
+        throw error;
+      } finally {
+        setPaneLoading(side, false);
       }
+    }
+
+    async function loadExamplePair() {
+      if (state.demoLoading) return;
+      state.demoLoading = true;
+      updateDemoLaunchBar();
+      state.demoTutorial.active = false;
+      state.demoTutorial.dismissed = false;
+      state.demoTutorial.step = 0;
+      state.demoTutorial.swapSequence = 0;
+      state.demoTutorial.heightmapLoading = false;
+      const originalText = els.loadExampleBtn.innerHTML;
+      els.loadExampleBtn.disabled = true;
+      els.loadExampleBtn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Loading example...';
+
+      try {
+        await loadModelSource('reference', DEMO_EXAMPLE_MODELS.reference);
+        applyDemoDesktopPose('reference', DEMO_EXAMPLE_MODELS.reference.desktopPose);
+        await loadModelSource('updated', DEMO_EXAMPLE_MODELS.updated);
+        applyDemoDesktopPose('updated', DEMO_EXAMPLE_MODELS.updated.desktopPose);
+        setRefineProfile('surface');
+        startDemoTutorial();
+      } catch (error) {
+        console.error('Example load failed:', error);
+      } finally {
+        state.demoLoading = false;
+        updateDemoLaunchBar();
+        els.loadExampleBtn.disabled = false;
+        els.loadExampleBtn.innerHTML = originalText;
+      }
+    }
+
+    function startDemoTutorial() {
+      state.demoTutorial.active = true;
+      state.demoTutorial.dismissed = false;
+      state.demoTutorial.step = 0;
+      state.demoTutorial.swapSequence = 0;
+      clearDemoGuide();
+      updateDemoTutorial();
+    }
+
+    function dismissDemoTutorial() {
+      state.demoTutorial.active = false;
+      state.demoTutorial.dismissed = true;
+      state.demoTutorial.heightmapLoading = false;
+      clearDemoTutorialRefineTitleTimer();
+      clearDemoGuide();
+      updateDemoTutorial();
+    }
+
+    function currentDemoTutorialStep() {
+      const analysis = analyzeMatches({ preserveErrors: true, updateMarkers: false });
+      const solved = Boolean(state.fit.controlMatrix);
+      const refined = Boolean(state.fit.refinedActive);
+      const swappedWithZ = state.demoTutorial.swapSequence >= 3;
+      const showingHeight = state.mode === 'heightmap';
+      const heightmapLoading = Boolean(state.demoTutorial.heightmapLoading);
+
+      const steps = [
+        {
+          title: 'Example loaded',
+          body: 'ALC 40 is a WWII landing craft wreck in the Swan River. Compare the 2014 MAAWA survey with the 2024 Patrick Morrison survey.',
+          note: 'Start in split view. Model A is 2024 (Patrick Morrison); Model B is 2014 (MAAWA).',
+          button: 'Next',
+          enabled: true
+        },
+        {
+          title: 'Add one point',
+          body: 'Two matched point pairs are loaded. Right-click the orange target on Model B and choose Add point to complete the rough alignment.',
+          note: solved
+            ? 'Aligned. The models have snapped into the same space.'
+            : (state.demoGuide.message || 'Right-click the orange target to add the final tutorial point.'),
+          button: solved ? 'Next' : 'Waiting for point',
+          enabled: solved
+        },
+        {
+          title: state.refining ? refiningTitleText() : 'Refine the fit',
+          body: 'Run Surface refine to tighten the match against the wreck surface. It works best here because the site is broad and mostly flat.',
+          note: state.refining
+            ? 'Refining the overlap now.'
+            : refined
+            ? 'Refinement complete.'
+            : 'Use the Surface pass for this demo.',
+          button: state.refining ? 'Refining…' : refined ? 'Next' : 'Refine',
+          enabled: refined || !state.refining
+        },
+        {
+          title: 'Swap with Z',
+          body: 'Press Z three times: enter single view, swap to 2014, then return to 2024.',
+          note: state.demoTutorial.swapSequence >= 3
+            ? 'Returned to the 2024 reference.'
+            : state.demoTutorial.swapSequence === 2
+              ? 'Press Z once more to return to 2024.'
+              : state.demoTutorial.swapSequence === 1
+                ? 'Press Z again to see the 2014 survey.'
+                : 'Use the keyboard shortcut, or press the button.',
+          button: swappedWithZ ? 'Next' : `Press 'Z' (${Math.min(state.demoTutorial.swapSequence + 1, 3)}/3)`,
+          enabled: true,
+          keyPrompt: !swappedWithZ
+        },
+        {
+          title: heightmapLoading ? 'Generating height map' : 'Inspect height change',
+          body: 'Use Height compare for this wreck: the hull is mostly stable, with small sections of deck collapse (shown in red).',
+          note: showingHeight
+            ? 'Height is clearest here. C2C is better for more 3D wrecks with changing overhangs.'
+            : 'This compares 2024 height against the 2014 survey.',
+          button: heightmapLoading ? 'Generating…' : showingHeight ? 'Done' : 'Height map',
+          enabled: !heightmapLoading,
+          loading: heightmapLoading
+        }
+      ];
+
+      return steps[Math.min(state.demoTutorial.step, steps.length - 1)];
+    }
+
+    async function advanceDemoTutorial() {
+      if (!state.demoTutorial.active) return;
+      const step = state.demoTutorial.step;
+      const current = currentDemoTutorialStep();
+      if (!current?.enabled) return;
+
+      if (step === 0) {
+        loadTutorialGuidePoints();
+        state.demoTutorial.step = 1;
+        updateDemoTutorial();
+        return;
+      }
+
+      if (step === 1) {
+        state.demoTutorial.step = 2;
+        updateDemoTutorial();
+        return;
+      }
+
+      if (step === 2) {
+        if (!state.fit.refinedActive) {
+          els.controlPanel.classList.add('open');
+          els.expandBtn.setAttribute('aria-expanded', 'true');
+          setRefineProfile('surface');
+          await refineAlignment();
+        }
+        if (state.fit.refinedActive) {
+          state.demoTutorial.step = 3;
+          state.demoTutorial.swapSequence = 0;
+        }
+        updateDemoTutorial();
+        return;
+      }
+
+      if (step === 3) {
+        if (state.demoTutorial.swapSequence < 3) {
+          swapSides();
+          recordDemoTutorialSwapFromKey();
+          return;
+        }
+        state.demoTutorial.step = 4;
+        updateDemoTutorial();
+        return;
+      }
+
+      if (step === 4) {
+        if (state.mode !== 'heightmap') {
+          state.demoTutorial.heightmapLoading = true;
+          updateDemoTutorial();
+          await waitForFrames(1);
+          state.heatmapTarget = 'reference';
+          setMode('heightmap');
+          const started = performance.now();
+          while (state.computingHeatmap && performance.now() - started < 12000) {
+            await waitForFrames(1);
+          }
+          const elapsed = performance.now() - started;
+          if (elapsed < 250) {
+            await new Promise((resolve) => setTimeout(resolve, 250 - elapsed));
+          }
+          state.demoTutorial.heightmapLoading = false;
+        } else {
+          dismissDemoTutorial();
+          return;
+        }
+        updateDemoTutorial();
+      }
+    }
+
+    function updateDemoTutorial() {
+      const visible = state.demoTutorial.active && !state.demoTutorial.dismissed && hasBothModels();
+      els.tutorialPane.hidden = !visible;
+      if (!visible) return;
+
+      const step = currentDemoTutorialStep();
+      els.tutorialStep.textContent = `Step ${Math.min(state.demoTutorial.step + 1, 5)} of 5`;
+      els.tutorialTitle.textContent = step.title;
+      els.tutorialBody.textContent = step.body;
+      els.tutorialNote.textContent = step.note;
+      els.tutorialSecondaryBtn.hidden = !step.secondaryButton;
+      els.tutorialSecondaryBtn.textContent = step.secondaryButton || '';
+      els.tutorialSecondaryBtn.disabled = step.secondaryButton ? !step.secondaryEnabled : true;
+      els.tutorialNextBtn.textContent = step.button;
+      els.tutorialNextBtn.disabled = !step.enabled;
+      els.tutorialNextBtn.classList.toggle('is-key-prompt', Boolean(step.keyPrompt));
+      els.tutorialNextBtn.classList.toggle('is-loading', Boolean(step.loading));
+      syncDemoTutorialRefineTitleTimer();
+    }
+
+    function refiningTitleText() {
+      const dots = '.'.repeat((Math.floor(performance.now() / 220) % 3) + 1);
+      return `Refining${dots}`;
+    }
+
+    function clearDemoTutorialRefineTitleTimer() {
+      if (!state.demoTutorial.refineTitleTimer) return;
+      clearTimeout(state.demoTutorial.refineTitleTimer);
+      state.demoTutorial.refineTitleTimer = null;
+    }
+
+    function syncDemoTutorialRefineTitleTimer() {
+      clearDemoTutorialRefineTitleTimer();
+      if (!state.demoTutorial.active || state.demoTutorial.step !== 2 || !state.refining) return;
+      state.demoTutorial.refineTitleTimer = setTimeout(() => {
+        state.demoTutorial.refineTitleTimer = null;
+        updateDemoTutorial();
+      }, 220);
+    }
+
+    function updateDemoLaunchBar() {
+      if (!els.demoLaunchBar) return;
+      const anyLoading = state.demoLoading || state.loadingSides.reference || state.loadingSides.updated;
+      els.demoLaunchBar.hidden = hasAnyModel() || anyLoading;
+    }
+
+    function applyDemoDesktopPose(side, pose) {
+      if (!pose) return;
+      coreViewer(side)?.applyDesktopPositions?.(pose);
+    }
+
+    function guidePlacementTolerance(side) {
+      const model = state.models[side];
+      if (!model) return 0.25;
+      const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).length();
+      return Math.max(size * 0.018, 0.25);
+    }
+
+    function clearDemoGuide() {
+      if (state.demoGuide.pulseFrame) {
+        cancelAnimationFrame(state.demoGuide.pulseFrame);
+      }
+      state.demoGuide.pulseFrame = 0;
+      if (state.demoGuide.marker && typeof state.demoGuide.marker.removeFromParent === 'function') {
+        state.demoGuide.marker.removeFromParent();
+      }
+      disposeMarker(state.demoGuide.marker);
+      state.demoGuide.side = null;
+      state.demoGuide.point = null;
+      state.demoGuide.marker = null;
+      state.demoGuide.message = '';
+    }
+
+    function pulseDemoGuideMarker() {
+      if (!state.demoGuide.marker || !state.demoGuide.side) {
+        state.demoGuide.pulseFrame = 0;
+        return;
+      }
+      const marker = state.demoGuide.marker;
+      const side = state.demoGuide.side;
+      const model = state.models[side];
+      const modelWorldScale = model ? new THREE.Vector3().setFromMatrixScale(model.matrixWorld).x : 1;
+      const pulseProgress = (Math.sin(performance.now() * 0.0016) + 1) * 0.5;
+      const sprite = marker.userData?.guideSprite;
+      const pulseSprite = marker.userData?.guidePulseSprite;
+      const worldPosition = new THREE.Vector3();
+      marker.getWorldPosition(worldPosition);
+      if (sprite) {
+        const screenSize = 58;
+        const labelSize = labelWorldSizeForSide(side, worldPosition, screenSize, screenSize);
+        sprite.scale.set(
+          labelSize.width / Math.max(modelWorldScale, 1e-6),
+          labelSize.height / Math.max(modelWorldScale, 1e-6),
+          1
+        );
+        sprite.material.opacity = 1;
+      }
+      if (pulseSprite) {
+        const pulseSize = 76 + pulseProgress * 34;
+        const pulseSizeWorld = labelWorldSizeForSide(side, worldPosition, pulseSize, pulseSize);
+        pulseSprite.scale.set(
+          pulseSizeWorld.width / Math.max(modelWorldScale, 1e-6),
+          pulseSizeWorld.height / Math.max(modelWorldScale, 1e-6),
+          1
+        );
+        pulseSprite.material.opacity = 0.22 + (1 - pulseProgress) * 0.22;
+      }
+      state.demoGuide.pulseFrame = requestAnimationFrame(pulseDemoGuideMarker);
+    }
+
+    function showDemoGuideTarget(side, point) {
+      clearDemoGuide();
+      const guidePoint = {
+        id: point.id,
+        side,
+        name: point.name,
+        local: new THREE.Vector3().fromArray(point.local),
+        state: 'matched'
+      };
+      const marker = createMarker(guidePoint);
+      marker.traverse((object) => {
+        object.raycast = () => {};
+      });
+      marker.userData.isGuideMarker = true;
+      marker.userData.pointSide = side;
+      if (marker.userData.sphere) marker.userData.sphere.visible = false;
+      if (marker.userData.outline) marker.userData.outline.visible = false;
+      if (marker.userData.label) marker.userData.label.visible = false;
+
+      const guidePulseTexture = createGuidePulseTexture();
+      const guidePulseSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: guidePulseTexture,
+        transparent: true,
+        opacity: 0.12,
+        depthTest: false,
+        depthWrite: false
+      }));
+      guidePulseSprite.center.set(0.5, 0.5);
+      guidePulseSprite.renderOrder = 111;
+      guidePulseSprite.raycast = () => {};
+      guidePulseSprite.userData.isControlMarker = true;
+      guidePulseSprite.userData.pointSide = side;
+      marker.add(guidePulseSprite);
+      marker.userData.guidePulseSprite = guidePulseSprite;
+
+      const guideTargetTexture = createGuideTargetTexture();
+      const guideSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: guideTargetTexture,
+        transparent: true,
+        opacity: 1,
+        depthTest: false,
+        depthWrite: false
+      }));
+      guideSprite.center.set(0.5, 0.5);
+      guideSprite.renderOrder = 112;
+      guideSprite.raycast = () => {};
+      guideSprite.userData.isControlMarker = true;
+      guideSprite.userData.pointSide = side;
+      marker.add(guideSprite);
+      marker.userData.guideSprite = guideSprite;
+
+
+      const model = state.models[side];
+      if (model) {
+        const modelWorldScale = new THREE.Vector3().setFromMatrixScale(model.matrixWorld).x;
+        const worldPosition = new THREE.Vector3();
+        marker.getWorldPosition(worldPosition);
+        const pulseSize = labelWorldSizeForSide(side, worldPosition, 72, 72);
+        guidePulseSprite.scale.set(
+          pulseSize.width / Math.max(modelWorldScale, 1e-6),
+          pulseSize.height / Math.max(modelWorldScale, 1e-6),
+          1
+        );
+        const labelSize = labelWorldSizeForSide(side, worldPosition, 58, 58);
+        guideSprite.scale.set(
+          labelSize.width / Math.max(modelWorldScale, 1e-6),
+          labelSize.height / Math.max(modelWorldScale, 1e-6),
+          1
+        );
+      }
+      state.models[side]?.add(marker);
+      state.demoGuide.side = side;
+      state.demoGuide.point = point;
+      state.demoGuide.marker = marker;
+      state.demoGuide.message = 'Right-click the orange target on Model B, then choose Add point.';
+      pulseDemoGuideMarker();
+    }
+
+    function loadTutorialGuidePoints() {
+      if (!hasBothModels()) return;
+      clearDemoGuide();
+      clearPoints('reference');
+      clearPoints('updated');
+      state.nextPointNumber = 1;
+      state.referenceSide = 'reference';
+      state.display.points = true;
+      els.showPointsToggle.checked = true;
+      updateReferenceControl();
+      setRefineProfile('surface');
+      invalidateRefinement();
+
+      for (const point of DEMO_TUTORIAL_POINTS.reference.slice(0, 2)) {
+        insertPoint('reference', new THREE.Vector3().fromArray(point.local), point.name, point.id);
+      }
+      for (const point of DEMO_TUTORIAL_POINTS.updated.slice(0, 2)) {
+        insertPoint('updated', new THREE.Vector3().fromArray(point.local), point.name, point.id);
+      }
+
+      const referenceGuidePoint = DEMO_TUTORIAL_POINTS.reference[2];
+      insertPoint('reference', new THREE.Vector3().fromArray(referenceGuidePoint.local), referenceGuidePoint.name, referenceGuidePoint.id);
+      syncMarkerScale('reference');
+      syncMarkerScale('updated');
+      showDemoGuideTarget('updated', DEMO_TUTORIAL_POINTS.updated[2]);
+      analyzeAndFit();
+      updateDemoTutorial();
+    }
+
+    function resolveGuidedDemoPoint(side, worldPoint) {
+      if (!state.demoGuide.marker || !state.demoGuide.point) return { mode: 'normal' };
+      if (state.demoTutorial.active && state.demoTutorial.step === 1 && side !== state.demoGuide.side) {
+        state.demoGuide.message = `The tutorial is waiting for the final ${state.demoGuide.point.name} on Model B.`;
+        updateDemoTutorial();
+        return { mode: 'blocked' };
+      }
+      if (state.demoGuide.side !== side) return { mode: 'normal' };
+      const model = state.models[side];
+      if (!model) return { mode: 'normal' };
+      const clickedLocal = model.worldToLocal(worldPoint.clone());
+      const targetLocal = new THREE.Vector3().fromArray(state.demoGuide.point.local);
+      const tolerance = guidePlacementTolerance(side) * 1.5;
+      if (clickedLocal.distanceTo(targetLocal) <= tolerance) {
+        return { mode: 'guided', localPoint: targetLocal, point: state.demoGuide.point };
+      }
+      state.demoGuide.message = `Close, but not quite there. Right-click a little nearer the pulsing ${state.demoGuide.point.name} target.`;
+      updateDemoTutorial();
+      return { mode: 'blocked' };
+    }
+
+    function handleDemoTutorialSecondaryAction() {
+      return;
+    }
+
+    function recordDemoTutorialSwapFromKey() {
+      if (!state.demoTutorial.active || state.demoTutorial.step !== 3) return;
+      if (state.mode === 'single' && state.singleSide === 'reference' && state.demoTutorial.swapSequence === 0) {
+        state.demoTutorial.swapSequence = 1;
+      } else if (state.mode === 'single' && state.singleSide === 'updated' && state.demoTutorial.swapSequence === 1) {
+        state.demoTutorial.swapSequence = 2;
+      } else if (state.mode === 'single' && state.singleSide === 'reference' && state.demoTutorial.swapSequence === 2) {
+        state.demoTutorial.swapSequence = 3;
+      }
+      if (state.demoTutorial.swapSequence >= 3) {
+        state.demoTutorial.step = 4;
+      }
+      updateDemoTutorial();
     }
 
     function setupCameraLinking() {
@@ -2017,9 +2939,20 @@
     function addPoint(side, worldPoint) {
       const model = state.models[side];
       if (!model) return null;
+      const guidedPlacement = resolveGuidedDemoPoint(side, worldPoint);
+      if (guidedPlacement.mode === 'blocked') return null;
       invalidateRefinement();
-      const point = insertPoint(side, model.worldToLocal(worldPoint.clone()), defaultPointName(side));
+      const point = guidedPlacement.mode === 'guided'
+        ? insertPoint(side, guidedPlacement.localPoint, guidedPlacement.point.name, guidedPlacement.point.id)
+        : insertPoint(side, model.worldToLocal(worldPoint.clone()), defaultPointName(side));
+      if (guidedPlacement.mode === 'guided') {
+        clearDemoGuide();
+      }
       analyzeAndFit();
+      if (state.demoTutorial.active && state.demoTutorial.step === 1 && state.fit.controlMatrix) {
+        state.demoTutorial.step = 2;
+      }
+      updateDemoTutorial();
       return point;
     }
 
@@ -2114,7 +3047,7 @@
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const fontPx = 32;
-      const paddingX = 28;
+      const paddingX = 24;
       const paddingY = 18;
 
       ctx.font = `700 ${fontPx}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
@@ -2148,6 +3081,75 @@
       );
       return { texture, screenWidth, screenHeight };
     }
+
+    function createGuideTargetTexture() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 256;
+      canvas.height = 256;
+      const center = 128;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(center, center, 54, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.lineWidth = 9;
+      ctx.strokeStyle = 'rgba(243, 156, 18, 0.78)';
+      ctx.beginPath();
+      ctx.arc(center, center, 54, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.12)';
+      ctx.beginPath();
+      ctx.arc(center, center, 64, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(8, coreViewer('reference')?.getRenderer?.()?.capabilities?.getMaxAnisotropy?.() ?? 1);
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function createGuidePulseTexture() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 256;
+      canvas.height = 256;
+      const center = 128;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const halo = ctx.createRadialGradient(center, center, 38, center, center, 118);
+      halo.addColorStop(0, 'rgba(243, 156, 18, 0)');
+      halo.addColorStop(0.42, 'rgba(243, 156, 18, 0.24)');
+      halo.addColorStop(0.66, 'rgba(243, 156, 18, 0.12)');
+      halo.addColorStop(1, 'rgba(243, 156, 18, 0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(center, center, 118, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = 'rgba(243, 156, 18, 0.38)';
+      ctx.beginPath();
+      ctx.arc(center, center, 74, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
 
     function createProbeLabelTexture(text, accentColor = ANALYSIS_PROBE_TEXT.getHex()) {
       const label = cleanName(text) || '?';
@@ -2325,6 +3327,9 @@
       for (const point of allPoints()) {
         if (point.marker) point.marker.visible = state.display.points;
       }
+      if (state.demoGuide.marker) {
+        state.demoGuide.marker.visible = true;
+      }
       for (const side of ['reference', 'updated']) {
         for (const line of state.errorLines[side]) {
           line.visible = state.display.errorLines;
@@ -2410,7 +3415,7 @@
       els.refineProfileRow.style.display = bothModels ? 'flex' : 'none';
       if (state.fit.refinedActive) {
         els.refineBtn.disabled = false;
-        els.refineBtn.textContent = 'Reset';
+        els.refineBtn.textContent = 'Refined (undo)';
         els.refineBtn.classList.remove('primary');
         els.refineBtn.classList.add('active');
       } else if (state.refining) {
@@ -2428,6 +3433,7 @@
       els.screenshotBtn.disabled = !anyModels;
       els.clearBtn.disabled = !anyModels;
       updateUiState();
+      updateDemoTutorial();
     }
 
     function setReferenceSide(side) {
@@ -2733,11 +3739,13 @@
       const profile = currentRefineProfile();
       const markerMatrix = state.fit.controlMatrix?.clone() ?? state.models[movingSide()].matrix.clone();
       const markerRms = markerRmsForPairs(markerMatrix, analysis.pairs);
+      const refineStartedAt = performance.now();
 
       state.refining = true;
       els.refineBtn.disabled = true;
       els.refineBtn.textContent = 'Refining...';
       updateRefineProfileControls();
+      updateActions(analysis);
       await waitForFrames(1);
       try {
         const source = sampleModelPoints(state.models[movingSide()], profile.sampleCount);
@@ -2814,6 +3822,10 @@
           computeC2CHeatmap();
         }
       } finally {
+        const elapsed = performance.now() - refineStartedAt;
+        if (elapsed < 300) {
+          await new Promise((resolve) => setTimeout(resolve, 300 - elapsed));
+        }
         state.refining = false;
         updateRefineProfileControls();
         updateActions(analysis);
@@ -2826,27 +3838,94 @@
       analyzeAndFit();
     }
 
+    function applyExporterTextureUtils(exporter, renderer) {
+      if (!exporter || typeof exporter.setTextureUtils !== 'function') return;
+      if (!renderer || !renderer.isWebGLRenderer) return;
+      exporter.setTextureUtils({
+        decompress: (texture, maxTextureSize) => {
+          const savedTarget = renderer.getRenderTarget();
+          const decompressed = WebGLTextureUtils.decompress(texture, maxTextureSize, renderer);
+          renderer.setRenderTarget(savedTarget);
+          const originalMime = texture?.userData?.mimeType;
+          decompressed.userData = { ...(texture?.userData || {}) };
+          if (originalMime === 'image/ktx2') decompressed.userData.mimeType = 'image/png';
+          if (texture?.repeat && decompressed.repeat) decompressed.repeat.copy(texture.repeat);
+          if (texture?.offset && decompressed.offset) decompressed.offset.copy(texture.offset);
+          if (texture?.center && decompressed.center) decompressed.center.copy(texture.center);
+          if (typeof texture?.rotation === 'number') decompressed.rotation = texture.rotation;
+          if (typeof texture?.matrixAutoUpdate === 'boolean') decompressed.matrixAutoUpdate = texture.matrixAutoUpdate;
+          if (texture?.matrix && decompressed.matrix) decompressed.matrix.copy(texture.matrix);
+          if (typeof texture?.flipY === 'boolean') decompressed.flipY = texture.flipY;
+          if (typeof texture?.generateMipmaps === 'boolean') decompressed.generateMipmaps = texture.generateMipmaps;
+          if (typeof texture?.anisotropy === 'number') decompressed.anisotropy = texture.anisotropy;
+          if (typeof texture?.channel === 'number') decompressed.channel = texture.channel;
+          decompressed.needsUpdate = true;
+          return decompressed;
+        }
+      });
+    }
+
+    function wrapGlbWithTransform(srcBuffer, matrixWorld) {
+      const view = new DataView(srcBuffer);
+      if (view.getUint32(0, true) !== 0x46546c67) throw new Error('Not a GLB file');
+      const jsonLen = view.getUint32(12, true);
+      const jsonBytes = new Uint8Array(srcBuffer, 20, jsonLen);
+      const json = JSON.parse(new TextDecoder().decode(jsonBytes));
+
+      json.nodes = json.nodes || [];
+      const wrapperIdx = json.nodes.length;
+      const childIndices = [];
+      (json.scenes || []).forEach((scene) => {
+        if (scene.nodes?.length) {
+          childIndices.push(...scene.nodes);
+          scene.nodes = [wrapperIdx];
+        }
+      });
+      const wrapperNode = { matrix: Array.from(matrixWorld.elements) };
+      if (childIndices.length) wrapperNode.children = [...new Set(childIndices)];
+      json.nodes.push(wrapperNode);
+
+      const newJsonRaw = new TextEncoder().encode(JSON.stringify(json));
+      const padded = Math.ceil(newJsonRaw.length / 4) * 4;
+      const newJsonBytes = new Uint8Array(padded).fill(0x20);
+      newJsonBytes.set(newJsonRaw);
+
+      const binStart = 12 + 8 + jsonLen;
+      const hasBin = binStart + 8 <= srcBuffer.byteLength;
+      const binChunkLen = hasBin ? 8 + view.getUint32(binStart, true) : 0;
+      const totalLen = 12 + 8 + padded + binChunkLen;
+
+      const out = new ArrayBuffer(totalLen);
+      const outView = new DataView(out);
+      const outBytes = new Uint8Array(out);
+      outView.setUint32(0, 0x46546c67, true);
+      outView.setUint32(4, 2, true);
+      outView.setUint32(8, totalLen, true);
+      outView.setUint32(12, padded, true);
+      outView.setUint32(16, 0x4E4F534A, true);
+      outBytes.set(newJsonBytes, 20);
+      if (hasBin) outBytes.set(new Uint8Array(srcBuffer, binStart, binChunkLen), 20 + padded);
+      return out;
+    }
+
     async function downloadTransformedModel() {
       const side = activeExportSide();
       const model = state.models[side];
       if (!model) return;
 
-      const exportRoot = cloneModelForExport(model);
-      const exporter = new GLTFExporter();
-      const arrayBuffer = await new Promise((resolve, reject) => {
-        exporter.parse(
-          exportRoot,
-          (result) => {
-            if (result instanceof ArrayBuffer) {
-              resolve(result);
-            } else {
-              resolve(new TextEncoder().encode(JSON.stringify(result)).buffer);
-            }
-          },
-          reject,
-          { binary: true }
-        );
-      });
+      if (!state.glbBuffers[side] && state.urls[side]) {
+        try {
+          const r = await fetch(state.urls[side]);
+          if (r.ok) state.glbBuffers[side] = await r.arrayBuffer();
+        } catch (e) {
+          console.warn('Could not fetch source GLB for export:', e);
+        }
+      }
+
+      model.updateMatrixWorld(true);
+      const arrayBuffer = state.glbBuffers[side]
+        ? wrapGlbWithTransform(state.glbBuffers[side], model.matrixWorld)
+        : (() => { throw new Error('No source GLB bytes available for export'); })();
 
       const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
       const url = URL.createObjectURL(blob);
@@ -2887,6 +3966,8 @@
         clone.onBeforeCompile = original.onBeforeCompile;
         clone.customProgramCacheKey = original.customProgramCacheKey;
       }
+      clone.userData = { ...clone.userData };
+      delete clone.userData.compareOriginalState;
       clone.needsUpdate = true;
       return clone;
     }
@@ -2984,6 +4065,8 @@
         pixels[offset + 3] = 255;
       };
 
+      const flipV = baseMap?.flipY ?? false;
+
       for (const range of triangleRanges) {
         for (let i = range.start; i < range.end; i += 3) {
           const aIndex = index ? index.getX(i) : i;
@@ -2992,11 +4075,11 @@
           if ([aIndex, bIndex, cIndex].some((idx) => idx >= values.length || idx >= uv.count)) continue;
 
           const ax = uv.getX(aIndex) * (width - 1);
-          const ay = (1 - uv.getY(aIndex)) * (height - 1);
+          const ay = (flipV ? (1 - uv.getY(aIndex)) : uv.getY(aIndex)) * (height - 1);
           const bx = uv.getX(bIndex) * (width - 1);
-          const by = (1 - uv.getY(bIndex)) * (height - 1);
+          const by = (flipV ? (1 - uv.getY(bIndex)) : uv.getY(bIndex)) * (height - 1);
           const cx = uv.getX(cIndex) * (width - 1);
-          const cy = (1 - uv.getY(cIndex)) * (height - 1);
+          const cy = (flipV ? (1 - uv.getY(cIndex)) : uv.getY(cIndex)) * (height - 1);
 
           const denom = ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
           if (Math.abs(denom) < 1e-9) continue;
@@ -3033,9 +4116,16 @@
       ctx.putImageData(imageData, 0, 0);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.userData = { mimeType: 'image/jpeg' };
       texture.flipY = baseMap?.flipY ?? false;
       texture.wrapS = baseMap?.wrapS ?? THREE.ClampToEdgeWrapping;
       texture.wrapT = baseMap?.wrapT ?? THREE.ClampToEdgeWrapping;
+      if (baseMap?.repeat) texture.repeat.copy(baseMap.repeat);
+      if (baseMap?.offset) texture.offset.copy(baseMap.offset);
+      if (baseMap?.center) texture.center.copy(baseMap.center);
+      if (typeof baseMap?.rotation === 'number') texture.rotation = baseMap.rotation;
+      if (typeof baseMap?.matrixAutoUpdate === 'boolean') texture.matrixAutoUpdate = baseMap.matrixAutoUpdate;
+      if (baseMap?.matrix) texture.matrix.copy(baseMap.matrix);
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = true;
@@ -3075,9 +4165,11 @@
         
         if (object.isMesh) {
           object.geometry = object.geometry?.clone?.() ?? object.geometry;
-          object.material = Array.isArray(object.material)
-            ? object.material.map(cloneMaterialForExport)
-            : cloneMaterialForExport(object.material);
+          if (!options.preserveMaterials) {
+            object.material = Array.isArray(object.material)
+              ? object.material.map(cloneMaterialForExport)
+              : cloneMaterialForExport(object.material);
+          }
           if (options.bakeAnalysis) {
              const values = analysisValuesForExport(object, options);
              if (!values?.length) return;
@@ -3150,6 +4242,7 @@
         });
         
         const exporter = new GLTFExporter();
+        applyExporterTextureUtils(exporter, coreViewer(targetSide)?.getRenderer?.());
         const arrayBuffer = await new Promise((resolve, reject) => {
           exporter.parse(exportRoot, (res) => {
             resolve(res instanceof ArrayBuffer ? res : new TextEncoder().encode(JSON.stringify(res)).buffer);
@@ -3634,6 +4727,7 @@
       syncAnalysisProbeScale('reference');
       syncAnalysisProbeScale('updated');
       updateLabels();
+      updateDemoLaunchBar();
       updateUiState();
     }
 
@@ -3813,6 +4907,9 @@
     }
 
     function clearPoints(side) {
+      if (state.demoGuide.side === side) {
+        clearDemoGuide();
+      }
       clearAnalysisProbe(side);
       for (const point of state.points[side]) {
         disposeMarker(point.marker);
@@ -3998,7 +5095,7 @@
       probe.position.copy(localPoint);
       probe.userData.mode = mode;
       probe.userData.value = value;
-      probe.visible = isAnalysisMode() && side === state.heatmapTarget;
+      probe.visible = !isMeasurementToolActive() && isAnalysisMode() && side === state.heatmapTarget;
       probe.userData.dot.material.color.setHex(accent);
       syncAnalysisProbeScale(side);
     }
@@ -4059,6 +5156,9 @@
       for (const point of state.points[side]) {
         applyMarkerVisualScale(point.marker, localScale, modelWorldScale, side);
       }
+      if (state.demoGuide.side === side && state.demoGuide.marker) {
+        applyMarkerVisualScale(state.demoGuide.marker, localScale, modelWorldScale, side);
+      }
     }
 
     function findPointByMarkerObject(side, object) {
@@ -4095,18 +5195,28 @@
     }
 
     function showAnalysisProbeFromHit(side, hit) {
-      if (!isAnalysisMode() || side !== state.heatmapTarget || !state.models[side]) return;
+      if (!isAnalysisMode() || isMeasurementToolActive() || side !== state.heatmapTarget || !state.models[side]) return;
       const value = interpolatedAnalysisValueAtHit(hit, currentAnalysisMode());
       if (!Number.isFinite(value)) return;
       const localPoint = state.models[side].worldToLocal(hit.point.clone());
       updateAnalysisProbe(side, localPoint, analysisProbeText(currentAnalysisMode(), value), currentAnalysisMode(), value);
     }
 
+    function isMeasurementToolActive() {
+      return ['reference', 'updated'].some((side) => {
+        const measurement = state.viewers[side]?.measurementSystem;
+        if (!measurement) return false;
+        const pointCount = measurement.unifiedMeasurementPoints?.length ?? 0;
+        return Boolean(measurement.desktopMeasurementMode || pointCount > 0);
+      });
+    }
+
     function updateAnalysisProbeVisibility() {
+      const hideForMeasurement = isMeasurementToolActive();
       for (const side of ['reference', 'updated']) {
         const probe = state.analysisProbe[side];
         if (!probe) continue;
-        probe.visible = isAnalysisMode() && side === state.heatmapTarget;
+        probe.visible = !hideForMeasurement && isAnalysisMode() && side === state.heatmapTarget;
       }
     }
 
@@ -4340,6 +5450,12 @@
 
     function updateLabels() {
       const mode = state.mode || 'split';
+      const refSingleHint = mode === 'single' && hasBothModels() && state.singleSide === 'reference'
+        ? ' · surface · Z to swap'
+        : '';
+      const updSingleHint = mode === 'single' && hasBothModels() && state.singleSide === 'updated'
+        ? ' · surface · Z to swap'
+        : '';
       const refSuffix = mode === 'diff'
         ? ' (Layer A - Blue)'
         : isAnalysisMode(mode) && state.heatmapTarget === 'reference'
@@ -4354,8 +5470,8 @@
           : isAnalysisMode(mode)
             ? ' (reference)'
             : '';
-      els.referenceLabel.textContent = state.labels.reference + refSuffix;
-      els.updatedLabel.textContent = state.labels.updated + updSuffix;
+      els.referenceLabel.textContent = state.labels.reference + refSuffix + refSingleHint;
+      els.updatedLabel.textContent = state.labels.updated + updSuffix + updSingleHint;
     }
 
     function screenshotDescription() {
@@ -4418,8 +5534,8 @@
       els.screenshotBtn.title = screenshotDescription();
       els.downloadBtn.title = exportDescription();
       els.downloadBtn.textContent = exportSide ? `Save ${sideShortLabel(exportSide)}` : 'Save';
-      els.downloadHeatmapBtn.textContent = state.exportingAnalysisGlb
-        ? 'Exporting...'
+      els.downloadHeatmapBtn.innerHTML = state.exportingAnalysisGlb
+        ? '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Exporting...'
         : state.mode === 'heightmap' ? 'Save Height GLB' : 'Save Heatmap GLB';
       els.downloadHeatmapBtn.title = bothModels
         ? state.mode === 'heightmap'
@@ -4628,18 +5744,21 @@
       const origRefPlace = refSystem.placeUnifiedMeasurementPoint.bind(refSystem);
       refSystem.placeUnifiedMeasurementPoint = (pt, source) => {
         origRefPlace(pt, source);
+        updateAnalysisProbeVisibility();
         if (source !== 'sync') syncPoint(updSystem, pt, 'updated');
       };
       
       const origUpdPlace = updSystem.placeUnifiedMeasurementPoint.bind(updSystem);
       updSystem.placeUnifiedMeasurementPoint = (pt, source) => {
         origUpdPlace(pt, source);
+        updateAnalysisProbeVisibility();
         if (source !== 'sync') syncPoint(refSystem, pt, 'reference');
       };
       
       const origRefClear = refSystem.clearUnifiedMeasurement.bind(refSystem);
       refSystem.clearUnifiedMeasurement = () => {
         origRefClear();
+        updateAnalysisProbeVisibility();
         if (!state.syncingMeasurement) {
            state.syncingMeasurement = true;
            updSystem.clearUnifiedMeasurement();
@@ -4650,12 +5769,19 @@
       const origUpdClear = updSystem.clearUnifiedMeasurement.bind(updSystem);
       updSystem.clearUnifiedMeasurement = () => {
         origUpdClear();
+        updateAnalysisProbeVisibility();
         if (!state.syncingMeasurement) {
            state.syncingMeasurement = true;
            refSystem.clearUnifiedMeasurement();
            state.syncingMeasurement = false;
         }
       };
+
+      const refreshProbeVisibilitySoon = () => {
+        requestAnimationFrame(updateAnalysisProbeVisibility);
+      };
+      refSystem.measurementPanel?.addEventListener('click', refreshProbeVisibilitySoon);
+      updSystem.measurementPanel?.addEventListener('click', refreshProbeVisibilitySoon);
       
       refSystem._syncPatched = true;
       updSystem._syncPatched = true;

@@ -1,0 +1,108 @@
+{
+  "format": "belowjs-model-comparison-points",
+  "version": 2,
+  "createdAt": "2026-04-24T12:33:59.401Z",
+  "method": "Method: Marker-based least-squares similarity transform\nReference model: Model A (ALC40 2024 Morrison)\nMoving model:    Model B (ALC40 2014 MAAWA)\nMatched pairs:   3\nDuplicate errors:0\nRMS residual:    0.020\n\nScale:           0.178063\nTranslation:     X=-0.4804  Y=-0.1290  Z=0.0793\nRotation (deg):  Rx=88.6134  Ry=2.4238  Rz=177.7958\n\nTransform matrix (column-major):\n  [   -0.177772     -0.006842      0.007530     -0.480387 ]\n  [   -0.007357     -0.004595     -0.177852     -0.128955 ]\n  [    0.007029     -0.177872      0.004305      0.079343 ]\n  [    0.000000      0.000000      0.000000      1.000000 ]\n\nPoint residuals:\n  P1            0.024\n  P2            0.024\n  P3            0.007",
+  "referenceModel": {
+    "label": "ALC40 2024 Morrison",
+    "filename": "alc40-2024-morrison-belowjs"
+  },
+  "movingModel": {
+    "label": "ALC40 2014 MAAWA",
+    "filename": "alc40-2014-maawa-belowjs"
+  },
+  "models": {
+    "reference": {
+      "label": "ALC40 2024 Morrison",
+      "filename": "alc40-2024-morrison-belowjs"
+    },
+    "updated": {
+      "label": "ALC40 2014 MAAWA",
+      "filename": "alc40-2014-maawa-belowjs"
+    }
+  },
+  "fit": {
+    "controlMatrix": [
+      -0.17777213550081486,
+      -0.007356963698425756,
+      0.007028516423559574,
+      0,
+      -0.006842298322376286,
+      -0.004595341578483613,
+      -0.17787220948743213,
+      0,
+      0.007530465566205564,
+      -0.177851665832551,
+      0.004305132685421771,
+      0,
+      -0.4803870485250283,
+      -0.12895538134169407,
+      0.07934294413344478,
+      1
+    ],
+    "refinedMatrix": null,
+    "refinedActive": false,
+    "profile": "anchored",
+    "refineMetrics": null
+  },
+  "points": {
+    "reference": [
+      {
+        "id": 1,
+        "name": "P1",
+        "local": [
+          -1.5737402823087654,
+          -0.06059507843630163,
+          8.361563782416612
+        ]
+      },
+      {
+        "id": 4,
+        "name": "P2",
+        "local": [
+          2.5056038463416606,
+          0.0019742496791277375,
+          7.644837641020247
+        ]
+      },
+      {
+        "id": 5,
+        "name": "P3",
+        "local": [
+          -0.5251860480316339,
+          -0.14615260497375404,
+          -4.927014572365056
+        ]
+      }
+    ],
+    "updated": [
+      {
+        "id": 2,
+        "name": "P1",
+        "local": [
+          7.846820913606383,
+          -46.15366949855378,
+          0.48256724884761937
+        ]
+      },
+      {
+        "id": 3,
+        "name": "P2",
+        "local": [
+          -15.020271938599377,
+          -43.21971594810545,
+          1.002133333035161
+        ]
+      },
+      {
+        "id": 6,
+        "name": "P3",
+        "local": [
+          -0.8260302968382698,
+          28.12855639038912,
+          -0.5951947564206819
+        ]
+      }
+    ]
+  }
+}
