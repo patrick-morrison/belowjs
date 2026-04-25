@@ -865,6 +865,21 @@
       border-top: 1px solid var(--panel-border);
     }
 
+    .point-group-header {
+      padding: 4px 10px 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: var(--panel-soft);
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .point-group-header:first-child {
+      border-top: 0;
+    }
+
     .point-row {
       display: grid;
       grid-template-columns: 30px minmax(80px, 1fr) 64px 28px;
@@ -1818,6 +1833,7 @@
 
     setupFileLoading('reference');
     setupFileLoading('updated');
+    setupMultiFileDrop();
     setupCameraLinking();
     setupPointCreation('reference');
     setupPointCreation('updated');
@@ -2031,11 +2047,12 @@
       }
 
       const newSide = activeCombinedSide();
+
+      updateLayout();
+
       if (oldSide !== newSide) {
         matchCameraPose(oldSide, newSide);
       }
-
-      updateLayout();
     }
 
     updateLayout();
@@ -2152,6 +2169,27 @@
           await importPointsData(file);
         }
       });
+    }
+
+    function setupMultiFileDrop() {
+      document.addEventListener('dragover', (event) => event.preventDefault(), true);
+      document.addEventListener('drop', async (event) => {
+        const files = Array.from(event.dataTransfer?.files || []);
+        const glbs = files.filter((f) => f.name.toLowerCase().endsWith('.glb'));
+        const json = files.find((f) => f.name.toLowerCase().endsWith('.json') || f.name.toLowerCase().endsWith('.txt'));
+
+        if (glbs.length < 2 && !json) return; // let per-pane handlers deal with single-file drops
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (glbs.length >= 2) {
+          await loadModelFile('reference', glbs[0]);
+          await loadModelFile('updated', glbs[1]);
+        }
+        if (json) {
+          await importPointsData(json);
+        }
+      }, true); // capture phase — runs before per-pane handlers
     }
 
     async function loadModelFile(side, file) {
@@ -2689,6 +2727,15 @@
         syncAnalysisProbeScale('reference');
         syncAnalysisProbeScale('updated');
       });
+
+      for (const [side, other] of [['reference', 'updated'], ['updated', 'reference']]) {
+        coreViewer(side).on('fly-mode-change', ({ active }) => {
+          const otherCore = coreViewer(other);
+          if (otherCore?.ui?.flyIndicator) {
+            otherCore.ui.flyIndicator.classList.toggle('visible', active);
+          }
+        });
+      }
     }
 
     function syncCamera(fromSide, toSide) {
@@ -2881,6 +2928,20 @@
 
       renderer.domElement.addEventListener('contextmenu', (event) => {
         event.preventDefault();
+      });
+
+      // If the page loses focus mid-drag (tab away, pointer lock release, OS switch),
+      // pointerup never fires and controls stay disabled. Reset on visibility restore.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (markerDrag) {
+          markerDrag.point.marker.position.copy(markerDrag.point.local);
+          const controls = coreViewer(viewer).cameraManager.getControls();
+          if (controls) controls.enabled = true;
+          markerDrag = null;
+        }
+        leftClickCandidate = null;
+        rightClickCandidate = null;
       });
     }
 
@@ -3364,17 +3425,26 @@
 
     function renderPoints(analysis = analyzeMatches()) {
       const points = allPoints().sort((a, b) => a.id - b.id);
-      els.pointList.innerHTML = points.length ? points.map((point) => {
-        const errorText = point.error != null ? formatDistance(point.error) : (point.state === 'matched' ? '✓' : point.state === 'error' ? 'dup' : '–');
-        return `
-          <div class="point-row">
-            <span class="point-id ${point.state}" title="${sideLabel(point.side)}">${point.id}</span>
-            <input class="point-name" data-side="${point.side}" data-point-id="${point.id}" value="${escapeHtml(point.name)}" aria-label="${point.side} point ${point.id} name">
-            <span class="point-state ${point.state}">${errorText}</span>
-            <button class="btn icon-btn" data-side="${point.side}" data-delete-point-id="${point.id}" title="Delete point">×</button>
-          </div>
-        `;
-      }).join('') : '<div class="empty-points">No points yet</div>';
+      if (!points.length) {
+        els.pointList.innerHTML = '<div class="empty-points">No points yet</div>';
+      } else {
+        const sides = ['reference', 'updated'].filter((s) => points.some((p) => p.side === s));
+        els.pointList.innerHTML = sides.map((side) => {
+          const sidePoints = points.filter((p) => p.side === side);
+          const rows = sidePoints.map((point) => {
+            const errorText = point.error != null ? formatDistance(point.error) : (point.state === 'matched' ? '✓' : point.state === 'error' ? 'dup' : '–');
+            return `
+              <div class="point-row">
+                <span class="point-id ${point.state}">${point.id}</span>
+                <input class="point-name" data-side="${point.side}" data-point-id="${point.id}" value="${escapeHtml(point.name)}" aria-label="${point.side} point ${point.id} name">
+                <span class="point-state ${point.state}">${errorText}</span>
+                <button class="btn icon-btn" data-side="${point.side}" data-delete-point-id="${point.id}" title="Delete point">×</button>
+              </div>
+            `;
+          }).join('');
+          return `<div class="point-group-header">${sideLabel(side)}</div>${rows}`;
+        }).join('');
+      }
 
       els.pointCount.textContent = `${analysis.pairs.length} matched`;
       els.matchedStatus.textContent = String(analysis.pairs.length);
@@ -5644,7 +5714,10 @@
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `model-comparison-points-${new Date().toISOString().slice(0, 10)}.json`;
+      const date = new Date().toISOString().slice(0, 10);
+      const refName = state.filenames.reference || 'model-a';
+      const updName = state.filenames.updated || 'model-b';
+      link.download = `${refName}-vs-${updName}-points-${date}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
