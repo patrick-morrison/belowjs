@@ -1706,14 +1706,8 @@
         heightmap: { reference: null, updated: null }
       },
       analysisRangeByModeTarget: {
-        heatmap: {
-          reference: null,
-          updated: null
-        },
-        heightmap: {
-          reference: null,
-          updated: null
-        }
+        heatmap: null,
+        heightmap: null
       },
       analysisGlobalRange: {
         heatmap: null,
@@ -2193,6 +2187,8 @@
       };
       state.analysisGlobalRange.heatmap = null;
       state.analysisGlobalRange.heightmap = null;
+      state.analysisRangeByModeTarget.heatmap = null;
+      state.analysisRangeByModeTarget.heightmap = null;
       if (state.urls[side]) {
         URL.revokeObjectURL(state.urls[side]);
       }
@@ -6006,13 +6002,13 @@
       maxSlider.value = String(maxClip);
       heatmapUniforms.uMinClip.value = minClip;
       heatmapUniforms.uMaxClip.value = maxClip;
-      currentAnalysisRangeStore()[state.heatmapTarget] = { min: minClip, max: maxClip };
+      state.analysisRangeByModeTarget[currentAnalysisMode()] = { min: minClip, max: maxClip };
       updateHeatmapRangeVisual(minClip, maxClip, sliderMin, sliderMax);
       updateHeatmapColors();
     }
 
     function updateHeatmapUiForSamples(allSamples, analysisMode, targetSide) {
-      const savedRange = currentAnalysisRangeStore(analysisMode)[targetSide];
+      const savedRange = currentAnalysisRangeStore(analysisMode);
       const globalRange = state.analysisGlobalRange[analysisMode] || {};
 
       if (analysisMode === 'heightmap') {
