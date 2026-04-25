@@ -4113,6 +4113,34 @@
         }
       }
 
+      // BFS dilation: bleed written pixel colours outward into the unwritten gutter
+      // between UV islands so linear filtering never samples black at seam edges.
+      const queue = [];
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] !== 0) queue.push(i >> 2);
+      }
+      const dx = [-1, 1, 0, 0];
+      const dy = [0, 0, -1, 1];
+      let head = 0;
+      while (head < queue.length) {
+        const idx = queue[head++];
+        const px = idx % width;
+        const py = (idx / width) | 0;
+        const si = idx * 4;
+        for (let d = 0; d < 4; d++) {
+          const nx = px + dx[d];
+          const ny = py + dy[d];
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+          const ni = (ny * width + nx) * 4;
+          if (pixels[ni + 3] !== 0) continue;
+          pixels[ni]     = pixels[si];
+          pixels[ni + 1] = pixels[si + 1];
+          pixels[ni + 2] = pixels[si + 2];
+          pixels[ni + 3] = 255;
+          queue.push(ny * width + nx);
+        }
+      }
+
       ctx.putImageData(imageData, 0, 0);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
