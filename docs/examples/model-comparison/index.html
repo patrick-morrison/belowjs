@@ -2680,14 +2680,14 @@
 
     function setupCameraLinking() {
       coreViewer('reference').on('camera-change', () => {
-        if (!state.syncingCamera) syncCamera('reference', 'updated');
+        if (!state.syncingCamera && !els.updatedPane.classList.contains('hidden')) syncCamera('reference', 'updated');
         syncMarkerScale('reference');
         syncMarkerScale('updated');
         syncAnalysisProbeScale('reference');
         syncAnalysisProbeScale('updated');
       });
       coreViewer('updated').on('camera-change', () => {
-        if (!state.syncingCamera) syncCamera('updated', 'reference');
+        if (!state.syncingCamera && !els.referencePane.classList.contains('hidden')) syncCamera('updated', 'reference');
         syncMarkerScale('reference');
         syncMarkerScale('updated');
         syncAnalysisProbeScale('reference');
@@ -5890,13 +5890,18 @@
         const bufferAttributeName = currentAnalysisBufferAttribute(analysisMode);
 
         // 2. Iterate Target Model Vertices
+        const meshes = [];
         targetModel.traverse((mesh) => {
           if (!mesh.isMesh || isMarkerObject(mesh)) return;
-          
+          const geometry = mesh.geometry;
+          if (!geometry.attributes.position) return;
+          meshes.push(mesh);
+        });
+
+        const YIELD_INTERVAL = 5000;
+        for (const mesh of meshes) {
           const geometry = mesh.geometry;
           const positions = geometry.attributes.position;
-          if (!positions) return;
-
           const count = positions.count;
           const values = new Float32Array(count);
           const localPos = new THREE.Vector3();
@@ -5915,11 +5920,12 @@
               value = Math.sqrt(nearest.distanceSq);
             }
             values[i] = value;
-            if (i % 10 === 0) allSamples.push(value); 
+            if (i % 10 === 0) allSamples.push(value);
+            if (i > 0 && i % YIELD_INTERVAL === 0) await waitForFrames(1);
           }
 
           mesh.userData[dataKey] = values;
-          
+
           const distanceAttribute = geometry.getAttribute(bufferAttributeName);
           if (!distanceAttribute || distanceAttribute.count !== count) {
             geometry.setAttribute(bufferAttributeName, new THREE.BufferAttribute(values, 1));
@@ -5927,7 +5933,7 @@
             distanceAttribute.array.set(values);
             distanceAttribute.needsUpdate = true;
           }
-        });
+        }
 
         allSamples.sort((a, b) => a - b);
         updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
