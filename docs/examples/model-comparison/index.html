@@ -1420,7 +1420,7 @@
         </div>
 
         <div style="display:flex; gap:6px; margin-top:8px;">
-          <button id="downloadHeatmapBtn" class="btn" style="flex:1; font-size:11px; height:24px;">Save Heatmap GLB</button>
+          <button id="downloadHeatmapBtn" class="btn" style="flex:1; font-size:11px; height:24px;">Export Heatmap GLB</button>
         </div>
 
         <div id="heatmapHistogram" style="height:20px; width:100%; margin-top:8px; display:flex; align-items:flex-end; gap:1px; opacity: 0.2;">
@@ -2303,15 +2303,15 @@
 
       const steps = [
         {
-          title: 'Example loaded',
-          body: 'ALC 40 is a WWII landing craft wreck in the Swan River. Compare the 2014 MAAWA survey with the 2024 Patrick Morrison survey.',
-          note: 'Start in split view. Model A is 2024 (Patrick Morrison); Model B is 2014 (MAAWA).',
+          title: '10 years of change on the ALC 40 wreck',
+          body: 'This viewer uses <a href="https://belowjs.com" target="_blank" rel="noopener" style="color:inherit">BelowJS</a> to compare how a shipwreck site has changed over time. ALC 40 is a WWII landing craft in the Swan River. Load the 2014 and 2024 surveys, align them, and measure the difference.',
+          note: 'Surveys: Kevin Edwards &amp; Darren Cooper (<a href="https://sketchfab.com/3d-models/alc40-8b5c07fc2cac492693174bd6712f6012" target="_blank" rel="noopener" style="color:inherit">MAAWA Sketchfab</a>, 2014) and Patrick Morrison (2024).',
           button: 'Next',
           enabled: true
         },
         {
-          title: 'Add one point',
-          body: 'Two matched point pairs are loaded. Right-click the orange target on Model B and choose Add point to complete the rough alignment.',
+          title: 'Add a control point',
+          body: 'Two matched point pairs are loaded. Right-click the orange target on Model B and choose Add point to complete the rough alignment. You can add as many as you want to reduce error, but 3 is the minimum.',
           note: solved
             ? 'Aligned. The models have snapped into the same space.'
             : (state.demoGuide.message || 'Right-click the orange target to add the final tutorial point.'),
@@ -2319,8 +2319,8 @@
           enabled: solved
         },
         {
-          title: state.refining ? refiningTitleText() : 'Refine the fit',
-          body: 'Run Surface refine to tighten the match against the wreck surface. It works best here because the site is broad and mostly flat.',
+          title: state.refining ? refiningTitleText() : 'Automatically refine the fit',
+          body: 'We can improve point alignment by matching meshes directly. Run Surface refine to tighten the match against the wreck surface. It works best here because the site is broad and mostly flat. On this site, it\'s a small change.',
           note: state.refining
             ? 'Refining the overlap now.'
             : refined
@@ -2330,8 +2330,8 @@
           enabled: refined || !state.refining
         },
         {
-          title: 'Swap with Z',
-          body: 'Press Z three times: enter single view, swap to 2014, then return to 2024.',
+          title: "Swap models with the 'Z' key",
+          body: 'Press Z three times: enter single view, swap to 2014, then return to 2024. This is the quickest way to inspect models. Use the mouse to double-click focus and rotate the view.',
           note: state.demoTutorial.swapSequence >= 3
             ? 'Returned to the 2024 reference.'
             : state.demoTutorial.swapSequence === 2
@@ -2344,14 +2344,19 @@
           keyPrompt: !swappedWithZ
         },
         {
-          title: heightmapLoading ? 'Generating height map' : 'Inspect height change',
-          body: 'Use Height compare for this wreck: the hull is mostly stable, with small sections of deck collapse (shown in red).',
-          note: showingHeight
-            ? 'Height is clearest here. C2C is better for more 3D wrecks with changing overhangs.'
-            : 'This compares 2024 height against the 2014 survey.',
-          button: heightmapLoading ? 'Generating…' : showingHeight ? 'Done' : 'Height map',
+          title: 'Inspect height change to see hull collapse',
+          body: 'Use Height compare for this wreck: the hull is mostly stable, with small sections of deck collapse (shown in red, growth shown in blue). Cloud to cloud is best for wrecks with changing overhangs.',
+          note: 'This compares 2024 height against the 2014 survey.',
+          button: heightmapLoading ? 'Generating…' : 'Next',
           enabled: !heightmapLoading,
           loading: heightmapLoading
+        },
+        {
+          title: 'Export models to other BelowJS viewers',
+          body: 'Save B will export the adjusted model with the reference coordinate system, so they match. Or Export Height GLB will save the height to a texture, so you can use it in VR or the <a href="../animation/" target="_blank" rel="noopener" style="color:inherit">animation</a> example.',
+          note: 'More settings can be adjusted in the control panel to the left.',
+          button: 'Finish tutorial',
+          enabled: true
         }
       ];
 
@@ -2400,6 +2405,7 @@
         }
         state.demoTutorial.step = 4;
         updateDemoTutorial();
+        advanceDemoTutorial();
         return;
       }
 
@@ -2420,10 +2426,14 @@
           }
           state.demoTutorial.heightmapLoading = false;
         } else {
-          dismissDemoTutorial();
-          return;
+          state.demoTutorial.step = 5;
         }
         updateDemoTutorial();
+        return;
+      }
+
+      if (step === 5) {
+        dismissDemoTutorial();
       }
     }
 
@@ -2433,10 +2443,10 @@
       if (!visible) return;
 
       const step = currentDemoTutorialStep();
-      els.tutorialStep.textContent = `Step ${Math.min(state.demoTutorial.step + 1, 5)} of 5`;
+      els.tutorialStep.textContent = `Step ${Math.min(state.demoTutorial.step + 1, 6)} of 6`;
       els.tutorialTitle.textContent = step.title;
-      els.tutorialBody.textContent = step.body;
-      els.tutorialNote.textContent = step.note;
+      els.tutorialBody.innerHTML = step.body;
+      els.tutorialNote.innerHTML = step.note;
       els.tutorialSecondaryBtn.hidden = !step.secondaryButton;
       els.tutorialSecondaryBtn.textContent = step.secondaryButton || '';
       els.tutorialSecondaryBtn.disabled = step.secondaryButton ? !step.secondaryEnabled : true;
@@ -2680,6 +2690,9 @@
       }
       if (state.demoTutorial.swapSequence >= 3) {
         state.demoTutorial.step = 4;
+        updateDemoTutorial();
+        advanceDemoTutorial();
+        return;
       }
       updateDemoTutorial();
     }
@@ -5578,7 +5591,7 @@
       els.downloadBtn.textContent = exportSide ? `Save ${sideShortLabel(exportSide)}` : 'Save';
       els.downloadHeatmapBtn.innerHTML = state.exportingAnalysisGlb
         ? '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Exporting...'
-        : state.mode === 'heightmap' ? 'Save Height GLB' : 'Save Heatmap GLB';
+        : state.mode === 'heightmap' ? 'Export Height GLB' : 'Export Heatmap GLB';
       els.downloadHeatmapBtn.title = bothModels
         ? state.mode === 'heightmap'
           ? `Export ${sideLabel(state.heatmapTarget)} with the current signed vertical difference colors`
