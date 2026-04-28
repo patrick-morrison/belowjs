@@ -44,6 +44,8 @@ export class DiveLighting {
 
         this.clearModeDirectionalLight.shadow.mapSize.width = 2048;
         this.clearModeDirectionalLight.shadow.mapSize.height = 2048;
+        this.clearModeDirectionalLight.shadow.bias = -0.0001;
+        this.clearModeDirectionalLight.shadow.normalBias = 0.03;
         this.clearModeDirectionalLight.shadow.camera.near = 0.5;
         this.clearModeDirectionalLight.shadow.camera.far = 500;
         this.clearModeDirectionalLight.shadow.camera.left = -150;

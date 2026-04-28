@@ -281,15 +281,12 @@ export class ModelLoader {
             }
 
 
-            if (maxAnisotropy !== null) {
-              const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'];
-              textureSlots.forEach(slot => {
-                if (newMaterial[slot]) {
-                  newMaterial[slot].anisotropy = maxAnisotropy;
-                  newMaterial[slot].needsUpdate = true;
-                }
-              });
-            }
+            const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'];
+            textureSlots.forEach(slot => {
+              if (newMaterial[slot]) {
+                this.processTexture(newMaterial[slot], maxAnisotropy, { disableMipmaps: slot === 'map' });
+              }
+            });
 
             newMaterial.needsUpdate = true;
             if (Array.isArray(obj.material)) {
@@ -303,15 +300,12 @@ export class ModelLoader {
             }
           } else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
             // Apply anisotropic filtering to standard/physical materials to prevent mipmap striping
-            if (maxAnisotropy !== null) {
-              const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
-              textureSlots.forEach(slot => {
-                if (material[slot]) {
-                  material[slot].anisotropy = maxAnisotropy;
-                  material[slot].needsUpdate = true;
-                }
-              });
-            }
+            const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
+            textureSlots.forEach(slot => {
+              if (material[slot]) {
+                this.processTexture(material[slot], maxAnisotropy, { disableMipmaps: slot === 'map' });
+              }
+            });
             material.needsUpdate = true;
           }
 
@@ -322,12 +316,13 @@ export class ModelLoader {
         });
 
         if (obj.geometry) {
-          obj.geometry.computeVertexNormals();
+          if (!obj.geometry.attributes?.normal) {
+            obj.geometry.computeVertexNormals();
+          }
           obj.geometry.normalizeNormals();
 
-
           const hasNormalMaps = materials.some(mat => mat.normalMap);
-          if (hasNormalMaps) {
+          if (hasNormalMaps && this.canComputeTangents(obj.geometry)) {
             obj.geometry.computeTangents();
           }
         }
@@ -352,6 +347,36 @@ export class ModelLoader {
     if (material && material.needsUpdate !== undefined) {
       material.needsUpdate = true;
     }
+  }
+
+  processTexture(texture, maxAnisotropy = null, { disableMipmaps = false } = {}) {
+    if (!texture) {
+      return;
+    }
+
+    if (maxAnisotropy !== null) {
+      texture.anisotropy = maxAnisotropy;
+    }
+
+    // Sketchfab GLBs commonly use tightly packed JPEG atlases with mipmapped
+    // sampling. Those generated mip levels bleed across UV islands and show up
+    // as broad striping on photogrammetry surfaces. Source exports from
+    // Metashape use linear filtering for the same texture, which avoids it.
+    if (disableMipmaps && !texture.isCompressedTexture && Array.isArray(texture.mipmaps) && texture.mipmaps.length === 0) {
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+    }
+
+    texture.needsUpdate = true;
+  }
+
+  canComputeTangents(geometry) {
+    return Boolean(
+      geometry?.index &&
+      geometry.attributes?.position &&
+      geometry.attributes?.normal &&
+      geometry.attributes?.uv
+    );
   }
 
   releaseFromCache(url) {
