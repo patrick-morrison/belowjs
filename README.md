@@ -6,7 +6,7 @@
 
 📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Current Version:** `1.7.5` - Sketchfab GLB loading and model comparison polish.
+> **Current Version:** `1.7.6` - Hotfix for GLB loading in the basic viewer.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -60,11 +60,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.7.5/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.7.6/dist/belowjs.js"
         }
     }
     </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.7.5/dist/belowjs.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.7.6/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>

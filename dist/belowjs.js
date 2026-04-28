@@ -3723,9 +3723,8 @@ class ee {
     });
   }
   processModel(e) {
-    let t = e.scene;
-    const s = this.getMaxAnisotropy(), i = e.parser || null, n = this.shouldNormalizePhotogrammetryAtlas(i);
-    n && (t = this.bakeMeshWorldTransforms(t), e.scene = t), t.traverse((r) => {
+    const t = e.scene, s = this.getMaxAnisotropy(), i = e.parser || null, n = this.shouldNormalizePhotogrammetryAtlas(i);
+    t.traverse((r) => {
       if (r.isLight && (r.visible = !1), r.isMesh && r.material) {
         r.castShadow = !0, r.receiveShadow = !0;
         const c = (Array.isArray(r.material) ? r.material : [r.material]).map(
@@ -3811,24 +3810,6 @@ class ee {
         l += Math.floor(d / 3);
       }
     return l >= 5e4;
-  }
-  bakeMeshWorldTransforms(e) {
-    if (!e)
-      return e;
-    e.updateMatrixWorld(!0);
-    const t = new f.Group();
-    t.name = e.name || "BakedPhotogrammetryModel", t.userData = { ...e.userData, bakedWorldTransforms: !0 };
-    const s = [];
-    e.traverse((n) => {
-      n.isMesh && s.push(n);
-    });
-    const i = /* @__PURE__ */ new Set();
-    return s.forEach((n) => {
-      const o = n.matrixWorld.clone(), r = n.geometry;
-      r && (i.add(r), n.geometry = r.clone(), n.geometry.applyMatrix4(o)), n.position.set(0, 0, 0), n.quaternion.identity(), n.scale.set(1, 1, 1), n.matrix.identity(), n.matrixWorld.identity(), n.matrixAutoUpdate = !0, t.add(n);
-    }), i.forEach((n) => {
-      typeof n?.dispose == "function" && n.dispose();
-    }), t.updateMatrixWorld(!0), t;
   }
   processTexture(e, t = null, { fixPhotogrammetryAtlas: s = !1 } = {}) {
     e && (t !== null && (e.anisotropy = t), s && (e.isCompressedTexture || (e.generateMipmaps = !1), e.minFilter = f.LinearFilter, e.wrapS = f.ClampToEdgeWrapping, e.wrapT = f.ClampToEdgeWrapping), e.needsUpdate = !0);

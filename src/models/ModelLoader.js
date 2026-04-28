@@ -230,15 +230,10 @@ export class ModelLoader {
   }
 
   processModel(gltf) {
-    let model = gltf.scene;
+    const model = gltf.scene;
     const maxAnisotropy = this.getMaxAnisotropy();
     const parser = gltf.parser || null;
     const normalizePhotogrammetry = this.shouldNormalizePhotogrammetryAtlas(parser);
-
-    if (normalizePhotogrammetry) {
-      model = this.bakeMeshWorldTransforms(model);
-      gltf.scene = model;
-    }
 
     model.traverse((obj) => {
       if (obj.isLight) {
@@ -435,54 +430,6 @@ export class ModelLoader {
     }
 
     return triangleCount >= 50000;
-  }
-
-  bakeMeshWorldTransforms(model) {
-    if (!model) {
-      return model;
-    }
-
-    model.updateMatrixWorld(true);
-
-    const bakedRoot = new THREE.Group();
-    bakedRoot.name = model.name || 'BakedPhotogrammetryModel';
-    bakedRoot.userData = { ...model.userData, bakedWorldTransforms: true };
-
-    const meshes = [];
-    model.traverse((object) => {
-      if (object.isMesh) {
-        meshes.push(object);
-      }
-    });
-
-    const sourceGeometries = new Set();
-    meshes.forEach((mesh) => {
-      const worldMatrix = mesh.matrixWorld.clone();
-      const sourceGeometry = mesh.geometry;
-      if (sourceGeometry) {
-        sourceGeometries.add(sourceGeometry);
-        mesh.geometry = sourceGeometry.clone();
-        mesh.geometry.applyMatrix4(worldMatrix);
-      }
-
-      mesh.position.set(0, 0, 0);
-      mesh.quaternion.identity();
-      mesh.scale.set(1, 1, 1);
-      mesh.matrix.identity();
-      mesh.matrixWorld.identity();
-      mesh.matrixAutoUpdate = true;
-
-      bakedRoot.add(mesh);
-    });
-
-    sourceGeometries.forEach((geometry) => {
-      if (typeof geometry?.dispose === 'function') {
-        geometry.dispose();
-      }
-    });
-
-    bakedRoot.updateMatrixWorld(true);
-    return bakedRoot;
   }
 
   processTexture(texture, maxAnisotropy = null, { fixPhotogrammetryAtlas = false } = {}) {
