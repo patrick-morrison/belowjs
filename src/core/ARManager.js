@@ -138,15 +138,6 @@ export class ARManager extends EventSystem {
 
   setTargetModel(model, modelConfig = null) {
     this.prepareModel(model, modelConfig);
-    if (this.arCore) {
-      this.arCore.setQuickLookModel(model);
-    }
-  }
-
-  setRenderControl(renderControl) {
-    if (this.arCore) {
-      this.arCore.setRenderControl(renderControl);
-    }
   }
 
   update(deltaTime) {

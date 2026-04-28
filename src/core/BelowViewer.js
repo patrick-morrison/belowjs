@@ -222,7 +222,6 @@ export class BelowViewer extends EventSystem {
     this.pixelRatioBeforeThrottle = 1;
     this.originalPixelRatio = 1;
     this.isConstrainedSafari = false;
-    this.renderPauseDepth = 0;
     
     this.init();
   }
@@ -419,12 +418,6 @@ export class BelowViewer extends EventSystem {
         this.arManager.setTargetModel(model, options);
       }
     });
-
-    this.arManager.setRenderControl({
-      pause: () => this.pauseRendering(),
-      resume: () => this.resumeRendering(),
-      restore: () => this.restoreRendererSurface()
-    });
   }
 
   setupEventListeners() {
@@ -450,28 +443,6 @@ export class BelowViewer extends EventSystem {
     }
     
     this.emit('resize', { width, height });
-  }
-
-  pauseRendering() {
-    this.renderPauseDepth += 1;
-  }
-
-  resumeRendering() {
-    this.renderPauseDepth = Math.max(0, this.renderPauseDepth - 1);
-  }
-
-  restoreRendererSurface() {
-    if (!this.isInitialized || !this.renderer || !this.cameraManager) {
-      return;
-    }
-
-    const width = this.container.clientWidth;
-    const height = this.container.clientHeight;
-    this.cameraManager.setSize(width, height);
-    this.renderer.setSize(width, height);
-    if (this.tilesetLoader) {
-      this.tilesetLoader.updateResolution();
-    }
   }
 
   /**
@@ -718,10 +689,6 @@ export class BelowViewer extends EventSystem {
     let lastVRTilesUpdateTimeMs = 0;
     
     const animate = (time) => {
-      if (this.renderPauseDepth > 0) {
-        return;
-      }
-
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
       
