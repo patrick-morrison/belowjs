@@ -74,6 +74,8 @@ jspm_packages/
 # Temporary files
 *.tmp
 *.temp
+/dbugging/
+/debugging/
 
 # Mac specific
 .DS_Store
