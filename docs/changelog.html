@@ -200,31 +200,34 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.7.3</code>
+                <code>npm install belowjs@1.7.4</code>
                 <div style="margin-top: 0.75rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.85rem;">
                     or download directly:
-                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.js','belowjs.js');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.js</a>
-                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.3/dist/belowjs.css','belowjs.css');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.css</a>
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.4/dist/belowjs.js','belowjs.js');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.js</a>
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.7.4/dist/belowjs.css','belowjs.css');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.css</a>
                 </div>
             </div>
 
             <div class="version-section">
                 <div class="version-header">
-                    <div class="version-number">Unreleased</div>
-                    <div class="version-tag">Upcoming</div>
+                    <div class="version-number">1.7.4</div>
+                    <div class="version-tag">Patch</div>
+                    <div class="version-date">April 28, 2026</div>
                 </div>
 
-                <p>Queued changes for the next patch release.</p>
+                <p>Patch release improving photogrammetry GLB rendering and mobile viewer polish.</p>
 
                 <div class="changes-list">
                     <h4>Changed</h4>
                     <ul>
-                        <li><span class="change-type improved">Improved</span> Handheld devices now see an <code>AR MODE</code> entry button while the AR viewer continues to launch through the standard WebXR <code>immersive-ar</code> flow</li>
-                        <li><span class="change-type improved">Improved</span> The AR example now prepares an iPhone Quick Look fallback from the loaded GLB when WebXR AR is unavailable</li>
+                        <li><span class="change-type improved">Improved</span> Sketchfab GLB downloads are now the recommended starting point; optimisation is still recommended for VR and faster downloads</li>
                     </ul>
 
                     <h4>Fixed</h4>
                     <ul>
+                        <li><span class="change-type fixed">Fixed</span> GLB models now keep their exported surface normals, avoiding blotchy shading on photogrammetry models</li>
+                        <li><span class="change-type fixed">Fixed</span> Large photogrammetry textures no longer show mipmap striping in the viewer</li>
+                        <li><span class="change-type fixed">Fixed</span> Survey lighting now casts cleaner shadows on close-range photogrammetry surfaces</li>
                         <li><span class="change-type fixed">Fixed</span> Long-pressing the viewer on mobile no longer triggers stray text selection, while form controls and editable fields inside the viewer still allow normal text interaction</li>
                     </ul>
                 </div>
