@@ -41,7 +41,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
    - `docs/index.html` (homepage version pill text + release month/date)
    - `AGENTS.md` and `CLAUDE.md` (release guidance/current version notes)
 8) **VERIFY**: Check all docs files have correct version
-   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.7.4"` (should be empty)
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.7.5"` (should be empty)
 9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -92,5 +92,5 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.7.4)
-- Fixed: Photogrammetry GLBs render with cleaner shading and fewer texture stripes
+## Current (1.7.5)
+- Fixed: Sketchfab GLB loading and model comparison polish

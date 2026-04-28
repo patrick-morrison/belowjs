@@ -5,15 +5,25 @@ All notable changes to BelowJS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.4] - 2026-04-28
+## [1.7.5] - 2026-04-28
 
 ### Changed
-- Sketchfab GLB downloads are now the recommended starting point; optimisation is still recommended for VR and faster downloads.
+- Improved GLB loading for Sketchfab photogrammetry exports, with more consistent material handling and cleaner shading.
+- In the guides, clarified how to load directly from [Sketchfab GLB exports](docs/guides/sketchfab-models.html).
 
 ### Fixed
-- GLB models now keep their exported surface normals, avoiding blotchy shading on photogrammetry models.
-- Large photogrammetry textures no longer show mipmap striping in the viewer.
-- Survey lighting now casts cleaner shadows on close-range photogrammetry surfaces.
+- Reduced texture banding and glossy-material bleed-through on photogrammetry and comparison heatmap views.
+- Model comparison camera locking now waits for a valid alignment solve.
+- Pressing `0` in model comparison reframes the loaded model view.
+- Improved model comparison stability when switching views, dragging markers, and running C2C or height comparisons.
+
+## [1.7.4] - 2026-04-28
+
+### Added
+- Added the model comparison viewer for aligning two survey models with matched markers, viewing overlay/difference modes, and generating C2C and height comparison maps.
+
+### Fixed
+- Survey lighting casts cleaner shadows on close-range photogrammetry surfaces.
 - Long-pressing the viewer on mobile no longer triggers stray text selection, while form controls and editable fields inside the viewer still allow normal text interaction.
 
 ## [1.7.3] - 2026-03-06

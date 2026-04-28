@@ -1591,6 +1591,10 @@
         minDistanceGate: 0.12
       }
     };
+    const ANALYSIS_SAMPLE_BASELINE_SIZE_M = 20;
+    const ANALYSIS_SAMPLE_BASELINE_COUNT = 80000;
+    const ANALYSIS_SAMPLE_MAX_COUNT = 250000;
+    const ANALYSIS_PROBE_LABEL_SCREEN = { minWidth: 148, height: 42, paddingX: 24 };
 
     const MARKER_LABEL_SCREEN = { minWidth: 34, height: 28, paddingX: 14 };
 
@@ -1624,6 +1628,17 @@
       heatmapTarget: 'updated',
       camerasLocked: false,
       syncingCamera: false,
+      markerDragSide: null,
+      cameraRecoveryFrame: 0,
+      lastGoodCamera: {
+        reference: null,
+        updated: null
+      },
+      modelBoundsCache: {
+        reference: null,
+        updated: null
+      },
+      sceneRepairAt: 0,
       demoLoading: false,
       loadingSides: {
         reference: false,
@@ -1702,6 +1717,8 @@
       },
       exportingAnalysisGlb: false,
       computingHeatmap: false,
+      pendingHeatmap: false,
+      analysisRunId: 0,
       lastHeatmapKeys: {
         heatmap: { reference: null, updated: null },
         heightmap: { reference: null, updated: null }
@@ -1840,7 +1857,10 @@
     els.diffBtn.addEventListener('click', () => setMode('diff'));
     els.heatmapBtn.addEventListener('click', () => setMode('heatmap'));
     els.heightmapBtn.addEventListener('click', () => setMode('heightmap'));
-    els.cameraLockBtn.addEventListener('click', () => setCameraLock(!state.camerasLocked));
+    els.cameraLockBtn.addEventListener('click', () => {
+      if (!state.camerasLocked && !canCameraLock()) return;
+      setCameraLock(!state.camerasLocked);
+    });
     els.expandBtn.addEventListener('click', togglePanel);
     els.refineAnchoredBtn.addEventListener('click', () => setRefineProfile('anchored'));
     els.refineBalancedBtn.addEventListener('click', () => setRefineProfile('balanced'));
@@ -1994,6 +2014,9 @@
       if (event.key.toLowerCase() === 'z') {
         swapSides();
         recordDemoTutorialSwapFromKey();
+      } else if (event.key === '0' || event.code === 'Digit0' || event.code === 'Numpad0') {
+        event.preventDefault();
+        frameLoadedModels();
       } else if (event.key === 'Escape') {
         hidePointContextMenu();
       }
@@ -2205,6 +2228,8 @@
       const viewer = coreViewer(side);
       setPaneLoading(side, true, `Loading ${sideLabel(side)}`);
       invalidateRefinement();
+      state.analysisRunId += 1;
+      state.pendingHeatmap = false;
       state.lastHeatmapKeys = {
         heatmap: { reference: null, updated: null },
         heightmap: { reference: null, updated: null }
@@ -2221,6 +2246,7 @@
       state.models[side]?.removeFromParent?.();
       viewer.clearModels();
       state.models[side] = null;
+      invalidateModelBounds(side);
       state.viewers[side]?.measurementSystem?.setRaycastTargets?.([]);
 
       state.urls[side] = source.revokeUrl ? null : source.url;
@@ -2232,6 +2258,7 @@
       try {
         const model = await viewer.loadModel(source.url, { autoFrame: false, alignCenter: false, centerBase: false, autoCenter: false });
         state.models[side] = model;
+        invalidateModelBounds(side);
         model.matrixAutoUpdate = true;
         markModelMaterials(model, side);
         updateMarkerScale(side);
@@ -2244,6 +2271,7 @@
       } catch (error) {
         console.error(error);
         state.models[side] = null;
+        invalidateModelBounds(side);
         getDropElement(side).style.display = 'grid';
         throw error;
       } finally {
@@ -2722,6 +2750,9 @@
           }
         });
       }
+
+      coreViewer('reference').on('before-render', () => stabilizeComparisonView('reference'));
+      coreViewer('updated').on('before-render', () => stabilizeComparisonView('updated'));
     }
 
     function syncCamera(fromSide, toSide) {
@@ -2729,6 +2760,238 @@
       const toViewer = state.viewers[toSide];
       if (!state.camerasLocked || !fromViewer || !toViewer || state.syncingCamera) return;
       matchCameraPose(fromSide, toSide);
+    }
+
+    function stabilizeComparisonView(side) {
+      const now = performance.now();
+      if (now - state.sceneRepairAt > 120) {
+        state.sceneRepairAt = now;
+        restoreComparisonSceneState();
+      }
+      restoreOrbitControlsIfNeeded(side);
+      repairCameraState(side);
+    }
+
+    function restoreOrbitControlsIfNeeded(side) {
+      if (state.markerDragSide === side) return;
+      const viewer = state.viewers[side];
+      const core = coreViewer(viewer);
+      const controls = core?.cameraManager?.getControls?.();
+      if (!controls || controls.enabled) return;
+      if (viewer?.isFlyModeActive?.()) return;
+      if (core?.getRenderer?.()?.xr?.isPresenting) return;
+      controls.enabled = true;
+      controls.update?.();
+    }
+
+    function restoreComparisonSceneState() {
+      if (!hasAnyModel()) return;
+      normalizeViewState();
+
+      const mode = state.mode || 'split';
+      const isSplit = mode === 'split';
+      const combinedSide = activeCombinedSide(mode);
+
+      if (hasBothModels() && !isSplit && mode !== 'single') {
+        ensureModelInScene(combinedSide, sceneForSide(combinedSide));
+        ensureModelInScene(otherSide(combinedSide), sceneForSide(combinedSide));
+      } else {
+        ensureOwnScene('reference');
+        ensureOwnScene('updated');
+      }
+
+      for (const side of loadedSides()) {
+        const model = state.models[side];
+        if (!model) continue;
+        const shouldBeVisible = !(isAnalysisMode(mode) && side === otherSide(state.heatmapTarget));
+        if (model.visible !== shouldBeVisible) {
+          model.visible = shouldBeVisible;
+        }
+      }
+    }
+
+    function repairCameraState(side) {
+      const viewer = coreViewer(side);
+      const camera = viewer?.cameraManager?.getCamera?.();
+      const controls = viewer?.cameraManager?.getControls?.();
+      if (!camera) return;
+
+      const valid = isCameraPoseUsable(side, camera, controls);
+      if (valid) {
+        rememberGoodCameraPose(side, camera, controls);
+        return;
+      }
+
+      const recovered = restoreCameraPose(side, camera, controls);
+      if (recovered) {
+        state.cameraRecoveryFrame += 1;
+        camera.updateProjectionMatrix();
+        controls?.update?.();
+      }
+    }
+
+    function isCameraPoseUsable(side, camera, controls) {
+      if (!isFiniteVector3(camera.position) || !isFiniteQuaternion(camera.quaternion)) return false;
+      if (controls?.target && !isFiniteVector3(controls.target)) return false;
+
+      const anchor = controls?.target && isFiniteVector3(controls.target)
+        ? controls.target
+        : modelFocusPoint(side);
+      const distance = camera.position.distanceTo(anchor);
+      return Number.isFinite(distance) && distance <= cameraRecoveryDistanceLimit(side);
+    }
+
+    function restoreCameraPose(side, camera, controls) {
+      const lastGood = state.lastGoodCamera[side];
+      if (lastGood && isFiniteVector3(lastGood.position) && isFiniteQuaternion(lastGood.quaternion)) {
+        camera.position.copy(lastGood.position);
+        camera.quaternion.copy(lastGood.quaternion);
+        camera.zoom = Number.isFinite(lastGood.zoom) ? lastGood.zoom : 1;
+        if (controls?.target && isFiniteVector3(lastGood.target)) {
+          controls.target.copy(lastGood.target);
+        }
+        return true;
+      }
+
+      const bounds = modelBoundsForSide(side) || modelBoundsForSide(primaryLoadedSide());
+      if (!bounds) return false;
+      const center = bounds.center.clone();
+      const size = bounds.size.clone();
+      coreViewer(side)?.cameraManager?.frameObject?.(center, size);
+      return true;
+    }
+
+    function frameLoadedModels() {
+      const sides = loadedSides();
+      if (!sides.length) return;
+
+      if (state.mode === 'split') {
+        for (const side of sides) {
+          frameViewerToBounds(side, modelBoundsForSide(side));
+        }
+        return;
+      }
+
+      const combinedBounds = visibleLoadedModelBounds();
+      frameViewerToBounds(activeCombinedSide(), combinedBounds);
+    }
+
+    function visibleLoadedModelBounds() {
+      const box = new THREE.Box3();
+      let hasBounds = false;
+      for (const side of loadedSides()) {
+        const model = state.models[side];
+        if (!model || !model.visible) continue;
+        model.updateMatrixWorld(true);
+        const modelBox = new THREE.Box3().setFromObject(model);
+        if (modelBox.isEmpty()) continue;
+        box.union(modelBox);
+        hasBounds = true;
+      }
+      if (!hasBounds) {
+        return modelBoundsForSide(primaryLoadedSide());
+      }
+      return {
+        box,
+        center: box.getCenter(new THREE.Vector3()),
+        size: box.getSize(new THREE.Vector3())
+      };
+    }
+
+    function frameViewerToBounds(side, bounds) {
+      if (!bounds) return;
+      const viewer = coreViewer(side);
+      const camera = viewer?.cameraManager?.getCamera?.();
+      const controls = viewer?.cameraManager?.getControls?.();
+      viewer?.cameraManager?.frameObject?.(bounds.center.clone(), bounds.size.clone());
+      camera?.updateProjectionMatrix?.();
+      controls?.update?.();
+      if (camera) {
+        rememberGoodCameraPose(side, camera, controls);
+      }
+    }
+
+    function snapshotCameraPose(camera, controls) {
+      return {
+        position: camera.position.clone(),
+        quaternion: camera.quaternion.clone(),
+        zoom: camera.zoom,
+        target: controls?.target?.clone?.() ?? null
+      };
+    }
+
+    function rememberGoodCameraPose(side, camera, controls) {
+      const existing = state.lastGoodCamera[side];
+      const target = controls?.target ?? null;
+      const unchanged = existing &&
+        existing.position.distanceToSquared(camera.position) < 1e-8 &&
+        Math.abs(existing.quaternion.dot(camera.quaternion)) > 0.999999 &&
+        Math.abs((existing.zoom ?? 1) - (camera.zoom ?? 1)) < 1e-6 &&
+        ((!existing.target && !target) || (existing.target && target && existing.target.distanceToSquared(target) < 1e-8));
+
+      if (!unchanged) {
+        state.lastGoodCamera[side] = snapshotCameraPose(camera, controls);
+      }
+    }
+
+    function restoreCameraSnapshot(camera, controls, snapshot) {
+      if (!snapshot) return false;
+      camera.position.copy(snapshot.position);
+      camera.quaternion.copy(snapshot.quaternion);
+      camera.zoom = snapshot.zoom;
+      if (controls?.target && snapshot.target) {
+        controls.target.copy(snapshot.target);
+      }
+      camera.updateProjectionMatrix();
+      controls?.update?.();
+      return true;
+    }
+
+    function modelFocusPoint(side) {
+      const bounds = modelBoundsForSide(side) || modelBoundsForSide(primaryLoadedSide());
+      return bounds?.center?.clone?.() ?? new THREE.Vector3();
+    }
+
+    function cameraRecoveryDistanceLimit(side) {
+      const bounds = modelBoundsForSide(side) || modelBoundsForSide(primaryLoadedSide());
+      return bounds ? Math.max(1000, bounds.size.length() * 80) : 10000;
+    }
+
+    function modelBoundsForSide(side) {
+      const model = state.models[side];
+      if (!model) return null;
+      model.updateMatrixWorld(true);
+      const key = `${model.uuid}|${model.matrixWorld.elements.map((value) => value.toPrecision(8)).join(',')}`;
+      const cached = state.modelBoundsCache[side];
+      if (cached?.key === key) return cached;
+
+      const box = new THREE.Box3().setFromObject(model);
+      if (box.isEmpty()) return null;
+      const bounds = {
+        key,
+        box,
+        center: box.getCenter(new THREE.Vector3()),
+        size: box.getSize(new THREE.Vector3())
+      };
+      state.modelBoundsCache[side] = bounds;
+      return bounds;
+    }
+
+    function invalidateModelBounds(side = null) {
+      if (side) {
+        state.modelBoundsCache[side] = null;
+      } else {
+        state.modelBoundsCache.reference = null;
+        state.modelBoundsCache.updated = null;
+      }
+    }
+
+    function isFiniteVector3(value) {
+      return Boolean(value) && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z);
+    }
+
+    function isFiniteQuaternion(value) {
+      return Boolean(value) && Number.isFinite(value.x) && Number.isFinite(value.y) && Number.isFinite(value.z) && Number.isFinite(value.w);
     }
 
     function setupPointCreation(side) {
@@ -2757,6 +3020,7 @@
             const point = findPointByMarkerObject(side, markerHit.object);
             if (point) {
               markerDrag = { point, pointerId: event.pointerId, moved: false };
+              state.markerDragSide = side;
               const controls = coreViewer(viewer).cameraManager.getControls();
               if (controls) controls.enabled = false;
               renderer.domElement.setPointerCapture(event.pointerId);
@@ -2836,8 +3100,11 @@
             analyzeAndFit();
           }
           const controls = coreViewer(viewer).cameraManager.getControls();
+          state.markerDragSide = null;
           if (controls) controls.enabled = true;
-          renderer.domElement.releasePointerCapture(event.pointerId);
+          if (renderer.domElement.hasPointerCapture?.(event.pointerId)) {
+            renderer.domElement.releasePointerCapture(event.pointerId);
+          }
           markerDrag = null;
           event.stopPropagation();
           return;
@@ -2905,6 +3172,7 @@
           // Revert position
           markerDrag.point.marker.position.copy(markerDrag.point.local);
           const controls = coreViewer(viewer).cameraManager.getControls();
+          state.markerDragSide = null;
           if (controls) controls.enabled = true;
           markerDrag = null;
         }
@@ -2923,8 +3191,23 @@
         if (markerDrag) {
           markerDrag.point.marker.position.copy(markerDrag.point.local);
           const controls = coreViewer(viewer).cameraManager.getControls();
+          state.markerDragSide = null;
           if (controls) controls.enabled = true;
           markerDrag = null;
+        }
+        leftClickCandidate = null;
+        rightClickCandidate = null;
+      });
+
+      window.addEventListener('blur', () => {
+        if (markerDrag) {
+          markerDrag.point.marker.position.copy(markerDrag.point.local);
+          const controls = coreViewer(viewer).cameraManager.getControls();
+          state.markerDragSide = null;
+          if (controls) controls.enabled = true;
+          markerDrag = null;
+        } else if (state.markerDragSide === side) {
+          state.markerDragSide = null;
         }
         leftClickCandidate = null;
         rightClickCandidate = null;
@@ -3050,7 +3333,6 @@
         depthWrite: false
       }));
       label.center.set(0.5, 0);
-      label.raycast = () => {};
       label.renderOrder = 101;
       label.userData.isControlMarker = true;
       label.userData.pointId = point.id;
@@ -3207,13 +3489,13 @@
       const fill = `#${accentColor.toString(16).padStart(6, '0')}`;
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const fontPx = 24;
-      const paddingX = 18;
-      const paddingY = 12;
+      const fontPx = 28;
+      const paddingX = ANALYSIS_PROBE_LABEL_SCREEN.paddingX;
+      const paddingY = 13;
 
       ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
       const textWidth = Math.ceil(ctx.measureText(label).width);
-      const innerWidth = Math.max(textWidth + paddingX * 2, 104);
+      const innerWidth = Math.max(textWidth + paddingX * 2, 150);
       const innerHeight = fontPx + paddingY * 2;
       canvas.width = innerWidth + 12;
       canvas.height = innerHeight + 12;
@@ -3236,8 +3518,11 @@
       texture.anisotropy = Math.min(8, coreViewer('reference')?.getRenderer?.()?.capabilities?.getMaxAnisotropy?.() ?? 1);
       texture.needsUpdate = true;
 
-      const screenHeight = 22;
-      const screenWidth = Math.max(80, Math.round((canvas.width / canvas.height) * screenHeight));
+      const screenHeight = ANALYSIS_PROBE_LABEL_SCREEN.height;
+      const screenWidth = Math.max(
+        ANALYSIS_PROBE_LABEL_SCREEN.minWidth,
+        Math.round((canvas.width / canvas.height) * screenHeight)
+      );
       return { texture, screenWidth, screenHeight };
     }
 
@@ -3288,6 +3573,7 @@
       renderPoints(analysis);
       updateActions(analysis);
       updateOverlayVisibility();
+      reconcileCameraLock();
       if (isAnalysisMode(state.mode) && hasBothModels()) {
         computeC2CHeatmap();
       }
@@ -3738,10 +4024,29 @@
     }
 
     function invalidateHeatmap() {
+      state.analysisRunId += 1;
+      state.pendingHeatmap = false;
       state.lastHeatmapKeys = {
         heatmap: { reference: null, updated: null },
         heightmap: { reference: null, updated: null }
       };
+      clearAnalysisData();
+      updateUiState();
+    }
+
+    function clearAnalysisData(side = null) {
+      const sides = side ? [side] : ['reference', 'updated'];
+      for (const modelSide of sides) {
+        const model = state.models[modelSide];
+        if (!model) continue;
+        model.traverse((object) => {
+          if (!object.isMesh) return;
+          delete object.userData.c2cDistances;
+          delete object.userData.heightDiffs;
+          object.geometry?.deleteAttribute?.('c2cDist');
+          object.geometry?.deleteAttribute?.('heightDiff');
+        });
+      }
     }
 
     function normalizeMode(mode) {
@@ -3815,7 +4120,7 @@
           return;
         }
 
-        const targetTree = buildKdTree(target.slice());
+        const targetTree = buildKdTree(target);
         let matrix = markerMatrix.clone();
         let previousRms = Infinity;
         let finalRms = Infinity;
@@ -4268,6 +4573,7 @@
                material.map = bakedMap;
                if (material.color) material.color.setHex(0xffffff);
                material.vertexColors = false;
+               neutralizeAnalysisMaterial(material);
                material.transparent = false;
                material.opacity = 1;
                material.needsUpdate = true;
@@ -4542,6 +4848,7 @@
       model.quaternion.copy(quaternion);
       model.scale.copy(scale);
       model.updateMatrixWorld(true);
+      invalidateModelBounds(side);
       invalidateHeatmap();
     }
 
@@ -4552,6 +4859,7 @@
       model.quaternion.identity();
       model.scale.setScalar(1);
       model.updateMatrixWorld(true);
+      invalidateModelBounds(side);
       invalidateHeatmap();
     }
 
@@ -4571,7 +4879,8 @@
         triangleCount += index ? Math.floor(index.count / 3) : Math.floor(position.count / 3);
       });
 
-      const triangleStep = Math.max(1, Math.ceil(triangleCount / 60000));
+      const triangleBudget = Math.max(60000, Math.min(240000, Math.ceil(maxPoints * 0.5)));
+      const triangleStep = Math.max(1, Math.ceil(triangleCount / triangleBudget));
       let triangleIndex = 0;
 
       model.traverse((object) => {
@@ -4658,22 +4967,130 @@
       return sampled;
     }
 
+    function analysisSampleCountForModels(sourceModel, targetModel) {
+      const sourceSize = modelHorizontalFootprintSize(sourceModel);
+      const targetSize = modelHorizontalFootprintSize(targetModel);
+      const siteSize = Math.max(sourceSize, targetSize, ANALYSIS_SAMPLE_BASELINE_SIZE_M);
+      const scale = siteSize / ANALYSIS_SAMPLE_BASELINE_SIZE_M;
+      return Math.round(THREE.MathUtils.clamp(
+        ANALYSIS_SAMPLE_BASELINE_COUNT * scale * scale,
+        ANALYSIS_SAMPLE_BASELINE_COUNT,
+        ANALYSIS_SAMPLE_MAX_COUNT
+      ));
+    }
+
+    function modelHorizontalFootprintSize(model) {
+      if (!model) return 0;
+      model.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const horizontalDiagonal = Math.hypot(size.x, size.z);
+      return Number.isFinite(horizontalDiagonal) ? horizontalDiagonal : 0;
+    }
+
     function fractional(value) {
       return value - Math.floor(value);
     }
 
-    function buildKdTree(points, depth = 0) {
-      if (!points.length) return null;
-      const axis = depth % 3;
-      const key = axis === 0 ? 'x' : axis === 1 ? 'y' : 'z';
-      points.sort((a, b) => a[key] - b[key]);
-      const median = Math.floor(points.length / 2);
+    function buildKdTree(points, depth = 0, axes = [0, 1, 2], start = 0, end = points.length) {
+      if (end <= start) return null;
+      const axis = axes[depth % axes.length];
+      const median = start + Math.floor((end - start) / 2);
+      quickSelectPoints(points, start, end - 1, median, axis);
       return {
         point: points[median],
         axis,
-        left: buildKdTree(points.slice(0, median), depth + 1),
-        right: buildKdTree(points.slice(median + 1), depth + 1)
+        left: buildKdTree(points, depth + 1, axes, start, median),
+        right: buildKdTree(points, depth + 1, axes, median + 1, end)
       };
+    }
+
+    async function buildKdTreeAsync(points, axes = [0, 1, 2], isCurrent = () => true) {
+      if (!points.length || !isCurrent()) return null;
+
+      let root = null;
+      const stack = [{ start: 0, end: points.length, depth: 0, parent: null, branch: null }];
+      let processed = 0;
+
+      while (stack.length) {
+        if (!isCurrent()) return null;
+
+        const item = stack.pop();
+        if (item.end <= item.start) continue;
+
+        const axis = axes[item.depth % axes.length];
+        const median = item.start + Math.floor((item.end - item.start) / 2);
+        quickSelectPoints(points, item.start, item.end - 1, median, axis);
+
+        const node = {
+          point: points[median],
+          axis,
+          left: null,
+          right: null
+        };
+
+        if (item.parent) {
+          item.parent[item.branch] = node;
+        } else {
+          root = node;
+        }
+
+        stack.push({ start: median + 1, end: item.end, depth: item.depth + 1, parent: node, branch: 'right' });
+        stack.push({ start: item.start, end: median, depth: item.depth + 1, parent: node, branch: 'left' });
+
+        processed += 1;
+        if (processed % 2048 === 0) {
+          await waitForFrames(1);
+        }
+      }
+
+      return root;
+    }
+
+    function quickSelectPoints(points, left, right, target, axis) {
+      while (left < right) {
+        const pivotRange = partitionPoints(points, left, right, Math.floor((left + right) / 2), axis);
+        if (target < pivotRange.start) {
+          right = pivotRange.start - 1;
+        } else if (target > pivotRange.end) {
+          left = pivotRange.end + 1;
+        } else {
+          return;
+        }
+      }
+    }
+
+    function partitionPoints(points, left, right, pivotIndex, axis) {
+      const pivotValue = pointAxisValue(points[pivotIndex], axis);
+      let low = left;
+      let mid = left;
+      let high = right;
+      while (mid <= high) {
+        const value = pointAxisValue(points[mid], axis);
+        if (value < pivotValue) {
+          swapPoints(points, low, mid);
+          low += 1;
+          mid += 1;
+        } else if (value > pivotValue) {
+          swapPoints(points, mid, high);
+          high -= 1;
+        } else {
+          mid += 1;
+        }
+      }
+      return { start: low, end: high };
+    }
+
+    function pointAxisValue(point, axis) {
+      return axis === 0 ? point.x : axis === 1 ? point.y : point.z;
+    }
+
+    function swapPoints(points, a, b) {
+      if (a === b) return;
+      const temp = points[a];
+      points[a] = points[b];
+      points[b] = temp;
     }
 
     function findNearest(node, query, best = { point: null, distanceSq: Infinity }) {
@@ -4754,6 +5171,12 @@
 
     function setMode(mode) {
       const nextMode = normalizeMode(mode);
+      const previousAnalysisMode = isAnalysisMode(state.mode) ? currentAnalysisMode(state.mode) : null;
+      const nextAnalysisMode = isAnalysisMode(nextMode) ? currentAnalysisMode(nextMode) : null;
+      if (previousAnalysisMode && nextAnalysisMode && previousAnalysisMode !== nextAnalysisMode) {
+        state.analysisRunId += 1;
+        state.pendingHeatmap = true;
+      }
       if (isAnalysisMode(nextMode) && !isAnalysisMode(state.mode)) {
         els.controlPanel.classList.add('open');
       }
@@ -4820,16 +5243,30 @@
     }
 
     function setCameraLock(locked) {
-      if (locked) {
-        const sourceSide = state.mode === 'single' ? state.singleSide : 'reference';
-        matchCameraPose(sourceSide, sourceSide === 'reference' ? 'updated' : 'reference');
+      if (locked && !canCameraLock()) {
+        locked = false;
       }
       state.camerasLocked = locked;
+      if (locked) {
+        const sourceSide = state.mode === 'single' ? state.singleSide : 'reference';
+        matchCameraPose(sourceSide, otherSide(sourceSide));
+      }
       els.cameraLockBtn.classList.toggle('locked', locked);
       const lockSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
       const linkSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
       els.cameraLockBtn.innerHTML = locked ? lockSVG : linkSVG;
       els.cameraLockBtn.title = locked ? 'Cameras locked — click to unlock' : 'Lock cameras together';
+      updateUiState();
+    }
+
+    function canCameraLock() {
+      return hasBothModels() && Boolean(activeFitMatrix());
+    }
+
+    function reconcileCameraLock() {
+      if (state.camerasLocked && !canCameraLock()) {
+        setCameraLock(false);
+      }
     }
 
     function matchCameraPose(fromSide, toSide) {
@@ -4841,9 +5278,13 @@
       const fromControls = coreViewer(fromViewer).cameraManager.getControls();
       const toCamera = coreViewer(toViewer).cameraManager.getCamera();
       const toControls = coreViewer(toViewer).cameraManager.getControls();
-
+      if (!isCameraPoseUsable(fromSide, fromCamera, fromControls)) {
+        repairCameraState(fromSide);
+        return;
+      }
       try {
         state.syncingCamera = true;
+        const previousPose = snapshotCameraPose(toCamera, toControls);
         toCamera.position.copy(fromCamera.position);
         toCamera.quaternion.copy(fromCamera.quaternion);
         toCamera.zoom = fromCamera.zoom;
@@ -4864,9 +5305,33 @@
         if (toControls && typeof toControls.update === 'function') {
           toControls.update();
         }
+
+        if (!isCameraPoseUsable(toSide, toCamera, toControls)) {
+          restoreCameraSnapshot(toCamera, toControls, previousPose);
+        } else {
+          rememberGoodCameraPose(toSide, toCamera, toControls);
+        }
       } finally {
         state.syncingCamera = false;
       }
+    }
+
+    function matchedPointPairsForSides(fromSide, toSide) {
+      const toByName = new Map();
+      for (const point of state.points[toSide]) {
+        const name = normalizeName(point.name);
+        if (name && !toByName.has(name)) toByName.set(name, point);
+      }
+      const pairs = [];
+      for (const fromPoint of state.points[fromSide]) {
+        const toPoint = toByName.get(normalizeName(fromPoint.name));
+        if (!toPoint) continue;
+        pairs.push({
+          from: fromPoint.local.clone(),
+          to: toPoint.local.clone()
+        });
+      }
+      return pairs;
     }
 
     async function captureSingleView(side) {
@@ -5083,6 +5548,12 @@
       return state.markerScale[side] * 0.42;
     }
 
+    function modelWorldScaleForSide(side) {
+      const model = state.models[side];
+      if (!model) return new THREE.Vector3(1, 1, 1);
+      return new THREE.Vector3().setFromMatrixScale(model.matrixWorld).max(new THREE.Vector3(1e-6, 1e-6, 1e-6));
+    }
+
     function analysisProbeAccent(mode, value) {
       if (mode === 'heightmap') {
         return value < 0 ? SIGNED_DIFF_RED.getHex() : SIGNED_DIFF_BLUE.getHex();
@@ -5192,21 +5663,22 @@
       const probe = state.analysisProbe[side];
       if (!probe || !state.models[side]) return;
 
-      const modelWorldScale = new THREE.Vector3().setFromMatrixScale(state.models[side].matrixWorld).x;
-      const localScale = probeDotScaleForSide(side) / Math.max(modelWorldScale, 1e-6);
+      const modelWorldScale = modelWorldScaleForSide(side);
+      const uniformWorldScale = Math.max(modelWorldScale.x, modelWorldScale.y, modelWorldScale.z, 1e-6);
+      const localScale = probeDotScaleForSide(side) / uniformWorldScale;
 
       probe.userData.ring?.scale.setScalar(localScale * 1.28);
       probe.userData.dot?.scale.setScalar(localScale);
 
       const label = probe.userData.label;
       if (label) {
-        label.position.set(0, localScale * 1.9, 0);
+        label.position.set(0, localScale * 2.25, 0);
         const worldPosition = new THREE.Vector3();
         probe.getWorldPosition(worldPosition);
         const labelSize = labelWorldSizeForSide(side, worldPosition, label.userData.screenWidth, label.userData.screenHeight);
         label.scale.set(
-          labelSize.width / Math.max(modelWorldScale, 1e-6),
-          labelSize.height / Math.max(modelWorldScale, 1e-6),
+          labelSize.width / uniformWorldScale,
+          labelSize.height / uniformWorldScale,
           1
         );
       }
@@ -5420,6 +5892,7 @@
       if (!material?.userData || material.userData.compareOriginalState) return;
       material.userData.compareOriginalState = {
         color: material.color?.clone?.() ?? null,
+        emissive: material.emissive?.clone?.() ?? null,
         transparent: material.transparent,
         opacity: material.opacity,
         depthWrite: material.depthWrite,
@@ -5437,15 +5910,22 @@
         metalnessMap: material.metalnessMap ?? null,
         normalMap: material.normalMap ?? null,
         roughnessMap: material.roughnessMap ?? null,
+        envMap: material.envMap ?? null,
         onBeforeCompile: material.onBeforeCompile,
         customProgramCacheKey: material.customProgramCacheKey
       };
+      for (const key of ANALYSIS_MATERIAL_SCALAR_PROPS) {
+        if (key in material) {
+          material.userData.compareOriginalState[key] = material[key];
+        }
+      }
     }
 
     function restoreMaterialState(material) {
       const original = material?.userData?.compareOriginalState;
       if (!original) return;
       if (original.color && material.color) material.color.copy(original.color);
+      if (original.emissive && material.emissive) material.emissive.copy(original.emissive);
       material.transparent = original.transparent;
       material.opacity = original.opacity;
       material.depthWrite = original.depthWrite;
@@ -5463,8 +5943,49 @@
       material.metalnessMap = original.metalnessMap;
       material.normalMap = original.normalMap;
       material.roughnessMap = original.roughnessMap;
+      material.envMap = original.envMap;
       material.onBeforeCompile = original.onBeforeCompile;
       material.customProgramCacheKey = original.customProgramCacheKey;
+      for (const key of ANALYSIS_MATERIAL_SCALAR_PROPS) {
+        if (key in original && key in material) {
+          material[key] = original[key];
+        }
+      }
+    }
+
+    const ANALYSIS_MATERIAL_SCALAR_PROPS = [
+      'roughness',
+      'metalness',
+      'envMapIntensity',
+      'emissiveIntensity',
+      'specularIntensity',
+      'reflectivity',
+      'clearcoat',
+      'clearcoatRoughness',
+      'sheen',
+      'sheenRoughness',
+      'iridescence',
+      'transmission',
+      'thickness'
+    ];
+
+    function neutralizeAnalysisMaterial(material) {
+      if (!material) return;
+      if ('roughness' in material) material.roughness = 1;
+      if ('metalness' in material) material.metalness = 0;
+      if ('envMapIntensity' in material) material.envMapIntensity = 0;
+      if ('emissiveIntensity' in material) material.emissiveIntensity = 0;
+      if ('specularIntensity' in material) material.specularIntensity = 0;
+      if ('reflectivity' in material) material.reflectivity = 0;
+      if ('clearcoat' in material) material.clearcoat = 0;
+      if ('clearcoatRoughness' in material) material.clearcoatRoughness = 1;
+      if ('sheen' in material) material.sheen = 0;
+      if ('sheenRoughness' in material) material.sheenRoughness = 1;
+      if ('iridescence' in material) material.iridescence = 0;
+      if ('transmission' in material) material.transmission = 0;
+      if ('thickness' in material) material.thickness = 0;
+      if ('envMap' in material) material.envMap = null;
+      if (material.emissive) material.emissive.setHex(0x000000);
     }
 
     function applyMaterialState(model, side, mode) {
@@ -5518,6 +6039,7 @@
             material.metalnessMap = null;
             material.normalMap = null;
             material.roughnessMap = null;
+            neutralizeAnalysisMaterial(material);
           }
           material.opacity = opacity;
           material.transparent = transparent || material.opacity < 1.0;
@@ -5602,28 +6124,37 @@
       const anyModels = hasAnyModel();
       const bothModels = hasBothModels();
       const exportSide = activeExportSide();
+      const lockAvailable = canCameraLock();
 
       els.combinedBtn.textContent = bothModels ? 'Combined' : 'Single';
       els.singleBtn.textContent = bothModels ? 'Single' : 'Solo';
       els.referenceToggleBtn.disabled = !bothModels;
       els.swapModelsBtn.disabled = !anyModels;
+      els.cameraLockBtn.disabled = !lockAvailable && !state.camerasLocked;
       els.overlayBtn.disabled = !bothModels;
       els.diffBtn.disabled = !bothModels;
-      els.heatmapBtn.disabled = !bothModels;
-      els.heightmapBtn.disabled = !bothModels;
-      els.downloadHeatmapBtn.disabled = !bothModels || !isAnalysisMode(state.mode) || !hasHeatmapData() || state.exportingAnalysisGlb;
+      els.heatmapBtn.disabled = !bothModels || state.computingHeatmap;
+      els.heightmapBtn.disabled = !bothModels || state.computingHeatmap;
+      els.downloadHeatmapBtn.disabled = !bothModels || !isAnalysisMode(state.mode) || !hasHeatmapData() || state.exportingAnalysisGlb || state.computingHeatmap;
       els.importPtsBtn.disabled = !anyModels;
       els.exportPtsBtn.disabled = allPoints().length === 0;
 
       els.referenceToggleBtn.title = bothModels
         ? `${sideLabel(state.referenceSide)} is fixed. Click to use ${sideLabel(movingSide())} as the reference.`
         : 'Load both models to choose the fixed reference';
+      if (!state.camerasLocked) {
+        els.cameraLockBtn.title = lockAvailable
+          ? 'Lock cameras together'
+          : 'Add three matched marker pairs to lock cameras';
+      }
       els.swapModelsBtn.title = swapDescription();
       els.screenshotBtn.title = screenshotDescription();
       els.downloadBtn.title = exportDescription();
       els.downloadBtn.textContent = exportSide ? `Save ${sideShortLabel(exportSide)}` : 'Save';
       els.downloadHeatmapBtn.innerHTML = state.exportingAnalysisGlb
         ? '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Exporting...'
+        : state.computingHeatmap && isAnalysisMode(state.mode)
+          ? '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Generating...'
         : state.mode === 'heightmap' ? 'Export Height GLB' : 'Export Heatmap GLB';
       els.downloadHeatmapBtn.title = bothModels
         ? state.mode === 'heightmap'
@@ -5880,18 +6411,24 @@
 
     async function computeC2CHeatmap() {
       if (!state.models.reference || !state.models.updated) return;
-      if (state.computingHeatmap) return;
+      if (state.computingHeatmap) {
+        state.pendingHeatmap = true;
+        return;
+      }
       
       const analysisMode = currentAnalysisMode();
       const targetSide = state.heatmapTarget || 'updated';
       const sourceSide = otherSide(targetSide);
       const targetModel = state.models[targetSide];
       const sourceModel = state.models[sourceSide];
+      const analysisSampleCount = analysisSampleCountForModels(sourceModel, targetModel);
+      const runId = ++state.analysisRunId;
       
       const currentKey = [
         analysisMode,
         sourceSide,
         targetSide,
+        analysisSampleCount,
         sourceModel.uuid,
         targetModel.uuid,
         sourceModel.matrixWorld.elements.join(','),
@@ -5917,28 +6454,43 @@
       }
       
       state.computingHeatmap = true;
+      state.pendingHeatmap = false;
       els.heatmapControlsSpinner.classList.add('visible');
       const activeAnalysisBtn = analysisMode === 'heightmap' ? els.heightmapBtn : els.heatmapBtn;
       const originalBtnText = activeAnalysisBtn.textContent;
-      activeAnalysisBtn.textContent = '...';
+      activeAnalysisBtn.textContent = 'Generating...';
+      updateUiState();
+
+      const isRunCurrent = () => (
+        state.analysisRunId === runId &&
+        state.mode === analysisMode &&
+        state.heatmapTarget === targetSide &&
+        state.models[sourceSide] === sourceModel &&
+        state.models[targetSide] === targetModel
+      );
       
       try {
         await waitForFrames(2);
+        if (!isRunCurrent()) return;
 
         // Build KD tree in world space so distances match real-world units
         // (sampleModelPoints returns points in model-root local space; convert back to world)
-        const localSamples = sampleModelPoints(sourceModel, 80000);
+        const localSamples = sampleModelPoints(sourceModel, analysisSampleCount);
         if (!localSamples.length) throw new Error('Source model has no measurable surface.');
+        if (!isRunCurrent()) return;
         const srcWorldMat = sourceModel.matrixWorld;
-        const treePoints = analysisMode === 'heightmap'
-          ? localSamples.map(p => {
-              const wp = p.clone().applyMatrix4(srcWorldMat);
-              const proj = new THREE.Vector3(wp.x, 0, wp.z);
-              proj.heightValue = wp.y;
-              return proj;
-            })
-          : localSamples.map(p => p.clone().applyMatrix4(srcWorldMat));
-        const tree = buildKdTree(treePoints);
+        const treePoints = localSamples;
+        for (const point of treePoints) {
+          point.applyMatrix4(srcWorldMat);
+          if (analysisMode === 'heightmap') {
+            point.heightValue = point.y;
+            point.y = 0;
+          }
+        }
+        if (!isRunCurrent()) return;
+        const tree = await buildKdTreeAsync(treePoints, analysisMode === 'heightmap' ? [0, 2] : [0, 1, 2], isRunCurrent);
+        if (!isRunCurrent()) return;
+        if (!tree) return;
 
         const allSamples = [];
         const dataKey = currentAnalysisAttribute(analysisMode);
@@ -5976,9 +6528,13 @@
             }
             values[i] = value;
             if (i % 10 === 0) allSamples.push(value);
-            if (i > 0 && i % YIELD_INTERVAL === 0) await waitForFrames(1);
+            if (i > 0 && i % YIELD_INTERVAL === 0) {
+              await waitForFrames(1);
+              if (!isRunCurrent()) return;
+            }
           }
 
+          if (!isRunCurrent()) return;
           mesh.userData[dataKey] = values;
 
           const distanceAttribute = geometry.getAttribute(bufferAttributeName);
@@ -5991,19 +6547,26 @@
         }
 
         allSamples.sort((a, b) => a - b);
+        if (!isRunCurrent()) return;
         updateHeatmapUiForSamples(allSamples, analysisMode, targetSide);
 
         state.lastHeatmapKeys[analysisMode][targetSide] = currentKey;
-        applyModelMaterials(analysisMode);
+        applyModelMaterials(state.mode);
         updateUiState();
         
       } catch (err) {
         console.error('Heatmap calculation error:', err);
       } finally {
+        if (activeAnalysisBtn.textContent === 'Generating...') {
+          activeAnalysisBtn.textContent = originalBtnText;
+        }
         state.computingHeatmap = false;
         els.heatmapControlsSpinner.classList.remove('visible');
-        activeAnalysisBtn.textContent = originalBtnText;
         updateUiState();
+        if (state.pendingHeatmap && hasBothModels() && isAnalysisMode(state.mode)) {
+          state.pendingHeatmap = false;
+          requestAnimationFrame(() => computeC2CHeatmap());
+        }
       }
     }
 

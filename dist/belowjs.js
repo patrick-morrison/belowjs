@@ -3723,40 +3723,19 @@ class ee {
     });
   }
   processModel(e) {
-    const t = e.scene, s = this.getMaxAnisotropy();
-    t.traverse((n) => {
-      if (n.isLight && (n.visible = !1), n.isMesh && n.material) {
-        n.castShadow = !0, n.receiveShadow = !0;
-        const o = Array.isArray(n.material) ? n.material : [n.material];
-        o.forEach((r, l) => {
-          if (r.emissive && r.emissive.setHex(0), r.emissiveIntensity !== void 0 && (r.emissiveIntensity = 0), r.emissiveMap && (r.emissiveMap = null), r.lightMap && (r.lightMap = null), r.lightMapIntensity !== void 0 && (r.lightMapIntensity = 0), r.type === "MeshBasicMaterial" || r.type === "MeshPhongMaterial") {
-            const A = new f.MeshStandardMaterial({
-              // Only include common, safe params; set specialized textures conditionally below
-              color: r.color || new f.Color(16777215),
-              side: r.side !== void 0 ? r.side : f.FrontSide,
-              wireframe: r.wireframe || !1,
-              vertexColors: r.vertexColors || !1,
-              fog: r.fog !== void 0 ? r.fog : !0,
-              flatShading: !1,
-              // Realistic shipwreck appearance
-              roughness: 0.8,
-              // Weathered, corroded metal/wood
-              metalness: 0.3
-              // Mix of metal and non-metal
-            });
-            r.map && (A.map = r.map), r.alphaMap && (A.alphaMap = r.alphaMap), r.aoMap && (A.aoMap = r.aoMap), typeof r.aoMapIntensity == "number" && (A.aoMapIntensity = r.aoMapIntensity), r.envMap && (A.envMap = r.envMap), r.roughnessMap && (A.roughnessMap = r.roughnessMap), r.metalnessMap && (A.metalnessMap = r.metalnessMap), r.transparent !== void 0 && (A.transparent = r.transparent), typeof r.opacity == "number" && (A.opacity = r.opacity), r.normalMap && (A.normalMap = r.normalMap, A.normalScale = r.normalScale || new f.Vector2(1, 1)), ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap"].forEach((d) => {
-              A[d] && this.processTexture(A[d], s, { disableMipmaps: d === "map" });
-            }), A.needsUpdate = !0, Array.isArray(n.material) ? n.material[l] = A : n.material = A, r !== A && typeof r?.dispose == "function" && r.dispose();
-          } else (r.type === "MeshStandardMaterial" || r.type === "MeshPhysicalMaterial") && (["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap", "emissiveMap"].forEach((h) => {
-            r[h] && this.processTexture(r[h], s, { disableMipmaps: h === "map" });
-          }), r.needsUpdate = !0);
-          const c = Array.isArray(n.material) ? n.material[l] : n.material;
-          c && c.needsUpdate !== void 0 && (c.needsUpdate = !0);
-        }), n.geometry && (n.geometry.attributes?.normal || n.geometry.computeVertexNormals(), n.geometry.normalizeNormals(), o.some((l) => l.normalMap) && this.canComputeTangents(n.geometry) && n.geometry.computeTangents());
+    let t = e.scene;
+    const s = this.getMaxAnisotropy(), i = e.parser || null, n = this.shouldNormalizePhotogrammetryAtlas(i);
+    n && (t = this.bakeMeshWorldTransforms(t), e.scene = t), t.traverse((r) => {
+      if (r.isLight && (r.visible = !1), r.isMesh && r.material) {
+        r.castShadow = !0, r.receiveShadow = !0;
+        const c = (Array.isArray(r.material) ? r.material : [r.material]).map(
+          (A) => this.normalizeMaterial(A, i, n, s)
+        );
+        r.material = Array.isArray(r.material) ? c : c[0], r.geometry && (n ? r.geometry.computeVertexNormals() : r.geometry.attributes?.normal || r.geometry.computeVertexNormals(), r.geometry.normalizeNormals(), c.some((h) => h?.normalMap) && this.canComputeTangents(r.geometry) && r.geometry.computeTangents());
       }
     });
-    const i = new f.Box3().setFromObject(t);
-    return t.userData.boundingBox = i, t;
+    const o = new f.Box3().setFromObject(t);
+    return t.userData.boundingBox = o, t;
   }
   getMaxAnisotropy() {
     if (!this.renderer || !this.renderer.capabilities || typeof this.renderer.capabilities.getMaxAnisotropy != "function")
@@ -3767,8 +3746,92 @@ class ee {
   processMaterial(e) {
     e && e.needsUpdate !== void 0 && (e.needsUpdate = !0);
   }
-  processTexture(e, t = null, { disableMipmaps: s = !1 } = {}) {
-    e && (t !== null && (e.anisotropy = t), s && !e.isCompressedTexture && Array.isArray(e.mipmaps) && e.mipmaps.length === 0 && (e.generateMipmaps = !1, e.minFilter = f.LinearFilter), e.needsUpdate = !0);
+  normalizeMaterial(e, t, s, i) {
+    if (!e)
+      return e;
+    this.clearBakedLighting(e);
+    const n = this.getGLTFMaterialDef(t, e), r = s || e.type === "MeshBasicMaterial" || e.type === "MeshPhongMaterial" ? this.createStandardMaterial(e, n, s) : e;
+    return this.processMaterialTextures(r, i, s), r.needsUpdate !== void 0 && (r.needsUpdate = !0), e !== r && typeof e.dispose == "function" && e.dispose(), r;
+  }
+  clearBakedLighting(e) {
+    e.emissive && e.emissive.setHex(0), e.emissiveIntensity !== void 0 && (e.emissiveIntensity = 0), e.emissiveMap && (e.emissiveMap = null), e.lightMap && (e.lightMap = null), e.lightMapIntensity !== void 0 && (e.lightMapIntensity = 0);
+  }
+  createStandardMaterial(e, t, s) {
+    const i = t?.pbrMetallicRoughness || {}, n = e.color?.clone?.() || new f.Color(16777215), o = new f.MeshStandardMaterial({
+      color: n,
+      side: s ? f.FrontSide : e.side ?? f.FrontSide,
+      wireframe: e.wireframe || !1,
+      vertexColors: e.vertexColors || !1,
+      fog: e.fog ?? !0,
+      flatShading: !1,
+      roughness: s ? 1 : i.roughnessFactor ?? e.roughness ?? 0.8,
+      metalness: s ? 0 : i.metallicFactor ?? e.metalness ?? 0.3
+    });
+    return e.map && (o.map = e.map), e.alphaMap && (o.alphaMap = e.alphaMap), e.transparent !== void 0 && (o.transparent = e.transparent), typeof e.opacity == "number" && (o.opacity = e.opacity), s || (e.aoMap && (o.aoMap = e.aoMap), typeof e.aoMapIntensity == "number" && (o.aoMapIntensity = e.aoMapIntensity), e.envMap && (o.envMap = e.envMap), e.roughnessMap && (o.roughnessMap = e.roughnessMap), e.metalnessMap && (o.metalnessMap = e.metalnessMap), e.normalMap && (o.normalMap = e.normalMap, o.normalScale = e.normalScale || new f.Vector2(1, 1))), o;
+  }
+  processMaterialTextures(e, t, s) {
+    [
+      "map",
+      "alphaMap",
+      "normalMap",
+      "roughnessMap",
+      "metalnessMap",
+      "aoMap",
+      "emissiveMap"
+    ].forEach((n) => {
+      e[n] && this.processTexture(e[n], t, {
+        fixPhotogrammetryAtlas: s && n === "map"
+      });
+    });
+  }
+  getGLTFMaterialDef(e, t) {
+    const s = e?.associations?.get?.(t)?.materials;
+    return s == null ? null : e?.json?.materials?.[s] || null;
+  }
+  shouldNormalizePhotogrammetryAtlas(e) {
+    const t = e?.json;
+    if (!t)
+      return !1;
+    const s = t.materials || [], i = t.meshes || [], n = t.accessors || [];
+    if (!s.length || !i.length)
+      return !1;
+    const o = s.some(
+      (c) => c?.pbrMetallicRoughness?.baseColorTexture !== void 0
+    ), r = s.some(
+      (c) => c?.normalTexture || c?.occlusionTexture || c?.emissiveTexture || c?.pbrMetallicRoughness?.metallicRoughnessTexture
+    );
+    if (!o || r)
+      return !1;
+    let l = 0;
+    for (const c of i)
+      for (const A of c.primitives || []) {
+        if (A?.attributes?.POSITION === void 0 || A.attributes.TEXCOORD_0 === void 0)
+          return !1;
+        const h = n[A.attributes.POSITION]?.count || 0, d = A.indices !== void 0 ? n[A.indices]?.count || 0 : h;
+        l += Math.floor(d / 3);
+      }
+    return l >= 5e4;
+  }
+  bakeMeshWorldTransforms(e) {
+    if (!e)
+      return e;
+    e.updateMatrixWorld(!0);
+    const t = new f.Group();
+    t.name = e.name || "BakedPhotogrammetryModel", t.userData = { ...e.userData, bakedWorldTransforms: !0 };
+    const s = [];
+    e.traverse((n) => {
+      n.isMesh && s.push(n);
+    });
+    const i = /* @__PURE__ */ new Set();
+    return s.forEach((n) => {
+      const o = n.matrixWorld.clone(), r = n.geometry;
+      r && (i.add(r), n.geometry = r.clone(), n.geometry.applyMatrix4(o)), n.position.set(0, 0, 0), n.quaternion.identity(), n.scale.set(1, 1, 1), n.matrix.identity(), n.matrixWorld.identity(), n.matrixAutoUpdate = !0, t.add(n);
+    }), i.forEach((n) => {
+      typeof n?.dispose == "function" && n.dispose();
+    }), t.updateMatrixWorld(!0), t;
+  }
+  processTexture(e, t = null, { fixPhotogrammetryAtlas: s = !1 } = {}) {
+    e && (t !== null && (e.anisotropy = t), s && (e.isCompressedTexture || (e.generateMipmaps = !1), e.minFilter = f.LinearFilter, e.wrapS = f.ClampToEdgeWrapping, e.wrapT = f.ClampToEdgeWrapping), e.needsUpdate = !0);
   }
   canComputeTangents(e) {
     return !!(e?.index && e.attributes?.position && e.attributes?.normal && e.attributes?.uv);

@@ -230,8 +230,15 @@ export class ModelLoader {
   }
 
   processModel(gltf) {
-    const model = gltf.scene;
+    let model = gltf.scene;
     const maxAnisotropy = this.getMaxAnisotropy();
+    const parser = gltf.parser || null;
+    const normalizePhotogrammetry = this.shouldNormalizePhotogrammetryAtlas(parser);
+
+    if (normalizePhotogrammetry) {
+      model = this.bakeMeshWorldTransforms(model);
+      gltf.scene = model;
+    }
 
     model.traverse((obj) => {
       if (obj.isLight) {
@@ -241,87 +248,20 @@ export class ModelLoader {
         obj.castShadow = true;
         obj.receiveShadow = true;
         const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
-        materials.forEach((material, idx) => {
-
-          if (material.emissive) material.emissive.setHex(0x000000);
-          if (material.emissiveIntensity !== undefined) material.emissiveIntensity = 0;
-          if (material.emissiveMap) material.emissiveMap = null;
-
-          if (material.lightMap) material.lightMap = null;
-          if (material.lightMapIntensity !== undefined) material.lightMapIntensity = 0;
-
-          if (material.type === 'MeshBasicMaterial' || material.type === 'MeshPhongMaterial') {
-            const newMaterial = new THREE.MeshStandardMaterial({
-              // Only include common, safe params; set specialized textures conditionally below
-              color: material.color || new THREE.Color(0xffffff),
-              side: material.side !== undefined ? material.side : THREE.FrontSide,
-              wireframe: material.wireframe || false,
-              vertexColors: material.vertexColors || false,
-              fog: material.fog !== undefined ? material.fog : true,
-              flatShading: false,
-
-              // Realistic shipwreck appearance
-              roughness: 0.8,  // Weathered, corroded metal/wood
-              metalness: 0.3   // Mix of metal and non-metal
-            });
-
-            // Conditionally copy supported maps/props to avoid undefined warnings
-            if (material.map) newMaterial.map = material.map;
-            if (material.alphaMap) newMaterial.alphaMap = material.alphaMap;
-            if (material.aoMap) newMaterial.aoMap = material.aoMap;
-            if (typeof material.aoMapIntensity === 'number') newMaterial.aoMapIntensity = material.aoMapIntensity;
-            if (material.envMap) newMaterial.envMap = material.envMap;
-            if (material.roughnessMap) newMaterial.roughnessMap = material.roughnessMap;
-            if (material.metalnessMap) newMaterial.metalnessMap = material.metalnessMap;
-            if (material.transparent !== undefined) newMaterial.transparent = material.transparent;
-            if (typeof material.opacity === 'number') newMaterial.opacity = material.opacity;
-            if (material.normalMap) {
-              newMaterial.normalMap = material.normalMap;
-              newMaterial.normalScale = material.normalScale || new THREE.Vector2(1, 1);
-            }
-
-
-            const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'];
-            textureSlots.forEach(slot => {
-              if (newMaterial[slot]) {
-                this.processTexture(newMaterial[slot], maxAnisotropy, { disableMipmaps: slot === 'map' });
-              }
-            });
-
-            newMaterial.needsUpdate = true;
-            if (Array.isArray(obj.material)) {
-              obj.material[idx] = newMaterial;
-            } else {
-              obj.material = newMaterial;
-            }
-
-            if (material !== newMaterial && typeof material?.dispose === 'function') {
-              material.dispose();
-            }
-          } else if (material.type === 'MeshStandardMaterial' || material.type === 'MeshPhysicalMaterial') {
-            // Apply anisotropic filtering to standard/physical materials to prevent mipmap striping
-            const textureSlots = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
-            textureSlots.forEach(slot => {
-              if (material[slot]) {
-                this.processTexture(material[slot], maxAnisotropy, { disableMipmaps: slot === 'map' });
-              }
-            });
-            material.needsUpdate = true;
-          }
-
-          const currentMaterial = Array.isArray(obj.material) ? obj.material[idx] : obj.material;
-          if (currentMaterial && currentMaterial.needsUpdate !== undefined) {
-            currentMaterial.needsUpdate = true;
-          }
-        });
+        const normalizedMaterials = materials.map((material) =>
+          this.normalizeMaterial(material, parser, normalizePhotogrammetry, maxAnisotropy)
+        );
+        obj.material = Array.isArray(obj.material) ? normalizedMaterials : normalizedMaterials[0];
 
         if (obj.geometry) {
-          if (!obj.geometry.attributes?.normal) {
+          if (normalizePhotogrammetry) {
+            obj.geometry.computeVertexNormals();
+          } else if (!obj.geometry.attributes?.normal) {
             obj.geometry.computeVertexNormals();
           }
           obj.geometry.normalizeNormals();
 
-          const hasNormalMaps = materials.some(mat => mat.normalMap);
+          const hasNormalMaps = normalizedMaterials.some(mat => mat?.normalMap);
           if (hasNormalMaps && this.canComputeTangents(obj.geometry)) {
             obj.geometry.computeTangents();
           }
@@ -349,7 +289,203 @@ export class ModelLoader {
     }
   }
 
-  processTexture(texture, maxAnisotropy = null, { disableMipmaps = false } = {}) {
+  normalizeMaterial(material, parser, normalizePhotogrammetry, maxAnisotropy) {
+    if (!material) {
+      return material;
+    }
+
+    this.clearBakedLighting(material);
+
+    const materialDef = this.getGLTFMaterialDef(parser, material);
+    const shouldConvertToStandard = normalizePhotogrammetry ||
+      material.type === 'MeshBasicMaterial' ||
+      material.type === 'MeshPhongMaterial';
+
+    const outputMaterial = shouldConvertToStandard
+      ? this.createStandardMaterial(material, materialDef, normalizePhotogrammetry)
+      : material;
+
+    this.processMaterialTextures(outputMaterial, maxAnisotropy, normalizePhotogrammetry);
+
+    if (outputMaterial.needsUpdate !== undefined) {
+      outputMaterial.needsUpdate = true;
+    }
+
+    if (material !== outputMaterial && typeof material.dispose === 'function') {
+      material.dispose();
+    }
+
+    return outputMaterial;
+  }
+
+  clearBakedLighting(material) {
+    if (material.emissive) material.emissive.setHex(0x000000);
+    if (material.emissiveIntensity !== undefined) material.emissiveIntensity = 0;
+    if (material.emissiveMap) material.emissiveMap = null;
+    if (material.lightMap) material.lightMap = null;
+    if (material.lightMapIntensity !== undefined) material.lightMapIntensity = 0;
+  }
+
+  createStandardMaterial(material, materialDef, normalizePhotogrammetry) {
+    const pbr = materialDef?.pbrMetallicRoughness || {};
+    const color = material.color?.clone?.() || new THREE.Color(0xffffff);
+    const standardMaterial = new THREE.MeshStandardMaterial({
+      color,
+      side: normalizePhotogrammetry ? THREE.FrontSide : (material.side ?? THREE.FrontSide),
+      wireframe: material.wireframe || false,
+      vertexColors: material.vertexColors || false,
+      fog: material.fog ?? true,
+      flatShading: false,
+      roughness: normalizePhotogrammetry ? 1 : (pbr.roughnessFactor ?? material.roughness ?? 0.8),
+      metalness: normalizePhotogrammetry ? 0 : (pbr.metallicFactor ?? material.metalness ?? 0.3)
+    });
+
+    if (material.map) standardMaterial.map = material.map;
+    if (material.alphaMap) standardMaterial.alphaMap = material.alphaMap;
+    if (material.transparent !== undefined) standardMaterial.transparent = material.transparent;
+    if (typeof material.opacity === 'number') standardMaterial.opacity = material.opacity;
+
+    if (!normalizePhotogrammetry) {
+      if (material.aoMap) standardMaterial.aoMap = material.aoMap;
+      if (typeof material.aoMapIntensity === 'number') standardMaterial.aoMapIntensity = material.aoMapIntensity;
+      if (material.envMap) standardMaterial.envMap = material.envMap;
+      if (material.roughnessMap) standardMaterial.roughnessMap = material.roughnessMap;
+      if (material.metalnessMap) standardMaterial.metalnessMap = material.metalnessMap;
+      if (material.normalMap) {
+        standardMaterial.normalMap = material.normalMap;
+        standardMaterial.normalScale = material.normalScale || new THREE.Vector2(1, 1);
+      }
+    }
+
+    return standardMaterial;
+  }
+
+  processMaterialTextures(material, maxAnisotropy, normalizePhotogrammetry) {
+    const textureSlots = [
+      'map',
+      'alphaMap',
+      'normalMap',
+      'roughnessMap',
+      'metalnessMap',
+      'aoMap',
+      'emissiveMap'
+    ];
+
+    textureSlots.forEach(slot => {
+      if (material[slot]) {
+        this.processTexture(material[slot], maxAnisotropy, {
+          fixPhotogrammetryAtlas: normalizePhotogrammetry && slot === 'map'
+        });
+      }
+    });
+  }
+
+  getGLTFMaterialDef(parser, material) {
+    const materialIndex = parser?.associations?.get?.(material)?.materials;
+    if (materialIndex === undefined || materialIndex === null) {
+      return null;
+    }
+    return parser?.json?.materials?.[materialIndex] || null;
+  }
+
+  shouldNormalizePhotogrammetryAtlas(parser) {
+    const json = parser?.json;
+    if (!json) {
+      return false;
+    }
+
+    const materials = json.materials || [];
+    const meshes = json.meshes || [];
+    const accessors = json.accessors || [];
+
+    if (!materials.length || !meshes.length) {
+      return false;
+    }
+
+    // Large photogrammetry exports often carry a baked color atlas as the
+    // shading source. In that workflow, stale exporter normals, double-sided
+    // flags, and glossy defaults can show up as broad bands. If authored
+    // lighting maps exist, leave the material/normal authoring intact.
+    const hasBaseColorTexture = materials.some((materialDef) =>
+      materialDef?.pbrMetallicRoughness?.baseColorTexture !== undefined
+    );
+    const hasGeneratedLightingMaps = materials.some((materialDef) =>
+      materialDef?.normalTexture ||
+      materialDef?.occlusionTexture ||
+      materialDef?.emissiveTexture ||
+      materialDef?.pbrMetallicRoughness?.metallicRoughnessTexture
+    );
+
+    if (!hasBaseColorTexture || hasGeneratedLightingMaps) {
+      return false;
+    }
+
+    let triangleCount = 0;
+    for (const mesh of meshes) {
+      for (const primitive of mesh.primitives || []) {
+        if (primitive?.attributes?.POSITION === undefined || primitive.attributes.TEXCOORD_0 === undefined) {
+          return false;
+        }
+        const positionCount = accessors[primitive.attributes.POSITION]?.count || 0;
+        const indexCount = primitive.indices !== undefined
+          ? accessors[primitive.indices]?.count || 0
+          : positionCount;
+        triangleCount += Math.floor(indexCount / 3);
+      }
+    }
+
+    return triangleCount >= 50000;
+  }
+
+  bakeMeshWorldTransforms(model) {
+    if (!model) {
+      return model;
+    }
+
+    model.updateMatrixWorld(true);
+
+    const bakedRoot = new THREE.Group();
+    bakedRoot.name = model.name || 'BakedPhotogrammetryModel';
+    bakedRoot.userData = { ...model.userData, bakedWorldTransforms: true };
+
+    const meshes = [];
+    model.traverse((object) => {
+      if (object.isMesh) {
+        meshes.push(object);
+      }
+    });
+
+    const sourceGeometries = new Set();
+    meshes.forEach((mesh) => {
+      const worldMatrix = mesh.matrixWorld.clone();
+      const sourceGeometry = mesh.geometry;
+      if (sourceGeometry) {
+        sourceGeometries.add(sourceGeometry);
+        mesh.geometry = sourceGeometry.clone();
+        mesh.geometry.applyMatrix4(worldMatrix);
+      }
+
+      mesh.position.set(0, 0, 0);
+      mesh.quaternion.identity();
+      mesh.scale.set(1, 1, 1);
+      mesh.matrix.identity();
+      mesh.matrixWorld.identity();
+      mesh.matrixAutoUpdate = true;
+
+      bakedRoot.add(mesh);
+    });
+
+    sourceGeometries.forEach((geometry) => {
+      if (typeof geometry?.dispose === 'function') {
+        geometry.dispose();
+      }
+    });
+
+    bakedRoot.updateMatrixWorld(true);
+    return bakedRoot;
+  }
+
+  processTexture(texture, maxAnisotropy = null, { fixPhotogrammetryAtlas = false } = {}) {
     if (!texture) {
       return;
     }
@@ -358,13 +494,17 @@ export class ModelLoader {
       texture.anisotropy = maxAnisotropy;
     }
 
-    // Sketchfab GLBs commonly use tightly packed JPEG atlases with mipmapped
-    // sampling. Those generated mip levels bleed across UV islands and show up
-    // as broad striping on photogrammetry surfaces. Source exports from
-    // Metashape use linear filtering for the same texture, which avoids it.
-    if (disableMipmaps && !texture.isCompressedTexture && Array.isArray(texture.mipmaps) && texture.mipmaps.length === 0) {
-      texture.generateMipmaps = false;
+    // Photogrammetry GLBs commonly use tightly packed atlases with mipmapped
+    // repeat sampling. Lower mip levels can bleed across UV islands and appear
+    // as broad bands. KTX2 conversions can preserve those mip levels, so force
+    // base-level sampling for color atlases.
+    if (fixPhotogrammetryAtlas) {
+      if (!texture.isCompressedTexture) {
+        texture.generateMipmaps = false;
+      }
       texture.minFilter = THREE.LinearFilter;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
     }
 
     texture.needsUpdate = true;
