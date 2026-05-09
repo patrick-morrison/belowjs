@@ -97,6 +97,43 @@ export class Camera extends EventSystem {
     return this.controls;
   }
 
+  resetControlInteractionState() {
+    if (!this.controls) return;
+
+    const controls = this.controls;
+    const domElement = controls.domElement;
+
+    if (domElement && Array.isArray(controls._pointers)) {
+      controls._pointers.forEach((pointerId) => {
+        try {
+          if (domElement.hasPointerCapture?.(pointerId)) {
+            domElement.releasePointerCapture(pointerId);
+          }
+        } catch {
+          // Pointer capture may already be gone; the tracked pointer still needs clearing.
+        }
+      });
+    }
+
+    if (domElement) {
+      if (controls._onPointerMove) {
+        domElement.removeEventListener('pointermove', controls._onPointerMove);
+      }
+      if (controls._onPointerUp) {
+        domElement.removeEventListener('pointerup', controls._onPointerUp);
+      }
+    }
+
+    if (Array.isArray(controls._pointers)) {
+      controls._pointers.length = 0;
+    }
+    if (controls._pointerPositions) {
+      controls._pointerPositions = {};
+    }
+
+    controls.state = -1;
+  }
+
   /**
    * Frame an object by positioning the camera to view it optimally
    * 

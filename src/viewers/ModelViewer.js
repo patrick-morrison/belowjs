@@ -1793,6 +1793,7 @@ export class ModelViewer extends EventSystem {
       }
 
       this.belowViewer.clearModels();
+      this.belowViewer.cameraManager?.resetControlInteractionState?.();
 
       // When switching models while in VR, locomotion state can persist which
       // leaves movement controls unresponsive in the next model. Explicitly
@@ -1831,6 +1832,7 @@ export class ModelViewer extends EventSystem {
       if (model) {
         const hasInitialDesktopPosition = Boolean(modelConfig.initialPositions?.desktop);
         this.applyInitialPositions(modelConfig, model);
+        this.belowViewer.cameraManager?.resetControlInteractionState?.();
         const shouldAutoFrameTileset = modelConfig.type === 'tileset'
           && !hasInitialDesktopPosition
           && !this.belowViewer.isVRPresenting();

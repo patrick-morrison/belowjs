@@ -579,6 +579,7 @@ export class BelowViewer extends EventSystem {
       if (this.loadedModels.length === 1 && options.autoFrame !== false) {
         this.frameModel(model);
       }
+      this.cameraManager?.resetControlInteractionState?.();
       
       if (this.currentAbortController && this.currentAbortController.signal === signal) {
         this.currentAbortController = null;
@@ -994,6 +995,7 @@ export class BelowViewer extends EventSystem {
         this.modelLoader.releaseFromCache(url);
       }
     });
+    this.cameraManager?.resetControlInteractionState?.();
     this.emit('models-cleared');
   }
 
