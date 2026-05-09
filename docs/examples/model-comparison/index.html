@@ -1648,6 +1648,10 @@
         reference: null,
         updated: null
       },
+      orbitPointers: {
+        reference: new Map(),
+        updated: new Map()
+      },
       modelBoundsCache: {
         reference: null,
         updated: null
@@ -1847,6 +1851,8 @@
 
     state.viewers.reference = createViewer(els.referenceViewer);
     state.viewers.updated = createViewer(els.updatedViewer);
+    trackOrbitPointers('reference');
+    trackOrbitPointers('updated');
 
     setupFileLoading('reference');
     setupFileLoading('updated');
@@ -2026,6 +2032,7 @@
     window.addEventListener('keydown', (event) => {
       if (isEditableTarget(event.target)) return;
       if (event.key.toLowerCase() === 'z') {
+        event.preventDefault();
         swapSides();
         recordDemoTutorialSwapFromKey();
       } else if (event.key === '0' || event.code === 'Digit0' || event.code === 'Numpad0') {
@@ -2056,6 +2063,7 @@
       }
 
       const oldSide = activeCombinedSide();
+      const orbitHandoff = prepareOrbitControlHandoff(oldSide);
 
       if (state.mode === 'split') {
         state.lastCombinedMode = 'single';
@@ -2076,6 +2084,8 @@
       if (oldSide !== newSide) {
         matchCameraPose(oldSide, newSide);
       }
+
+      finishOrbitControlHandoff(newSide, orbitHandoff);
     }
 
     updateLayout();
@@ -2109,6 +2119,270 @@
       controls.enablePan = true;
       controls.enableRotate = true;
       return viewer;
+    }
+
+    function prepareOrbitControlHandoff(activeSide) {
+      const handoff = {
+        momentum: snapshotOrbitMomentum(activeSide),
+        gesture: snapshotOrbitGesture(activeSide)
+      };
+      for (const side of ['reference', 'updated']) {
+        endActiveOrbitGesture(side);
+        clearOrbitMomentum(side);
+      }
+      return handoff;
+    }
+
+    function finishOrbitControlHandoff(activeSide, handoff) {
+      applyOrbitMomentum(activeSide, handoff?.momentum);
+      restartOrbitGesture(activeSide, handoff?.gesture);
+      requestAnimationFrame(() => {
+        const camera = coreViewer(activeSide)?.cameraManager?.getCamera?.();
+        const controls = coreViewer(activeSide)?.cameraManager?.getControls?.();
+        if (camera) rememberGoodCameraPose(activeSide, camera, controls);
+      });
+    }
+
+    function endActiveOrbitGesture(side) {
+      const core = coreViewer(side);
+      const domElement = core?.getRenderer?.()?.domElement;
+      if (!domElement) return;
+
+      const pointers = state.orbitPointers[side];
+      if (!pointers?.size) return;
+      for (const [pointerId, pointerInfo] of pointers) {
+        dispatchOrbitPointerCancel(domElement, pointerId, pointerInfo);
+      }
+      pointers.clear();
+    }
+
+    function dispatchOrbitPointerCancel(domElement, pointerId, pointerInfo = {}) {
+      const init = {
+        bubbles: true,
+        cancelable: true,
+        pointerId,
+        pointerType: pointerInfo.pointerType || 'mouse',
+        button: pointerInfo.button ?? 0,
+        buttons: 0,
+        clientX: pointerInfo.clientX ?? 0,
+        clientY: pointerInfo.clientY ?? 0
+      };
+      const event = typeof PointerEvent === 'function'
+        ? new PointerEvent('pointercancel', init)
+        : new Event('pointercancel', init);
+      assignPointerEventFallbacks(event, init);
+      try {
+        domElement.dispatchEvent(event);
+      } catch (_error) {
+        // OrbitControls may already have released capture for this pointer.
+      }
+      try {
+        if (domElement.hasPointerCapture?.(pointerId)) {
+          domElement.releasePointerCapture(pointerId);
+        }
+      } catch (_error) {
+        // Pointer capture can already be released by OrbitControls.
+      }
+    }
+
+    function snapshotOrbitGesture(side) {
+      const pointers = state.orbitPointers[side];
+      if (!pointers?.size) return null;
+
+      const activePointer = [...pointers.entries()].find(([, pointer]) => pointer.buttons !== 0) ?? [...pointers.entries()][0];
+      if (!activePointer) return null;
+      const [pointerId, pointerInfo] = activePointer;
+      return {
+        pointerId,
+        pointerType: pointerInfo.pointerType || 'mouse',
+        button: pointerInfo.button ?? 0,
+        buttons: pointerInfo.buttons ?? buttonToButtons(pointerInfo.button ?? 0),
+        clientX: pointerInfo.clientX ?? 0,
+        clientY: pointerInfo.clientY ?? 0,
+        ctrlKey: Boolean(pointerInfo.ctrlKey),
+        metaKey: Boolean(pointerInfo.metaKey),
+        shiftKey: Boolean(pointerInfo.shiftKey),
+        altKey: Boolean(pointerInfo.altKey),
+        isPrimary: pointerInfo.isPrimary !== false
+      };
+    }
+
+    function restartOrbitGesture(side, gesture) {
+      if (!gesture || gesture.buttons === 0) return;
+      const core = coreViewer(side);
+      const domElement = core?.getRenderer?.()?.domElement;
+      if (!domElement) return;
+
+      const restorePointerCapture = makePointerCaptureSafe(domElement, gesture.pointerId);
+      const cleanup = (event) => {
+        if (event?.pointerId !== undefined && event.pointerId !== gesture.pointerId) return;
+        setTimeout(restorePointerCapture, 0);
+        domElement.removeEventListener('pointerup', cleanup);
+        domElement.removeEventListener('pointercancel', cleanup);
+        window.removeEventListener('pointerup', cleanup);
+        window.removeEventListener('pointercancel', cleanup);
+        window.removeEventListener('blur', cleanup);
+      };
+      domElement.addEventListener('pointerup', cleanup);
+      domElement.addEventListener('pointercancel', cleanup);
+      window.addEventListener('pointerup', cleanup);
+      window.addEventListener('pointercancel', cleanup);
+      window.addEventListener('blur', cleanup);
+      try {
+        dispatchOrbitPointerDown(domElement, gesture);
+      } catch (_error) {
+        cleanup();
+      }
+    }
+
+    function makePointerCaptureSafe(domElement, pointerId) {
+      const originalSet = domElement.setPointerCapture;
+      const originalRelease = domElement.releasePointerCapture;
+      if (typeof originalSet === 'function') {
+        domElement.setPointerCapture = function patchedSetPointerCapture(id) {
+          try {
+            return originalSet.call(this, id);
+          } catch (error) {
+            if (id !== pointerId) throw error;
+          }
+        };
+      }
+      if (typeof originalRelease === 'function') {
+        domElement.releasePointerCapture = function patchedReleasePointerCapture(id) {
+          try {
+            return originalRelease.call(this, id);
+          } catch (error) {
+            if (id !== pointerId) throw error;
+          }
+        };
+      }
+      return () => {
+        if (typeof originalSet === 'function') {
+          domElement.setPointerCapture = originalSet;
+        }
+        if (typeof originalRelease === 'function') {
+          domElement.releasePointerCapture = originalRelease;
+        }
+      };
+    }
+
+    function dispatchOrbitPointerDown(domElement, pointerInfo) {
+      const init = {
+        bubbles: true,
+        cancelable: true,
+        pointerId: pointerInfo.pointerId,
+        pointerType: pointerInfo.pointerType || 'mouse',
+        button: pointerInfo.button ?? 0,
+        buttons: pointerInfo.buttons ?? buttonToButtons(pointerInfo.button ?? 0),
+        clientX: pointerInfo.clientX ?? 0,
+        clientY: pointerInfo.clientY ?? 0,
+        ctrlKey: Boolean(pointerInfo.ctrlKey),
+        metaKey: Boolean(pointerInfo.metaKey),
+        shiftKey: Boolean(pointerInfo.shiftKey),
+        altKey: Boolean(pointerInfo.altKey),
+        isPrimary: pointerInfo.isPrimary !== false
+      };
+      const event = typeof PointerEvent === 'function'
+        ? new PointerEvent('pointerdown', init)
+        : new Event('pointerdown', init);
+      assignPointerEventFallbacks(event, init);
+      domElement.dispatchEvent(event);
+    }
+
+    function assignPointerEventFallbacks(event, values) {
+      for (const [key, value] of Object.entries(values)) {
+        if (key in event) continue;
+        Object.defineProperty(event, key, { value });
+      }
+    }
+
+    function buttonToButtons(button) {
+      if (button === 1) return 4;
+      if (button === 2) return 2;
+      return 1;
+    }
+
+    function snapshotOrbitMomentum(side) {
+      const controls = coreViewer(side)?.cameraManager?.getControls?.();
+      if (!controls) return null;
+      const theta = controls._sphericalDelta?.theta ?? 0;
+      const phi = controls._sphericalDelta?.phi ?? 0;
+      const panOffset = controls._panOffset?.clone?.() ?? null;
+      const hasRotation = Math.abs(theta) > 1e-8 || Math.abs(phi) > 1e-8;
+      const hasPan = Boolean(panOffset && panOffset.lengthSq() > 1e-10);
+      if (!hasRotation && !hasPan) return null;
+      return { theta, phi, panOffset };
+    }
+
+    function applyOrbitMomentum(side, handoff) {
+      if (!handoff) return;
+      const controls = coreViewer(side)?.cameraManager?.getControls?.();
+      if (!controls) return;
+      if (controls._sphericalDelta) {
+        controls._sphericalDelta.theta = handoff.theta;
+        controls._sphericalDelta.phi = handoff.phi;
+      }
+      if (controls._panOffset && handoff.panOffset) {
+        controls._panOffset.copy(handoff.panOffset);
+      }
+    }
+
+    function clearOrbitMomentum(side) {
+      const core = coreViewer(side);
+      const camera = core?.cameraManager?.getCamera?.();
+      const controls = core?.cameraManager?.getControls?.();
+      if (!controls) return;
+
+      const wasSyncing = state.syncingCamera;
+      state.syncingCamera = true;
+      try {
+        if (controls._sphericalDelta) {
+          controls._sphericalDelta.set(0, 0, 0);
+        }
+        if (controls._panOffset) {
+          controls._panOffset.set(0, 0, 0);
+        }
+        if ('_scale' in controls) {
+          controls._scale = 1;
+        }
+        if ('_performCursorZoom' in controls) {
+          controls._performCursorZoom = false;
+        }
+        if (camera) rememberGoodCameraPose(side, camera, controls);
+      } finally {
+        state.syncingCamera = wasSyncing;
+      }
+    }
+
+    function trackOrbitPointers(side) {
+      const domElement = coreViewer(side)?.getRenderer?.()?.domElement;
+      if (!domElement) return;
+      const pointers = state.orbitPointers[side];
+      domElement.addEventListener('pointerdown', (event) => {
+        pointers.set(event.pointerId, {
+          pointerType: event.pointerType,
+          button: event.button,
+          buttons: event.buttons,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          ctrlKey: event.ctrlKey,
+          metaKey: event.metaKey,
+          shiftKey: event.shiftKey,
+          altKey: event.altKey,
+          isPrimary: event.isPrimary
+        });
+      });
+      domElement.addEventListener('pointermove', (event) => {
+        const pointer = pointers.get(event.pointerId);
+        if (!pointer) return;
+        pointer.buttons = event.buttons;
+        pointer.clientX = event.clientX;
+        pointer.clientY = event.clientY;
+      });
+      const clearPointer = (event) => pointers.delete(event.pointerId);
+      domElement.addEventListener('pointerup', clearPointer);
+      domElement.addEventListener('pointercancel', clearPointer);
+      window.addEventListener('blur', () => pointers.clear());
     }
 
     function coreViewer(viewerOrSide) {
@@ -2756,12 +3030,9 @@
         syncAnalysisProbeScale('updated');
       });
 
-      for (const [side, other] of [['reference', 'updated'], ['updated', 'reference']]) {
-        coreViewer(side).on('fly-mode-change', ({ active }) => {
-          const otherCore = coreViewer(other);
-          if (otherCore?.ui?.flyIndicator) {
-            otherCore.ui.flyIndicator.classList.toggle('visible', active);
-          }
+      for (const side of ['reference', 'updated']) {
+        state.viewers[side]?.on?.('fly-mode-change', () => {
+          syncFlyModeIndicators();
         });
       }
 
@@ -2774,6 +3045,19 @@
       const toViewer = state.viewers[toSide];
       if (!state.camerasLocked || !fromViewer || !toViewer || state.syncingCamera) return;
       matchCameraPose(fromSide, toSide);
+    }
+
+    function syncFlyModeIndicators() {
+      const flyActive = ['reference', 'updated'].some((side) => state.viewers[side]?.isFlyModeActive?.());
+      const mode = state.mode || 'split';
+      const isSplit = mode === 'split';
+      const visibleSide = activeCombinedSide(mode);
+
+      for (const side of ['reference', 'updated']) {
+        const indicator = state.viewers[side]?.ui?.flyIndicator;
+        if (!indicator) continue;
+        indicator.classList.toggle('visible', flyActive && (isSplit || side === visibleSide));
+      }
     }
 
     function stabilizeComparisonView(side) {
@@ -5214,6 +5498,7 @@
 
       els.referencePane.classList.toggle('hidden', !isSplit && combinedSide !== 'reference');
       els.updatedPane.classList.toggle('hidden', !isSplit && combinedSide !== 'updated');
+      syncFlyModeIndicators();
       
       els.sideBySideBtn.classList.toggle('active', isSplit);
       els.combinedBtn.classList.toggle('active', !isSplit);
