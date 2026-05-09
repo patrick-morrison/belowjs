@@ -27,68 +27,61 @@
     <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/docs.css">
     <style>
-        .demo-iframe {
-            width: 100%;
-            height: 500px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin: 2rem 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: block;
-        }
-
-        .demo-iframe.small {
-            height: 400px;
-        }
-
-        /* Fix iframe gaps */
         iframe {
             display: block;
             border: none;
+        }
+
+        .demo-embed {
+            margin: 2rem 0 0.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-embed iframe {
+            width: 100%;
+            height: 500px;
         }
 
         .demo-caption {
             text-align: center;
             font-size: 0.85em;
             color: #666;
-            margin-top: 0.5rem;
+            margin: 0.5rem 0 2rem;
         }
 
-        .example-section {
-            margin: 3rem 0;
-            padding: 2rem 0;
-            border-bottom: 1px solid #f1f5f9;
+        .example-links {
+            display: flex;
+            gap: 0.75rem;
+            margin: 0.75rem 0 0;
+            flex-wrap: wrap;
+            justify-content: flex-start;
         }
 
-        .example-section:last-child {
-            border-bottom: none;
-        }
-
-        /* Totally new button styles for example page - override global styles */
         .example-links .button {
             display: inline-block;
-            padding: 0.75em 1.8em;
+            padding: 0.6rem 1.2rem;
             border-radius: 8px;
-            font-size: 1.1em;
+            font-size: 0.95rem;
             font-weight: 600;
             text-decoration: none !important;
             cursor: pointer;
             border: none;
             outline: none;
-            margin-right: 0.8em;
             background: #f4f7fa;
             color: #183153 !important;
             box-shadow: 0 1px 4px rgba(24, 49, 83, 0.07);
             transition: background 0.18s, color 0.18s, box-shadow 0.18s;
         }
 
-        .example-links .button:last-child {
-            margin-right: 0;
-        }
-
         .example-links .demo-btn {
             background: #183153 !important;
             color: #fff !important;
+        }
+
+        .example-links .guide-btn {
+            background: #059669 !important;
         }
 
         .example-links .demo-btn:hover,
@@ -112,12 +105,54 @@
             box-shadow: 0 2px 8px rgba(24, 49, 83, 0.10);
         }
 
-        .example-links {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0 2rem 0;
-            flex-wrap: wrap;
-            justify-content: flex-start;
+        .example-note {
+            border-left: 4px solid #0d3b66;
+            padding: 0 0 0 0.8rem;
+            margin: 0.65rem 0 0.75rem;
+        }
+
+        .example-note p {
+            margin: 0;
+            color: #374151;
+            line-height: 1.45;
+        }
+
+        .example-group {
+            margin: 2.5rem 0;
+        }
+
+        .example-list {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 1.25rem;
+        }
+
+        .example-item {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .example-item h3 {
+            margin: 0 0 0.5rem;
+        }
+
+        .example-item p {
+            margin: 0.5rem 0;
+        }
+
+        .example-command {
+            margin-top: 0.75rem !important;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 640px) {
+            .example-links .button {
+                flex: 1 1 auto;
+                text-align: center;
+            }
+
+            .demo-embed iframe {
+                height: 380px;
+            }
         }
     </style>
 </head>
@@ -186,138 +221,170 @@
             <p>Explore live interactive demos to see BelowJS in action. Take these open examples and have your own site
                 up and running in minutes.</p>
 
-            <div style="margin: 2rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div class="demo-embed">
                 <iframe
                     src="examples/embed/viewer.html?model=../basic/models/unknown.glb&name=SS%20Timaru&credit=WreckSploration&cx=34.226&cy=10.354&cz=2.12&tx=10.959&ty=-1.07&tz=2.247&bg=%23f8f9fa"
-                    width="100%" height="500" frameborder="0" style="display: block; border: none;"
-                    title="BelowJS Embed Demo - SS Timaru 3D Model" loading="lazy">
+                    frameborder="0" title="BelowJS Embed Demo - SS Timaru 3D Model" loading="lazy">
                 </iframe>
             </div>
-            <p style="text-align: center; font-size: 0.85em; color: #666; margin-top: 0.5rem;">↑ Live embed viewer with
-                measurement tools - SS Timaru (CND4) model. Credit: <a
-                    href="https://wrecksploration.au/projects/timaru/" target="_blank">WreckSploration</a></p>
+            <p class="demo-caption">↑ Live embed viewer with measurement tools - SS Timaru (CND4) model. Credit:
+                <a href="https://wrecksploration.au/projects/timaru/" target="_blank">WreckSploration</a></p>
 
-            <h2>Basic Viewer</h2>
-            <p>Full-featured multi-model viewer with VR support, measurement tools, and dive mode.</p>
-            <p class="example-note"><strong>Note:</strong> Copy this one to make your own viewer. This and a handful of
-                model files is all you need.</p>
-            <p class="example-note"><strong>Measurement tip:</strong> If a model cannot be scaled reliably yet, scale it
-                as best you can for VR viewing and set <code>measurable: false</code> on that model at load time so users
-                do not treat measurements as authoritative.</p>
-            <div class="example-links">
-                <a href="examples/basic/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/basic" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/basic/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev        # or npm run dev:basic</code></pre>
+            <section class="example-group" id="implementation-examples">
+                <h2>Implementation examples</h2>
+                <p>These are the examples to copy first. They are small enough to understand quickly and broad enough to
+                    use as the base for your own viewer.</p>
 
-            <h2>Drag & Drop Loader</h2>
-            <p>File loader with drag-and-drop GLB support, a screenshot button, and custom UI elements.</p>
-            <div
-                style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0 0 1rem 0; color: #374151; line-height: 1.5;">
-                    <strong>Note:</strong> Use this to test your own models and get the initial camera positions for
-                    making your own viewer. Includes a screenshot button for capturing clean images of your models.
-                </p>
-                <p><strong>Quest Link tip:</strong> Use the <a
-                        href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" target="_blank"
-                        rel="noopener">drag-and-drop viewer</a> when you want to stream larger desktop models over Link.
-                    Drop a GLB, toggle VR, and you’re in.</p>
-            </div>
-            <div class="example-links">
-                <a href="examples/dragdrop/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/dragdrop" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/dragdrop/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev:dragdrop</code></pre>
+                <div class="example-list">
+                    <article class="example-item">
+                        <h3>Basic Viewer</h3>
+                        <p>Full-featured multi-model viewer with VR support, measurement tools, and dive mode. Copy this
+                            one to make your own viewer; this and a handful of model files is all you need.</p>
+                        <p><strong>Measurement tip:</strong> if a model cannot be scaled reliably yet, set
+                            <code>measurable: false</code> so users do not treat measurements as authoritative.</p>
+                        <div class="example-links">
+                            <a href="examples/basic/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/basic"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/basic/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev</code> or <code>npm run dev:basic</code></p>
+                    </article>
 
-            <h2>Embed Viewer</h2>
-            <p>Lightweight viewer designed for iframe embedding with URL parameter configuration.</p>
-            <p class="example-note"><strong>Note:</strong> You can use this on your own site to share models among other
-                text. No more external embeds—just a single HTML file pointing to your models, under your control, with
-                full VR support.</p>
-            <div class="example-links">
-                <a href="examples/embed/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/embed" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/embed/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev:embed</code></pre>
+                    <article class="example-item">
+                        <h3>Drag &amp; Drop Loader</h3>
+                        <p>Drop GLB files into the viewer, test your own models, capture screenshots, and find initial
+                            camera positions before making a dedicated page.</p>
+                        <p><strong>Quest Link tip:</strong> use the <a
+                                href="https://patrick-morrison.github.io/belowjs/examples/dragdrop/" target="_blank"
+                                rel="noopener">drag-and-drop viewer</a> when you want to stream larger desktop models
+                            over Link.</p>
+                        <div class="example-links">
+                            <a href="examples/dragdrop/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/dragdrop"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/dragdrop/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev:dragdrop</code></p>
+                    </article>
 
-            <h2>Animation Example</h2>
-            <p>Keyframe animation tool for producing shipwreck visualisations in seconds. Designed to mirror our Blender
-                workflow, with timeline controls, orbit and flight modes, and video export.</p>
-            <div
-                style="background: #f8fafc; border-left: 4px solid #0d3b66; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
-                <p style="margin: 0; color: #374151; line-height: 1.5;">
-                    <strong>Note:</strong> This is an advanced example demonstrating how to build sophisticated tools on
-                    top of the core BelowJS viewer. Includes local save/load of keyframes and settings.
-                </p>
-            </div>
-            <div class="example-links">
-                <a href="examples/animation/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="guides/animation.html" class="button demo-btn" style="background: #059669;">Read Guide</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/animation" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/animation/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev:animation</code></pre>
+                    <article class="example-item">
+                        <h3>Embed Viewer</h3>
+                        <p>Lightweight iframe viewer with URL parameter configuration. Use this to share models among
+                            surrounding text with your own files, under your control, with full VR support.</p>
+                        <div class="example-links">
+                            <a href="examples/embed/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/embed"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/embed/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev:embed</code></p>
+                    </article>
+                </div>
+            </section>
 
-            <h2>Model Comparison</h2>
-            <p>Two-model GLB comparison tool with linked orbit views, paired control point alignment, single-view
-                time switching, and ICP-style refinement.</p>
-            <div class="example-links">
-                <a href="examples/model-comparison/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/model-comparison"
-                    target="_blank" class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/model-comparison/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev:model-comparison</code></pre>
+            <section class="example-group" id="app-examples">
+                <h2>App examples</h2>
+                <p>These show more complete tools built on BelowJS. They are useful references when you want custom UI,
+                    saved state, paired viewers, animation, or analysis workflows.</p>
 
-            <h2>AR Viewer (Experimental)</h2>
-            <p>Passthrough AR viewing with hand tracking gestures for rotating, scaling, and moving 3D models in your
-                physical space. Uses the same studio lighting system as the desktop viewer.</p>
-            <p class="example-note"><strong>Roadmap:</strong> AR and 3D Tiles are planned to stabilise in BelowJS v2.</p>
-            <div class="example-links">
-                <a href="examples/ar/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/ar" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/ar/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
+                <div class="example-list">
+                    <article class="example-item">
+                        <h3>Animation Editor</h3>
+                        <p>Keyframe animation tool for producing shipwreck visualisations in seconds. Designed to mirror
+                            our Blender workflow, with timeline controls, orbit and flight modes, and video export.</p>
+                        <div class="example-note">
+                            <p><strong>Note:</strong> this is an advanced example demonstrating how to build
+                                sophisticated tools on top of the core BelowJS viewer.</p>
+                        </div>
+                        <div class="example-links">
+                            <a href="examples/animation/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="guides/animation.html" class="button demo-btn guide-btn">Read Guide</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/animation"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/animation/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev:animation</code></p>
+                    </article>
 
-            <h2>3D Tiles Streaming (Experimental)</h2>
-            <p>Streaming example for large 3D Tiles datasets. Pass any tileset URL with <code>?url=</code>, or start
-                with the default Denton Holme and Macedon 2023 dataset.</p>
-            <p class="example-note"><strong>Roadmap:</strong> AR and 3D Tiles are planned to stabilise in BelowJS v2.</p>
-            <p class="example-note"><strong>Guide:</strong> See <a href="guides/agisoft-tiled-models.html">Tiled Models</a>
-                for Metashape conversion and setup.</p>
-            <div class="example-links">
-                <a href="examples/tileset/" target="_blank" class="button demo-btn">View Live Demo</a>
-                <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/tileset" target="_blank"
-                    class="button source-btn">Source Code</a>
-                <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/tileset/index.html"
-                    target="_blank" class="button source-btn">View HTML</a>
-            </div>
-            <pre><code>npm run dev:tileset</code></pre>
+                    <article class="example-item">
+                        <h3>Model Comparison</h3>
+                        <p>Two-model GLB comparison tool with linked orbit views, paired control point alignment,
+                            single-view time switching, and ICP-style refinement.</p>
+                        <div class="example-note">
+                            <p><strong>Use case:</strong> monitor changes to a site over time by comparing models from
+                                different survey dates.</p>
+                        </div>
+                        <div class="example-links">
+                            <a href="examples/model-comparison/" target="_blank" class="button demo-btn">View Live
+                                Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/model-comparison"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/model-comparison/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev:model-comparison</code></p>
+                    </article>
+                </div>
+            </section>
 
-            <h2>Running locally</h2>
+            <section class="example-group" id="experimental-examples">
+                <h2>Experimental examples</h2>
+                <p>These examples are useful references for emerging BelowJS workflows, but their APIs and behaviour may
+                    change before they stabilise.</p>
 
-            <pre><code>git clone https://github.com/patrick-morrison/belowjs
+                <div class="example-list">
+                    <article class="example-item">
+                        <h3>AR Viewer</h3>
+                        <p>Passthrough AR viewing with hand tracking gestures for rotating, scaling, and moving 3D
+                            models in your physical space. Uses the same studio lighting system as the desktop viewer.</p>
+                        <p><strong>Roadmap:</strong> AR and 3D Tiles are planned to stabilise in BelowJS v2.</p>
+                        <div class="example-links">
+                            <a href="examples/ar/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/ar"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/ar/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                    </article>
+
+                    <article class="example-item">
+                        <h3>3D Tiles Streaming</h3>
+                        <p>Streaming example for large 3D Tiles datasets. Pass any tileset URL with <code>?url=</code>,
+                            or start with the default Denton Holme and Macedon 2023 dataset.</p>
+                        <p><strong>Guide:</strong> see <a href="guides/agisoft-tiled-models.html">Tiled Models</a> for
+                            Metashape conversion and setup.</p>
+                        <div class="example-links">
+                            <a href="examples/tileset/" target="_blank" class="button demo-btn">View Live Demo</a>
+                            <a href="https://github.com/patrick-morrison/belowjs/tree/main/docs/examples/tileset"
+                                target="_blank" class="button source-btn">Source Code</a>
+                            <a href="https://raw.githubusercontent.com/patrick-morrison/belowjs/main/docs/examples/tileset/index.html"
+                                target="_blank" class="button source-btn">View HTML</a>
+                        </div>
+                        <p class="example-command"><code>npm run dev:tileset</code></p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="example-group" id="deployment-examples">
+                <h2>Deployment snippets</h2>
+                <p>Once you have picked a starter, use these minimal snippets to run it locally, embed it, or ship it as
+                    a static site.</p>
+
+                <h3>Running locally</h3>
+
+                <pre><code>git clone https://github.com/patrick-morrison/belowjs
 cd belowjs
 npm install && npm run build
 npm run dev</code></pre>
 
-            <h2>Simplest possible BelowJS</h2>
+                <h3>Simplest possible BelowJS</h3>
 
-            <pre><code>&lt;!DOCTYPE html&gt;
+                <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;script type="importmap"&gt;
@@ -336,7 +403,7 @@ npm run dev</code></pre>
 &lt;body&gt;
     &lt;script type="module"&gt;
         import { ModelViewer } from 'belowjs';
-        
+
         new ModelViewer('body', {
             models: { 'ship': { url: 'model.glb', measurable: true } }
         });
@@ -344,19 +411,19 @@ npm run dev</code></pre>
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <h2>URL parameter embedding</h2>
-            <p>The embed example supports URL parameters for dynamic configuration:</p>
+                <h3>URL parameter embedding</h3>
+                <p>The embed example supports URL parameters for dynamic configuration:</p>
 
-            <pre><code>&lt;iframe 
+                <pre><code>&lt;iframe
   src="viewer.html?model=wreck.glb&name=Historic%20Wreck&cx=10&cy=5&cz=15"
   width="800" height="600"&gt;
 &lt;/iframe&gt;</code></pre>
 
-            <h2>Static deployment</h2>
-            <p>Deploy on GitHub Pages, <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify
+                <h3>Static deployment</h3>
+                <p>Deploy on GitHub Pages, <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify
                     Drop</a>, or any static hosting:</p>
 
-            <pre><code>shipwrecks-vr/
+                <pre><code>shipwrecks-vr/
 ├── index.html          # Main HTML with BelowJS
 ├── belowjs.js          # Download from releases
 ├── belowjs.css         # Download from releases
@@ -364,9 +431,10 @@ npm run dev</code></pre>
     ├── kxi.glb
     └── kozvii.glb</code></pre>
 
-            <p>Push to GitHub, enable Pages in Settings → live in minutes. Or drag-and-drop this folder onto <a
+                <p>Push to GitHub, enable Pages in Settings → live in minutes. Or drag-and-drop this folder onto <a
                     href="https://app.netlify.com/drop" target="_blank" rel="noopener">Netlify Drop</a> for instant
                 hosting.</p>
+            </section>
 
             <h2>Prepare Your Models for BelowJS</h2>
             <p>These examples work best with quality data and savvy processing. The <a href="guides.html">guides</a>
