@@ -4,6 +4,7 @@ import { ImplicitTilingPlugin } from '3d-tiles-renderer/plugins';
 import { GLTFExtensionsPlugin } from '3d-tiles-renderer/three/plugins';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
+import { resolveAssetPaths } from '../utils/AssetPathUtils.js';
 
 const DEFAULT_DRACO_DECODER_PATH = 'https://unpkg.com/three@0.179.1/examples/jsm/libs/draco/gltf/';
 const DEFAULT_KTX2_TRANSCODER_PATH = 'https://unpkg.com/three@0.179.1/examples/jsm/libs/basis/';
@@ -359,11 +360,16 @@ export class TilesetLoader {
       return null;
     }
 
+    const assetPaths = resolveAssetPaths(options, {
+      dracoDecoderPath: DEFAULT_DRACO_DECODER_PATH,
+      ktx2TranscoderPath: DEFAULT_KTX2_TRANSCODER_PATH
+    });
+
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath(options.dracoDecoderPath || DEFAULT_DRACO_DECODER_PATH);
+    dracoLoader.setDecoderPath(assetPaths.dracoDecoderPath);
 
     const ktxLoader = new KTX2Loader();
-    ktxLoader.setTranscoderPath(options.ktx2TranscoderPath || DEFAULT_KTX2_TRANSCODER_PATH);
+    ktxLoader.setTranscoderPath(assetPaths.ktx2TranscoderPath);
     if (this.renderer) {
       ktxLoader.detectSupport(this.renderer);
     }

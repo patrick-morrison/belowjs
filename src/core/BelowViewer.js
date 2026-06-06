@@ -38,6 +38,10 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {number} [stereo.eyeSeparation=0.064] - Eye separation in meters (clamped to 0.050-0.070m for screen comfort)
  * @property {Object} [vr] - VR configuration
  * @property {boolean} [vr.enabled=true] - Enable VR support
+ * @property {string} [assetBasePath] - Base path for offline decoder/transcoder/WebXR assets
+ * @property {string} [dracoDecoderPath] - DRACO decoder path for GLB and tileset loading
+ * @property {string} [ktx2TranscoderPath] - KTX2/Basis transcoder path for GLB and tileset loading
+ * @property {string} [webxrInputProfilesPath] - WebXR input profiles path for controller models
  * @property {Object} [ar] - AR configuration
  * @property {boolean} [ar.enabled=false] - Enable AR support
  * @property {Object} [ar.settings] - AR settings (hand tracking, world cube, etc.)
@@ -188,7 +192,11 @@ export class BelowViewer extends EventSystem {
         }
       },
       audioPath: { type: 'string', default: './sound/' },
-      enableVRAudio: { type: 'boolean', default: false }
+      enableVRAudio: { type: 'boolean', default: false },
+      assetBasePath: { type: 'string', default: null },
+      dracoDecoderPath: { type: 'string', default: null },
+      ktx2TranscoderPath: { type: 'string', default: null },
+      webxrInputProfilesPath: { type: 'string', default: null }
     };
     
     this.config = new ConfigValidator(schema).validate(config);
@@ -232,7 +240,7 @@ export class BelowViewer extends EventSystem {
       
       this.sceneManager = new Scene(this.config.scene);
       this.cameraManager = new Camera(this.config.camera);
-      this.modelLoader = new ModelLoader(this.renderer);
+      this.modelLoader = new ModelLoader(this.renderer, this.config);
       this.tilesetLoader = new TilesetLoader(this.renderer, this.cameraManager.camera);
       this.isConstrainedSafari = this.modelLoader?.isIOSWebKit || false;
       this.initStereo();
@@ -322,7 +330,7 @@ export class BelowViewer extends EventSystem {
     const audioPath = this.config.audioPath || './sound/';
     // API change: audio disabled by default; must be explicitly enabled
     const enableAudio = this.config.enableVRAudio === true;
-    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container);
+    this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container, this.config);
     
 
     this.vrManager.setControls(this.cameraManager.controls);
@@ -386,7 +394,8 @@ export class BelowViewer extends EventSystem {
       this.cameraManager.camera,
       this.sceneManager.scene,
       arSettings,
-      this.container
+      this.container,
+      this.config
     );
 
     this.arManager.on('session-start', () => {
@@ -540,8 +549,9 @@ export class BelowViewer extends EventSystem {
           minErrorTarget: options.minErrorTarget,
           maxErrorTarget: options.maxErrorTarget,
           enableGltfExtensions: options.enableGltfExtensions,
-          dracoDecoderPath: options.dracoDecoderPath,
-          ktx2TranscoderPath: options.ktx2TranscoderPath
+          assetBasePath: options.assetBasePath || this.config.assetBasePath,
+          dracoDecoderPath: options.dracoDecoderPath || this.config.dracoDecoderPath,
+          ktx2TranscoderPath: options.ktx2TranscoderPath || this.config.ktx2TranscoderPath
         });
         model = tilesetResult.group;
         tileset = tilesetResult.tileset;

@@ -4,11 +4,14 @@
 
 import * as THREE from 'three';
 import { XRHandModelFactory } from 'three/examples/jsm/webxr/XRHandModelFactory.js';
+import { joinAssetPath, resolveAssetPaths } from '../../utils/AssetPathUtils.js';
 
 export class ARHandTracking {
-  constructor(renderer) {
+  constructor(renderer, options = {}) {
     this.renderer = renderer;
+    this.assetPaths = resolveAssetPaths(options);
     this.handModelFactory = new XRHandModelFactory();
+    this.handModelFactory.setPath(joinAssetPath(this.assetPaths.webxrInputProfilesPath, 'generic-hand/'));
 
     // Hands
     this.hand1 = null;

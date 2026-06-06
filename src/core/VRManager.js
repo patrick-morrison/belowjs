@@ -12,6 +12,8 @@
  * @param {THREE.Scene} scene - Three.js scene for VR objects
  * @param {string} [audioPath='./sound/'] - Path to VR audio files
  * @param {boolean} [enableAudio=false] - Enable VR audio system
+ * @param {HTMLElement} [container=null] - Container for VR UI
+ * @param {Object} [options={}] - VR asset path options
  * 
  * @example
  * // Create VR manager with audio
@@ -40,9 +42,11 @@ export class VRManager {
    * @param {THREE.PerspectiveCamera} camera - Three.js camera for VR dolly system
    * @param {THREE.Scene} scene - Three.js scene for VR objects
    * @param {string} [audioPath='./sound/'] - Path to VR audio files
-  * @param {boolean} [enableAudio=false] - Enable VR audio system
+   * @param {boolean} [enableAudio=false] - Enable VR audio system
+   * @param {HTMLElement} [container=null] - Container for VR UI
+   * @param {Object} [options={}] - VR asset path options
    */
-  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = false, container = null) {
+  constructor(renderer, camera, scene, audioPath = './sound/', enableAudio = false, container = null, options = {}) {
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
@@ -51,7 +55,7 @@ export class VRManager {
     this.container = container;
     
     this.vrCore = new VRCore(renderer, camera, scene, container);
-    this.vrControllers = new VRControllers(renderer, camera);
+    this.vrControllers = new VRControllers(renderer, camera, options);
     this.vrTeleport = new VRTeleport(scene, camera);
     this.vrLocomotion = new VRLocomotion(camera, renderer);
     this.vrAudio = this.enableAudio ? new VRAudio() : null;

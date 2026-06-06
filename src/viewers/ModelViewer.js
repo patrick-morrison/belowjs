@@ -100,6 +100,10 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean} [flyControls.clickToExit=true] - Exit fly mode on click
  * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
+ * @property {string} [assetBasePath] - Base path for offline decoder/transcoder/WebXR assets
+ * @property {string} [dracoDecoderPath] - DRACO decoder path for GLB and tileset loading
+ * @property {string} [ktx2TranscoderPath] - KTX2/Basis transcoder path for GLB and tileset loading
+ * @property {string} [webxrInputProfilesPath] - WebXR input profiles path for controller models
  * @property {Object} [viewerConfig] - Configuration passed to BelowViewer
  * @property {SceneConfig} [viewerConfig.scene] - Scene configuration
  * @property {CameraConfig} [viewerConfig.camera] - Camera configuration
@@ -221,6 +225,10 @@ export class ModelViewer extends EventSystem {
       flyControls: { type: 'object', default: {} },
       enableVRAudio: { type: 'boolean', default: false },
       audioPath: { type: 'string', default: './sound/' },
+      assetBasePath: { type: 'string', default: null },
+      dracoDecoderPath: { type: 'string', default: null },
+      ktx2TranscoderPath: { type: 'string', default: null },
+      webxrInputProfilesPath: { type: 'string', default: null },
       enableAutoRecovery: { type: 'boolean', default: true },
       viewerConfig: {
         type: 'object',
@@ -291,7 +299,11 @@ export class ModelViewer extends EventSystem {
       // Explicitly disable VR when AR is enabled
       ...(this.config.enableAR && { vr: { enabled: false } }),
       ...(this.config.audioPath && { audioPath: this.config.audioPath }),
-      ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio })
+      ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio }),
+      ...(this.config.assetBasePath && { assetBasePath: this.config.assetBasePath }),
+      ...(this.config.dracoDecoderPath && { dracoDecoderPath: this.config.dracoDecoderPath }),
+      ...(this.config.ktx2TranscoderPath && { ktx2TranscoderPath: this.config.ktx2TranscoderPath }),
+      ...(this.config.webxrInputProfilesPath && { webxrInputProfilesPath: this.config.webxrInputProfilesPath })
     };
 
     this.belowViewer = new BelowViewer(this.container, viewerConfig);
@@ -1826,6 +1838,7 @@ export class ModelViewer extends EventSystem {
         minErrorTarget: modelConfig.minErrorTarget,
         maxErrorTarget: modelConfig.maxErrorTarget,
         enableGltfExtensions: modelConfig.enableGltfExtensions,
+        assetBasePath: modelConfig.assetBasePath,
         dracoDecoderPath: modelConfig.dracoDecoderPath,
         ktx2TranscoderPath: modelConfig.ktx2TranscoderPath
       });

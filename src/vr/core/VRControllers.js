@@ -4,11 +4,13 @@
 
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
+import { resolveAssetPaths } from '../../utils/AssetPathUtils.js';
 
 export class VRControllers {
-  constructor(renderer, camera) {
+  constructor(renderer, camera, options = {}) {
     this.renderer = renderer;
     this.camera = camera;
+    this.assetPaths = resolveAssetPaths(options);
     
     this.controller1 = null;
     this.controller2 = null;
@@ -108,6 +110,7 @@ export class VRControllers {
   
   initControllers() {
     const controllerModelFactory = new XRControllerModelFactory();
+    controllerModelFactory.setPath(this.assetPaths.webxrInputProfilesPath);
     
     for (let i = 0; i < 2; i++) {
       const ctrl = this.renderer.xr.getController(i);

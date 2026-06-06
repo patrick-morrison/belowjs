@@ -8,7 +8,7 @@ import { ARHandTracking } from '../ar/core/ARHandTracking.js';
 import { EventSystem } from '../utils/EventSystem.js';
 
 export class ARManager extends EventSystem {
-  constructor(renderer, camera, scene, config = {}, container = null) {
+  constructor(renderer, camera, scene, config = {}, container = null, options = {}) {
     super();
 
     this.renderer = renderer;
@@ -23,9 +23,10 @@ export class ARManager extends EventSystem {
       ...config
     };
     this.container = container;
+    this.options = options;
 
     this.arCore = new ARCore(renderer, camera, scene, container);
-    this.handTracking = this.config.enableHandTracking ? new ARHandTracking(renderer) : null;
+    this.handTracking = this.config.enableHandTracking ? new ARHandTracking(renderer, options) : null;
 
     this.modelGroup = new THREE.Group();
     this.modelGroup.name = 'AR Model Group';

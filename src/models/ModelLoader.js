@@ -4,19 +4,21 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clearThreeGlobalCache } from '../utils/ThreeCleanupUtils.js';
+import { resolveAssetPaths } from '../utils/AssetPathUtils.js';
 
 export class ModelLoader {
-  constructor(renderer = null) {
+  constructor(renderer = null, options = {}) {
     this.renderer = renderer;
     this.isIOSWebKit = ModelLoader.isIOSWebKit();
     this.platformKey = ModelLoader.getPlatformKey();
+    this.assetPaths = resolveAssetPaths(options);
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
     this.ktx2Loader = null;
     this.loadQueue = Promise.resolve();
     this.activeIOSLoad = false;
 
-    this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    this.dracoLoader.setDecoderPath(this.assetPaths.dracoDecoderPath);
     if (this.isIOSWebKit && typeof this.dracoLoader.setWorkerLimit === 'function') {
       this.dracoLoader.setWorkerLimit(1);
     }
@@ -65,22 +67,22 @@ export class ModelLoader {
   }
 
   setupKTX2Loader() {
-    const platformKey = this.platformKey;
+    const loaderKey = this.getKTX2LoaderKey();
 
     try {
-      if (!ModelLoader.sharedKTX2Loaders.has(platformKey)) {
+      if (!ModelLoader.sharedKTX2Loaders.has(loaderKey)) {
         const loader = new KTX2Loader();
-        loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/');
+        loader.setTranscoderPath(this.assetPaths.ktx2TranscoderPath);
         if (this.isIOSWebKit && typeof loader.setWorkerLimit === 'function') {
           loader.setWorkerLimit(1);
         }
-        ModelLoader.sharedKTX2Loaders.set(platformKey, loader);
-        ModelLoader.sharedKTX2SetupComplete.set(platformKey, false);
+        ModelLoader.sharedKTX2Loaders.set(loaderKey, loader);
+        ModelLoader.sharedKTX2SetupComplete.set(loaderKey, false);
       }
 
-      this.ktx2Loader = ModelLoader.sharedKTX2Loaders.get(platformKey);
+      this.ktx2Loader = ModelLoader.sharedKTX2Loaders.get(loaderKey);
       this.loader.setKTX2Loader(this.ktx2Loader);
-      this.ktx2SetupComplete = ModelLoader.sharedKTX2SetupComplete.get(platformKey) || false;
+      this.ktx2SetupComplete = ModelLoader.sharedKTX2SetupComplete.get(loaderKey) || false;
 
       if (this.renderer && !this.ktx2SetupComplete) {
         this.ensureKTX2Support();
@@ -96,19 +98,23 @@ export class ModelLoader {
       return;
     }
 
-    const platformKey = this.platformKey;
-    if (ModelLoader.sharedKTX2SetupComplete.get(platformKey)) {
+    const loaderKey = this.getKTX2LoaderKey();
+    if (ModelLoader.sharedKTX2SetupComplete.get(loaderKey)) {
       this.ktx2SetupComplete = true;
       return;
     }
 
     try {
       this.ktx2Loader.detectSupport(this.renderer);
-      ModelLoader.sharedKTX2SetupComplete.set(platformKey, true);
+      ModelLoader.sharedKTX2SetupComplete.set(loaderKey, true);
       this.ktx2SetupComplete = true;
     } catch (error) {
       console.warn('Failed to set up KTX2 loader with renderer:', error);
     }
+  }
+
+  getKTX2LoaderKey() {
+    return `${this.platformKey}|${this.assetPaths.ktx2TranscoderPath}`;
   }
 
   setRenderer(renderer) {
