@@ -739,8 +739,9 @@ export class BelowViewer extends EventSystem {
           renderScene();
 
           if (this.tilesetLoader) {
-            const movement = this.vrManager?.getVRStatus?.().movement;
-            const isMoving = movement?.isMoving === true;
+            // Read locomotion state directly; getVRStatus() builds several
+            // objects per call and this runs every XR frame.
+            const isMoving = this.vrManager?.vrLocomotion?.isMoving === true;
             const nowMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
               ? performance.now()
               : time;

@@ -7,6 +7,11 @@
 
 import * as THREE from 'three';
 
+// Scratch vectors reused by updateMovement to avoid per-frame allocations.
+const _moveDir = new THREE.Vector3();
+const _forward = new THREE.Vector3();
+const _right = new THREE.Vector3();
+
 export class VRLocomotion {
   constructor(camera, renderer) {
     this.camera = camera;
@@ -100,7 +105,7 @@ export class VRLocomotion {
       controllers.updateHandGestures();
 
       let handUsed = null;
-      const moveDir = new THREE.Vector3();
+      const moveDir = _moveDir;
       let boost = false;
       for (const hand of ['left', 'right']) {
         if (controllers.handStates[hand].pinch) {
@@ -194,11 +199,11 @@ export class VRLocomotion {
           }
         } else {
 
-          const forward = new THREE.Vector3();
+          const forward = _forward;
           this.camera.getWorldDirection(forward);
           forward.y = 0;
           forward.normalize();
-          const right = new THREE.Vector3().crossVectors(forward, this.camera.up).normalize();
+          const right = _right.crossVectors(forward, this.camera.up).normalize();
 
           if (Math.abs(y) > 0.1) {
             const rampedSpeed = this.MOVE_SPEED * speedMultiplier * comfortSpeedMultiplier * this.currentSpeed * deltaTime;

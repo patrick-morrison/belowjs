@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+
+const MODE_TOGGLE_BUTTONS = [4, 5]; // X/A buttons or Y/B buttons
+
 import { DiveParticles } from './DiveParticles.js';
 import { DiveTorch } from './DiveTorch.js';
 import { DiveLighting } from './DiveLighting.js';
@@ -332,8 +335,9 @@ export class DiveSystem {
     if (!renderer || !renderer.xr || !renderer.xr.isPresenting || this.isARSessionActive()) return;
     
     const session = renderer.xr.getSession && renderer.xr.getSession();
+    // XRInputSourceArray is iterable directly; copying it every frame churns GC.
     const inputSources = session && session.inputSources
-      ? Array.from(session.inputSources)
+      ? session.inputSources
       : this._getFallbackInputSources();
     if (!inputSources || inputSources.length === 0) return;
 
@@ -341,10 +345,9 @@ export class DiveSystem {
       if (inputSource.gamepad && inputSource.handedness) {
         const gamepad = inputSource.gamepad;
         const handedness = inputSource.handedness;
-        
 
-        const modeToggleButtons = [4, 5]; // X/A buttons or Y/B buttons
-        
+        const modeToggleButtons = MODE_TOGGLE_BUTTONS;
+
         modeToggleButtons.forEach(index => {
           if (gamepad.buttons[index]) {
             const button = gamepad.buttons[index];

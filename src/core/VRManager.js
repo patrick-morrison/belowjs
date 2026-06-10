@@ -202,13 +202,34 @@ export class VRManager {
     this.vrControllers.checkControllerButtons();
 
 
-    const controllers = {
-      ...this.vrControllers.getControllers(),
-      inputSources: this.vrControllers.getInputSources(),
-      handsActive: this.vrControllers.handsActive,
-      handStates: this.vrControllers.handStates,
-      updateHandGestures: this.vrControllers.updateHandGestures ? this.vrControllers.updateHandGestures.bind(this.vrControllers) : undefined
-    };
+    // Reuse a single payload object across frames; this runs once per XR
+    // frame and rebuilding it (plus re-binding updateHandGestures) churns GC.
+    if (!this._controllersPayload) {
+      this._controllersPayload = {
+        controller1: null,
+        controller2: null,
+        controllerGrip1: null,
+        controllerGrip2: null,
+        controllers: null,
+        controllerGrips: null,
+        inputSources: null,
+        handsActive: false,
+        handStates: null,
+        updateHandGestures: this.vrControllers.updateHandGestures
+          ? this.vrControllers.updateHandGestures.bind(this.vrControllers)
+          : undefined
+      };
+    }
+    const controllers = this._controllersPayload;
+    controllers.controller1 = this.vrControllers.controller1;
+    controllers.controller2 = this.vrControllers.controller2;
+    controllers.controllerGrip1 = this.vrControllers.controllerGrip1;
+    controllers.controllerGrip2 = this.vrControllers.controllerGrip2;
+    controllers.controllers = this.vrControllers.controllers;
+    controllers.controllerGrips = this.vrControllers.controllerGrips;
+    controllers.inputSources = this.vrControllers.getInputSources();
+    controllers.handsActive = this.vrControllers.handsActive;
+    controllers.handStates = this.vrControllers.handStates;
     this.vrLocomotion.updateMovement(deltaTime, controllers);
     
     this.syncLegacyProperties();
@@ -222,17 +243,15 @@ export class VRManager {
   
 
   syncLegacyProperties() {
-    const vrStatus = this.vrCore.getVRStatus();
-    this.isVRSupported = vrStatus.supported;
-    this.isVRPresenting = vrStatus.presenting;
-    
-    const controllers = this.vrControllers.getControllers();
-    this.controller1 = controllers.controller1;
-    this.controller2 = controllers.controller2;
-    this.controllerGrip1 = controllers.controllerGrip1;
-    this.controllerGrip2 = controllers.controllerGrip2;
-    this.controllers = controllers.controllers;
-    this.controllerGrips = controllers.controllerGrips;
+    this.isVRSupported = this.vrCore.isVRSupported;
+    this.isVRPresenting = this.vrCore.isVRPresenting;
+
+    this.controller1 = this.vrControllers.controller1;
+    this.controller2 = this.vrControllers.controller2;
+    this.controllerGrip1 = this.vrControllers.controllerGrip1;
+    this.controllerGrip2 = this.vrControllers.controllerGrip2;
+    this.controllers = this.vrControllers.controllers;
+    this.controllerGrips = this.vrControllers.controllerGrips;
   }
   
 
@@ -344,7 +363,9 @@ export class VRManager {
 
   ensureComfortSettingsApplied() {
     if (!this.isVRPresenting) return;
-    const settings = this.vrLocomotion.getComfortSettings();
+    // Read settings directly; getComfortSettings() returns a copy and this
+    // runs every XR frame.
+    const settings = this.vrLocomotion.comfortSettings;
     if (settings.locomotionMode === 'teleport') {
       if (!this.vrTeleport.teleportCurve || !this.vrTeleport.teleportMarker) {
         this.vrTeleport.setupTeleportation();

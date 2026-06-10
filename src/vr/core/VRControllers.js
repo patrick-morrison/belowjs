@@ -6,6 +6,14 @@ import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { resolveAssetPaths } from '../../utils/AssetPathUtils.js';
 
+const MODE_TOGGLE_BUTTONS = [4, 5];
+
+// Scratch objects reused by updateHandGestures to avoid per-joint
+// allocations every frame while hand tracking is active.
+const _jointMatrix = new THREE.Matrix4();
+const _jointPosA = new THREE.Vector3();
+const _jointPosB = new THREE.Vector3();
+
 export class VRControllers {
   constructor(renderer, camera, options = {}) {
     this.renderer = renderer;
@@ -77,22 +85,22 @@ export class VRControllers {
         if (!thumbTip || !indexTip || !thumbTip.transform || !indexTip.transform) {
           this.handStates[hand].pinch = false;
         } else {
-          const thumbPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(thumbTip.transform.matrix));
-          const indexPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(indexTip.transform.matrix));
+          const thumbPos = _jointPosA.setFromMatrixPosition(_jointMatrix.fromArray(thumbTip.transform.matrix));
+          const indexPos = _jointPosB.setFromMatrixPosition(_jointMatrix.fromArray(indexTip.transform.matrix));
           const pinchDist = thumbPos.distanceTo(indexPos);
           this.handStates[hand].pinch = pinchDist < 0.025;
         }
         let fist = true;
         const palm = inputSource.hand.get('wrist');
         if (palm && palm.transform) {
-          const palmPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(palm.transform.matrix));
+          const palmPos = _jointPosA.setFromMatrixPosition(_jointMatrix.fromArray(palm.transform.matrix));
           for (const tipName of ['index-finger-tip','middle-finger-tip','ring-finger-tip','pinky-finger-tip']) {
             const tip = inputSource.hand.get(tipName);
             if (!tip || !tip.transform) {
               fist = false;
               continue;
             }
-            const tipPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(tip.transform.matrix));
+            const tipPos = _jointPosB.setFromMatrixPosition(_jointMatrix.fromArray(tip.transform.matrix));
             if (tipPos.distanceTo(palmPos) > 0.045) fist = false;
           }
         } else {
@@ -100,9 +108,9 @@ export class VRControllers {
         }
         this.handStates[hand].fist = fist;
         if (indexTip && palm && indexTip.transform && palm.transform) {
-          const palmPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(palm.transform.matrix));
-          const indexPos = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(indexTip.transform.matrix));
-          this.handStates[hand].direction = new THREE.Vector3().subVectors(indexPos, palmPos).normalize();
+          const palmPos = _jointPosA.setFromMatrixPosition(_jointMatrix.fromArray(palm.transform.matrix));
+          const indexPos = _jointPosB.setFromMatrixPosition(_jointMatrix.fromArray(indexTip.transform.matrix));
+          this.handStates[hand].direction.subVectors(indexPos, palmPos).normalize();
         }
       }
     }
@@ -219,13 +227,8 @@ export class VRControllers {
           this.buttonStates.set(debugKey, true);
         }
         
-        let modeToggleButtons = [];
-        if (handedness === 'left') {
-          modeToggleButtons = [4, 5];
-        } else if (handedness === 'right') {
-          modeToggleButtons = [4, 5];
-        }
-        
+        const modeToggleButtons = MODE_TOGGLE_BUTTONS;
+
         modeToggleButtons.forEach(index => {
           if (gamepad.buttons[index]) {
             const button = gamepad.buttons[index];
@@ -296,7 +299,9 @@ export class VRControllers {
   getInputSources() {
     const session = this.renderer.xr.getSession && this.renderer.xr.getSession();
     if (session && session.inputSources) {
-      return Array.from(session.inputSources);
+      // XRInputSourceArray is iterable and indexable; returning it directly
+      // avoids copying into a new array every frame.
+      return session.inputSources;
     }
     return this._getFallbackInputSources();
   }

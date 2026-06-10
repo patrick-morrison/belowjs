@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 
+// Scratch objects reused by the per-frame torch position updates.
+const _torchPos = new THREE.Vector3();
+const _torchQuat = new THREE.Quaternion();
+const _torchForward = new THREE.Vector3();
+
 export class DiveTorch {
   constructor(scene) {
     this.scene = scene;
@@ -120,20 +125,16 @@ export class DiveTorch {
     }
     
 
-    const controllerPosition = new THREE.Vector3();
-    const controllerQuaternion = new THREE.Quaternion();
-    
-    controller.getWorldPosition(controllerPosition);
-    controller.getWorldQuaternion(controllerQuaternion);
-    
+    const controllerPosition = controller.getWorldPosition(_torchPos);
+    const controllerQuaternion = controller.getWorldQuaternion(_torchQuat);
+
 
     this.controllerSpotlight.position.copy(controllerPosition);
-    
-    const forward = new THREE.Vector3(0, 0, -1);
+
+    const forward = _torchForward.set(0, 0, -1);
     forward.applyQuaternion(controllerQuaternion);
-    
-    const targetPosition = controllerPosition.clone().add(forward.multiplyScalar(2));
-    this.spotlightTarget.position.copy(targetPosition);
+
+    this.spotlightTarget.position.copy(controllerPosition).addScaledVector(forward, 2);
   }
   
   updateCameraPosition(camera) {
@@ -141,15 +142,14 @@ export class DiveTorch {
     
 
     this.controllerSpotlight.position.copy(camera.position);
-    
 
-    const forward = new THREE.Vector3(0, 0, -1);
+
+    const forward = _torchForward.set(0, 0, -1);
     forward.applyQuaternion(camera.quaternion);
-    
 
-    const targetPosition = camera.position.clone().add(forward.multiplyScalar(8));
-    this.spotlightTarget.position.copy(targetPosition);
-    
+
+    this.spotlightTarget.position.copy(camera.position).addScaledVector(forward, 8);
+
   }
   
   /**
