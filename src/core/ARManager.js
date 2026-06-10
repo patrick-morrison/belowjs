@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { ARCore } from '../ar/core/ARCore.js';
 import { ARHandTracking } from '../ar/core/ARHandTracking.js';
+import { ARCalibration } from '../ar/core/ARCalibration.js';
 import { EventSystem } from '../utils/EventSystem.js';
 
 export class ARManager extends EventSystem {
@@ -17,6 +18,8 @@ export class ARManager extends EventSystem {
     this.config = {
       enableHandTracking: true,
       enableWorldCube: true,
+      enableCalibration: true,
+      showStatusPanel: true,
       defaultScale: 0.05,
       worldCubeSize: 1000.0,
       worldCubeOpacity: 0.1,
@@ -28,9 +31,28 @@ export class ARManager extends EventSystem {
     this.arCore = new ARCore(renderer, camera, scene, container);
     this.handTracking = this.config.enableHandTracking ? new ARHandTracking(renderer, options) : null;
 
+    // Alignment group: calibration anchors this frame to two physical control
+    // points; everything the user manipulates lives inside it
+    this.alignmentGroup = new THREE.Group();
+    this.alignmentGroup.name = 'AR Alignment Group';
+    this.scene.add(this.alignmentGroup);
+
     this.modelGroup = new THREE.Group();
     this.modelGroup.name = 'AR Model Group';
-    this.scene.add(this.modelGroup);
+    this.alignmentGroup.add(this.modelGroup);
+
+    this.calibration = this.config.enableCalibration
+      ? new ARCalibration(renderer, scene, this.alignmentGroup, { storageKey: this.config.calibrationStorageKey })
+      : null;
+
+    this.overlayRoot = null;
+    this.statusPanel = null;
+    this.alignButton = null;
+    if (this.config.showStatusPanel || this.calibration) {
+      this.createOverlayUI();
+      this.arCore.setOverlayRoot(this.overlayRoot);
+    }
+
     this.currentModel = null;
     this.pendingModel = null;
     this.pendingModelConfig = null;
@@ -49,6 +71,35 @@ export class ARManager extends EventSystem {
 
   init() {
     this.arCore.init();
+
+    this.arCore.onSupportChecked = (supported) => {
+      if (this.overlayRoot) {
+        this.overlayRoot.style.display = supported ? '' : 'none';
+      }
+      this.updateStatusPanel();
+    };
+
+    if (this.calibration) {
+      this.calibration.onStart = () => {
+        if (this.handTracking) this.handTracking.setInteractionEnabled(false);
+        this.updateStatusPanel();
+        this.emit('calibration-start');
+      };
+      this.calibration.onPointPlaced = (count) => {
+        this.updateStatusPanel();
+        this.emit('calibration-point', count);
+      };
+      this.calibration.onComplete = (state) => {
+        if (this.handTracking) this.handTracking.setInteractionEnabled(true);
+        this.updateStatusPanel();
+        this.emit('calibration-complete', state);
+      };
+      this.calibration.onCleared = () => {
+        if (this.handTracking) this.handTracking.setInteractionEnabled(true);
+        this.updateStatusPanel();
+        this.emit('calibration-cleared');
+      };
+    }
 
     if (this.handTracking) {
       this.handTracking.init(this.scene);
@@ -80,6 +131,14 @@ export class ARManager extends EventSystem {
         this.worldCube.visible = true;
       }
 
+      if (this.calibration) {
+        this.calibration.attach();
+        this.calibration.setVisualsVisible(true);
+        // Re-anchor to saved control points (valid while the boundary persists)
+        this.calibration.restore();
+      }
+
+      this.updateStatusPanel();
       this.emit('session-start');
     };
 
@@ -90,10 +149,18 @@ export class ARManager extends EventSystem {
         this.worldCube.visible = false;
       }
 
-      if (this.handTracking) {
-        this.handTracking.stop();
+      if (this.calibration) {
+        this.calibration.cancel();
+        this.calibration.detach();
+        this.calibration.setVisualsVisible(false);
       }
 
+      if (this.handTracking) {
+        this.handTracking.stop();
+        this.handTracking.setInteractionEnabled(true);
+      }
+
+      this.updateStatusPanel();
       this.emit('session-end');
     };
   }
@@ -142,13 +209,134 @@ export class ARManager extends EventSystem {
   }
 
   update(deltaTime) {
-    if (!this.isActive() || !this.currentModel) return;
+    if (!this.isActive()) return;
+
+    if (this.calibration) {
+      this.calibration.update();
+    }
+
+    if (!this.currentModel) return;
 
     const deltaSeconds = deltaTime / 1000;
 
     if (this.handTracking) {
       this.handTracking.update(deltaSeconds, this.modelGroup, this.camera);
     }
+  }
+
+  startCalibration() {
+    if (this.calibration) {
+      this.calibration.start();
+    }
+  }
+
+  clearCalibration() {
+    if (this.calibration) {
+      this.calibration.clear();
+    }
+  }
+
+  getCalibrationState() {
+    return this.calibration ? this.calibration.getState() : null;
+  }
+
+  createOverlayUI() {
+    if (typeof document === 'undefined') return;
+
+    this.overlayRoot = document.createElement('div');
+    this.overlayRoot.className = 'ar-overlay-root';
+    this.overlayRoot.style.display = 'none';
+    // Keep overlay interactions from also firing controller select events
+    this.overlayRoot.addEventListener('beforexrselect', (event) => {
+      event.preventDefault();
+    });
+
+    if (this.config.showStatusPanel) {
+      this.statusPanel = document.createElement('div');
+      this.statusPanel.className = 'ar-status-panel';
+      this.overlayRoot.appendChild(this.statusPanel);
+    }
+
+    if (this.calibration) {
+      this.alignButton = document.createElement('button');
+      this.alignButton.className = 'ar-align-button';
+      this.alignButton.innerHTML = '<span class="ar-icon">⚓</span>ALIGN SPACE';
+      this.alignButton.addEventListener('click', () => {
+        const state = this.getCalibrationState();
+        if (state && state.active) {
+          this.calibration.cancel();
+          if (this.handTracking) this.handTracking.setInteractionEnabled(true);
+          this.updateStatusPanel();
+        } else {
+          this.startCalibration();
+        }
+      });
+      this.overlayRoot.appendChild(this.alignButton);
+    }
+
+    (this.container || document.body).appendChild(this.overlayRoot);
+    this.updateStatusPanel();
+  }
+
+  updateStatusPanel() {
+    if (this.alignButton) {
+      const state = this.getCalibrationState();
+      const active = state && state.active;
+      this.alignButton.innerHTML = active
+        ? '<span class="ar-icon">✕</span>CANCEL ALIGN'
+        : '<span class="ar-icon">⚓</span>ALIGN SPACE';
+      this.alignButton.classList.toggle('ar-align-button--active', !!active);
+    }
+
+    if (!this.statusPanel) return;
+
+    const status = this.arCore.getARStatus();
+    const rows = [];
+
+    rows.push({
+      label: 'Session',
+      value: status.presenting ? 'active' : 'idle',
+      ok: status.presenting
+    });
+
+    if (status.presenting) {
+      const refSpace = status.referenceSpaceType;
+      rows.push({
+        label: 'Space',
+        value: refSpace === 'local-floor' ? 'local-floor (shared)' : `${refSpace || 'unknown'} — re-centres on wear`,
+        ok: refSpace === 'local-floor'
+      });
+
+      if (status.enabledFeatures.length > 0) {
+        rows.push({
+          label: 'Anchors',
+          value: status.enabledFeatures.includes('anchors') ? 'available' : 'unavailable',
+          ok: status.enabledFeatures.includes('anchors')
+        });
+      }
+    }
+
+    if (this.calibration) {
+      const state = this.calibration.getState();
+      let value = 'not set';
+      let ok = false;
+      if (state.active) {
+        value = `placing point ${state.pointCount + 1} of 2 — pull trigger`;
+      } else if (state.aligned) {
+        const distance = state.pointDistance ? `${state.pointDistance.toFixed(2)} m apart` : '';
+        value = `aligned${state.restored ? ' (restored)' : ''} · ${distance}`;
+        ok = true;
+      }
+      rows.push({ label: 'Alignment', value, ok });
+    }
+
+    this.statusPanel.innerHTML = rows.map(row => `
+      <div class="ar-status-row">
+        <span class="ar-status-dot ${row.ok ? 'ar-status-dot--ok' : 'ar-status-dot--warn'}"></span>
+        <span class="ar-status-label">${row.label}</span>
+        <span class="ar-status-value">${row.value}</span>
+      </div>
+    `).join('');
   }
 
   createWorldCube() {
@@ -240,14 +428,26 @@ export class ARManager extends EventSystem {
       this.handTracking.dispose();
     }
 
+    if (this.calibration) {
+      this.calibration.dispose();
+      this.calibration = null;
+    }
+
+    if (this.overlayRoot && this.overlayRoot.parentNode) {
+      this.overlayRoot.parentNode.removeChild(this.overlayRoot);
+      this.overlayRoot = null;
+      this.statusPanel = null;
+      this.alignButton = null;
+    }
+
     if (this.worldCube) {
       this.scene.remove(this.worldCube);
       this.worldCube.geometry.dispose();
       this.worldCube.material.dispose();
     }
 
-    if (this.modelGroup) {
-      this.scene.remove(this.modelGroup);
+    if (this.alignmentGroup) {
+      this.scene.remove(this.alignmentGroup);
     }
 
     this.isARPresenting = false;

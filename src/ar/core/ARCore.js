@@ -3,9 +3,12 @@
  *
  * Handles core AR functionality including session management,
  * device detection, and WebXR AR initialization with passthrough.
+ *
+ * Sessions prefer the 'local-floor' reference space so the world origin is
+ * anchored to the tracked floor/boundary rather than the headset's position
+ * when the session started. 'local' re-centres whenever the headset is taken
+ * off and put back on, and differs between headsets sharing the same room.
  */
-
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 
 export class ARCore {
   constructor(renderer, camera, scene, container = null) {
@@ -17,6 +20,14 @@ export class ARCore {
     // AR support status
     this.isARSupported = false;
     this.isARPresenting = false;
+
+    // Granted reference space ('local-floor' preferred, 'local' fallback)
+    this.referenceSpaceType = null;
+    this.enabledFeatures = [];
+    this.currentSession = null;
+
+    // Optional DOM overlay root (shown in-headset when dom-overlay is granted)
+    this.overlayRoot = null;
 
     // Device detection
     this.isQuest2 = false;
@@ -31,6 +42,11 @@ export class ARCore {
     // Callbacks
     this.onSessionStart = null;
     this.onSessionEnd = null;
+    this.onSupportChecked = null;
+  }
+
+  setOverlayRoot(element) {
+    this.overlayRoot = element;
   }
 
   init() {
@@ -42,6 +58,9 @@ export class ARCore {
 
     // Create AR button when ready
     this.checkARSupported().then(() => {
+      if (this.onSupportChecked) {
+        this.onSupportChecked(this.isARSupported);
+      }
       if (this.isARSupported) {
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', () => {
@@ -100,11 +119,8 @@ export class ARCore {
 
   createARButton() {
     this.waitForARCSS().then(() => {
-      const sessionInit = {
-        requiredFeatures: ['local'],
-        optionalFeatures: this.getOptionalFeatures()
-      };
-      this.arButton = ARButton.createButton(this.renderer, sessionInit);
+      this.arButton = document.createElement('button');
+      this.arButton.addEventListener('click', () => this.toggleSession());
       this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
       this.arButton.className = 'ar-button--glass ar-button-available';
       this.arButton.disabled = false;
@@ -126,7 +142,57 @@ export class ARCore {
   }
 
   getOptionalFeatures() {
-    return ['hand-tracking'];
+    // local-floor anchors the origin to the floor/boundary (persists across
+    // doff/don and matches colocated headsets); anchors enable future
+    // persistence; dom-overlay shows the status panel in-headset.
+    const features = ['local-floor', 'anchors', 'hand-tracking'];
+    if (this.overlayRoot) {
+      features.push('dom-overlay');
+    }
+    return features;
+  }
+
+  buildSessionInit() {
+    const sessionInit = {
+      requiredFeatures: ['local'],
+      optionalFeatures: this.getOptionalFeatures()
+    };
+    if (this.overlayRoot) {
+      sessionInit.domOverlay = { root: this.overlayRoot };
+    }
+    return sessionInit;
+  }
+
+  async toggleSession() {
+    if (this.currentSession) {
+      this.currentSession.end();
+      return;
+    }
+
+    try {
+      const session = await navigator.xr.requestSession('immersive-ar', this.buildSessionInit());
+
+      // Prefer floor-anchored space; probe before handing the session to
+      // three.js (its WebXRManager has no fallback if the request rejects).
+      let referenceSpaceType = 'local-floor';
+      try {
+        await session.requestReferenceSpace('local-floor');
+      } catch {
+        referenceSpaceType = 'local';
+      }
+      this.referenceSpaceType = referenceSpaceType;
+      this.enabledFeatures = Array.isArray(session.enabledFeatures) ? Array.from(session.enabledFeatures) : [];
+
+      this.renderer.xr.setReferenceSpaceType(referenceSpaceType);
+      await this.renderer.xr.setSession(session);
+      this.currentSession = session;
+
+      session.addEventListener('end', () => {
+        this.currentSession = null;
+      });
+    } catch (error) {
+      console.warn('AR session request failed:', error);
+    }
   }
 
   styleARButton() {
@@ -163,6 +229,10 @@ export class ARCore {
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
 
+      if (this.arButton) {
+        this.arButton.innerHTML = '<span class="ar-icon">👁️</span>EXIT AR';
+      }
+
       if (this.onSessionStart) {
         this.onSessionStart();
       }
@@ -170,6 +240,13 @@ export class ARCore {
 
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isARPresenting = false;
+      this.currentSession = null;
+      this.referenceSpaceType = null;
+      this.enabledFeatures = [];
+
+      if (this.arButton) {
+        this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      }
 
       if (this.onSessionEnd) {
         this.onSessionEnd();
@@ -267,6 +344,8 @@ export class ARCore {
     return {
       supported: this.isARSupported,
       presenting: this.isARPresenting,
+      referenceSpaceType: this.referenceSpaceType,
+      enabledFeatures: this.enabledFeatures,
       isQuest2: this.isQuest2,
       isQuest3: this.isQuest3
     };

@@ -60,6 +60,8 @@ export class ARHandTracking {
 
     this.tempVec1 = new THREE.Vector3();
     this.tempVec2 = new THREE.Vector3();
+    this.tempVec3 = new THREE.Vector3();
+    this.tempQuat = new THREE.Quaternion();
 
     this.onGestureStart = null;
     this.onGestureEnd = null;
@@ -162,7 +164,7 @@ export class ARHandTracking {
 
         // Distance-based translation gain
         if (camera) {
-          const distance = camera.position.distanceTo(modelGroup.position);
+          const distance = camera.position.distanceTo(modelGroup.getWorldPosition(this.tempVec3));
           if (distance > this.DISTANCE_GAIN_THRESHOLD) {
             const gainFactor = Math.min(
               this.MAX_DISTANCE_GAIN,
@@ -170,6 +172,14 @@ export class ARHandTracking {
             );
             delta.multiplyScalar(gainFactor);
           }
+        }
+
+        // Hand deltas are in world space; convert into the parent's frame so
+        // dragging follows the hand when the group sits inside a rotated
+        // alignment group
+        if (modelGroup.parent) {
+          modelGroup.parent.getWorldQuaternion(this.tempQuat);
+          delta.applyQuaternion(this.tempQuat.invert());
         }
 
         modelGroup.position.add(delta);

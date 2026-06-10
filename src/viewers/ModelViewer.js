@@ -987,6 +987,15 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('vr-movement-start', (data) => this.emit('vr-movement-start', data));
     this.belowViewer.on('vr-movement-stop', (data) => this.emit('vr-movement-stop', data));
     this.belowViewer.on('vr-movement-update', (data) => this.emit('vr-movement-update', data));
+
+    this.belowViewer.on('ar-session-start', (data) => this.emit('ar-session-start', data));
+    this.belowViewer.on('ar-session-end', (data) => this.emit('ar-session-end', data));
+    this.belowViewer.on('ar-gesture-start', (data) => this.emit('ar-gesture-start', data));
+    this.belowViewer.on('ar-gesture-end', (data) => this.emit('ar-gesture-end', data));
+    this.belowViewer.on('ar-calibration-start', (data) => this.emit('ar-calibration-start', data));
+    this.belowViewer.on('ar-calibration-point', (data) => this.emit('ar-calibration-point', data));
+    this.belowViewer.on('ar-calibration-complete', (data) => this.emit('ar-calibration-complete', data));
+    this.belowViewer.on('ar-calibration-cleared', (data) => this.emit('ar-calibration-cleared', data));
   }
 
 

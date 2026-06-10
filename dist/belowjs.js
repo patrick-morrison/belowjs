@@ -7638,7 +7638,7 @@ class Vc {
     this.tiles.manager.removeHandler(this._gltfRegex), this.tiles.manager.removeHandler(this._dracoRegex), this.autoDispose && (this.ktxLoader.dispose(), this.dracoLoader.dispose());
   }
 }
-const { clamp: qh } = st;
+const { clamp: zh } = st;
 new Wr(new ke());
 const Oc = new Wn(new Uint8Array([255, 255, 255, 255]), 1, 1);
 Oc.needsUpdate = !0;
@@ -9702,74 +9702,15 @@ class hh {
   }
 }
 class Ah {
-  /**
-   * Constructs a new AR button.
-   *
-   * @param {WebGLRenderer|WebGPURenderer} renderer - The renderer.
-   * @param {XRSessionInit} [sessionInit] - The a configuration object for the AR session.
-   * @return {HTMLElement} The button or an error message if `immersive-ar` isn't supported.
-   */
-  static createButton(e, t = {}) {
-    const s = document.createElement("button");
-    function i() {
-      if (t.domOverlay === void 0) {
-        const d = document.createElement("div");
-        d.style.display = "none", document.body.appendChild(d);
-        const u = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        u.setAttribute("width", 38), u.setAttribute("height", 38), u.style.position = "absolute", u.style.right = "20px", u.style.top = "20px", u.addEventListener("click", function() {
-          c.end();
-        }), d.appendChild(u);
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        g.setAttribute("d", "M 12,12 L 28,28 M 28,12 12,28"), g.setAttribute("stroke", "#fff"), g.setAttribute("stroke-width", 2), u.appendChild(g), t.optionalFeatures === void 0 && (t.optionalFeatures = []), t.optionalFeatures.push("dom-overlay"), t.domOverlay = { root: d };
-      }
-      let c = null;
-      async function h(d) {
-        d.addEventListener("end", A), e.xr.setReferenceSpaceType("local"), await e.xr.setSession(d), s.textContent = "STOP AR", t.domOverlay.root.style.display = "", c = d;
-      }
-      function A() {
-        c.removeEventListener("end", A), s.textContent = "START AR", t.domOverlay.root.style.display = "none", c = null;
-      }
-      s.style.display = "", s.style.cursor = "pointer", s.style.left = "calc(50% - 50px)", s.style.width = "100px", s.textContent = "START AR", s.onmouseenter = function() {
-        s.style.opacity = "1.0";
-      }, s.onmouseleave = function() {
-        s.style.opacity = "0.5";
-      }, s.onclick = function() {
-        c === null ? navigator.xr.requestSession("immersive-ar", t).then(h) : (c.end(), navigator.xr.offerSession !== void 0 && navigator.xr.offerSession("immersive-ar", t).then(h).catch((d) => {
-          console.warn(d);
-        }));
-      }, navigator.xr.offerSession !== void 0 && navigator.xr.offerSession("immersive-ar", t).then(h).catch((d) => {
-        console.warn(d);
-      });
-    }
-    function n() {
-      s.style.display = "", s.style.cursor = "auto", s.style.left = "calc(50% - 75px)", s.style.width = "150px", s.onmouseenter = null, s.onmouseleave = null, s.onclick = null;
-    }
-    function r() {
-      n(), s.textContent = "AR NOT SUPPORTED";
-    }
-    function o(c) {
-      n(), console.warn("Exception when trying to call xr.isSessionSupported", c), s.textContent = "AR NOT ALLOWED";
-    }
-    function l(c) {
-      c.style.position = "absolute", c.style.bottom = "20px", c.style.padding = "12px 6px", c.style.border = "1px solid #fff", c.style.borderRadius = "4px", c.style.background = "rgba(0,0,0,0.1)", c.style.color = "#fff", c.style.font = "normal 13px sans-serif", c.style.textAlign = "center", c.style.opacity = "0.5", c.style.outline = "none", c.style.zIndex = "999";
-    }
-    if ("xr" in navigator)
-      return s.id = "ARButton", s.style.display = "none", l(s), navigator.xr.isSessionSupported("immersive-ar").then(function(c) {
-        c ? i() : r();
-      }).catch(o), s;
-    {
-      const c = document.createElement("a");
-      return window.isSecureContext === !1 ? (c.href = document.location.href.replace(/^http:/, "https:"), c.innerHTML = "WEBXR NEEDS HTTPS") : (c.href = "https://immersiveweb.dev/", c.innerHTML = "WEBXR NOT AVAILABLE"), c.style.left = "calc(50% - 90px)", c.style.width = "180px", c.style.textDecoration = "none", l(c), c;
-    }
-  }
-}
-class dh {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.referenceSpaceType = null, this.enabledFeatures = [], this.currentSession = null, this.overlayRoot = null, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSupportChecked = null;
+  }
+  setOverlayRoot(e) {
+    this.overlayRoot = e;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
-      this.isARSupported && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
+      this.onSupportChecked && this.onSupportChecked(this.isARSupported), this.isARSupported && (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
         this.createARButton();
       }) : this.createARButton());
     }), this.setupSessionListeners(), "xr" in navigator ? navigator.xr.isSessionSupported("immersive-ar").then((e) => {
@@ -9793,11 +9734,7 @@ class dh {
   }
   createARButton() {
     this.waitForARCSS().then(() => {
-      const e = {
-        requiredFeatures: ["local"],
-        optionalFeatures: this.getOptionalFeatures()
-      };
-      this.arButton = Ah.createButton(this.renderer, e), this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', this.arButton.className = "ar-button--glass ar-button-available", this.arButton.disabled = !1, this.arButton.style.cssText = `
+      this.arButton = document.createElement("button"), this.arButton.addEventListener("click", () => this.toggleSession()), this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', this.arButton.className = "ar-button--glass ar-button-available", this.arButton.disabled = !1, this.arButton.style.cssText = `
         position: fixed !important;
         bottom: 140px !important;
         left: 50% !important;
@@ -9812,7 +9749,35 @@ class dh {
     });
   }
   getOptionalFeatures() {
-    return ["hand-tracking"];
+    const e = ["local-floor", "anchors", "hand-tracking"];
+    return this.overlayRoot && e.push("dom-overlay"), e;
+  }
+  buildSessionInit() {
+    const e = {
+      requiredFeatures: ["local"],
+      optionalFeatures: this.getOptionalFeatures()
+    };
+    return this.overlayRoot && (e.domOverlay = { root: this.overlayRoot }), e;
+  }
+  async toggleSession() {
+    if (this.currentSession) {
+      this.currentSession.end();
+      return;
+    }
+    try {
+      const e = await navigator.xr.requestSession("immersive-ar", this.buildSessionInit());
+      let t = "local-floor";
+      try {
+        await e.requestReferenceSpace("local-floor");
+      } catch {
+        t = "local";
+      }
+      this.referenceSpaceType = t, this.enabledFeatures = Array.isArray(e.enabledFeatures) ? Array.from(e.enabledFeatures) : [], this.renderer.xr.setReferenceSpaceType(t), await this.renderer.xr.setSession(e), this.currentSession = e, e.addEventListener("end", () => {
+        this.currentSession = null;
+      });
+    } catch (e) {
+      console.warn("AR session request failed:", e);
+    }
   }
   styleARButton() {
     const e = () => {
@@ -9825,9 +9790,9 @@ class dh {
     this.renderer.xr.addEventListener("sessionstart", () => {
       this.isARPresenting = !0;
       const e = this.detectQuestDevice();
-      this.applyQuestOptimizations(e), this.onSessionStart && this.onSessionStart();
+      this.applyQuestOptimizations(e), this.arButton && (this.arButton.innerHTML = '<span class="ar-icon">👁️</span>EXIT AR'), this.onSessionStart && this.onSessionStart();
     }), this.renderer.xr.addEventListener("sessionend", () => {
-      this.isARPresenting = !1, this.onSessionEnd && this.onSessionEnd();
+      this.isARPresenting = !1, this.currentSession = null, this.referenceSpaceType = null, this.enabledFeatures = [], this.arButton && (this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR'), this.onSessionEnd && this.onSessionEnd();
     });
   }
   detectQuestDevice() {
@@ -9876,6 +9841,8 @@ class dh {
     return {
       supported: this.isARSupported,
       presenting: this.isARPresenting,
+      referenceSpaceType: this.referenceSpaceType,
+      enabledFeatures: this.enabledFeatures,
       isQuest2: this.isQuest2,
       isQuest3: this.isQuest3
     };
@@ -9941,8 +9908,8 @@ class Dn {
     this.handMesh.count = s, this.handMesh.instanceMatrix.needsUpdate = !0;
   }
 }
-const uh = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/";
-class gh {
+const dh = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/";
+class uh {
   /**
    * Constructs a new XR hand mesh model.
    *
@@ -9954,7 +9921,7 @@ class gh {
    * @param {?Function} [onLoad=null] - A callback that is executed when a controller model has been loaded.
    */
   constructor(e, t, s, i, n = null, r = null) {
-    this.controller = t, this.handModel = e, this.bones = [], n === null && (n = new Ne(), n.setPath(s || uh)), n.load(`${i}.glb`, (o) => {
+    this.controller = t, this.handModel = e, this.bones = [], n === null && (n = new Ne(), n.setPath(s || dh)), n.load(`${i}.glb`, (o) => {
       const l = o.scene.children[0];
       this.handModel.add(l);
       const c = l.getObjectByProperty("type", "SkinnedMesh");
@@ -10007,7 +9974,7 @@ class gh {
     }
   }
 }
-class ph extends rs {
+class gh extends rs {
   /**
    * Constructs a new XR hand model.
    *
@@ -10026,7 +9993,7 @@ class ph extends rs {
     super.updateMatrixWorld(e), this.motionController && this.motionController.updateMesh();
   }
 }
-class fh {
+class ph {
   /**
    * Constructs a new XR hand model factory.
    *
@@ -10053,22 +10020,22 @@ class fh {
    * @return {XRHandModel} The XR hand model.
    */
   createHandModel(e, t) {
-    const s = new ph(e);
+    const s = new gh(e);
     return e.addEventListener("connected", (i) => {
       const n = i.data;
-      n.hand && !s.motionController && (s.xrInputSource = n, t === void 0 || t === "spheres" ? s.motionController = new Dn(s, e, this.path, n.handedness, { primitive: "sphere" }) : t === "boxes" ? s.motionController = new Dn(s, e, this.path, n.handedness, { primitive: "box" }) : t === "mesh" && (s.motionController = new gh(s, e, this.path, n.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
+      n.hand && !s.motionController && (s.xrInputSource = n, t === void 0 || t === "spheres" ? s.motionController = new Dn(s, e, this.path, n.handedness, { primitive: "sphere" }) : t === "boxes" ? s.motionController = new Dn(s, e, this.path, n.handedness, { primitive: "box" }) : t === "mesh" && (s.motionController = new uh(s, e, this.path, n.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
     }), e.addEventListener("disconnected", () => {
       e.visible = !1;
     }), s;
   }
 }
-class mh {
+class fh {
   constructor(e, t = {}) {
-    this.renderer = e, this.assetPaths = As(t), this.handModelFactory = new fh(), this.handModelFactory.setPath(Jt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.assetPaths = As(t), this.handModelFactory = new ph(), this.handModelFactory.setPath(Jt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
-    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
+    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.tempVec3 = new f.Vector3(), this.tempQuat = new f.Quaternion(), this.onGestureStart = null, this.onGestureEnd = null;
   }
   init(e) {
     this.hand1 = this.setupHand(e, 0, "hand1Start"), this.hand2 = this.setupHand(e, 1, "hand2Start");
@@ -10115,7 +10082,7 @@ class mh {
         h.getWorldPosition(this.tempVec1);
         const A = this.tempVec1.clone().sub(this.dragStartPos);
         if (A.length() > this.MAX_DELTA_PER_FRAME && A.normalize().multiplyScalar(this.MAX_DELTA_PER_FRAME), s) {
-          const d = s.position.distanceTo(t.position);
+          const d = s.position.distanceTo(t.getWorldPosition(this.tempVec3));
           if (d > this.DISTANCE_GAIN_THRESHOLD) {
             const u = Math.min(
               this.MAX_DISTANCE_GAIN,
@@ -10124,7 +10091,7 @@ class mh {
             A.multiplyScalar(u);
           }
         }
-        if (t.position.add(A), e > 0) {
+        if (t.parent && (t.parent.getWorldQuaternion(this.tempQuat), A.applyQuaternion(this.tempQuat.invert())), t.position.add(A), e > 0) {
           const d = A.clone().divideScalar(e);
           this.posVelocity.lerp(d, this.VELOCITY_SMOOTHING);
         }
@@ -10178,19 +10145,173 @@ class mh {
     this.hand1 && this.hand1.clear(), this.hand2 && this.hand2.clear(), this.stop();
   }
 }
-class bh extends yt {
+const mh = "belowjs:ar-calibration:";
+class bh {
+  constructor(e, t, s, i = {}) {
+    this.renderer = e, this.scene = t, this.targetGroup = s;
+    const n = typeof window < "u" && window.location?.pathname ? window.location.pathname : "default";
+    this.storageKey = mh + (i.storageKey || n), this.active = !1, this.aligned = !1, this.restored = !1, this.points = [], this.sphereGeometry = new f.SphereGeometry(0.02, 8, 6), this.placedMaterial = new f.MeshBasicMaterial({ color: 6605055 }), this.ghostMaterial = new f.MeshBasicMaterial({
+      color: 6605055,
+      transparent: !0,
+      opacity: 0.25,
+      depthTest: !1,
+      depthWrite: !1
+    }), this.lineMaterial = new f.LineBasicMaterial({
+      color: 6605055,
+      transparent: !0,
+      opacity: 0.8,
+      depthTest: !1
+    }), this.visuals = new f.Group(), this.visuals.name = "AR Calibration Points", this.visuals.visible = !1, this.scene.add(this.visuals), this.controllers = [], this.ghostSpheres = [], this.connectionLine = null, this.squeezeHeld = [!1, !1], this.squeezeHoldStart = 0, this.SQUEEZE_HOLD_MS = 1200, this.lastPlaceTime = 0, this.onStart = null, this.onPointPlaced = null, this.onComplete = null, this.onCleared = null, this._listeners = [];
+  }
+  attach() {
+    if (!(this.controllers.length > 0)) {
+      for (let e = 0; e < 2; e++) {
+        const t = this.renderer.xr.getController(e);
+        t.parent || this.scene.add(t);
+        const s = () => this._handleSelect(e), i = () => this._handleSqueeze(e, !0), n = () => this._handleSqueeze(e, !1);
+        t.addEventListener("selectend", s), t.addEventListener("squeezestart", i), t.addEventListener("squeezeend", n), this._listeners.push({ controller: t, onSelectEnd: s, onSqueezeStart: i, onSqueezeEnd: n }), this.controllers.push(t);
+      }
+      this.active && this._addGhostSpheres();
+    }
+  }
+  detach() {
+    this._listeners.forEach(({ controller: e, onSelectEnd: t, onSqueezeStart: s, onSqueezeEnd: i }) => {
+      e.removeEventListener("selectend", t), e.removeEventListener("squeezestart", s), e.removeEventListener("squeezeend", i);
+    }), this._listeners = [], this._removeGhostSpheres(), this.controllers = [], this.squeezeHeld = [!1, !1], this.active = !1;
+  }
+  /** Begin placing the two control points (clears any existing alignment). */
+  start() {
+    this.clear({ silent: !0 }), this.active = !0, this._addGhostSpheres(), this.onStart && this.onStart();
+  }
+  cancel() {
+    this.active = !1, this._removeGhostSpheres(), !this.aligned && this.points.length > 0 && (this._clearVisuals(), this.points = []);
+  }
+  clear({ silent: e = !1 } = {}) {
+    this.cancel(), this._clearVisuals(), this.points = [], this.aligned = !1, this.restored = !1, this.targetGroup.position.set(0, 0, 0), this.targetGroup.rotation.set(0, 0, 0);
+    try {
+      window.localStorage.removeItem(this.storageKey);
+    } catch {
+    }
+    !e && this.onCleared && this.onCleared();
+  }
+  /** Restore a saved alignment (valid while the boundary/floor persists). */
+  restore() {
+    if (this.aligned || this.active) return !1;
+    let e = null;
+    try {
+      e = JSON.parse(window.localStorage.getItem(this.storageKey));
+    } catch {
+      return !1;
+    }
+    return !e || !Array.isArray(e.points) || e.points.length !== 2 ? !1 : (this.points = e.points.map((t) => new f.Vector3(t[0], t[1], t[2])), this.points.forEach((t) => this._addPlacedSphere(t)), this._updateConnectionLine(), this._applyAlignment() ? (this.aligned = !0, this.restored = !0, this.onComplete && this.onComplete(this.getState()), !0) : (this.clear({ silent: !0 }), !1));
+  }
+  update() {
+    this.controllers.length !== 0 && this.squeezeHeld[0] && this.squeezeHeld[1] && this.squeezeHoldStart > 0 && performance.now() - this.squeezeHoldStart >= this.SQUEEZE_HOLD_MS && (this.squeezeHoldStart = 0, this.start());
+  }
+  getState() {
+    return {
+      active: this.active,
+      aligned: this.aligned,
+      restored: this.restored,
+      pointCount: this.points.length,
+      pointDistance: this.points.length === 2 ? this.points[0].distanceTo(this.points[1]) : null
+    };
+  }
+  setVisualsVisible(e) {
+    this.visuals.visible = e;
+  }
+  _handleSqueeze(e, t) {
+    this.squeezeHeld[e] = t, this.squeezeHeld[0] && this.squeezeHeld[1] ? this.squeezeHoldStart = performance.now() : this.squeezeHoldStart = 0;
+  }
+  _handleSelect(e) {
+    if (!this.active) return;
+    const t = performance.now();
+    if (t - this.lastPlaceTime < 300) return;
+    this.lastPlaceTime = t;
+    const i = this.ghostSpheres[e] || this.controllers[e];
+    if (!i) return;
+    const n = new f.Vector3();
+    i.getWorldPosition(n), this.points.push(n), this._addPlacedSphere(n), this.onPointPlaced && this.onPointPlaced(this.points.length), this.points.length >= 2 && this._completeCalibration();
+  }
+  _completeCalibration() {
+    if (this.active = !1, this._removeGhostSpheres(), this._updateConnectionLine(), !this._applyAlignment()) {
+      this.start();
+      return;
+    }
+    this.aligned = !0, this.restored = !1, this._save(), this.onComplete && this.onComplete(this.getState());
+  }
+  _applyAlignment() {
+    if (this.points.length !== 2) return !1;
+    const [e, t] = this.points, s = new f.Vector3().subVectors(t, e);
+    if (s.y = 0, s.lengthSq() < 1e-4) return !1;
+    s.normalize();
+    const i = Math.atan2(-s.z, s.x);
+    return this.targetGroup.position.copy(e), this.targetGroup.rotation.set(0, i, 0), !0;
+  }
+  _save() {
+    try {
+      window.localStorage.setItem(this.storageKey, JSON.stringify({
+        points: this.points.map((e) => [e.x, e.y, e.z]),
+        savedAt: Date.now()
+      }));
+    } catch {
+    }
+  }
+  _addGhostSpheres() {
+    this._removeGhostSpheres(), this.controllers.forEach((e, t) => {
+      const s = new f.Mesh(this.sphereGeometry, this.ghostMaterial.clone());
+      s.scale.set(0.5, 0.5, 0.5), s.position.set(0, 0, -0.07), e.add(s), this.ghostSpheres[t] = s;
+    });
+  }
+  _removeGhostSpheres() {
+    this.ghostSpheres.forEach((e) => {
+      e && e.parent && e.parent.remove(e);
+    }), this.ghostSpheres = [];
+  }
+  _addPlacedSphere(e) {
+    const t = new f.Mesh(this.sphereGeometry, this.placedMaterial.clone());
+    t.position.copy(e), t.name = "AR Calibration Point", this.visuals.add(t);
+  }
+  _updateConnectionLine() {
+    if (this.connectionLine && (this.visuals.remove(this.connectionLine), this.connectionLine.geometry.dispose(), this.connectionLine = null), this.points.length === 2) {
+      const e = new f.BufferGeometry().setFromPoints(this.points);
+      this.connectionLine = new f.Line(e, this.lineMaterial), this.visuals.add(this.connectionLine);
+    }
+  }
+  _clearVisuals() {
+    this.connectionLine && (this.visuals.remove(this.connectionLine), this.connectionLine.geometry.dispose(), this.connectionLine = null), [...this.visuals.children].forEach((e) => {
+      this.visuals.remove(e), e.material && e.material.dispose && e.material.dispose();
+    });
+  }
+  dispose() {
+    this.detach(), this._clearVisuals(), this.scene.remove(this.visuals), this.sphereGeometry.dispose(), this.placedMaterial.dispose(), this.ghostMaterial.dispose(), this.lineMaterial.dispose();
+  }
+}
+class Ch extends yt {
   constructor(e, t, s, i = {}, n = null, r = {}) {
     super(), this.renderer = e, this.camera = t, this.scene = s, this.config = {
       enableHandTracking: !0,
       enableWorldCube: !0,
+      enableCalibration: !0,
+      showStatusPanel: !0,
       defaultScale: 0.05,
       worldCubeSize: 1e3,
       worldCubeOpacity: 0.1,
       ...i
-    }, this.container = n, this.options = r, this.arCore = new dh(e, t, s, n), this.handTracking = this.config.enableHandTracking ? new mh(e, r) : null, this.modelGroup = new f.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
+    }, this.container = n, this.options = r, this.arCore = new Ah(e, t, s, n), this.handTracking = this.config.enableHandTracking ? new fh(e, r) : null, this.alignmentGroup = new f.Group(), this.alignmentGroup.name = "AR Alignment Group", this.scene.add(this.alignmentGroup), this.modelGroup = new f.Group(), this.modelGroup.name = "AR Model Group", this.alignmentGroup.add(this.modelGroup), this.calibration = this.config.enableCalibration ? new bh(e, s, this.alignmentGroup, { storageKey: this.config.calibrationStorageKey }) : null, this.overlayRoot = null, this.statusPanel = null, this.alignButton = null, (this.config.showStatusPanel || this.calibration) && (this.createOverlayUI(), this.arCore.setOverlayRoot(this.overlayRoot)), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
   }
   init() {
-    this.arCore.init(), this.handTracking && (this.handTracking.init(this.scene), this.handTracking.onGestureStart = (e) => {
+    this.arCore.init(), this.arCore.onSupportChecked = (e) => {
+      this.overlayRoot && (this.overlayRoot.style.display = e ? "" : "none"), this.updateStatusPanel();
+    }, this.calibration && (this.calibration.onStart = () => {
+      this.handTracking && this.handTracking.setInteractionEnabled(!1), this.updateStatusPanel(), this.emit("calibration-start");
+    }, this.calibration.onPointPlaced = (e) => {
+      this.updateStatusPanel(), this.emit("calibration-point", e);
+    }, this.calibration.onComplete = (e) => {
+      this.handTracking && this.handTracking.setInteractionEnabled(!0), this.updateStatusPanel(), this.emit("calibration-complete", e);
+    }, this.calibration.onCleared = () => {
+      this.handTracking && this.handTracking.setInteractionEnabled(!0), this.updateStatusPanel(), this.emit("calibration-cleared");
+    }), this.handTracking && (this.handTracking.init(this.scene), this.handTracking.onGestureStart = (e) => {
       this.previousGestureType !== e && (this.emit("gesture-start", e), this.previousGestureType = e);
     }, this.handTracking.onGestureEnd = () => {
       this.previousGestureType && (this.emit("gesture-end", this.previousGestureType), this.previousGestureType = null);
@@ -10198,9 +10319,9 @@ class bh extends yt {
   }
   setupSessionLifecycle() {
     this.arCore.onSessionStart = () => {
-      this.isARPresenting = !0, this.activateModel(), this.worldCube && (this.worldCube.visible = !0), this.emit("session-start");
+      this.isARPresenting = !0, this.activateModel(), this.worldCube && (this.worldCube.visible = !0), this.calibration && (this.calibration.attach(), this.calibration.setVisualsVisible(!0), this.calibration.restore()), this.updateStatusPanel(), this.emit("session-start");
     }, this.arCore.onSessionEnd = () => {
-      this.isARPresenting = !1, this.worldCube && (this.worldCube.visible = !1), this.handTracking && this.handTracking.stop(), this.emit("session-end");
+      this.isARPresenting = !1, this.worldCube && (this.worldCube.visible = !1), this.calibration && (this.calibration.cancel(), this.calibration.detach(), this.calibration.setVisualsVisible(!1)), this.handTracking && (this.handTracking.stop(), this.handTracking.setInteractionEnabled(!0)), this.updateStatusPanel(), this.emit("session-end");
     };
   }
   prepareModel(e, t = null) {
@@ -10220,9 +10341,68 @@ class bh extends yt {
     this.prepareModel(e, t);
   }
   update(e) {
-    if (!this.isActive() || !this.currentModel) return;
+    if (!this.isActive() || (this.calibration && this.calibration.update(), !this.currentModel)) return;
     const t = e / 1e3;
     this.handTracking && this.handTracking.update(t, this.modelGroup, this.camera);
+  }
+  startCalibration() {
+    this.calibration && this.calibration.start();
+  }
+  clearCalibration() {
+    this.calibration && this.calibration.clear();
+  }
+  getCalibrationState() {
+    return this.calibration ? this.calibration.getState() : null;
+  }
+  createOverlayUI() {
+    typeof document > "u" || (this.overlayRoot = document.createElement("div"), this.overlayRoot.className = "ar-overlay-root", this.overlayRoot.style.display = "none", this.overlayRoot.addEventListener("beforexrselect", (e) => {
+      e.preventDefault();
+    }), this.config.showStatusPanel && (this.statusPanel = document.createElement("div"), this.statusPanel.className = "ar-status-panel", this.overlayRoot.appendChild(this.statusPanel)), this.calibration && (this.alignButton = document.createElement("button"), this.alignButton.className = "ar-align-button", this.alignButton.innerHTML = '<span class="ar-icon">⚓</span>ALIGN SPACE', this.alignButton.addEventListener("click", () => {
+      const e = this.getCalibrationState();
+      e && e.active ? (this.calibration.cancel(), this.handTracking && this.handTracking.setInteractionEnabled(!0), this.updateStatusPanel()) : this.startCalibration();
+    }), this.overlayRoot.appendChild(this.alignButton)), (this.container || document.body).appendChild(this.overlayRoot), this.updateStatusPanel());
+  }
+  updateStatusPanel() {
+    if (this.alignButton) {
+      const s = this.getCalibrationState(), i = s && s.active;
+      this.alignButton.innerHTML = i ? '<span class="ar-icon">✕</span>CANCEL ALIGN' : '<span class="ar-icon">⚓</span>ALIGN SPACE', this.alignButton.classList.toggle("ar-align-button--active", !!i);
+    }
+    if (!this.statusPanel) return;
+    const e = this.arCore.getARStatus(), t = [];
+    if (t.push({
+      label: "Session",
+      value: e.presenting ? "active" : "idle",
+      ok: e.presenting
+    }), e.presenting) {
+      const s = e.referenceSpaceType;
+      t.push({
+        label: "Space",
+        value: s === "local-floor" ? "local-floor (shared)" : `${s || "unknown"} — re-centres on wear`,
+        ok: s === "local-floor"
+      }), e.enabledFeatures.length > 0 && t.push({
+        label: "Anchors",
+        value: e.enabledFeatures.includes("anchors") ? "available" : "unavailable",
+        ok: e.enabledFeatures.includes("anchors")
+      });
+    }
+    if (this.calibration) {
+      const s = this.calibration.getState();
+      let i = "not set", n = !1;
+      if (s.active)
+        i = `placing point ${s.pointCount + 1} of 2 — pull trigger`;
+      else if (s.aligned) {
+        const r = s.pointDistance ? `${s.pointDistance.toFixed(2)} m apart` : "";
+        i = `aligned${s.restored ? " (restored)" : ""} · ${r}`, n = !0;
+      }
+      t.push({ label: "Alignment", value: i, ok: n });
+    }
+    this.statusPanel.innerHTML = t.map((s) => `
+      <div class="ar-status-row">
+        <span class="ar-status-dot ${s.ok ? "ar-status-dot--ok" : "ar-status-dot--warn"}"></span>
+        <span class="ar-status-label">${s.label}</span>
+        <span class="ar-status-value">${s.value}</span>
+      </div>
+    `).join("");
   }
   createWorldCube() {
     const e = this.config.worldCubeSize, t = new f.BoxGeometry(e, e, e), s = new f.MeshBasicMaterial({
@@ -10274,7 +10454,7 @@ class bh extends yt {
     return this.arCore.getARStatus();
   }
   dispose() {
-    this.arCore && this.arCore.dispose(), this.handTracking && this.handTracking.dispose(), this.worldCube && (this.scene.remove(this.worldCube), this.worldCube.geometry.dispose(), this.worldCube.material.dispose()), this.modelGroup && this.scene.remove(this.modelGroup), this.isARPresenting = !1, this.currentModel = null;
+    this.arCore && this.arCore.dispose(), this.handTracking && this.handTracking.dispose(), this.calibration && (this.calibration.dispose(), this.calibration = null), this.overlayRoot && this.overlayRoot.parentNode && (this.overlayRoot.parentNode.removeChild(this.overlayRoot), this.overlayRoot = null, this.statusPanel = null, this.alignButton = null), this.worldCube && (this.scene.remove(this.worldCube), this.worldCube.geometry.dispose(), this.worldCube.material.dispose()), this.alignmentGroup && this.scene.remove(this.alignmentGroup), this.isARPresenting = !1, this.currentModel = null;
   }
 }
 class Ln {
@@ -10451,7 +10631,7 @@ class Ln {
     typeof window > "u" || (delete window.camera, delete window.scene, delete window.vertices, delete window.models, delete window.particles, delete window.vr, delete window.stereo, delete window.debugHelp, delete window.belowViewer);
   }
 }
-class Ch extends yt {
+class Eh extends yt {
   /**
    * Creates a new BelowViewer instance
    * 
@@ -10607,7 +10787,7 @@ class Ch extends yt {
   }
   initAR() {
     const e = this.config.ar?.settings || {};
-    this.arManager = new bh(
+    this.arManager = new Ch(
       this.renderer,
       this.cameraManager.camera,
       this.sceneManager.scene,
@@ -10622,6 +10802,14 @@ class Ch extends yt {
       this.emit("ar-gesture-start", t);
     }), this.arManager.on("gesture-end", (t) => {
       this.emit("ar-gesture-end", t);
+    }), this.arManager.on("calibration-start", () => {
+      this.emit("ar-calibration-start");
+    }), this.arManager.on("calibration-point", (t) => {
+      this.emit("ar-calibration-point", t);
+    }), this.arManager.on("calibration-complete", (t) => {
+      this.emit("ar-calibration-complete", t);
+    }), this.arManager.on("calibration-cleared", () => {
+      this.emit("ar-calibration-cleared");
     }), this.on("model-loaded", ({ model: t, options: s }) => {
       this.arManager && this.arManager.setTargetModel(t, s);
     });
@@ -11736,7 +11924,7 @@ let de, _e;
 function Gn(a, e, t) {
   return Ae.set(0, 0, -e, 1).applyMatrix4(a.projectionMatrix), Ae.multiplyScalar(1 / Ae.w), Ae.x = _e / t.width, Ae.y = _e / t.height, Ae.applyMatrix4(a.projectionMatrixInverse), Ae.multiplyScalar(1 / Ae.w), Math.abs(Math.max(Ae.x, Ae.y));
 }
-function Eh(a, e) {
+function yh(a, e) {
   const t = a.matrixWorld, s = a.geometry, i = s.attributes.instanceStart, n = s.attributes.instanceEnd, r = Math.min(s.instanceCount, i.count);
   for (let o = 0, l = r; o < l; o++) {
     j.start.fromBufferAttribute(i, o), j.end.fromBufferAttribute(n, o), j.applyMatrix4(t);
@@ -11753,7 +11941,7 @@ function Eh(a, e) {
     });
   }
 }
-function yh(a, e, t) {
+function Ih(a, e, t) {
   const s = e.projectionMatrix, n = a.material.resolution, r = a.matrixWorld, o = a.geometry, l = o.attributes.instanceStart, c = o.attributes.instanceEnd, h = Math.min(o.instanceCount, l.count), A = -e.near;
   de.at(1, he), he.w = 1, he.applyMatrix4(e.matrixWorldInverse), he.applyMatrix4(s), he.multiplyScalar(1 / he.w), he.x *= n.x / 2, he.y *= n.y / 2, he.z = 0, qs.copy(he), zs.multiplyMatrices(e.matrixWorldInverse, r);
   for (let d = 0, u = h; d < u; d++) {
@@ -11786,7 +11974,7 @@ function yh(a, e, t) {
     }
   }
 }
-class Ih extends ls {
+class Bh extends ls {
   /**
    * Constructs a new wide line.
    *
@@ -11840,7 +12028,7 @@ class Ih extends ls {
       const A = Math.max(i.near, qt.distanceToPoint(de.origin));
       h = Gn(i, A, l.resolution);
     }
-    qt.expandByScalar(h), de.intersectsBox(qt) !== !1 && (s ? Eh(this, t) : yh(this, i, t));
+    qt.expandByScalar(h), de.intersectsBox(qt) !== !1 && (s ? yh(this, t) : Ih(this, i, t));
   }
   onBeforeRender(e) {
     const t = this.material.uniforms;
@@ -11901,7 +12089,7 @@ class li extends io {
     return this.setPositions(t.attributes.position.array), this;
   }
 }
-class Un extends Ih {
+class Un extends Bh {
   /**
    * Constructs a new wide line.
    *
@@ -11912,7 +12100,7 @@ class Un extends Ih {
     super(e, t), this.isLine2 = !0, this.type = "Line2";
   }
 }
-class Bh {
+class wh {
   /**
    * Set the objects to use for raycasting during measurement
    * 
@@ -12751,7 +12939,7 @@ class Bi {
     return new Bi(e, t);
   }
 }
-class wh {
+class Sh {
   constructor(e) {
     this.scene = e, this.particleBounds = {
       min: new f.Vector3(-50, -25, -50),
@@ -12953,7 +13141,7 @@ class wh {
     this.particles && (this.scene.remove(this.particles), this.particles.geometry && this.particles.geometry.dispose(), this.particles.material && this.particles.material.dispose(), this.particles = null);
   }
 }
-class Sh {
+class vh {
   constructor(e) {
     this.scene = e, this.controllerSpotlight = null, this.spotlightTarget = null, this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.createSpotlight();
   }
@@ -13060,7 +13248,7 @@ class Sh {
     this.controllerSpotlight && (this.scene.remove(this.controllerSpotlight), this.controllerSpotlight = null), this.spotlightTarget && (this.scene.remove(this.spotlightTarget), this.spotlightTarget = null);
   }
 }
-class vh {
+class Mh {
   constructor(e) {
     this.scene = e, this.overheadLight = null, this.clearModeDirectionalLight = null, this.clearModeHemisphereLight = null, this.isTransitioning = !1, this.currentMode = "survey", this.pendingAnimations = /* @__PURE__ */ new Set(), this.isDisposed = !1, this.initializeLighting();
   }
@@ -13154,9 +13342,9 @@ class vh {
     });
   }
 }
-class Mh {
+class xh {
   constructor(e, t, s) {
-    this.scene = e, this.renderer = t, this.camera = s, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new vh(e), this.particles = new wh(e), this.torch = new Sh(e), this.isQuest2 = !1, this.isQuest3 = !1, this._fallbackHandedness = /* @__PURE__ */ new Map(), this.detectQuestDevice(), this.applyModeSettings();
+    this.scene = e, this.renderer = t, this.camera = s, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new Mh(e), this.particles = new Sh(e), this.torch = new vh(e), this.isQuest2 = !1, this.isQuest3 = !1, this._fallbackHandedness = /* @__PURE__ */ new Map(), this.detectQuestDevice(), this.applyModeSettings();
   }
   /**
    * Toggle between dive and survey modes
@@ -13347,7 +13535,7 @@ class Mh {
     this.lighting.dispose(), this.particles.dispose(), this.torch.dispose();
   }
 }
-class xh extends yt {
+class Th extends yt {
   /**
    * @param {Object} options
    * @param {HTMLElement} options.domElement - Element used for pointer lock
@@ -13523,7 +13711,7 @@ class ci extends yt {
       ...this.config.ktx2TranscoderPath && { ktx2TranscoderPath: this.config.ktx2TranscoderPath },
       ...this.config.webxrInputProfilesPath && { webxrInputProfilesPath: this.config.webxrInputProfilesPath }
     };
-    if (this.belowViewer = new Ch(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
+    if (this.belowViewer = new Eh(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
       this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
     }), this.belowViewer.isInitialized && (this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
@@ -13532,7 +13720,7 @@ class ci extends yt {
   }
   _maybeAttachMeasurementSystem() {
     if (!this.config.enableMeasurement || this.measurementSystem) return;
-    this.measurementSystem = new Bh({
+    this.measurementSystem = new wh({
       scene: this.belowViewer.sceneManager.scene,
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
@@ -13619,7 +13807,7 @@ class ci extends yt {
   }
   _maybeAttachDiveSystem() {
     if (!this.config.enableDiveSystem || this.diveSystem) return;
-    this.diveSystem = new Mh(
+    this.diveSystem = new xh(
       this.belowViewer.sceneManager.scene,
       this.belowViewer.renderer,
       this.belowViewer.cameraManager.camera
@@ -13666,7 +13854,7 @@ class ci extends yt {
   }
   _maybeAttachFlyControls() {
     if (!this.config.enableFlyControls || this.flyControls || !this.belowViewer?.cameraManager || !this.belowViewer?.renderer) return;
-    this.flyControls = new xh({
+    this.flyControls = new Th({
       domElement: this.belowViewer.renderer.domElement,
       camera: this.belowViewer.cameraManager.camera,
       controls: this.belowViewer.cameraManager.controls,
@@ -13837,7 +14025,7 @@ class ci extends yt {
       this.emit("vr-session-end", e), this.onVRSessionEnd();
     }), this.belowViewer.on("vr-mode-toggle", (e) => {
       this.emit("vr-mode-toggle", e), this.onVRModeToggle();
-    }), this.belowViewer.on("vr-movement-start", (e) => this.emit("vr-movement-start", e)), this.belowViewer.on("vr-movement-stop", (e) => this.emit("vr-movement-stop", e)), this.belowViewer.on("vr-movement-update", (e) => this.emit("vr-movement-update", e));
+    }), this.belowViewer.on("vr-movement-start", (e) => this.emit("vr-movement-start", e)), this.belowViewer.on("vr-movement-stop", (e) => this.emit("vr-movement-stop", e)), this.belowViewer.on("vr-movement-update", (e) => this.emit("vr-movement-update", e)), this.belowViewer.on("ar-session-start", (e) => this.emit("ar-session-start", e)), this.belowViewer.on("ar-session-end", (e) => this.emit("ar-session-end", e)), this.belowViewer.on("ar-gesture-start", (e) => this.emit("ar-gesture-start", e)), this.belowViewer.on("ar-gesture-end", (e) => this.emit("ar-gesture-end", e)), this.belowViewer.on("ar-calibration-start", (e) => this.emit("ar-calibration-start", e)), this.belowViewer.on("ar-calibration-point", (e) => this.emit("ar-calibration-point", e)), this.belowViewer.on("ar-calibration-complete", (e) => this.emit("ar-calibration-complete", e)), this.belowViewer.on("ar-calibration-cleared", (e) => this.emit("ar-calibration-cleared", e));
   }
   onVRSessionStart() {
     if (this.flyControls && this.flyControls.exitFlyMode(), this.ui.info && (this.ui.info.style.display = "none"), this.isLoading && this.updateVRLoadingIndicator(), !this.vrUpdateLoop) {
@@ -14584,11 +14772,11 @@ class ci extends yt {
   }
 }
 export {
-  Ch as BelowViewer,
+  Eh as BelowViewer,
   fa as Camera,
   hs as ConfigValidator,
   yt as EventSystem,
-  xh as FlyControls,
+  Th as FlyControls,
   Un as Line2,
   li as LineGeometry,
   is as LineMaterial,

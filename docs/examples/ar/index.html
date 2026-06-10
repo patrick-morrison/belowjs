@@ -101,6 +101,8 @@
               settings: {
                 enableHandTracking: true,
                 enableWorldCube: true,
+                enableCalibration: true,   // Two-point manual space alignment
+                showStatusPanel: true,     // Session/space/alignment readout
                 defaultScale: 0.05,        // 5% scale for models
                 worldCubeSize: 1000.0,      // 1000m cube
                 worldCubeOpacity: 0.1       // 10% alpha black
@@ -125,6 +127,18 @@
 
         viewer.on('ar-gesture-end', (gestureType) => {
           console.log(`👋 Gesture ended: ${gestureType}`);
+        });
+
+        // Manual space alignment: press ALIGN SPACE (or hold both controller
+        // grips for ~1.2s in-headset), then pull the trigger at two agreed
+        // physical landmarks. The model anchors to point 1, oriented toward
+        // point 2, and the alignment is saved and restored with the boundary.
+        viewer.on('ar-calibration-point', (count) => {
+          console.log(`⚓ Control point ${count} of 2 placed`);
+        });
+
+        viewer.on('ar-calibration-complete', (state) => {
+          console.log(`⚓ Space aligned (points ${state.pointDistance?.toFixed(2)} m apart)`);
         });
 
         // Example: Disable/enable hand interactions (useful for remote scenarios)

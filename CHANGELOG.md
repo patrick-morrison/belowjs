@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added configurable asset paths for better offline and local-network support.
+- AR manual space alignment: place two control points with the controller trigger (or a hand pinch) to anchor the model to physical landmarks — origin at point 1, oriented toward point 2. Styled like the measurement spheres, saved to localStorage, and restored automatically while the boundary persists, so colocated headsets can align without the shared-spaces API. Hold both controller grips for ~1.2s in-headset to re-run alignment.
+- AR status panel in the user view (and in-headset via DOM overlay where supported) showing session state, the granted reference space (`local-floor` shared vs `local` session-only), anchor availability, and alignment status — so you can check the headset has joined the shared space.
+- `ar-calibration-start`, `ar-calibration-point`, `ar-calibration-complete`, and `ar-calibration-cleared` events on `BelowViewer` and `ModelViewer`, plus `startCalibration()`/`clearCalibration()`/`getCalibrationState()` on `ARManager`.
+
+### Fixed
+- AR sessions now use the `local-floor` reference space (with `local` fallback) instead of `local`. The model stays in the same physical place when the headset is taken off and put back on, and colocated headsets in a shared space no longer see the model offset by their differing session origins.
+- AR session events (`ar-session-start`, `ar-session-end`, `ar-gesture-start`, `ar-gesture-end`) are now forwarded by `ModelViewer`; previously they only fired on the underlying `BelowViewer`.
+- AR hand-drag gestures now convert world-space deltas into the model group's parent frame, so dragging follows the hand when the space has been re-aligned.
 
 ## [1.7.6] - 2026-04-28
 

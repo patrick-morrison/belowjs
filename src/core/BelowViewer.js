@@ -422,6 +422,22 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-gesture-end', gestureType);
     });
 
+    this.arManager.on('calibration-start', () => {
+      this.emit('ar-calibration-start');
+    });
+
+    this.arManager.on('calibration-point', (count) => {
+      this.emit('ar-calibration-point', count);
+    });
+
+    this.arManager.on('calibration-complete', (state) => {
+      this.emit('ar-calibration-complete', state);
+    });
+
+    this.arManager.on('calibration-cleared', () => {
+      this.emit('ar-calibration-cleared');
+    });
+
     this.on('model-loaded', ({ model, options }) => {
       if (this.arManager) {
         this.arManager.setTargetModel(model, options);

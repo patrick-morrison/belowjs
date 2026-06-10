@@ -218,6 +218,15 @@
                     <h4>Added</h4>
                     <ul>
                         <li><span class="change-type new">New</span> Configurable asset paths for better offline and local-network support</li>
+                        <li><span class="change-type new">New</span> AR manual space alignment: place two control points with the controller trigger to anchor the model to physical landmarks, saved and restored with the boundary — colocated headsets can align without the shared-spaces API</li>
+                        <li><span class="change-type new">New</span> AR status panel showing session state, reference space (local-floor shared vs local session-only), anchors, and alignment — visible in the user view and in-headset via DOM overlay</li>
+                        <li><span class="change-type new">New</span> AR calibration events on BelowViewer and ModelViewer, with startCalibration/clearCalibration/getCalibrationState on ARManager</li>
+                    </ul>
+                    <h4>Fixed</h4>
+                    <ul>
+                        <li><span class="change-type fixed">Fixed</span> AR sessions use the local-floor reference space, so the model stays in the same physical place after taking the headset off and on, and colocated headsets no longer see it offset</li>
+                        <li><span class="change-type fixed">Fixed</span> AR session and gesture events are now forwarded by ModelViewer</li>
+                        <li><span class="change-type fixed">Fixed</span> AR hand-drag gestures track the hand correctly after the space has been re-aligned</li>
                     </ul>
                 </div>
             </div>
