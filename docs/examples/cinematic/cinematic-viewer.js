@@ -26,7 +26,7 @@ import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { bayer16 } from 'three/addons/tsl/math/Bayer.js';
 import { gaussianBlur } from 'three/addons/tsl/display/GaussianBlurNode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
-import { FlyControls } from '/src/core/FlyControls.js';
+import { FlyControls } from 'https://cdn.jsdelivr.net/npm/belowjs@1.7.6/dist/belowjs.js';
 
 const LAYER_VOLUMETRIC = 10;
 
@@ -410,10 +410,10 @@ export async function createCinematicViewer(container) {
 
   // --- Loaders ---
   const ktx2Loader = new KTX2Loader()
-    .setTranscoderPath('/node_modules/three/examples/jsm/libs/basis/')
+    .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/libs/basis/')
     .detectSupport(renderer);
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('/node_modules/three/examples/jsm/libs/draco/gltf/');
+  dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/libs/draco/gltf/');
   const gltfLoader = new GLTFLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
   gltfLoader.setKTX2Loader(ktx2Loader);

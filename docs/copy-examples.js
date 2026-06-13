@@ -65,6 +65,19 @@ function copyDir(src, dest) {
           const relativeExamplePath = path.relative(EXAMPLES_SRC, srcPath).split(path.sep).join('/');
           content = convertToCDN(content, version, relativeExamplePath);
         }
+
+        // Replace local paths in JS files with CDN equivalents
+        if (entry.name.endsWith('.js')) {
+          content = content.replace(
+            /\/node_modules\/three\/examples\/jsm\/libs\//g,
+            'https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/libs/'
+          );
+          // Rewrite local belowjs source imports to CDN build
+          content = content.replace(
+            /from '\/src\/[^']+'/g,
+            `from 'https://cdn.jsdelivr.net/npm/belowjs@${version}/dist/belowjs.js'`
+          );
+        }
         
         fs.writeFileSync(destPath, content, 'utf8');
 
