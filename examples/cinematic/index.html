@@ -1,0 +1,3578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BelowJS Cinematic</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎥</text></svg>">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.webgpu.js",
+            "three/webgpu": "/node_modules/three/build/three.webgpu.js",
+            "three/tsl": "/node_modules/three/build/three.tsl.js",
+            "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+    }
+    </script>
+
+    <link rel="stylesheet" href="/dist/belowjs.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Allow text selection in input fields */
+        input,
+        textarea,
+        [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #001122;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Override BelowJS controls - move above timeline, hide VR/fullscreen */
+        .measurement-panel {
+            position: fixed !important;
+            /* Fixed to escape container context if moved, or just to align with window */
+            z-index: 2001 !important;
+            /* High enough */
+            bottom: 90px !important;
+            /* Above timeline (80px) */
+            right: 20px !important;
+            transition: opacity 0.5s ease;
+        }
+
+        .screenshot-button {
+            position: fixed !important;
+            z-index: 2001 !important;
+            bottom: 160px !important;
+            /* Gap above measurement panel */
+            right: 20px !important;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Hide tools initially using body class */
+        body.waiting-for-model .measurement-panel,
+        body.waiting-for-model .screenshot-button {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .fullscreen-button {
+            display: none !important;
+        }
+
+        .vr-button--glass,
+        .vr-button-glass,
+        [class*="vr-button"] {
+            display: none !important;
+        }
+
+        .empty-state {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #e2e8f0;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .empty-state h2 {
+            font-size: 2.5em;
+            margin: 0 0 16px 0;
+            font-weight: 300;
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
+            margin: 8px 0;
+            opacity: 0.8;
+        }
+
+        .file-select-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .file-select-button:hover {
+            background: rgba(59, 130, 246, 1);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .drag-drop-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 17, 34, 0.95);
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drag-drop-overlay.visible {
+            opacity: 1;
+        }
+
+        .drag-drop-overlay .panel {
+            border: 2px dashed #3b82f6;
+            border-radius: 16px;
+            padding: 48px;
+            font-size: 1.5em;
+        }
+
+        .anim-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(0, 17, 34, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(20px);
+            min-width: 200px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .anim-panel.visible {
+            display: flex;
+        }
+
+        /* Panel collapse toggle for mobile */
+        .panel-collapse-toggle {
+            display: none;
+            margin: 10px -16px -16px -16px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0 0 14px 14px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: calc(100% + 32px);
+            box-sizing: border-box;
+            line-height: 1.2;
+        }
+
+        .panel-collapse-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        /* Transparent state during 3D interaction */
+        .anim-panel.interacting {
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .anim-panel.collapsed {
+            padding: 0;
+            min-width: auto;
+            width: auto;
+            border-radius: 20px;
+        }
+
+        .anim-panel.collapsed > *:not(.panel-collapse-toggle) {
+            display: none !important;
+        }
+
+        .anim-panel.collapsed .panel-collapse-toggle {
+            position: static;
+            width: auto;
+            height: auto;
+            font-size: 13px;
+            padding: 10px 18px;
+            margin: 0;
+            border-radius: 20px;
+            border: none;
+            border-top: none;
+        }
+
+        @media (max-width: 600px) {
+            .anim-panel {
+                top: 10px;
+                left: 10px;
+                padding: 12px;
+                min-width: 180px;
+            }
+
+            .panel-collapse-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 10px -12px -12px -12px;
+                width: calc(100% + 24px);
+            }
+
+            .anim-panel.collapsed {
+                padding: 0;
+            }
+
+            .anim-panel.collapsed .panel-collapse-toggle {
+                margin: 0;
+                width: auto;
+                padding: 10px 14px;
+            }
+
+            .fly-hint {
+                display: none;
+            }
+
+            /* Bigger slider thumbs for mobile */
+            .torch-row input[type="range"]::-webkit-slider-thumb {
+                width: 16px;
+                height: 16px;
+            }
+
+            .torch-row input[type="range"]::-moz-range-thumb {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        /* Disabled state for panel/timeline before model loads */
+        .anim-panel.disabled,
+        .timeline-shelf.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .anim-panel.disabled *,
+        .timeline-shelf.disabled * {
+            cursor: not-allowed !important;
+        }
+
+        /* Torch controls for dive mode */
+        .torch-controls {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+            margin-top: -4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .torch-controls.visible {
+            display: flex;
+        }
+
+        .torch-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .torch-row label {
+            font-size: 10px;
+            color: #64748b;
+            min-width: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .torch-row label:hover {
+            color: #94a3b8;
+        }
+
+        .torch-row input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #334155;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .torch-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Survey controls for survey mode */
+        .survey-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+            margin-top: -4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .survey-controls.hidden {
+            display: none;
+        }
+
+        /* Film Toggle (Timeline/Orbit) */
+        .film-toggle-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .film-toggle {
+            position: relative;
+            width: 180px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .film-toggle input {
+            display: none;
+        }
+
+        .film-option {
+            position: absolute;
+            top: 0;
+            width: 90px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .film-option.left {
+            left: 0;
+        }
+
+        .film-option.right {
+            right: 0;
+        }
+
+        .film-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .film-text {
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .film-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 84px;
+            height: 44px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 22px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .film-toggle input:checked~.film-slider {
+            transform: translateX(90px);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .film-toggle input:not(:checked)~.film-option.left .film-text,
+        .film-toggle input:checked~.film-option.right .film-text {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Light Toggle (Survey/Dive) */
+        .light-toggle-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .light-toggle {
+            position: relative;
+            width: 180px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .light-toggle input {
+            display: none;
+        }
+
+        .light-option {
+            position: absolute;
+            top: 0;
+            width: 90px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .light-option.left {
+            left: 0;
+        }
+
+        .light-option.right {
+            right: 0;
+        }
+
+        .light-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .light-text {
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .light-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 84px;
+            height: 44px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #64748b, #475569);
+            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light-toggle input:checked~.light-slider {
+            transform: translateX(90px);
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+        }
+
+        .light-toggle input:not(:checked)~.light-option.left .light-text,
+        .light-toggle input:checked~.light-option.right .light-text {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Export button */
+        .export-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+
+        .export-btn:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .panel-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .panel-row label {
+            font-size: 10px;
+            color: #64748b;
+            min-width: 52px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-row select {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .panel-row select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .panel-row button.icon-btn {
+            flex: 0;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .fly-hint {
+            font-size: 9px;
+            color: #475569;
+            text-align: center;
+            padding: 8px 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-top: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fly-hint:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .fly-hint kbd {
+            background: #334155;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .fly-mode-indicator {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            display: none;
+            pointer-events: none;
+        }
+
+        .fly-mode-indicator.visible {
+            display: block;
+        }
+
+        .fly-mode-indicator .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+        }
+
+        .fly-mode-indicator .crosshair::before,
+        .fly-mode-indicator .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .fly-mode-indicator .crosshair::before {
+            width: 8px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .fly-mode-indicator .crosshair::after {
+            width: 2px;
+            height: 8px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .fly-mode-indicator .hint {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .fly-mode-indicator kbd {
+            background: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+
+        .aspect-frame {
+            position: fixed;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            z-index: 999;
+            display: none;
+        }
+
+        .aspect-frame.visible {
+            display: block;
+        }
+
+        .aspect-frame::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* === BEAUTIFUL TIMELINE SHELF === */
+        .timeline-shelf {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, rgba(0, 17, 34, 0.98), rgba(0, 17, 34, 0.95));
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 1001;
+            backdrop-filter: blur(20px);
+        }
+
+        .timeline-shelf.visible {
+            display: block;
+        }
+
+        .shelf-content {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding: 0 24px;
+            gap: 16px;
+        }
+
+        /* Play button - larger, prominent */
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .play-btn:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Time display */
+        .time-display {
+            color: #e2e8f0;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+            min-width: 100px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .time-display:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Timeline track */
+        .timeline-track {
+            flex: 1;
+            height: 40px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Improved scrubbing interaction */
+        .timeline-track.scrubbing {
+            cursor: grabbing;
+        }
+
+        .timeline-track.scrubbing .keyframe-marker {
+            pointer-events: none;
+            opacity: 0.6;
+            /* Visual feedback */
+        }
+
+        /* Timeline Toast Notification */
+        .timeline-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            color: white;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .timeline-toast.visible {
+            opacity: 1;
+        }
+
+        @keyframes btn-shimmer {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+                border-color: rgba(59, 130, 246, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+                border-color: rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+                border-color: rgba(59, 130, 246, 0);
+            }
+        }
+
+        .btn-shimmer {
+            animation: btn-shimmer 2s infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 2px;
+        }
+
+        .playhead::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 11px;
+            height: 11px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+        }
+
+        .keyframe-marker {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: 2px solid #34d399;
+            border-radius: 4px;
+            transform: translate(-50%, -50%) rotate(45deg);
+            cursor: grab;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .keyframe-marker:hover {
+            transform: translate(-50%, -50%) rotate(45deg) scale(1.15);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .keyframe-marker.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) rotate(45deg) scale(1.25);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #fbbf24;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.6);
+        }
+
+        /* Cut keyframes - squares instead of diamonds */
+        .keyframe-marker.cut {
+            transform: translate(-50%, -50%) rotate(0deg);
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #f87171;
+            border-radius: 2px;
+        }
+
+        .keyframe-marker.cut:hover {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1.15);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+        }
+
+        .keyframe-marker.cut.dragging {
+            transform: translate(-50%, -50%) rotate(0deg) scale(1.25);
+        }
+
+        /* Action buttons */
+        .shelf-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .shelf-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .shelf-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .shelf-btn.primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: transparent;
+        }
+
+        .shelf-btn.primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .shelf-btn.export {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-color: transparent;
+        }
+
+        .shelf-btn.export:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+        }
+
+        .shelf-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 280px;
+            max-width: 90vw;
+        }
+
+        .modal h3 {
+            margin: 0 0 16px 0;
+            color: #e2e8f0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-row {
+            margin-bottom: 12px;
+        }
+
+        .modal-row label {
+            display: block;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .modal-row input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .modal-btns .cancel {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .modal-btns .ok {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .export-filename-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .export-filename-row label {
+            font-size: 12px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        .export-filename-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+
+        .export-option {
+            padding: 16px;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-option.full-option {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .export-option.full-option:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .export-option.segments-option {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .export-option.segments-option:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .export-option strong {
+            color: #e2e8f0;
+            font-size: 14px;
+            display: block;
+        }
+
+        .export-option .desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .export-progress-overlay {
+            flex-direction: column;
+            gap: 20px;
+            color: #e2e8f0;
+        }
+
+        .export-progress {
+            width: 300px;
+            height: 10px;
+            background: #1e293b;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .export-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: width 0.1s;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 6px 0;
+            min-width: 150px;
+            z-index: 4000;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .context-menu.visible {
+            display: block;
+        }
+
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #e2e8f0;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .context-menu button:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .context-menu button.danger {
+            color: #f87171;
+        }
+
+        /* Onboarding Overlay */
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+            /* Below modals, above content */
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.7);
+            /* Subtle white */
+            font-family: 'Inter', sans-serif;
+        }
+
+        .onboard-hint {
+            position: absolute;
+            max-width: 220px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+            font-weight: 300;
+        }
+
+        /* Adjust positions for specific elements relative to their targets */
+        /* Panel edge is at ~240px. Hints placed closer now that arrows are gone. */
+        .hint-orbit {
+            top: 40px;
+            left: 250px;
+        }
+
+        .hint-dive {
+            top: 95px;
+            left: 250px;
+        }
+
+        .hint-export {
+            top: 310px;
+            left: 250px;
+        }
+
+        .hint-fly-pos {
+            top: 360px;
+            left: 250px;
+        }
+
+        /* Bottom Shelf Elements */
+        .hint-br {
+            bottom: 90px;
+            right: 24px;
+            text-align: right;
+        }
+
+        /* Add Frame - placed directly above the button area, moved left to avoid markers */
+        .hint-add {
+            bottom: 90px;
+            right: 220px;
+            text-align: right;
+        }
+
+        /* Duration - near the time display */
+        .hint-time {
+            bottom: 90px;
+            left: 80px;
+            text-align: left;
+        }
+
+        /* Duration */
+
+        .onboard-footer {
+            position: absolute;
+            bottom: 160px;
+            /* Above timeline */
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 11px;
+            opacity: 0.9;
+            z-index: 1000;
+            pointer-events: auto;
+            line-height: 1.6;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .timeline-shelf {
+                height: 140px;
+                padding-bottom: 0px;
+            }
+
+            .shelf-content {
+                flex-wrap: wrap;
+                padding: 12px 12px 0 12px;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .timeline-track {
+                order: -1;
+                flex: 0 0 100%;
+                margin-bottom: 8px;
+                width: 100%;
+            }
+
+            /* Compact controls for mobile */
+            .shelf-actions {
+                gap: 4px;
+            }
+
+            .shelf-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            .time-display {
+                min-width: 70px;
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+
+            .play-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            /* Push UI up to avoid overlap with taller shelf */
+            .measurement-panel {
+                bottom: 150px !important;
+            }
+
+            .screenshot-button {
+                bottom: 220px !important;
+            }
+
+            .fly-mode-indicator .hint {
+                bottom: 160px;
+            }
+
+            /* Hide splash/onboarding tips on small screens */
+            .onboarding-overlay,
+            #onboardingOverlay {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="waiting-for-model">
+    <div class="empty-state" id="emptyState">
+        <h2>BelowJS Cinematic</h2>
+        <p style="pointer-events: auto;">Drag & drop a .glb file to start (<a href="https://patrick-morrison.github.io/belowjs/guides/animation.html" target="_blank" style="color: #60a5fa;">see guide</a>)</p>
+        <p style="font-size: 0.9em; opacity: 0.6;">WebGPU edition — volumetric water, dual ROV torches, AgX colour. Exports MP4.</p>
+        <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose
+            file</button>
+        <input type="file" id="fileInput" accept=".glb" />
+        <p style="font-size: 0.75em; opacity: 0.5; margin-top: 20px; pointer-events: auto;">
+            <a href="https://belowjs.com" target="_blank" style="color: #60a5fa; text-decoration: none;">BelowJS</a> by Patrick Morrison 2025
+        </p>
+        <p style="font-size: 0.85em; opacity: 0.7; margin-top: 12px; pointer-events: auto;">
+            Don't have a model ready? Try <a href="#" onclick="loadDemoModel(); return false;" style="color: #60a5fa; text-decoration: underline;">WreckSporation's <em>Sesa 1928</em></a>
+        </p>
+    </div>
+
+    <div class="drag-drop-overlay" id="dragOverlay">
+        <div class="panel">Drop .glb file to load</div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div id="onboardingOverlay" class="onboarding-overlay">
+        <!-- 1) Orbit Mode -->
+        <div class="onboard-hint hint-orbit">
+            Double-click feature to focus
+        </div>
+
+        <!-- 2) Dive Mode -->
+        <div class="onboard-hint hint-dive">
+            Lighting controls
+        </div>
+
+        <!-- 3) Export Settings -->
+        <div class="onboard-hint hint-export">
+            Render video (MP4)
+        </div>
+
+        <!-- 4) Fly Mode Hint -->
+        <div class="onboard-hint hint-fly-pos">
+            Fly mode to position
+        </div>
+
+        <!-- 7) Save / Load -->
+        <div class="onboard-hint hint-br">
+            Save/Load settings
+        </div>
+
+        <!-- 4) Timeline Duration -->
+        <div class="onboard-hint hint-time">
+            Double-click numbers for duration
+        </div>
+
+        <!-- 5) Add Frame -->
+        <div class="onboard-hint hint-add">
+            Capture keyframe (i)
+        </div>
+
+        <div class="onboard-footer">
+            <a href="https://belowjs.com" target="_blank"
+                style="color: #60a5fa; text-decoration: underline; font-weight: 500;">BelowJS</a> is a tool to share
+            your shipwreck models on the web and in VR.<br>
+            This example is built to demonstrate adding advanced features.
+        </div>
+    </div>
+
+    <div class="anim-panel" id="animPanel">
+        <!-- Timeline/Orbit Toggle -->
+        <div class="film-toggle-wrapper">
+            <label class="film-toggle">
+                <input type="checkbox" id="modeToggle">
+                <div class="film-slider"></div>
+                <div class="film-option left">
+                    <span class="film-icon">🎥</span>
+                    <span class="film-text">Timeline</span>
+                </div>
+                <div class="film-option right">
+                    <span class="film-icon">🔄</span>
+                    <span class="film-text">Orbit</span>
+                </div>
+            </label>
+        </div>
+
+        <!-- Dive Mode Toggle -->
+        <div class="light-toggle-wrapper">
+            <label class="light-toggle">
+                <input type="checkbox" id="diveToggle">
+                <div class="light-slider"></div>
+                <div class="light-option left">
+                    <span class="light-icon">🔍</span>
+                    <span class="light-text">Survey</span>
+                </div>
+                <div class="light-option right">
+                    <span class="light-icon">🔦</span>
+                    <span class="light-text">Dive</span>
+                </div>
+            </label>
+        </div>
+
+        <!-- Survey Brightness Controls (visible when survey mode enabled) -->
+        <div class="survey-controls" id="surveyControls">
+            <div class="torch-row">
+                <label id="brightnessLabel" title="Click to reset">Bright</label>
+                <input type="range" id="surveyBrightness" min="-0.693" max="1.609" step="0.01" value="0">
+            </div>
+        </div>
+
+        <!-- Torch Controls (visible when dive mode enabled) -->
+        <div class="torch-controls" id="torchControls">
+            <div class="torch-row">
+                <label id="powerLabel" title="Click to reset">Power</label>
+                <input type="range" id="torchPower" min="0" max="1" step="0.001" value="0.274">
+            </div>
+            <div class="torch-row">
+                <label id="widthLabel" title="Click to reset">Width</label>
+                <input type="range" id="torchWidth" min="15" max="90" step="1" value="50">
+            </div>
+            <div class="torch-row">
+                <label id="distLabel" title="Click to reset">Dist</label>
+                <input type="range" id="torchDistance" min="10" max="500" step="1" value="50">
+            </div>
+            <div class="torch-row">
+                <label id="spreadLabel" title="Click to reset">Spread</label>
+                <input type="range" id="torchSpread" min="0.5" max="20" step="0.1" value="1.5">
+            </div>
+            <div class="torch-row">
+                <label id="particlesLabel" title="Click to reset">Particles</label>
+                <input type="range" id="particleDensity" min="0" max="2.0" step="0.05" value="0.1">
+            </div>
+        </div>
+
+        <div class="panel-row">
+            <label>Frame</label>
+            <select class="shelf-select" id="aspectSelect" title="Aspect Ratio">
+                <option value="16:9">16:9 (H)</option>
+                <option value="9:16">9:16 (V)</option>
+                <option value="4:3">4:3 (H)</option>
+                <option value="3:4">3:4 (V)</option>
+                <option value="1:1">1:1</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+
+        <div class="panel-row">
+            <label>Quality</label>
+            <select id="resolutionSelect">
+                <option value="1080">1080p</option>
+                <option value="1440">1440p</option>
+                <option value="2160" selected>4K</option>
+            </select>
+        </div>
+
+        <div class="panel-row" id="easingRow">
+            <label>Easing</label>
+            <select id="interpSelect">
+                <option value="linear" selected>Linear</option>
+                <option value="ease">Ease</option>
+                <option value="smooth">Smooth</option>
+            </select>
+        </div>
+
+        <div class="panel-row">
+            <label>BG</label>
+            <div style="display: flex; gap: 6px; flex: 1;">
+                <input type="color" id="fogColorPicker" value="#041729" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: transparent; cursor: pointer; padding: 2px;">
+                <input type="text" id="fogColorHex" value="#041729" maxlength="7" style="flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e2e8f0; font-size: 13px; font-family: monospace; text-transform: uppercase; min-width: 0; max-width: 80px; height: 32px; box-sizing: border-box;">
+            </div>
+        </div>
+
+        <button class="export-btn" id="exportBtn" disabled title="Add some keyframes first">Export</button>
+
+        <div class="fly-hint" id="runtimeFlyHint">
+            <kbd>Shift</kbd>+<kbd>`</kbd> fly • <kbd>Click</kbd> exit
+        </div>
+
+        <button class="panel-collapse-toggle" id="panelCollapseToggle" title="Toggle settings">Settings</button>
+    </div>
+
+    <div class="fly-mode-indicator" id="flyModeIndicator">
+        <div class="crosshair"></div>
+        <div class="hint">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move
+            <kbd>Q</kbd><kbd>E</kbd> Up/Down
+            <kbd>Shift</kbd> Fast<br>
+            <span style="opacity:0.8;font-size:12px;">Click to confirm spot • ESC to exit</span>
+        </div>
+    </div>
+
+    <div class="aspect-frame" id="aspectFrame" data-label="16:9"></div>
+
+    <!-- Beautiful Timeline Shelf -->
+    <div class="timeline-shelf" id="timelineShelf">
+        <div class="shelf-content">
+            <button class="play-btn" id="playBtn" title="Play/Pause">
+                <svg class="play-icon" width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M3 2l10 6-10 6V2z"/>
+                </svg>
+                <svg class="pause-icon" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" style="display:none;">
+                    <path d="M3.5 3h2.5v10H3.5V3zm6.5 0h2.5v10H10V3z"/>
+                </svg>
+            </button>
+            <div class="time-display" id="timeDisplay" title="Click to edit time/duration">0.00 / 30.00</div>
+
+            <div class="timeline-track" id="timelineTrack">
+                <div class="timeline-toast" id="timelineToast">Add keyframes to play</div>
+                <div class="playhead" id="playhead" style="left: 0%;"></div>
+            </div>
+
+            <div class="shelf-actions">
+                <button class="shelf-btn primary" id="addFrameBtn">+ Frame</button>
+                <button class="shelf-btn" id="clearBtn">Clear</button>
+                <button class="shelf-btn" id="saveBtn" title="Save keyframes">💾</button>
+                <button class="shelf-btn" id="loadBtn" title="Load keyframes">📂</button>
+                <input type="file" id="loadInput" accept=".json" style="display:none">
+                <input type="file" id="modelInput" accept=".glb,.gltf" style="display:none">
+            </div>
+        </div>
+    </div>
+
+    <!-- Time input modal -->
+    <div class="overlay" id="timeModal">
+        <div class="modal">
+            <h3>Edit Time</h3>
+            <div class="modal-row">
+                <label>Current Time (seconds)</label>
+                <input type="number" id="timeInputCurrent" step="0.01" min="0">
+            </div>
+            <div class="modal-row">
+                <label>Duration (seconds)</label>
+                <input type="number" id="timeInputDuration" step="1" min="1" max="300">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="timeInputCancel">Cancel</button>
+                <button class="ok" id="timeInputOk">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export options modal -->
+    <div class="overlay" id="exportModal">
+        <div class="modal">
+            <h3>Export Options</h3>
+            <div class="export-filename-row">
+                <label>Filename</label>
+                <input type="text" id="exportFilename" placeholder="animation_belowjs">
+            </div>
+            <div class="export-option full-option" id="exportFull">
+                <strong>🎬 Full Animation</strong>
+                <div class="desc">Export entire timeline as one continuous video</div>
+            </div>
+            <div class="export-option segments-option" id="exportSegments">
+                <strong>📑 Segments</strong>
+                <div class="desc">Export each keyframe pair as separate videos.<br><em style="opacity: 0.7;">Great for
+                        PowerPoint presentations and virtual tours!</em></div>
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="exportCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Data Modal -->
+    <div class="overlay" id="saveModal">
+        <div class="modal">
+            <h3>Save Menu</h3>
+            <div class="export-option full-option" id="saveDataOption">
+                <strong>Save Animation Data</strong>
+                <div class="desc">Save your keyframes and settings to a JSON file</div>
+            </div>
+            <div class="export-option full-option" id="saveExportOption">
+                <strong>Export Video</strong>
+                <div class="desc">Render your animation as a video file</div>
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="saveCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Data Filename Modal -->
+    <div class="overlay" id="saveFilenameModal">
+        <div class="modal">
+            <h3>Save Animation Data</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
+                Save your current keyframes, and settings to a JSON file to load later.
+            </p>
+            <div class="export-filename-row">
+                <label>Filename</label>
+                <input type="text" id="saveFilename" value="animation_data" placeholder="animation_data">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="saveFilenameCancel">Cancel</button>
+                <button class="ok" id="saveConfirm">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Menu Modal -->
+    <div class="overlay" id="loadModal">
+        <div class="modal">
+            <h3>Load Menu</h3>
+            <div class="export-option full-option" id="loadDataOption">
+                <strong>Load Animation Data</strong>
+                <div class="desc">Load saved keyframes and settings from a JSON file</div>
+            </div>
+            <div class="export-option full-option" id="loadModelOption">
+                <strong>Load Model</strong>
+                <div class="desc">Load a new 3D model (.glb file) to replace the current one</div>
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="loadCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Complete Modal (iOS) -->
+    <div class="overlay" id="exportCompleteModal">
+        <div class="modal">
+            <h3>Export Complete</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px 0; line-height: 1.4;">
+                Your video has been rendered and is ready to share.
+            </p>
+            <div class="modal-btns">
+                <button class="ok" id="exportShareAction">Share</button>
+                <button class="cancel" id="exportDoneAction">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export progress -->
+    <div class="overlay export-progress-overlay" id="exportOverlay">
+        <div style="font-size: 1.2em; font-weight: 500;" id="exportTitle">Exporting...</div>
+        <div class="export-progress">
+            <div class="export-progress-bar" id="exportProgressBar" style="width: 0%;"></div>
+        </div>
+        <div id="exportStatus" style="color: #94a3b8;">Preparing...</div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <button id="deleteKeyframe" class="danger">Delete Keyframe</button>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { createCinematicViewer } from './cinematic-viewer.js';
+
+        // State
+        let hasModel = false;
+        let isPlaying = false;
+        let currentTime = 0;
+        let duration = 30;
+        let keyframes = [];
+        let hoveredKeyframeIndex = null;
+        let selectedKeyframeIndex = null;
+        let animationId = null;
+        let lastFrameTime = 0;
+        let defaultInterpolation = 'linear';
+        let positionCurve = null;
+        let targetCurve = null;
+        let animationMode = 'timeline';
+        let aspectRatio = '16:9';
+        // Default to 1080p on iOS to avoid memory issues, 4K on desktop
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        let exportResolution = isIOSDevice ? 1080 : 2160;
+        let draggingKeyframe = null;
+        let longPressTimeout = null;
+        let longPressKeyframeIndex = null;
+
+        // Elements
+        const emptyState = document.getElementById('emptyState');
+        const dragOverlay = document.getElementById('dragOverlay');
+        const animPanel = document.getElementById('animPanel');
+        const modeToggle = document.getElementById('modeToggle');
+        const aspectSelect = document.getElementById('aspectSelect');
+        const resolutionSelect = document.getElementById('resolutionSelect');
+        const interpSelect = document.getElementById('interpSelect');
+        const flyModeIndicator = document.getElementById('flyModeIndicator');
+        const aspectFrame = document.getElementById('aspectFrame');
+        const timelineShelf = document.getElementById('timelineShelf');
+        const playBtn = document.getElementById('playBtn');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const timelineTrack = document.getElementById('timelineTrack');
+        const playhead = document.getElementById('playhead');
+        const addFrameBtn = document.getElementById('addFrameBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const exportModal = document.getElementById('exportModal');
+        const exportCompleteModal = document.getElementById('exportCompleteModal');
+        const exportShareAction = document.getElementById('exportShareAction');
+        const exportDoneAction = document.getElementById('exportDoneAction');
+        const exportOverlay = document.getElementById('exportOverlay');
+        const exportProgressBar = document.getElementById('exportProgressBar');
+        const exportStatus = document.getElementById('exportStatus');
+        const exportTitle = document.getElementById('exportTitle');
+        const contextMenu = document.getElementById('contextMenu');
+        const fileInput = document.getElementById('fileInput');
+        const timeModal = document.getElementById('timeModal');
+        const timeInputCurrent = document.getElementById('timeInputCurrent');
+        const timeInputDuration = document.getElementById('timeInputDuration');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const loadInput = document.getElementById('loadInput');
+        const modelInput = document.getElementById('modelInput');
+        const loadModal = document.getElementById('loadModal');
+        const easingRow = document.getElementById('easingRow');
+        const exportSegments = document.getElementById('exportSegments');
+        const diveToggle = document.getElementById('diveToggle');
+        const torchControls = document.getElementById('torchControls');
+        const surveyControls = document.getElementById('surveyControls');
+        const surveyBrightness = document.getElementById('surveyBrightness');
+        const torchPower = document.getElementById('torchPower');
+        const torchWidth = document.getElementById('torchWidth');
+        const torchDistance = document.getElementById('torchDistance');
+        const torchSpread = document.getElementById('torchSpread');
+
+        // Power slider is quadratic: slider tracks position 0-1, power = 20*pos^2.
+        // Gives fine control at the dim end while still reaching full power.
+        const POWER_MAX = 20;
+        const powerFromSlider = (v) => +(POWER_MAX * v * v).toFixed(2);
+        const sliderFromPower = (p) => Math.sqrt(Math.max(0, Math.min(POWER_MAX, p)) / POWER_MAX);
+        const particleDensity = document.getElementById('particleDensity');
+        const fogColorPicker = document.getElementById('fogColorPicker');
+        const fogColorHex = document.getElementById('fogColorHex');
+        const saveModal = document.getElementById('saveModal');
+        const saveFilenameModal = document.getElementById('saveFilenameModal');
+        const saveFilename = document.getElementById('saveFilename');
+        const panelCollapseToggle = document.getElementById('panelCollapseToggle');
+
+        // Panel collapse toggle for mobile
+        panelCollapseToggle.addEventListener('click', () => {
+            const isCollapsed = animPanel.classList.toggle('collapsed');
+            panelCollapseToggle.textContent = isCollapsed ? 'Settings' : 'Hide Settings';
+            panelCollapseToggle.title = isCollapsed ? 'Show settings' : 'Hide settings';
+        });
+
+        // Default to 9:16 aspect ratio and 1080p on small screens (portrait mobile)
+        if (window.innerWidth <= 600) {
+            aspectRatio = '9:16';
+            aspectSelect.value = '9:16';
+            exportResolution = 1080;
+            resolutionSelect.value = '1080';
+        }
+
+        // Viewer
+        const viewerContainer = document.createElement('div');
+        viewerContainer.style.cssText = 'position:fixed;inset:0;z-index:0;';
+        document.body.appendChild(viewerContainer);
+
+        // Start with panel collapsed on small screens
+        if (window.innerWidth <= 600) {
+            animPanel.classList.add('collapsed');
+            panelCollapseToggle.textContent = 'Settings';
+            panelCollapseToggle.title = 'Show settings';
+        }
+
+        // Make panel transparent during 3D interaction (mobile only)
+        if (window.innerWidth <= 600) {
+            let isPointerDown = false;
+
+            viewerContainer.addEventListener('pointerdown', (e) => {
+                isPointerDown = true;
+            });
+
+            viewerContainer.addEventListener('pointermove', (e) => {
+                // Make panel transparent when dragging
+                if (isPointerDown && hasModel && !animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.add('interacting');
+                }
+            });
+
+            viewerContainer.addEventListener('pointerup', () => {
+                isPointerDown = false;
+                // Only remove transparency if not scrubbing timeline
+                if (!isScrubbing) {
+                    animPanel.classList.remove('interacting');
+                }
+            });
+
+            viewerContainer.addEventListener('pointercancel', () => {
+                isPointerDown = false;
+                // Only remove transparency if not scrubbing timeline
+                if (!isScrubbing) {
+                    animPanel.classList.remove('interacting');
+                }
+            });
+        }
+
+        const viewer = await createCinematicViewer(viewerContainer);
+        window.viewer = viewer; // debug/console access
+
+        // Console helper: dump everything needed to reproduce the current look
+        window.dumpSettings = () => {
+            const cam = viewer.camera;
+            const ctl = viewer.controls;
+            const r = (v) => Math.round(v * 100) / 100;
+            const out = {
+                camera: {
+                    position: [r(cam.position.x), r(cam.position.y), r(cam.position.z)],
+                    target: [r(ctl.target.x), r(ctl.target.y), r(ctl.target.z)],
+                    fov: cam.fov
+                },
+                diveMode: diveToggle.checked,
+                power: powerFromSlider(parseFloat(torchPower.value)),
+                width: parseFloat(torchWidth.value),
+                dist: parseFloat(torchDistance.value),
+                spread: parseFloat(torchSpread.value),
+                particles: parseFloat(particleDensity.value),
+                surveyBrightness: r(Math.exp(parseFloat(surveyBrightness.value))),
+                fogColor: fogColorPicker.value,
+                waterDensity: viewer.diveSystem.waterDensity.value,
+                duration,
+                aspectRatio,
+                resolution: exportResolution
+            };
+            console.log(JSON.stringify(out, null, 2));
+            return out;
+        };
+
+        // Move UI elements to body to escape viewerContainer's z-index context (z=0)
+        // This ensures they can sit ABOVE the aspect-frame overlay (z=999)
+        viewer.on('initialized', () => {
+            setTimeout(() => {
+                const moveEl = (sel) => {
+                    const el = viewerContainer.querySelector(sel) || document.querySelector(sel);
+                    if (el) {
+                        el.remove(); // Safety
+                        document.body.appendChild(el);
+                    }
+                };
+                moveEl('.measurement-panel');
+                moveEl('.screenshot-button');
+                // Note: Fullscreen button is hidden by CSS, no need to move
+
+
+                // Auto-pause on interaction - Poll for controls since they might be init async
+                const pollControls = setInterval(() => {
+                    const controls = viewer.belowViewer?.cameraManager?.getControls?.();
+                    if (controls) {
+                        controls.addEventListener('start', () => {
+                            if (isPlaying) togglePlayback();
+                        });
+                        clearInterval(pollControls);
+                    }
+                }, 200);
+            }, 100);
+        });
+
+        const getCamera = () => viewer?.belowViewer?.cameraManager?.getCamera?.();
+        const getControls = () => viewer?.belowViewer?.cameraManager?.getControls?.();
+        const getRenderer = () => viewer?.belowViewer?.renderer;
+
+        document.addEventListener('keydown', (e) => {
+            // Guard: Don't trigger shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+            const key = e.key.toLowerCase();
+
+            // Z toggles dive mode directly (no ModelViewer in this example)
+            if (key === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                setTimeout(() => {
+                    const diveSystem = viewer.diveSystem;
+                    if (!diveSystem) return;
+                    const isDiveMode = !diveSystem.isDiveMode();
+                    if (diveToggle.checked !== isDiveMode) {
+                        diveToggle.checked = isDiveMode;
+                        diveToggle.dispatchEvent(new Event('change'));
+                    }
+                }, 0);
+                return;
+            }
+
+            // Playback Controls
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayback();
+                return;
+            }
+            if (key === 'k') {
+                stopPlayback();
+                return;
+            }
+            if (key === 'j') {
+                stopPlayback();
+                const frameTime = 1 / 30; // One frame at 30fps
+                currentTime = Math.max(0, currentTime - frameTime);
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+                return;
+            }
+            if (key === 'l') {
+                stopPlayback();
+                const frameTime = 1 / 30; // One frame at 30fps
+                currentTime = Math.min(duration, currentTime + frameTime);
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+                return;
+            }
+
+            // 'i' to add keyframe (Blender style)
+            if (key === 'i') {
+                addKeyframe();
+            }
+        });
+
+        viewer.on('fly-mode-change', ({ active }) => {
+            flyModeIndicator.classList.toggle('visible', active);
+            updateAspectFrame();
+        });
+
+        // Interactive sidebar fly hint
+        const runtimeFlyHint = document.getElementById('runtimeFlyHint');
+        runtimeFlyHint.addEventListener('click', () => {
+            if (hasModel && !isPlaying && !viewer.isFlyModeActive()) {
+                viewer.enterFlyMode();
+            }
+        });
+
+
+
+        // Time display click
+        timeDisplay.addEventListener('click', () => {
+            timeInputCurrent.value = currentTime.toFixed(2);
+            timeInputDuration.value = duration;
+            timeModal.classList.add('visible');
+            setTimeout(() => timeInputCurrent.focus(), 50); // Focus for convenience
+        });
+
+        // Enter key support for time inputs
+        function handleTimeEnter(e) { if (e.key === 'Enter') document.getElementById('timeInputOk').click(); }
+        timeInputCurrent.addEventListener('keydown', handleTimeEnter);
+        timeInputDuration.addEventListener('keydown', handleTimeEnter);
+
+        document.getElementById('timeInputCancel').addEventListener('click', () => timeModal.classList.remove('visible'));
+        document.getElementById('timeInputOk').addEventListener('click', () => {
+            const newTime = parseFloat(timeInputCurrent.value) || 0;
+            const newDur = Math.max(1, Math.min(300, parseFloat(timeInputDuration.value) || 10));
+            duration = newDur;
+            currentTime = Math.max(0, Math.min(newTime, duration));
+            renderKeyframes();
+            updateTimeDisplay();
+            // Update camera to reflect jump
+            animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+            timeModal.classList.remove('visible');
+        });
+
+        // Save/Load
+        saveBtn.addEventListener('click', () => {
+            saveModal.classList.add('visible');
+        });
+
+        // Save menu options
+        document.getElementById('saveDataOption').addEventListener('click', () => {
+            saveModal.classList.remove('visible');
+            saveFilenameModal.classList.add('visible');
+            setTimeout(() => saveFilename.focus(), 50);
+        });
+
+        document.getElementById('saveExportOption').addEventListener('click', () => {
+            saveModal.classList.remove('visible');
+            exportModal.classList.add('visible');
+            const fileInput = document.getElementById('exportFilename');
+            if (fileInput) setTimeout(() => fileInput.focus(), 50);
+        });
+
+        // Enter key support for save filename
+        saveFilename.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveConfirm').click();
+        });
+
+        document.getElementById('saveCancel').addEventListener('click', () => saveModal.classList.remove('visible'));
+        document.getElementById('saveFilenameCancel').addEventListener('click', () => saveFilenameModal.classList.remove('visible'));
+
+        document.getElementById('saveConfirm').addEventListener('click', () => {
+            const defaultName = 'animation_data';
+            const filename = saveFilename.value;
+
+            const finalName = filename.trim() || defaultName;
+            const cleanName = finalName.endsWith('.json') ? finalName : `${finalName}.json`;
+
+            const data = {
+                version: 1,
+                duration,
+                interpolation: defaultInterpolation,
+                keyframes,
+                // Save settings
+                settings: {
+                    aspectRatio,
+                    resolution: exportResolution,
+                    diveMode: diveToggle.checked,
+                    surveyBrightness: Math.exp(parseFloat(surveyBrightness.value)),
+                    torch: {
+                        enabled: torchPower.value > 0, // Inferred
+                        intensity: powerFromSlider(parseFloat(torchPower.value)),
+                        width: parseFloat(torchWidth.value),
+                        distance: parseFloat(torchDistance.value),
+                        separation: parseFloat(torchSpread.value)
+                    },
+                    particleDensity: parseFloat(particleDensity.value),
+                    fogColor: fogColorPicker.value
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = cleanName;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            saveFilenameModal.classList.remove('visible');
+        });
+
+        loadBtn.addEventListener('click', () => {
+            loadModal.classList.add('visible');
+        });
+
+        // Load menu options
+        document.getElementById('loadDataOption').addEventListener('click', () => {
+            loadModal.classList.remove('visible');
+            loadInput.click();
+        });
+
+        document.getElementById('loadModelOption').addEventListener('click', () => {
+            loadModal.classList.remove('visible');
+            modelInput.click();
+        });
+
+        document.getElementById('loadCancel').addEventListener('click', () => loadModal.classList.remove('visible'));
+        loadInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Handle legacy format (just properties on root)
+                if (data.keyframes && Array.isArray(data.keyframes)) {
+                    if (keyframes.length > 0 && !confirm('Replace existing animation data?')) return;
+
+                    // Restore keyframes and basic settings
+                    keyframes = data.keyframes;
+                    duration = data.duration || 10;
+                    defaultInterpolation = data.interpolation || 'smooth';
+                    interpSelect.value = defaultInterpolation;
+
+                    // Restore extended settings if present
+                    if (data.settings) {
+                        // Aspect & Resolution
+                        if (data.settings.aspectRatio) {
+                            aspectRatio = data.settings.aspectRatio;
+                            aspectSelect.value = aspectRatio;
+                        }
+                        if (data.settings.resolution) {
+                            exportResolution = data.settings.resolution;
+                            resolutionSelect.value = exportResolution;
+                        }
+
+                        // Dive Mode & Torch
+                        if (data.settings.diveMode !== undefined) {
+                            diveToggle.checked = data.settings.diveMode;
+                            // Trigger change event to apply effects
+                            diveToggle.dispatchEvent(new Event('change'));
+                        }
+
+                        // Survey Brightness (only apply if in survey mode)
+                        if (data.settings.surveyBrightness !== undefined && !diveToggle.checked) {
+                            const brightness = parseFloat(data.settings.surveyBrightness);
+                            // Validate: must be positive number within range
+                            if (!isNaN(brightness) && brightness > 0) {
+                                const clampedBrightness = Math.max(0.5, Math.min(5.0, brightness));
+                                // Convert from linear multiplier to log scale for slider
+                                surveyBrightness.value = Math.log(clampedBrightness);
+                                surveyBrightness.dispatchEvent(new Event('input'));
+                            }
+                        }
+
+                        // Torch Settings (only apply if in dive mode)
+                        if (data.settings.torch && diveToggle.checked) {
+                            if (data.settings.torch.intensity !== undefined) {
+                                torchPower.value = sliderFromPower(parseFloat(data.settings.torch.intensity));
+                                torchPower.dispatchEvent(new Event('input'));
+                            }
+                            if (data.settings.torch.width !== undefined) {
+                                torchWidth.value = data.settings.torch.width;
+                                torchWidth.dispatchEvent(new Event('input'));
+                            }
+                            if (data.settings.torch.distance !== undefined) {
+                                torchDistance.value = data.settings.torch.distance;
+                                torchDistance.dispatchEvent(new Event('input'));
+                            }
+                            if (data.settings.torch.separation !== undefined) {
+                                torchSpread.value = data.settings.torch.separation;
+                                torchSpread.dispatchEvent(new Event('input'));
+                            }
+                        }
+
+                        // Particle Density (only apply if in dive mode)
+                        if (data.settings.particleDensity !== undefined && diveToggle.checked) {
+                            particleDensity.value = data.settings.particleDensity;
+                            particleDensity.dispatchEvent(new Event('input'));
+                        }
+
+                        // Fog Color
+                        if (data.settings.fogColor !== undefined) {
+                            fogColorPicker.value = data.settings.fogColor;
+                            fogColorPicker.dispatchEvent(new Event('input'));
+                        }
+
+                        setAspectRatio(aspectRatio);
+                    }
+
+                    // Ensure keyframes are sorted
+                    keyframes.sort((a, b) => a.time - b.time);
+
+                    currentTime = 0;
+                    renderKeyframes();
+                    updateTimeDisplay();
+                    updateExportButton();
+
+                    // Jump to first keyframe immediately
+                    if (keyframes.length > 0) {
+                        goToKeyframe(0);
+                    }
+                }
+            } catch (err) { alert('Failed to load: ' + err.message); }
+            loadInput.value = '';
+        });
+
+        // Mode Toggle Logic
+        function updateModeUI() {
+            // Updated directly in listener below, but could be refactored here
+        }
+
+        modeToggle.addEventListener('change', (e) => {
+            const newMode = e.target.checked ? 'orbit' : 'timeline';
+
+
+
+            animationMode = newMode;
+
+            // Hide/Show keyframe specific controls
+            addFrameBtn.style.display = animationMode === 'orbit' ? 'none' : '';
+            clearBtn.style.display = animationMode === 'orbit' ? 'none' : '';
+
+            // Hide segment export for orbit (always full loop)
+            const exportSegments = document.getElementById('exportSegments');
+            if (exportSegments) {
+                exportSegments.style.display = animationMode === 'orbit' ? 'none' : '';
+            }
+
+            // Hide keyframe markers on track
+            const markers = document.querySelectorAll('.keyframe-marker');
+            markers.forEach(m => m.style.display = animationMode === 'orbit' ? 'none' : '');
+
+            // Reset orbit setup if entering orbit mode
+            if (animationMode === 'orbit') {
+                if (captureOrbitSetup) captureOrbitSetup();
+            }
+            updateExportButton();
+        });
+
+        // Aspect Ratio
+        let isUpdatingAspect = false;
+        function updateAspectFrame() {
+            if (isUpdatingAspect) return;
+            isUpdatingAspect = true;
+
+            // Account for timeline shelf height
+            const shelfHeight = timelineShelf.classList.contains('visible') ? timelineShelf.offsetHeight : 0;
+
+            // Reset to full viewport (above timeline) when no aspect lock
+            if (!hasModel || aspectRatio === 'none') {
+                aspectFrame.classList.remove('visible');
+                viewerContainer.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:${shelfHeight}px;z-index:0;`;
+                isUpdatingAspect = false;
+                return;
+            }
+
+            const [w, h] = aspectRatio.split(':').map(Number);
+            const ratio = w / h;
+
+            // Available space is window minus timeline
+            const windowW = window.innerWidth;
+            const availableH = window.innerHeight - shelfHeight;
+
+            // Fit the frame within available space while maintaining aspect ratio
+            let frameW = availableH * ratio;
+            let frameH = availableH;
+
+            if (frameW > windowW) {
+                // Width-constrained (portrait/narrow screens) - fit by width instead
+                frameW = windowW;
+                frameH = windowW / ratio;
+            }
+
+            // Center in available space (above timeline)
+            const topOffset = (availableH - frameH) / 2;
+            const leftOffset = (windowW - frameW) / 2;
+
+            // Resize viewer container to match frame - camera aspect will match automatically
+            viewerContainer.style.cssText = `
+                position: fixed;
+                width: ${frameW}px;
+                height: ${frameH}px;
+                left: ${leftOffset}px;
+                top: ${topOffset}px;
+                z-index: 0;
+            `;
+
+            // Position frame overlay to match
+            aspectFrame.style.width = `${frameW}px`;
+            aspectFrame.style.height = `${frameH}px`;
+            aspectFrame.style.left = `${leftOffset}px`;
+            aspectFrame.style.top = `${topOffset}px`;
+
+            aspectFrame.dataset.label = `${aspectRatio} @ ${exportResolution}p`;
+            aspectFrame.classList.add('visible');
+
+            isUpdatingAspect = false;
+        }
+        // Separate handler for manual aspect updates (not from window resize)
+        function setAspectRatio(value) {
+            aspectRatio = value;
+            updateAspectFrame();
+            // Trigger viewer to update camera for new container size
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
+        }
+        aspectSelect.addEventListener('change', () => setAspectRatio(aspectSelect.value));
+        resolutionSelect.addEventListener('change', () => { exportResolution = parseInt(resolutionSelect.value); updateAspectFrame(); });
+        // Set initial resolution select value for iOS
+        if (isIOSDevice) {
+            resolutionSelect.value = '1080';
+        }
+        window.addEventListener('resize', updateAspectFrame);
+
+        // Update aspect frame on fullscreen changes to prevent offset
+        document.addEventListener('fullscreenchange', updateAspectFrame);
+        document.addEventListener('webkitfullscreenchange', updateAspectFrame); // Safari
+        document.addEventListener('mozfullscreenchange', updateAspectFrame); // Firefox
+        document.addEventListener('MSFullscreenChange', updateAspectFrame); // IE/Edge
+
+        // Dive Mode Toggle
+        diveToggle.addEventListener('change', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveToggle.checked) {
+                if (diveSystem) {
+                    if (typeof diveSystem.setDiveMode === 'function') {
+                        diveSystem.setDiveMode(true);
+                    } else {
+                        diveSystem.enableDiveMode();
+                    }
+                    torchControls.classList.add('visible');
+                    surveyControls.classList.add('hidden');
+                    // Sync values from sliders
+                    torchPower.dispatchEvent(new Event('input'));
+                    torchWidth.dispatchEvent(new Event('input'));
+                    torchDistance.dispatchEvent(new Event('input'));
+                    torchSpread.dispatchEvent(new Event('input'));
+                    particleDensity.dispatchEvent(new Event('input'));
+                    fogColorPicker.dispatchEvent(new Event('input'));
+                }
+            } else {
+                if (diveSystem) {
+                    if (typeof diveSystem.setDiveMode === 'function') {
+                        diveSystem.setDiveMode(false);
+                    } else {
+                        diveSystem.disableDiveMode();
+                    }
+                    torchControls.classList.remove('visible');
+                    surveyControls.classList.remove('hidden');
+                    // Sync survey brightness
+                    surveyBrightness.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+
+        // Survey Brightness Control (logarithmic scale)
+        surveyBrightness.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.lighting) {
+                // Convert from log scale to linear (0.5x to 10x, centered at 1x)
+                const multiplier = Math.exp(parseFloat(surveyBrightness.value));
+                diveSystem.lighting.setSurveyBrightness(multiplier);
+            }
+        });
+
+        // Torch Controls
+        torchPower.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setIntensity(powerFromSlider(parseFloat(torchPower.value)));
+            }
+        });
+
+        torchWidth.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setBeamWidth(parseFloat(torchWidth.value));
+            }
+        });
+
+        torchDistance.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setDistance(parseFloat(torchDistance.value));
+            }
+        });
+
+        torchSpread.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.torch) {
+                diveSystem.torch.setSeparation(parseFloat(torchSpread.value));
+            }
+        });
+
+        particleDensity.addEventListener('input', () => {
+            const diveSystem = viewer.diveSystem;
+            if (diveSystem?.particles) {
+                diveSystem.particles.setDensity(parseFloat(particleDensity.value));
+            }
+        });
+
+        fogColorPicker.addEventListener('input', () => {
+            fogColorHex.value = fogColorPicker.value.toUpperCase();
+            viewer.setWaterColor(fogColorPicker.value);
+        });
+
+        fogColorHex.addEventListener('input', () => {
+            // Validate hex color format
+            const hex = fogColorHex.value.trim();
+            if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                fogColorPicker.value = hex;
+                viewer.setWaterColor(hex);
+            }
+        });
+
+        // Click-to-reset handlers for slider labels
+        document.getElementById('brightnessLabel').addEventListener('click', () => {
+            surveyBrightness.value = 0; // Log scale for 1.0x
+            surveyBrightness.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('powerLabel').addEventListener('click', () => {
+            torchPower.value = sliderFromPower(1.5);
+            torchPower.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('widthLabel').addEventListener('click', () => {
+            torchWidth.value = 50;
+            torchWidth.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('distLabel').addEventListener('click', () => {
+            torchDistance.value = 50;
+            torchDistance.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('spreadLabel').addEventListener('click', () => {
+            torchSpread.value = 1.5;
+            torchSpread.dispatchEvent(new Event('input'));
+        });
+
+        document.getElementById('particlesLabel').addEventListener('click', () => {
+            particleDensity.value = 0.1;
+            particleDensity.dispatchEvent(new Event('input'));
+        });
+
+        // Initialize aspect frame for default 16:9
+        updateAspectFrame();
+
+        // Animation Loop
+        function animate(time) {
+            animationId = requestAnimationFrame(animate);
+            const delta = Math.min((time - lastFrameTime) / 1000, 0.1);
+            lastFrameTime = time;
+            if (isPlaying) {
+                currentTime += delta;
+                if (currentTime >= duration) { currentTime = duration; stopPlayback(); }
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                updateTimeDisplay();
+            }
+        }
+        animationId = requestAnimationFrame(animate);
+
+        // Orbit
+        let orbitStartPos = null, orbitTarget = null, orbitRadius = 10, orbitHeight = 5;
+        function captureOrbitSetup() {
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            orbitTarget = controls.target.clone();
+            const offset = camera.position.clone().sub(orbitTarget);
+            orbitRadius = Math.sqrt(offset.x * offset.x + offset.z * offset.z);
+            orbitHeight = camera.position.y;
+            orbitStartPos = camera.position.clone();
+        }
+        function updateCameraFromOrbit() {
+            if (!orbitTarget) return;
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            const progress = currentTime / duration;
+            const startOffset = orbitStartPos.clone().sub(orbitTarget);
+            const startAngle = Math.atan2(startOffset.x, startOffset.z);
+            const currentAngle = startAngle + progress * Math.PI * 2;
+            camera.position.x = orbitTarget.x + Math.sin(currentAngle) * orbitRadius;
+            camera.position.z = orbitTarget.z + Math.cos(currentAngle) * orbitRadius;
+            camera.position.y = orbitHeight;
+            controls.target.copy(orbitTarget);
+            camera.lookAt(orbitTarget);
+        }
+
+        // Reset orbit setup when user interacts with canvas
+        function resetOrbitSetup() {
+            orbitStartPos = null;
+            orbitTarget = null;
+        }
+
+        // Listen for control changes to reset orbit when user manipulates viewport
+        let orbitListenerAdded = false;
+        function setupOrbitResetListener() {
+            const controls = getControls();
+            if (controls && !orbitListenerAdded) {
+                controls.addEventListener('start', () => {
+                    // Only reset if not currently playing or scrubbing
+                    if (!isPlaying && !isScrubbing) {
+                        resetOrbitSetup();
+                        // In orbit mode, reset timeline to zero since this is the new start point
+                        if (animationMode === 'orbit') {
+                            currentTime = 0;
+                            updateTimeDisplay();
+                        }
+                    }
+                });
+                orbitListenerAdded = true;
+            }
+        }
+
+        // Try to set up listener after a delay (controls may not exist yet)
+        setTimeout(setupOrbitResetListener, 1000);
+
+        // Snap keyframes that are close together to exactly one frame apart (hard cuts)
+        function snapKeyframesToCuts() {
+            const frameTime = 1 / 30;
+            const snapThreshold = 3 * frameTime; // Within 3 frames
+
+            keyframes.sort((a, b) => a.time - b.time);
+
+            for (let i = 0; i < keyframes.length - 1; i++) {
+                const current = keyframes[i];
+                const next = keyframes[i + 1];
+                const timeDiff = next.time - current.time;
+
+                // If close but not already exactly one frame apart
+                if (timeDiff > 0 && timeDiff < snapThreshold && Math.abs(timeDiff - frameTime) > 0.001) {
+                    // Snap to exactly one frame apart
+                    next.time = current.time + frameTime;
+                }
+            }
+        }
+
+        // Detect which keyframes are part of cuts (one frame apart)
+        function detectCutKeyframes() {
+            const frameTime = 1 / 30;
+            const cutThreshold = frameTime + 0.001; // Slightly more than one frame
+
+            const cutIndices = new Set();
+
+            for (let i = 0; i < keyframes.length - 1; i++) {
+                const timeDiff = keyframes[i + 1].time - keyframes[i].time;
+                if (timeDiff > 0 && timeDiff < cutThreshold) {
+                    cutIndices.add(i);
+                    cutIndices.add(i + 1);
+                }
+            }
+
+            return cutIndices;
+        }
+
+        // Keyframes
+        function addKeyframe() {
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+
+            // If in fly mode, exit it first (this saves the current spot)
+            if (viewer.isFlyModeActive()) {
+                viewer.exitFlyMode();
+            }
+
+            const existing = keyframes.findIndex(k => Math.abs(k.time - currentTime) < 0.01);
+            if (existing >= 0) {
+                keyframes[existing].position = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+                keyframes[existing].target = { x: controls.target.x, y: controls.target.y, z: controls.target.z };
+            } else {
+                keyframes.push({
+                    time: currentTime,
+                    position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+                    target: { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+                });
+            }
+            keyframes.sort((a, b) => a.time - b.time);
+            snapKeyframesToCuts(); // Snap close keyframes to exactly one frame apart
+            renderKeyframes();
+            updateExportButton();
+        }
+
+        function deleteKeyframe(index) {
+            if (!confirm(`Delete keyframe at ${keyframes[index].time.toFixed(1)}s?`)) return;
+            keyframes.splice(index, 1);
+            renderKeyframes();
+            updateExportButton();
+        }
+
+        function goToKeyframe(index) {
+            const kf = keyframes[index];
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls || !kf) return;
+            camera.position.set(kf.position.x, kf.position.y, kf.position.z);
+            controls.target.set(kf.target.x, kf.target.y, kf.target.z);
+            camera.lookAt(controls.target);
+            currentTime = kf.time;
+            updateTimeDisplay();
+        }
+
+        function updateSplines() {
+            if (keyframes.length < 2) {
+                positionCurve = null;
+                targetCurve = null;
+                return;
+            }
+
+            const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+            const positions = sorted.map(k => new THREE.Vector3(k.position.x, k.position.y, k.position.z));
+            const targets = sorted.map(k => new THREE.Vector3(k.target.x, k.target.y, k.target.z));
+
+            // Create Catmull-Rom splines
+            positionCurve = new THREE.CatmullRomCurve3(positions);
+            targetCurve = new THREE.CatmullRomCurve3(targets);
+            // Centripetal prevents loops/overshoot better than default
+            positionCurve.curveType = 'centripetal';
+            targetCurve.curveType = 'centripetal';
+        }
+
+        function renderKeyframes() {
+            updateSplines();
+            const cutIndices = detectCutKeyframes();
+
+            document.querySelectorAll('.keyframe-marker').forEach(el => el.remove());
+            keyframes.forEach((kf, i) => {
+                const marker = document.createElement('div');
+                marker.className = 'keyframe-marker';
+
+                // Apply cut class if this keyframe is part of a cut
+                if (cutIndices.has(i)) {
+                    marker.classList.add('cut');
+                    marker.title = `${kf.time.toFixed(2)}s (CUT)`;
+                } else {
+                    marker.title = `${kf.time.toFixed(2)}s`;
+                }
+
+                marker.style.left = `${(kf.time / duration) * 100}%`;
+                if (animationMode === 'orbit') marker.style.display = 'none';
+                marker.dataset.index = i;
+
+                function startMarkerDrag(e, clientX) {
+                    e.stopPropagation();
+                    goToKeyframe(i);
+                    draggingKeyframe = {
+                        index: i,
+                        marker,
+                        startX: clientX,
+                        moved: false,
+                        lastTime: kf.time
+                    };
+                    marker.classList.add('dragging');
+                }
+
+                marker.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) startMarkerDrag(e, e.clientX);
+                });
+
+                marker.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+
+                    // Set up long-press detection for mobile delete
+                    longPressKeyframeIndex = i;
+                    longPressTimeout = setTimeout(() => {
+                        // Long press detected - ask to delete
+                        if (longPressKeyframeIndex !== null) {
+                            deleteKeyframe(longPressKeyframeIndex);
+                            longPressKeyframeIndex = null;
+                            longPressTimeout = null;
+                            // Clear dragging state since we're deleting instead
+                            draggingKeyframe = null;
+                        }
+                    }, 500); // 500ms long press
+
+                    startMarkerDrag(e, touch.clientX);
+                }, { passive: false });
+
+                marker.addEventListener('click', (e) => { e.stopPropagation(); goToKeyframe(i); });
+                marker.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); showContextMenu(e.clientX, e.clientY, i); });
+                marker.addEventListener('mouseenter', () => hoveredKeyframeIndex = i);
+                marker.addEventListener('mouseleave', () => hoveredKeyframeIndex = null);
+
+                timelineTrack.appendChild(marker);
+            });
+        }
+
+        // Keyframe dragging - shared logic for mouse and touch
+        function handleKeyframeDragMove(clientX) {
+            if (!draggingKeyframe) return;
+
+            // Drag threshold check (5px)
+            if (!draggingKeyframe.moved) {
+                if (Math.abs(clientX - draggingKeyframe.startX) < 5) return;
+                draggingKeyframe.moved = true;
+                // Clear long-press timeout since user is dragging
+                if (longPressTimeout) {
+                    clearTimeout(longPressTimeout);
+                    longPressTimeout = null;
+                    longPressKeyframeIndex = null;
+                }
+            }
+
+            const rect = timelineTrack.getBoundingClientRect();
+            const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+            let newTime = (x / rect.width) * duration;
+
+            // No snapping during drag - move freely
+            keyframes[draggingKeyframe.index].time = newTime;
+            draggingKeyframe.marker.style.left = `${(newTime / duration) * 100}%`;
+
+            // Visual preview: Check if we're in snap zone and show squares
+            const frameTime = 1 / 30;
+            const snapDistance = 3 * frameTime;
+            let inSnapZone = false;
+
+            for (let i = 0; i < keyframes.length; i++) {
+                if (i === draggingKeyframe.index) continue;
+                const distance = Math.abs(newTime - keyframes[i].time);
+                if (distance < snapDistance) {
+                    inSnapZone = true;
+                    break;
+                }
+            }
+
+            // Toggle cut class for visual preview (not committed)
+            if (inSnapZone) {
+                draggingKeyframe.marker.classList.add('cut');
+            } else {
+                draggingKeyframe.marker.classList.remove('cut');
+            }
+
+            // Update time display only (no camera or snap during drag)
+            currentTime = newTime;
+            updateTimeDisplay();
+        }
+
+        function handleKeyframeDragEnd() {
+            // Clear long-press timeout if it's still active
+            if (longPressTimeout) {
+                clearTimeout(longPressTimeout);
+                longPressTimeout = null;
+                longPressKeyframeIndex = null;
+            }
+
+            if (!draggingKeyframe) return;
+
+            draggingKeyframe.marker.classList.remove('dragging');
+
+            const frameTime = 1 / 30;
+            const snapDistance = 3 * frameTime;
+            const draggedIndex = draggingKeyframe.index;
+            const finalTime = keyframes[draggedIndex].time;
+            const initialTime = draggingKeyframe.lastTime; // Where we started
+
+            // Check each other keyframe for potential snap
+            for (let i = 0; i < keyframes.length; i++) {
+                if (i === draggedIndex) continue;
+
+                const otherTime = keyframes[i].time;
+                const distance = Math.abs(finalTime - otherTime);
+
+                // Only snap if within 3 frames
+                if (distance < snapDistance) {
+                    // Determine initial approach direction
+                    const startedOnLeft = initialTime < otherTime;
+
+                    // Check if we "escaped" by going more than 3 frames past
+                    const crossedOver = startedOnLeft ? (finalTime > otherTime) : (finalTime < otherTime);
+                    const distancePast = crossedOver ? Math.abs(finalTime - otherTime) : 0;
+
+                    if (distancePast > snapDistance) {
+                        // Escaped - don't snap
+                        continue;
+                    }
+
+                    // Snap to 1 frame apart based on which side we're on now
+                    const currentlyOnLeft = finalTime < otherTime;
+                    if (currentlyOnLeft) {
+                        keyframes[draggedIndex].time = otherTime - frameTime;
+                    } else {
+                        keyframes[draggedIndex].time = otherTime + frameTime;
+                    }
+                    break;
+                }
+            }
+
+            keyframes.sort((a, b) => a.time - b.time);
+            snapKeyframesToCuts(); // Refine any close pairs
+            renderKeyframes();
+            updateCameraFromKeyframes();
+            draggingKeyframe = null;
+        }
+
+        // Mouse events for keyframe dragging
+        document.addEventListener('mousemove', (e) => handleKeyframeDragMove(e.clientX));
+        document.addEventListener('mouseup', handleKeyframeDragEnd);
+
+        // Touch events for keyframe dragging
+        document.addEventListener('touchmove', (e) => {
+            if (draggingKeyframe) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                handleKeyframeDragMove(touch.clientX);
+            }
+        }, { passive: false });
+        document.addEventListener('touchend', handleKeyframeDragEnd);
+        document.addEventListener('touchcancel', handleKeyframeDragEnd);
+
+        // Interpolation
+        function smoothstep(t) { return t * t * (3 - 2 * t); }
+        function interpolateKeyframes(time) {
+            if (keyframes.length === 0) return null;
+            if (keyframes.length === 1) return { position: keyframes[0].position, target: keyframes[0].target };
+
+            const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+
+            // Check for cuts - if we're between two keyframes that form a cut, jump to the second one
+            const frameTime = 1 / 30;
+            const cutThreshold = frameTime + 0.001;
+
+            for (let i = 0; i < sorted.length - 1; i++) {
+                const timeDiff = sorted[i + 1].time - sorted[i].time;
+                if (timeDiff > 0 && timeDiff < cutThreshold) {
+                    // This is a cut pair
+                    if (time >= sorted[i].time && time <= sorted[i + 1].time) {
+                        // We're in the cut zone - jump to the second keyframe instantly
+                        return { position: sorted[i + 1].position, target: sorted[i + 1].target };
+                    }
+                }
+            }
+
+            // Spline Interpolation (Smooth)
+            if (defaultInterpolation === 'smooth' && positionCurve && targetCurve) {
+                // Find segment index
+                let i = 0;
+                for (let j = 0; j < sorted.length - 1; j++) {
+                    if (time >= sorted[j].time && time <= sorted[j + 1].time) {
+                        i = j;
+                        break;
+                    }
+                }
+                // Handle end of timeline case
+                if (time >= sorted[sorted.length - 1].time) i = sorted.length - 2;
+
+                const prev = sorted[i];
+                const next = sorted[i + 1];
+                const segmentDuration = next.time - prev.time;
+                // Map time to u (0..1) within segment
+                const localT = Math.max(0, Math.min(1, (time - prev.time) / segmentDuration));
+
+                // Map to global U for CatmullRomCurve3
+                // CatmullRomCurve3 assumes points are at u = 0, 1/(n-1), 2/(n-1), ... 1
+                const n = sorted.length;
+                const globalU = (i + localT) / (n - 1);
+
+                const pos = positionCurve.getPoint(globalU);
+                const tgt = targetCurve.getPoint(globalU);
+
+                return {
+                    position: { x: pos.x, y: pos.y, z: pos.z },
+                    target: { x: tgt.x, y: tgt.y, z: tgt.z }
+                };
+            }
+
+            // Linear or Ease (Old Smooth)
+            if (time <= sorted[0].time) return { position: sorted[0].position, target: sorted[0].target };
+            if (time >= sorted[sorted.length - 1].time) return { position: sorted[sorted.length - 1].position, target: sorted[sorted.length - 1].target };
+
+            let prev = sorted[0], next = sorted[sorted.length - 1];
+            for (let i = 0; i < sorted.length - 1; i++) {
+                if (time >= sorted[i].time && time <= sorted[i + 1].time) { prev = sorted[i]; next = sorted[i + 1]; break; }
+            }
+            const t = (time - prev.time) / (next.time - prev.time);
+            // Map 'ease' to smoothstep, default to linear
+            const eased = defaultInterpolation === 'ease' ? smoothstep(t) : t;
+            return {
+                position: {
+                    x: prev.position.x + (next.position.x - prev.position.x) * eased,
+                    y: prev.position.y + (next.position.y - prev.position.y) * eased,
+                    z: prev.position.z + (next.position.z - prev.position.z) * eased
+                },
+                target: {
+                    x: prev.target.x + (next.target.x - prev.target.x) * eased,
+                    y: prev.target.y + (next.target.y - prev.target.y) * eased,
+                    z: prev.target.z + (next.target.z - prev.target.z) * eased
+                }
+            };
+        }
+        function updateCameraFromKeyframes() {
+            // Don't snap camera when there's only 1 keyframe - let user explore freely
+            if (keyframes.length < 2) return;
+
+            const result = interpolateKeyframes(currentTime);
+            if (!result) return;
+            const camera = getCamera();
+            const controls = getControls();
+            if (!camera || !controls) return;
+            camera.position.set(result.position.x, result.position.y, result.position.z);
+            controls.target.set(result.target.x, result.target.y, result.target.z);
+            camera.lookAt(controls.target);
+        }
+
+        // Playback
+        function startPlayback() {
+            if (animationMode === 'timeline' && keyframes.length < 2) return;
+
+            // Wrap around if at end
+            if (currentTime >= duration) currentTime = 0;
+
+            if (animationMode === 'orbit') {
+                // Only capture setup if starting new (or reset)
+                if (currentTime === 0 || !orbitStartPos) captureOrbitSetup();
+            }
+
+            isPlaying = true;
+            playBtn.querySelector('.play-icon').style.display = 'none';
+            playBtn.querySelector('.pause-icon').style.display = 'block';
+            addFrameBtn.disabled = true;
+            viewer.setFlyControlsEnabled(false);
+            viewer.exitFlyMode();
+        }
+        function stopPlayback() {
+            isPlaying = false;
+            playBtn.querySelector('.play-icon').style.display = 'block';
+            playBtn.querySelector('.pause-icon').style.display = 'none';
+            addFrameBtn.disabled = false;
+            viewer.setFlyControlsEnabled(true);
+        }
+        function togglePlayback() {
+            if (keyframes.length === 0 && animationMode === 'timeline') {
+                const toast = document.getElementById('timelineToast');
+                toast.classList.add('visible');
+                setTimeout(() => toast.classList.remove('visible'), 2000);
+                return;
+            }
+            isPlaying ? stopPlayback() : startPlayback();
+        }
+        function updateTimeDisplay() {
+            playhead.style.left = `${(currentTime / duration) * 100}%`;
+            timeDisplay.textContent = `${currentTime.toFixed(2)} / ${duration.toFixed(2)}`;
+        }
+        function updateExportButton() {
+            const hasKeyframes = keyframes.length > 0;
+            const canExport = animationMode === 'timeline' ? keyframes.length >= 2 : true;
+            exportBtn.disabled = !canExport;
+
+            // Empty state shimmer
+            if (!hasKeyframes && animationMode === 'timeline') {
+                addFrameBtn.classList.add('btn-shimmer');
+            } else {
+                addFrameBtn.classList.remove('btn-shimmer');
+            }
+
+            // Update tooltip directly on button since container is gone
+            exportBtn.title = canExport ? (animationMode === 'timeline' ? 'Export video options' : 'Export orbit video') : 'Add some keyframes first';
+        }
+
+        // Timeline scrubbing (pauses playback) - supports both mouse and touch
+        let isScrubbing = false;
+
+        // Helper to get clientX from mouse or touch event
+        function getClientX(e) {
+            if (e.touches && e.touches.length > 0) return e.touches[0].clientX;
+            if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
+            return e.clientX;
+        }
+
+        function startScrub(e) {
+            if (e.target.classList.contains('keyframe-marker')) return;
+            if (isPlaying) stopPlayback();
+            isScrubbing = true;
+            timelineTrack.classList.add('scrubbing');
+            // Make panel transparent during scrubbing on mobile
+            if (window.innerWidth <= 600 && hasModel && !animPanel.classList.contains('collapsed')) {
+                animPanel.classList.add('interacting');
+            }
+            updateScrub(e);
+        }
+
+        function moveScrub(e) {
+            if (isScrubbing && !draggingKeyframe) updateScrub(e);
+        }
+
+        function endScrub() {
+            if (isScrubbing) {
+                isScrubbing = false;
+                timelineTrack.classList.remove('scrubbing');
+                // Remove transparency when scrubbing ends
+                animPanel.classList.remove('interacting');
+            }
+        }
+
+        // Mouse events
+        timelineTrack.addEventListener('mousedown', startScrub);
+        document.addEventListener('mousemove', moveScrub);
+        document.addEventListener('mouseup', endScrub);
+
+        // Touch events for timeline scrubbing
+        timelineTrack.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('keyframe-marker')) return;
+            e.preventDefault(); // Prevent scrolling while scrubbing
+            startScrub(e);
+        }, { passive: false });
+        document.addEventListener('touchmove', (e) => {
+            if (isScrubbing || draggingKeyframe) e.preventDefault();
+            moveScrub(e);
+        }, { passive: false });
+        document.addEventListener('touchend', endScrub);
+        document.addEventListener('touchcancel', endScrub);
+
+        function updateScrub(e) {
+            const rect = timelineTrack.getBoundingClientRect();
+            const clientX = getClientX(e);
+            currentTime = Math.max(0, Math.min((clientX - rect.left) / rect.width, 1)) * duration;
+            updateTimeDisplay();
+
+            // Update camera based on mode
+            if (animationMode === 'timeline') {
+                updateCameraFromKeyframes();
+            } else if (animationMode === 'orbit') {
+                // Capture orbit setup if not already set up
+                if (!orbitTarget || !orbitStartPos) {
+                    captureOrbitSetup();
+                }
+                updateCameraFromOrbit();
+            }
+        }
+
+        // Context menu
+        function showContextMenu(x, y, index) { selectedKeyframeIndex = index; contextMenu.style.left = `${x}px`; contextMenu.style.top = `${y}px`; contextMenu.classList.add('visible'); }
+        function hideContextMenu() { contextMenu.classList.remove('visible'); selectedKeyframeIndex = null; }
+        document.addEventListener('click', hideContextMenu);
+
+        document.getElementById('deleteKeyframe').addEventListener('click', () => { if (selectedKeyframeIndex !== null) deleteKeyframe(selectedKeyframeIndex); hideContextMenu(); });
+
+        // Global backspace delete for hovered keyframes
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Backspace' || e.key === 'Delete') && hoveredKeyframeIndex !== null) {
+                deleteKeyframe(hoveredKeyframeIndex);
+                hoveredKeyframeIndex = null;
+            }
+        });
+
+        // Export button - shows modal with options
+        exportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            exportModal.classList.add('visible');
+            const fileInput = document.getElementById('exportFilename');
+            if (fileInput) setTimeout(() => fileInput.focus(), 50);
+        });
+
+        // Enter key on export filename triggers Full Export
+        const exportFilenameInput = document.getElementById('exportFilename');
+        if (exportFilenameInput) {
+            exportFilenameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') document.getElementById('exportFull').click();
+            });
+        }
+
+        document.getElementById('exportCancel').addEventListener('click', () => exportModal.classList.remove('visible'));
+        document.getElementById('exportFull').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('full'); });
+        document.getElementById('exportSegments').addEventListener('click', () => { exportModal.classList.remove('visible'); exportVideo('segments'); });
+
+        // Store blob for iOS share
+        let pendingExportBlob = null;
+        let pendingExportFilename = null;
+
+        // Export complete modal handlers (iOS)
+        exportShareAction.addEventListener('click', async () => {
+            if (!pendingExportBlob || !pendingExportFilename) return;
+            const file = new File([pendingExportBlob], pendingExportFilename, { type: 'video/mp4' });
+            try {
+                await navigator.share({ files: [file], title: pendingExportFilename });
+                exportCompleteModal.classList.remove('visible');
+                pendingExportBlob = null;
+                pendingExportFilename = null;
+            } catch (shareErr) {
+                if (shareErr.name !== 'AbortError') {
+                    console.error('Share failed:', shareErr);
+                    alert('Share failed: ' + shareErr.message);
+                }
+                // User cancelled or error - keep modal open
+            }
+        });
+
+        exportDoneAction.addEventListener('click', () => {
+            exportCompleteModal.classList.remove('visible');
+            pendingExportBlob = null;
+            pendingExportFilename = null;
+        });
+
+        async function exportVideo(mode) {
+            const fps = 30;
+            const renderer = getRenderer();
+            const camera = getCamera();
+            const controls = getControls();
+
+            // Save complete state for restoration
+            const savedCameraPos = camera.position.clone();
+            const savedCameraQuat = camera.quaternion.clone();
+            const savedTarget = controls ? controls.target.clone() : null;
+            const savedCurrentTime = currentTime;
+
+            // Save OrbitControls internal state so we can reset it exactly
+            if (controls && controls.saveState) {
+                controls.saveState();
+            }
+
+            let expW, expH;
+            const res = exportResolution;
+            const parts = aspectRatio.split(':').map(Number);
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                const ratio = parts[0] / parts[1];
+                // For landscape/square, height is reference (res). For portrait, width is reference (res).
+                // Actually, usually resolution (e.g. 2160p) refers to the shorter side (or height in landscape).
+                // Let's stick to the logic: 
+                // Landscape (ratio >= 1): Height = res, Width = res * ratio
+                // Portrait (ratio < 1): Width = res, Height = res / ratio
+                if (ratio >= 1) {
+                    expW = Math.round(res * ratio);
+                    expH = res;
+                } else {
+                    expW = res;
+                    expH = Math.round(res / ratio);
+                }
+            } else {
+                // Default to 16:9 for 'none' or invalid formats
+                expW = Math.round(res * 16 / 9);
+                expH = res;
+            }
+            expW = Math.round(expW / 2) * 2;
+            expH = Math.round(expH / 2) * 2;
+
+            if (animationMode === 'orbit') captureOrbitSetup();
+
+            // Pause the live loop and raise volumetric quality for offline frames
+            viewer.setExporting(true);
+
+            const origW = renderer.domElement.width;
+            const origH = renderer.domElement.height;
+
+            // Disable controls during export to prevent any interference
+            const wasEnabled = controls ? controls.enabled : false;
+            if (controls) controls.enabled = false;
+
+            // Get filename from modal input or use default
+            const filenameInput = document.getElementById('exportFilename');
+            let baseName = (filenameInput && filenameInput.value.trim());
+            if (!baseName) baseName = (filenameInput && filenameInput.placeholder) || 'animation_belowjs';
+
+            if (mode === 'full') {
+                await exportRange(0, duration, baseName, expW, expH, fps, renderer, camera, controls);
+            } else {
+                const sorted = [...keyframes].sort((a, b) => a.time - b.time);
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    await exportRange(sorted[i].time, sorted[i + 1].time, `${baseName}_segment_${i + 1}`, expW, expH, fps, renderer, camera, controls);
+                }
+            }
+
+            // Resume the live render loop at interactive quality
+            viewer.setExporting(false);
+
+            // Restore currentTime first
+            currentTime = savedCurrentTime;
+            updateTimeDisplay();
+
+            // Restore camera EXACTLY as it was
+            camera.position.copy(savedCameraPos);
+            camera.quaternion.copy(savedCameraQuat);
+
+            if (controls && savedTarget) {
+                controls.target.copy(savedTarget);
+            }
+
+            // Trigger resize event to let viewer naturally restore its size
+            // This is cleaner than manually setting renderer dimensions
+            window.dispatchEvent(new Event('resize'));
+
+            // Re-enable controls after resize
+            if (controls) {
+                controls.enabled = wasEnabled;
+                controls.update();
+            }
+
+        }
+
+        async function exportRange(startTime, endTime, name, expW, expH, fps, renderer, camera, controls) {
+            const rangeDuration = endTime - startTime;
+            const totalFrames = Math.ceil(rangeDuration * fps);
+
+            exportOverlay.classList.add('visible');
+            exportProgressBar.style.width = '0%';
+            exportTitle.textContent = `Exporting ${name}...`;
+            exportStatus.textContent = 'Loading encoder...';
+
+            // Save current pixel ratio and force to 1 for consistent export resolution
+            const savedPixelRatio = renderer.getPixelRatio();
+            renderer.setPixelRatio(1);
+
+            let encoder = null, muxer = null;
+
+            try {
+                const { Muxer, StreamTarget } = await import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/+esm');
+
+                // Use StreamTarget to collect chunks separately instead of one large ArrayBuffer
+                // This is more memory-efficient on iOS as it avoids one huge contiguous allocation
+                const chunks = [];
+                let totalSize = 0;
+
+                const streamTarget = new StreamTarget({
+                    onData: (data, position) => {
+                        // Store each chunk with its position for proper reconstruction
+                        chunks.push({ data: new Uint8Array(data), position });
+                        totalSize = Math.max(totalSize, position + data.byteLength);
+                    },
+                    chunked: true,
+                    chunkSize: isIOSDevice ? 4 * 1024 * 1024 : 16 * 1024 * 1024 // 4MB chunks on iOS, 16MB on desktop
+                });
+
+                muxer = new Muxer({
+                    target: streamTarget,
+                    video: { codec: 'avc', width: expW, height: expH },
+                    fastStart: 'in-memory'
+                });
+
+                encoder = new VideoEncoder({
+                    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+                    error: (e) => console.error('Encoder error:', e)
+                });
+
+                // Select appropriate AVC level based on resolution
+                // Level 4.2 (avc1.4d002a): up to 1080p
+                // Level 5.0 (avc1.4d0032): up to 1440p (2560x1440)
+                // Level 5.1 (avc1.4d0033): up to 4K (3840x2160)
+                const is4K = expW >= 3840 || expH >= 2160;
+                const isQHD = expW >= 2560 || expH >= 1440;
+                const codec = is4K ? 'avc1.4d0033' : isQHD ? 'avc1.4d0032' : 'avc1.4d002a';
+                const bitrate = is4K ? 20_000_000 : isQHD ? 12_000_000 : 8_000_000;
+                encoder.configure({
+                    codec,
+                    width: expW,
+                    height: expH,
+                    bitrate,
+                    framerate: fps
+                });
+
+                // Set styles to maintain aspect ratio in preview (letterboxing)
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                const winAspect = winW / winH;
+                const expAspect = expW / expH;
+
+                let renderW, renderH;
+                if (winAspect > expAspect) {
+                    renderH = winH;
+                    renderW = renderH * expAspect;
+                } else {
+                    renderW = winW;
+                    renderH = renderW / expAspect;
+                }
+
+                // Save original styles (we'll capture these before modifying)
+                const canvas = renderer.domElement;
+                canvas.dataset.savedWidth = canvas.style.width;
+                canvas.dataset.savedHeight = canvas.style.height;
+                canvas.dataset.savedLeft = canvas.style.left;
+                canvas.dataset.savedTop = canvas.style.top;
+                canvas.dataset.savedPosition = canvas.style.position;
+
+                // Center the preview
+                canvas.style.width = `${renderW}px`;
+                canvas.style.height = `${renderH}px`;
+                canvas.style.position = 'fixed';
+                canvas.style.left = `${(winW - renderW) / 2}px`;
+                canvas.style.top = `${(winH - renderH) / 2}px`;
+
+                renderer.setSize(expW, expH, false); // Update buffer size only
+                camera.aspect = expW / expH;
+                camera.updateProjectionMatrix();
+
+                exportStatus.textContent = 'Rendering...';
+
+                // More aggressive backpressure on iOS to reduce memory usage
+                const maxQueueSize = isIOSDevice ? 1 : 2;
+
+                for (let i = 0; i < totalFrames; i++) {
+                    if (encoder.state === 'closed') throw new Error('Encoder closed');
+
+                    // Backpressure: Wait if encoder queue is too full
+                    while (encoder.encodeQueueSize > maxQueueSize) {
+                        await new Promise(r => setTimeout(r, 10));
+                    }
+
+                    currentTime = startTime + (i / totalFrames) * rangeDuration;
+                    animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+                    updateTimeDisplay(); // Update playhead UI
+
+                    // Update dive system torch position to match camera
+                    // Use updateCameraPosition which directly syncs torch with camera
+                    if (viewer.diveSystem && viewer.diveSystem.torch) {
+                        viewer.diveSystem.torch.updateCameraPosition(camera);
+                    }
+
+                    await viewer.renderFrame();
+
+                    // Safari Fix: Explicit duration required for addVideoChunkRaw
+                    const frameDuration = 1_000_000 / fps;
+                    const timestamp = i * frameDuration;
+
+                    const frame = new VideoFrame(renderer.domElement, {
+                        timestamp: timestamp,
+                        duration: frameDuration
+                    });
+
+                    encoder.encode(frame, { keyFrame: i % 30 === 0 });
+                    frame.close();
+
+                    exportProgressBar.style.width = `${((i + 1) / totalFrames) * 100}%`;
+                    exportStatus.textContent = `Frame ${i + 1} / ${totalFrames}`;
+
+                    // Force DOM repaint for progress bar
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+                }
+
+                exportStatus.textContent = 'Finalizing...';
+                await encoder.flush();
+                muxer.finalize();
+
+                // Reconstruct the final buffer from chunks
+                // This avoids having one large buffer during encoding
+                exportStatus.textContent = 'Preparing file...';
+                const finalBuffer = new Uint8Array(totalSize);
+                for (const chunk of chunks) {
+                    finalBuffer.set(chunk.data, chunk.position);
+                }
+                // Clear chunks array to free memory before creating blob
+                chunks.length = 0;
+
+                const blob = new Blob([finalBuffer], { type: 'video/mp4' });
+                const filename = `${name}_${(aspectRatio || '16x9').replace(':', 'x')}_${expH}p.mp4`;
+
+                // iOS: Show share modal with fresh user gesture
+                if (isIOSDevice && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'video/mp4' })] })) {
+                    pendingExportBlob = blob;
+                    pendingExportFilename = filename;
+                    exportCompleteModal.classList.add('visible');
+                } else {
+                    // Desktop/Android: Direct download
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Export failed:\n' + err.message);
+            } finally {
+                // Restore pixel ratio
+                renderer.setPixelRatio(savedPixelRatio);
+
+                // Restore original canvas styles
+                const canvas = renderer.domElement;
+                if (canvas) {
+                    canvas.style.width = canvas.dataset.savedWidth || '';
+                    canvas.style.height = canvas.dataset.savedHeight || '';
+                    canvas.style.left = canvas.dataset.savedLeft || '';
+                    canvas.style.top = canvas.dataset.savedTop || '';
+                    canvas.style.position = canvas.dataset.savedPosition || '';
+
+                    // Clean up dataset
+                    delete canvas.dataset.savedWidth;
+                    delete canvas.dataset.savedHeight;
+                    delete canvas.dataset.savedLeft;
+                    delete canvas.dataset.savedTop;
+                    delete canvas.dataset.savedPosition;
+                }
+
+                if (encoder && encoder.state !== 'closed') encoder.close();
+                exportOverlay.classList.remove('visible');
+            }
+
+            currentTime = 0;
+            updateTimeDisplay();
+        }
+
+        // Event Listeners
+        playBtn.addEventListener('click', togglePlayback);
+        addFrameBtn.addEventListener('click', addKeyframe);
+        clearBtn.addEventListener('click', () => {
+            if (keyframes.length === 0) return;
+            if (!confirm('Delete all keyframes?')) return;
+            keyframes = [];
+            renderKeyframes();
+            updateExportButton();
+        });
+        interpSelect.addEventListener('change', () => {
+            defaultInterpolation = interpSelect.value;
+            // Update splines immediately if switching to/from Smooth
+            // Force re-render of keyframe markers (optional, but good for state)
+            renderKeyframes();
+            // Trigger camera update to preview new interpolation
+            if (!isPlaying) {
+                animationMode === 'timeline' ? updateCameraFromKeyframes() : updateCameraFromOrbit();
+            }
+        });
+
+        // File Loading
+        let dragCounter = 0;
+        window.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            // Don't show overlay if model already loaded
+            if (hasModel) return;
+            dragCounter++;
+            dragOverlay.classList.add('visible');
+        });
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!hasModel) {
+                dragCounter--;
+                if (!dragCounter) dragOverlay.classList.remove('visible');
+            }
+        });
+        window.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dragOverlay.classList.remove('visible');
+            // Only process if no model yet, or if you want replacement, keep the load call
+            if (e.dataTransfer.files[0]) await loadModelFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', async (e) => { if (e.target.files[0]) await loadModelFile(e.target.files[0]); });
+        modelInput.addEventListener('change', async (e) => { if (e.target.files[0]) await loadModelFile(e.target.files[0]); });
+
+        async function loadModelFile(file) {
+            if (!file.name.toLowerCase().endsWith('.glb')) { alert('Please select a .glb file'); return; }
+            const url = URL.createObjectURL(file);
+            try {
+                if (hasModel) viewer.belowViewer.clearModels();
+                await viewer.belowViewer.loadModel(url, { autoFrame: true });
+
+                // Stop playback if it was active
+                isPlaying = false;
+
+                // Show tools
+                document.body.classList.remove('waiting-for-model');
+
+                // Hide empty state and splash overlay
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('onboardingOverlay').style.display = 'none';
+
+                // Enable UI panels
+                animPanel.classList.remove('disabled');
+                timelineShelf.classList.add('visible');
+                timelineShelf.classList.remove('disabled');
+
+                // Adjust viewer layout to make room for timeline
+                viewerContainer.style.bottom = '80px';
+                // Trigger resize to update camera projection
+                window.dispatchEvent(new Event('resize'));
+
+                hasModel = true;
+
+                // Expand panel on small screens when model loads
+                if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.remove('collapsed');
+                    panelCollapseToggle.textContent = 'Hide Settings';
+                    panelCollapseToggle.title = 'Hide settings';
+                }
+
+                keyframes = []; currentTime = 0;
+                renderKeyframes(); updateTimeDisplay(); updateExportButton();
+                setAspectRatio(aspectRatio);  // Initialize aspect frame now that model is loaded
+
+                // Override screenshot button behavior for High Res capture
+                setTimeout(() => {
+                    const btn = document.getElementById('screenshotButton');
+                    if (btn) {
+                        // Clone to remove existing listeners
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        // Store ref
+                        viewer.screenshotButton = newBtn;
+                        newBtn.addEventListener('click', captureHighResScreenshot);
+                    }
+                }, 500);
+            } catch (err) { alert('Failed to load: ' + err.message); }
+            finally { URL.revokeObjectURL(url); }
+        }
+
+        // Load demo model from URL
+        async function loadDemoModel() {
+            const url = './sesa_hd.glb';
+            const linkEl = document.querySelector('[onclick*="loadDemoModel"]');
+            const originalText = linkEl ? linkEl.innerHTML : '';
+            if (linkEl) linkEl.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> loading <em>Sesa</em>...';
+            try {
+                if (hasModel) viewer.belowViewer.clearModels();
+                await viewer.belowViewer.loadModel(url, { autoFrame: true });
+
+                isPlaying = false;
+                document.body.classList.remove('waiting-for-model');
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('onboardingOverlay').style.display = 'none';
+
+                animPanel.classList.remove('disabled');
+                timelineShelf.classList.add('visible');
+                timelineShelf.classList.remove('disabled');
+
+                viewerContainer.style.bottom = '80px';
+                window.dispatchEvent(new Event('resize'));
+
+                hasModel = true;
+
+                if (window.innerWidth <= 600 && animPanel.classList.contains('collapsed')) {
+                    animPanel.classList.remove('collapsed');
+                    panelCollapseToggle.textContent = 'Hide Settings';
+                    panelCollapseToggle.title = 'Hide settings';
+                }
+
+                keyframes = []; currentTime = 0;
+                renderKeyframes(); updateTimeDisplay(); updateExportButton();
+                setAspectRatio(aspectRatio);
+
+                // The demo leads with the cinematic look: exact tuned starting
+                // state (captured with dumpSettings() on the HD Sesa model).
+                torchPower.value = sliderFromPower(0.68);
+                torchWidth.value = 78;
+                torchDistance.value = 162;
+                torchSpread.value = 14.1;
+                particleDensity.value = 0.2;
+                if (!diveToggle.checked) {
+                    diveToggle.checked = true;
+                    diveToggle.dispatchEvent(new Event('change'));
+                }
+                // Always push values to the dive system — the toggle's change
+                // event only syncs when the mode actually flips.
+                [torchPower, torchWidth, torchDistance, torchSpread, particleDensity, fogColorPicker]
+                    .forEach(el => el.dispatchEvent(new Event('input')));
+
+                const cam = viewer.camera, ctl = viewer.controls;
+                cam.position.set(15.74, 23.02, 35.18);
+                ctl.target.set(12.84, 21.07, 31.61);
+                ctl.update();
+
+                setTimeout(() => {
+                    const btn = document.getElementById('screenshotButton');
+                    if (btn) {
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        viewer.screenshotButton = newBtn;
+                        newBtn.addEventListener('click', captureHighResScreenshot);
+                    }
+                }, 500);
+            } catch (err) {
+                if (linkEl) linkEl.innerHTML = originalText;
+                alert('Failed to load demo model: ' + err.message);
+            }
+        }
+        window.loadDemoModel = loadDemoModel;
+
+        // High Res Screenshot
+        async function captureHighResScreenshot() {
+            const renderer = getRenderer();
+            const camera = getCamera();
+            if (!renderer || !camera) return;
+
+            // Calculate dimensions based on settings (reusing export logic)
+            let expW, expH;
+            const res = exportResolution;
+            const parts = aspectRatio.split(':').map(Number);
+
+            if (aspectRatio !== 'none' && parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                const ratio = parts[0] / parts[1];
+                if (ratio >= 1) {
+                    expW = Math.round(res * ratio);
+                    expH = res;
+                } else {
+                    expW = res;
+                    expH = Math.round(res / ratio);
+                }
+            } else {
+                // If Aspect Ratio is 'None', use current viewport size but scaled to match resolution height roughly
+                // OR just grab pure canvas. Let's do pure canvas if 'none'.
+                viewer.takeScreenshot();
+                return;
+            }
+
+            expW = Math.round(expW / 2) * 2;
+            expH = Math.round(expH / 2) * 2;
+
+            const savedPixelRatio = renderer.getPixelRatio();
+            renderer.setPixelRatio(1);
+
+            // Resize
+            const origSize = new THREE.Vector2();
+            renderer.getSize(origSize);
+
+            renderer.setSize(expW, expH, false);
+            camera.aspect = expW / expH;
+            camera.updateProjectionMatrix();
+
+            // Update torch if needed
+            if (viewer.diveSystem && viewer.diveSystem.torch) {
+                viewer.diveSystem.torch.updateCameraPosition(camera);
+            }
+
+            // Render at high quality, paused loop
+            viewer.setExporting(true);
+            await viewer.renderFrame();
+
+            // Save
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, -5);
+            const filename = `screenshot_${(aspectRatio || 'view').replace(':', 'x')}_${expH}p_${timestamp}.png`;
+
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Restore
+            renderer.setPixelRatio(savedPixelRatio);
+            renderer.setSize(origSize.width, origSize.height, false);
+            camera.aspect = origSize.width / origSize.height;
+            camera.updateProjectionMatrix();
+
+            // Resume live loop (renders next frame at interactive quality)
+            viewer.setExporting(false);
+        }
+
+        // Show UI greyed out initially
+        animPanel.classList.add('visible', 'disabled');
+        timelineShelf.classList.add('visible', 'disabled');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "belowjs-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "serve"],
+      "port": 5173
+    }
+  ]
+}
