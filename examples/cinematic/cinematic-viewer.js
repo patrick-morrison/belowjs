@@ -26,7 +26,7 @@ import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { bayer16 } from 'three/addons/tsl/math/Bayer.js';
 import { gaussianBlur } from 'three/addons/tsl/display/GaussianBlurNode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
-import { FlyControls } from '/src/core/FlyControls.js';
+import { FlyControls } from './FlyControls.js';
 
 const LAYER_VOLUMETRIC = 10;
 
