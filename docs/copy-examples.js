@@ -124,6 +124,20 @@ function convertToCDN(htmlContent, version, relativeExamplePath) {
     'three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm"'
   );
 
+  // Replace WebGPU-specific Three.js imports (used by cinematic example)
+  htmlContent = htmlContent.replace(
+    '"three": "/node_modules/three/build/three.webgpu.js"',
+    '"three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.webgpu.js"'
+  );
+  htmlContent = htmlContent.replace(
+    '"three/webgpu": "/node_modules/three/build/three.webgpu.js"',
+    '"three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.webgpu.js"'
+  );
+  htmlContent = htmlContent.replace(
+    '"three/tsl": "/node_modules/three/build/three.tsl.js"',
+    '"three/tsl": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.tsl.js"'
+  );
+
   htmlContent = htmlContent.replace(
     '"three/addons/": "/node_modules/three/examples/jsm/"',
     '"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"'
