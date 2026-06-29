@@ -4,7 +4,7 @@ import { EventSystem } from '../utils/EventSystem.js';
 /**
  * FlyControls - Pointer-lock fly navigation for desktop
  *
- * Enables first-person fly movement using keyboard (W/A/S/D/Q/E) and mouse look
+ * Enables first-person fly movement using keyboard (W/A/S/D/Q/E/J/K/L/U/O) and mouse look
  * while pointer-locked. Designed to integrate with OrbitControls by syncing
  * the controls target to the camera forward direction.
  */
@@ -20,6 +20,13 @@ export class FlyControls extends EventSystem {
    * @param {number} [options.boostSpeed=20] - Boosted speed (shift held)
    * @param {number} [options.speedScale=100] - Reference size for scaling speed
    * @param {number} [options.mouseSensitivity=0.002] - Mouse sensitivity
+   * @param {number} [options.keyboardYawRate=0.18] - Keyboard yaw speed in radians per second
+   * @param {number} [options.keyboardBoostYawRate=0.4] - Shift keyboard yaw speed in radians per second
+   * @param {number} [options.keyboardPitchRate=0.2] - Keyboard pitch speed in radians per second
+   * @param {number} [options.keyboardPitchBoostMultiplier=2.0] - Shift multiplier for keyboard pitch
+   * @param {number} [options.pitchReturnRate=0.35] - Pitch return speed when K is held
+   * @param {number} [options.slowSpeedMultiplier=0.2] - Slow-mode multiplier for base movement
+   * @param {number} [options.slowBoostMultiplier=0.3333333333333333] - Slow-mode multiplier for boosted movement
    * @param {boolean} [options.clickToExit=true] - Exit fly mode on click
    */
   constructor(options = {}) {
@@ -35,12 +42,20 @@ export class FlyControls extends EventSystem {
     this.boostSpeed = options.boostSpeed ?? 20;
     this.speedScale = options.speedScale ?? 100;
     this.mouseSensitivity = options.mouseSensitivity ?? 0.002;
+    this.keyboardYawRate = options.keyboardYawRate ?? 0.18;
+    this.keyboardBoostYawRate = options.keyboardBoostYawRate ?? 0.4;
+    this.keyboardPitchRate = options.keyboardPitchRate ?? 0.2;
+    this.keyboardPitchBoostMultiplier = options.keyboardPitchBoostMultiplier ?? 2.0;
+    this.pitchReturnRate = options.pitchReturnRate ?? 0.35;
+    this.slowSpeedMultiplier = options.slowSpeedMultiplier ?? 0.2;
+    this.slowBoostMultiplier = options.slowBoostMultiplier ?? (1 / 3);
     this.clickToExit = options.clickToExit ?? true;
 
     this.pointerLocked = false;
     this.modelSize = this.speedScale;
     this.cameraYaw = 0;
     this.cameraPitch = 0;
+    this.slowMode = Boolean(options.slowMode ?? false);
 
     this.keys = {
       w: false,
@@ -49,6 +64,11 @@ export class FlyControls extends EventSystem {
       d: false,
       q: false,
       e: false,
+      j: false,
+      k: false,
+      l: false,
+      u: false,
+      o: false,
       shift: false
     };
 
@@ -100,6 +120,21 @@ export class FlyControls extends EventSystem {
     return this.pointerLocked;
   }
 
+  isSlowMode() {
+    return this.slowMode;
+  }
+
+  setSlowMode(enabled) {
+    const next = Boolean(enabled);
+    if (this.slowMode === next) return;
+    this.slowMode = next;
+    this.emit('slow-mode-change', { active: this.slowMode });
+  }
+
+  toggleSlowMode() {
+    this.setSlowMode(!this.slowMode);
+  }
+
   enterFlyMode() {
     if (!this.enabled || !this.domElement) return;
     if (document.pointerLockElement !== this.domElement) {
@@ -143,7 +178,9 @@ export class FlyControls extends EventSystem {
 
     const sizeMultiplier = this.modelSize / this.speedScale;
     const baseSpeed = this.keys.shift ? this.boostSpeed : this.baseSpeed;
-    const speed = baseSpeed * sizeMultiplier;
+    const slowMultiplier = this.keys.shift ? this.slowBoostMultiplier : this.slowSpeedMultiplier;
+    const speedMultiplier = this.slowMode ? slowMultiplier : 1;
+    const speed = baseSpeed * speedMultiplier * sizeMultiplier;
     const direction = new THREE.Vector3();
 
     if (this.keys.w) direction.z -= 1;
@@ -152,6 +189,8 @@ export class FlyControls extends EventSystem {
     if (this.keys.d) direction.x += 1;
     if (this.keys.q) direction.y -= 1;
     if (this.keys.e) direction.y += 1;
+
+    this._applyKeyboardLook(delta);
 
     if (direction.lengthSq() > 0) {
       direction.normalize();
@@ -167,6 +206,44 @@ export class FlyControls extends EventSystem {
     this.controls.target.copy(this.camera.position).add(forward);
   }
 
+  _applyKeyboardLook(delta) {
+    let changed = false;
+    const yawInput = ((this.keys.j ? 1 : 0) + (this.keys.l ? -1 : 0)) * 0.5;
+    const pitchInput = (this.keys.u ? 1 : 0) + (this.keys.o ? -1 : 0);
+
+    if (yawInput !== 0) {
+      const turnRate = this.keys.shift ? this.keyboardBoostYawRate : this.keyboardYawRate;
+      this.cameraYaw += yawInput * turnRate * delta;
+      changed = true;
+    }
+
+    if (pitchInput !== 0) {
+      const pitchRate = this.keys.shift
+        ? this.keyboardPitchRate * this.keyboardPitchBoostMultiplier
+        : this.keyboardPitchRate;
+      this.cameraPitch = this._clampPitch(this.cameraPitch + pitchInput * pitchRate * delta);
+      changed = true;
+    } else if (this.keys.k && Math.abs(this.cameraPitch) > 0.0001) {
+      const step = this.pitchReturnRate * delta;
+      this.cameraPitch = Math.abs(this.cameraPitch) <= step
+        ? 0
+        : this.cameraPitch - Math.sign(this.cameraPitch) * step;
+      changed = true;
+    }
+
+    if (!changed) return;
+    const euler = new THREE.Euler(this.cameraPitch, this.cameraYaw, 0, 'YXZ');
+    this.camera.quaternion.setFromEuler(euler);
+    this._syncControlsTarget();
+  }
+
+  _clampPitch(value) {
+    return Math.max(
+      -Math.PI / 2 + 0.01,
+      Math.min(Math.PI / 2 - 0.01, value)
+    );
+  }
+
   _onKeyDown(event) {
     if (!this.enabled) return;
     const target = event.target;
@@ -179,10 +256,19 @@ export class FlyControls extends EventSystem {
 
     const key = event.key.toLowerCase();
     if (key in this.keys) {
+      event.preventDefault();
       this.keys[key] = true;
     }
     if (event.shiftKey) {
       this.keys.shift = true;
+    }
+
+    if (event.code === 'KeyX' || key === 'x') {
+      event.preventDefault();
+      if (!event.repeat) {
+        this.toggleSlowMode();
+      }
+      return;
     }
 
     if (event.shiftKey && (event.key === '`' || event.key === '~' || event.code === 'Backquote')) {
@@ -215,10 +301,7 @@ export class FlyControls extends EventSystem {
     this.cameraYaw -= event.movementX * this.mouseSensitivity;
     this.cameraPitch -= event.movementY * this.mouseSensitivity;
 
-    this.cameraPitch = Math.max(
-      -Math.PI / 2 + 0.01,
-      Math.min(Math.PI / 2 - 0.01, this.cameraPitch)
-    );
+    this.cameraPitch = this._clampPitch(this.cameraPitch);
 
     const euler = new THREE.Euler(this.cameraPitch, this.cameraYaw, 0, 'YXZ');
     this.camera.quaternion.setFromEuler(euler);
@@ -244,7 +327,7 @@ export class FlyControls extends EventSystem {
       }
     }
 
-    this.emit('fly-mode-change', { active: this.pointerLocked });
+    this.emit('fly-mode-change', { active: this.pointerLocked, slow: this.slowMode });
   }
 
   _onClick() {

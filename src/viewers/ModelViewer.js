@@ -97,6 +97,13 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {number} [flyControls.boostSpeed=20] - Boosted fly speed (shift held)
  * @property {number} [flyControls.speedScale=100] - Reference size for speed scaling
  * @property {number} [flyControls.mouseSensitivity=0.002] - Mouse sensitivity for fly mode
+ * @property {number} [flyControls.keyboardYawRate=0.18] - Keyboard yaw speed for J/L in fly mode
+ * @property {number} [flyControls.keyboardBoostYawRate=0.4] - Shift keyboard yaw speed for J/L in fly mode
+ * @property {number} [flyControls.keyboardPitchRate=0.2] - Keyboard pitch speed for U/O in fly mode
+ * @property {number} [flyControls.keyboardPitchBoostMultiplier=2.0] - Shift multiplier for U/O pitch speed
+ * @property {number} [flyControls.pitchReturnRate=0.35] - Pitch return speed when K is held
+ * @property {number} [flyControls.slowSpeedMultiplier=0.2] - Slow-mode multiplier for base movement
+ * @property {number} [flyControls.slowBoostMultiplier=0.3333333333333333] - Slow-mode multiplier for boosted movement
  * @property {boolean} [flyControls.clickToExit=true] - Exit fly mode on click
  * @property {boolean} [enableVRAudio=false] - Enable VR audio system (requires audio files)
  * @property {string} [audioPath='./sound/'] - Path to VR audio files
@@ -664,6 +671,10 @@ export class ModelViewer extends EventSystem {
 
       // Hide/show VR button when entering/exiting fly mode
       this._handleVRButtonVisibility(data.active);
+    });
+
+    this.flyControls.on('slow-mode-change', (data) => {
+      this.emit('fly-slow-mode-change', data);
     });
 
     const update = (delta) => {
@@ -2309,6 +2320,39 @@ export class ModelViewer extends EventSystem {
     if (this.flyControls) {
       this.flyControls.toggleFlyMode();
     }
+  }
+
+  /**
+   * Enable or disable slow fly movement.
+   *
+   * @method setFlySlowMode
+   * @param {boolean} enabled - Whether fly mode movement should use slow speed
+   */
+  setFlySlowMode(enabled) {
+    if (this.flyControls?.setSlowMode) {
+      this.flyControls.setSlowMode(enabled);
+    }
+  }
+
+  /**
+   * Toggle slow fly movement.
+   *
+   * @method toggleFlySlowMode
+   */
+  toggleFlySlowMode() {
+    if (this.flyControls?.toggleSlowMode) {
+      this.flyControls.toggleSlowMode();
+    }
+  }
+
+  /**
+   * Check if slow fly movement is currently enabled.
+   *
+   * @method isFlySlowMode
+   * @returns {boolean} True if slow fly mode is enabled
+   */
+  isFlySlowMode() {
+    return this.flyControls?.isSlowMode ? this.flyControls.isSlowMode() : false;
   }
 
   /**
