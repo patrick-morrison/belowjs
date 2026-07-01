@@ -85,8 +85,104 @@ export class Camera extends EventSystem {
   }
 
   setSize(width, height) {
-    this.camera.aspect = width / height;
+    const aspect = width / height;
+
+    if (this.camera?.isOrthographicCamera) {
+      const halfHeight = this.camera.userData?.belowOrthoHalfHeight ||
+        Math.max((this.camera.top - this.camera.bottom) / 2, 0.001);
+
+      this.camera.left = -halfHeight * aspect;
+      this.camera.right = halfHeight * aspect;
+      this.camera.top = halfHeight;
+      this.camera.bottom = -halfHeight;
+      this.camera.updateProjectionMatrix();
+      return;
+    }
+
+    this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
+  }
+
+  setOrthographic(width = window.innerWidth, height = window.innerHeight) {
+    if (!this.camera || this.camera.isOrthographicCamera) {
+      return this.camera;
+    }
+
+    const aspect = width / height;
+    const target = this.controls?.target || new THREE.Vector3();
+    const distance = Math.max(this.camera.position.distanceTo(target), 0.001);
+    const fov = this.camera.fov || this.config.fov || 65;
+    const halfHeight = Math.max(
+      Math.tan(THREE.MathUtils.degToRad(fov / 2)) * distance,
+      0.001
+    );
+
+    const nextCamera = new THREE.OrthographicCamera(
+      -halfHeight * aspect,
+      halfHeight * aspect,
+      halfHeight,
+      -halfHeight,
+      this.camera.near || this.config.near || 0.05,
+      this.camera.far || this.config.far || 2000
+    );
+
+    nextCamera.userData = {
+      ...this.camera.userData,
+      belowProjection: 'orthographic',
+      belowOrthoHalfHeight: halfHeight
+    };
+
+    return this.replaceCamera(nextCamera);
+  }
+
+  setPerspective(width = window.innerWidth, height = window.innerHeight) {
+    if (!this.camera || this.camera.isPerspectiveCamera) {
+      return this.camera;
+    }
+
+    const nextCamera = new THREE.PerspectiveCamera(
+      this.config.fov || 65,
+      width / height,
+      this.camera.near || this.config.near || 0.05,
+      this.camera.far || this.config.far || 2000
+    );
+
+    nextCamera.userData = {
+      ...this.camera.userData,
+      belowProjection: 'perspective'
+    };
+
+    return this.replaceCamera(nextCamera);
+  }
+
+  replaceCamera(nextCamera) {
+    const previousCamera = this.camera;
+    if (!previousCamera || !nextCamera) {
+      return previousCamera || nextCamera || null;
+    }
+
+    nextCamera.position.copy(previousCamera.position);
+    nextCamera.quaternion.copy(previousCamera.quaternion);
+    nextCamera.up.copy(previousCamera.up);
+    nextCamera.zoom = previousCamera.zoom || 1;
+    nextCamera.layers.mask = previousCamera.layers.mask;
+    nextCamera.name = previousCamera.name;
+    nextCamera.updateProjectionMatrix();
+
+    if (previousCamera.parent) {
+      previousCamera.parent.add(nextCamera);
+      previousCamera.parent.remove(previousCamera);
+    }
+
+    this.camera = nextCamera;
+
+    if (this.controls) {
+      this.controls.object = nextCamera;
+      this.controls.update();
+    }
+
+    this.emit('change', { camera: nextCamera, previousCamera });
+    return nextCamera;
   }
 
   getCamera() {

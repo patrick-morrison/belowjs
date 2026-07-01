@@ -97,8 +97,9 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {number} [flyControls.boostSpeed=20] - Boosted fly speed (shift held)
  * @property {number} [flyControls.speedScale=100] - Reference size for speed scaling
  * @property {number} [flyControls.mouseSensitivity=0.002] - Mouse sensitivity for fly mode
- * @property {number} [flyControls.keyboardYawRate=0.18] - Keyboard yaw speed for J/L in fly mode
- * @property {number} [flyControls.keyboardBoostYawRate=0.4] - Shift keyboard yaw speed for J/L in fly mode
+ * @property {number} [flyControls.keyboardYawRate=0.34] - Keyboard yaw speed for J/L in fly mode
+ * @property {number} [flyControls.keyboardBoostYawRate=0.95] - Shift keyboard yaw speed for J/L in fly mode
+ * @property {number} [flyControls.keyboardSlowYawMultiplier=0.53] - Slow-mode multiplier for J/L yaw speed
  * @property {number} [flyControls.keyboardPitchRate=0.2] - Keyboard pitch speed for U/O in fly mode
  * @property {number} [flyControls.keyboardPitchBoostMultiplier=2.0] - Shift multiplier for U/O pitch speed
  * @property {number} [flyControls.pitchReturnRate=0.35] - Pitch return speed when K is held
@@ -900,11 +901,81 @@ export class ModelViewer extends EventSystem {
     this.fullscreenButton.textContent = active ? '\u26F6' : '\u26F6';
   }
 
+  getScreenshotPixelRatio(canvas, rect, options = {}) {
+    const currentRatio = rect.width > 0 ? canvas.width / rect.width : 1;
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    const minPixelRatio = options.minPixelRatio ?? 2;
+    const maxDimension = options.maxDimension ?? 8192;
+    const targetRatio = Math.max(minPixelRatio, dpr, currentRatio || 1);
+    const maxRatio = Math.min(
+      maxDimension / Math.max(1, rect.width),
+      maxDimension / Math.max(1, rect.height)
+    );
+    return Math.max(1, Math.min(targetRatio, maxRatio));
+  }
+
+  withScreenshotResolution(callback, options = {}) {
+    const renderer = this.belowViewer?.renderer;
+    const canvas = renderer?.domElement;
+    if (!canvas) {
+      throw new Error('No canvas available for screenshot');
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      throw new Error('Viewer canvas is not visible');
+    }
+
+    if (!renderer.setPixelRatio || !renderer.setSize) {
+      this.forceRefreshFrame();
+      return callback(canvas, rect);
+    }
+
+    const previousRatio = renderer.getPixelRatio?.() || (rect.width > 0 ? canvas.width / rect.width : 1);
+    const targetRatio = this.getScreenshotPixelRatio(canvas, rect, options);
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    const shouldResize = Math.abs(targetRatio - previousRatio) > 0.01;
+
+    if (!shouldResize) {
+      this.forceRefreshFrame();
+      return callback(canvas, rect);
+    }
+
+    renderer.setPixelRatio(targetRatio);
+    renderer.setSize(width, height, false);
+    this.forceRefreshFrame();
+
+    try {
+      return callback(canvas, rect);
+    } finally {
+      renderer.setPixelRatio(previousRatio);
+      renderer.setSize(width, height, false);
+      this.forceRefreshFrame();
+    }
+  }
+
+  captureScreenshotCanvas(options = {}) {
+    return this.withScreenshotResolution((source, sourceRect) => {
+      const output = document.createElement('canvas');
+      output.width = source.width;
+      output.height = source.height;
+      const ctx = output.getContext('2d');
+      ctx.drawImage(source, 0, 0, output.width, output.height);
+      return {
+        canvas: output,
+        sourceRect,
+        scaleX: output.width / sourceRect.width,
+        scaleY: output.height / sourceRect.height
+      };
+    }, options);
+  }
+
   /**
    * Captures a screenshot of the current 3D scene without UI overlays
    * 
-   * The method forces a render to ensure the canvas is up-to-date, validates
-   * the resulting image data, and automatically downloads the screenshot as a PNG
+   * The method temporarily renders at a high pixel ratio, validates the
+   * resulting image data, and automatically downloads the screenshot as a PNG
    * file with a timestamp-based filename.
    * 
    * @method takeScreenshot
@@ -919,18 +990,8 @@ export class ModelViewer extends EventSystem {
    */
   takeScreenshot() {
     try {
-      const canvas = this.belowViewer?.renderer?.domElement;
-      if (!canvas) {
-        console.error('[ModelViewer] No canvas available for screenshot');
-        return;
-      }
-      
-      // Force a render to ensure the canvas is up-to-date
-      if (this.belowViewer.renderer && this.belowViewer.sceneManager && this.belowViewer.cameraManager) {
-        this.belowViewer.renderer.render(this.belowViewer.sceneManager.scene, this.belowViewer.cameraManager.camera);
-      }
-      
-      const dataURL = canvas.toDataURL('image/png');
+      const captured = this.captureScreenshotCanvas();
+      const dataURL = captured.canvas.toDataURL('image/png');
       
       // Check if we got a valid image (not just a black/empty canvas)
       if (dataURL === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==') {

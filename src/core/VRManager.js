@@ -103,6 +103,14 @@ export class VRManager {
     this.init();
   }
   
+  setCamera(camera) {
+    this.camera = camera;
+    this.vrCore.camera = camera;
+    this.vrControllers.camera = camera;
+    this.vrTeleport.camera = camera;
+    this.vrLocomotion.camera = camera;
+  }
+
   init() {
     this.vrCore.init();
     this.vrControllers.init();

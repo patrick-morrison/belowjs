@@ -138,6 +138,11 @@ export class MeasurementSystem {
       this.setRaycastTargets([]);
     }
   }
+
+  setCamera(camera) {
+    this.camera = camera;
+  }
+
   /**
    * Creates a new MeasurementSystem instance
    * 

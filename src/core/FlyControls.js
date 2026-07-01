@@ -20,8 +20,9 @@ export class FlyControls extends EventSystem {
    * @param {number} [options.boostSpeed=20] - Boosted speed (shift held)
    * @param {number} [options.speedScale=100] - Reference size for scaling speed
    * @param {number} [options.mouseSensitivity=0.002] - Mouse sensitivity
-   * @param {number} [options.keyboardYawRate=0.18] - Keyboard yaw speed in radians per second
-   * @param {number} [options.keyboardBoostYawRate=0.4] - Shift keyboard yaw speed in radians per second
+   * @param {number} [options.keyboardYawRate=0.34] - Keyboard yaw speed in radians per second
+   * @param {number} [options.keyboardBoostYawRate=0.95] - Shift keyboard yaw speed in radians per second
+   * @param {number} [options.keyboardSlowYawMultiplier=0.53] - Slow-mode multiplier for keyboard yaw
    * @param {number} [options.keyboardPitchRate=0.2] - Keyboard pitch speed in radians per second
    * @param {number} [options.keyboardPitchBoostMultiplier=2.0] - Shift multiplier for keyboard pitch
    * @param {number} [options.pitchReturnRate=0.35] - Pitch return speed when K is held
@@ -42,8 +43,9 @@ export class FlyControls extends EventSystem {
     this.boostSpeed = options.boostSpeed ?? 20;
     this.speedScale = options.speedScale ?? 100;
     this.mouseSensitivity = options.mouseSensitivity ?? 0.002;
-    this.keyboardYawRate = options.keyboardYawRate ?? 0.18;
-    this.keyboardBoostYawRate = options.keyboardBoostYawRate ?? 0.4;
+    this.keyboardYawRate = options.keyboardYawRate ?? 0.34;
+    this.keyboardBoostYawRate = options.keyboardBoostYawRate ?? 0.95;
+    this.keyboardSlowYawMultiplier = options.keyboardSlowYawMultiplier ?? 0.53;
     this.keyboardPitchRate = options.keyboardPitchRate ?? 0.2;
     this.keyboardPitchBoostMultiplier = options.keyboardPitchBoostMultiplier ?? 2.0;
     this.pitchReturnRate = options.pitchReturnRate ?? 0.35;
@@ -212,7 +214,8 @@ export class FlyControls extends EventSystem {
     const pitchInput = (this.keys.u ? 1 : 0) + (this.keys.o ? -1 : 0);
 
     if (yawInput !== 0) {
-      const turnRate = this.keys.shift ? this.keyboardBoostYawRate : this.keyboardYawRate;
+      const baseTurnRate = this.keys.shift ? this.keyboardBoostYawRate : this.keyboardYawRate;
+      const turnRate = this.slowMode ? baseTurnRate * this.keyboardSlowYawMultiplier : baseTurnRate;
       this.cameraYaw += yawInput * turnRate * delta;
       changed = true;
     }

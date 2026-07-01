@@ -47,6 +47,11 @@ export class ARManager extends EventSystem {
     this.init();
   }
 
+  setCamera(camera) {
+    this.camera = camera;
+    this.arCore.camera = camera;
+  }
+
   init() {
     this.arCore.init();
 

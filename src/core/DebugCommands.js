@@ -74,6 +74,66 @@ export class DebugCommands {
       return positionData;
     };
     
+    window.camera.setOrthographic = () => {
+      if (!viewer.cameraManager?.camera || !viewer.cameraManager?.controls) {
+        console.warn('Camera not initialized');
+        return null;
+      }
+
+      const camera = viewer.setOrthographicCamera?.() || viewer.cameraManager.setOrthographic(
+        viewer.container?.clientWidth || window.innerWidth,
+        viewer.container?.clientHeight || window.innerHeight
+      );
+
+      console.log('Camera projection: orthographic');
+      return { projection: 'orthographic', camera };
+    };
+
+    window.camera.setPerspective = () => {
+      if (!viewer.cameraManager?.camera || !viewer.cameraManager?.controls) {
+        console.warn('Camera not initialized');
+        return null;
+      }
+
+      const camera = viewer.setPerspectiveCamera?.() || viewer.cameraManager.setPerspective(
+        viewer.container?.clientWidth || window.innerWidth,
+        viewer.container?.clientHeight || window.innerHeight
+      );
+
+      console.log('Camera projection: perspective');
+      return { projection: 'perspective', camera };
+    };
+
+    window.camera.setStereo = (enable, eyeSeparation) => {
+      if (enable === undefined) {
+        const stereoInfo = {
+          enabled: viewer.stereoEnabled || false,
+          mode: viewer.stereoMode || 'sbs',
+          eyeSeparation: viewer.stereoEyeSeparation || 0.064
+        };
+        console.log('👓 Stereo information:');
+        console.table(stereoInfo);
+        console.log('');
+        console.log('Usage:');
+        console.log('  camera.setStereo(true)           - Enable stereo mode');
+        console.log('  camera.setStereo(false)          - Disable stereo mode');
+        console.log('  camera.setStereo(true, 0.065)    - Enable with custom eye separation');
+        return stereoInfo;
+      }
+
+      viewer.setStereoEnabled(enable);
+      if (eyeSeparation !== undefined) {
+        viewer.setStereoEyeSeparation(eyeSeparation);
+      }
+
+      console.log(`👓 Stereo ${enable ? 'enabled' : 'disabled'}`);
+      if (eyeSeparation !== undefined) {
+        console.log(`👓 Eye separation: ${eyeSeparation}m`);
+      }
+
+      return { enabled: enable, eyeSeparation: viewer.stereoEyeSeparation };
+    };
+
     window.scene = () => {
       if (!viewer.sceneManager?.scene) {
         console.warn('Scene not initialized');
@@ -101,6 +161,37 @@ export class DebugCommands {
       console.log('Scene object:', scene);
       
       return { info: sceneInfo, scene };
+    };
+
+    window.scene.setBrightness = (value = 0) => {
+      const brightness = Math.max(-3, Math.min(3, Number(value) || 0));
+      const multiplier = Math.pow(2, brightness);
+      const scene = viewer.sceneManager?.scene;
+
+      if (!scene && !viewer.renderer) {
+        console.warn('Scene not initialized');
+        return null;
+      }
+
+      scene?.traverse?.((object) => {
+        if (!object.isLight) return;
+        object.userData.belowBaseIntensity ??= object.intensity ?? 1;
+        object.intensity = object.userData.belowBaseIntensity * multiplier;
+      });
+
+      if (viewer.renderer) {
+        viewer.renderer.userData ||= {};
+        viewer.renderer.userData.belowBaseToneMappingExposure ??= viewer.renderer.toneMappingExposure || 1;
+        viewer.renderer.toneMappingExposure =
+          viewer.renderer.userData.belowBaseToneMappingExposure * multiplier;
+      }
+
+      console.log(`Scene brightness: ${brightness} (${multiplier.toFixed(3)}x)`);
+      return {
+        brightness,
+        multiplier,
+        toneMappingExposure: viewer.renderer?.toneMappingExposure
+      };
     };
 
     window.vertices = () => {
@@ -260,46 +351,24 @@ export class DebugCommands {
     };
 
     window.stereo = (enable, eyeSeparation) => {
-      if (enable === undefined) {
-        // Just return current state
-        const stereoInfo = {
-          enabled: viewer.stereoEnabled || false,
-          mode: viewer.stereoMode || 'sbs',
-          eyeSeparation: viewer.stereoEyeSeparation || 0.064
-        };
-        console.log('👓 Stereo information:');
-        console.table(stereoInfo);
-        console.log('');
-        console.log('Usage:');
-        console.log('  stereo(true)           - Enable stereo mode');
-        console.log('  stereo(false)          - Disable stereo mode');
-        console.log('  stereo(true, 0.065)    - Enable with custom eye separation');
-        return stereoInfo;
-      }
-
-      viewer.setStereoEnabled(enable);
-      if (eyeSeparation !== undefined) {
-        viewer.setStereoEyeSeparation(eyeSeparation);
-      }
-
-      console.log(`👓 Stereo ${enable ? 'enabled' : 'disabled'}`);
-      if (eyeSeparation !== undefined) {
-        console.log(`👓 Eye separation: ${eyeSeparation}m`);
-      }
-
-      return { enabled: enable, eyeSeparation: viewer.stereoEyeSeparation };
+      console.warn('stereo() is deprecated. Use camera.setStereo(...) instead.');
+      return window.camera.setStereo(enable, eyeSeparation);
     };
     
     window.debugHelp = () => {
       console.log('🔧 BelowJS Debug Commands:');
-      console.log('  camera()    - Get current camera position data');
-      console.log('  scene()     - Get scene information and object counts');
-      console.log('  vertices()  - Get scene vertex counts');
-      console.log('  models()    - Get loaded models information');
-      console.log('  particles() - Get particle system information');
-      console.log('  vr()        - Get VR state and settings');
-      console.log('  stereo()    - Get/set stereo mode and eye separation');
-      console.log('  debugHelp() - Show this help message');
+      console.log('  camera()                  - Get current camera position data');
+      console.log('  camera.setOrthographic()  - Switch desktop camera to orthographic projection');
+      console.log('  camera.setPerspective()   - Switch desktop camera to perspective projection');
+      console.log('  camera.setStereo()        - Get/set stereo mode and eye separation');
+      console.log('  scene()                   - Get scene information and object counts');
+      console.log('  scene.setBrightness(n)    - Set scene brightness from -3 dark to +3 bright');
+      console.log('  vertices()                - Get scene vertex counts');
+      console.log('  models()                  - Get loaded models information');
+      console.log('  particles()               - Get particle system information');
+      console.log('  vr()                      - Get VR state and settings');
+      console.log('  stereo()                  - Deprecated; use camera.setStereo()');
+      console.log('  debugHelp()               - Show this help message');
       console.log('');
       console.log('Global objects:');
       console.log('  belowViewer - Direct access to BelowViewer instance');

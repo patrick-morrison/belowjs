@@ -910,6 +910,53 @@ export class BelowViewer extends EventSystem {
     return this.cameraManager?.camera;
   }
 
+  setOrthographicCamera() {
+    if (!this.cameraManager) {
+      return null;
+    }
+
+    const camera = this.cameraManager.setOrthographic(
+      this.container?.clientWidth || window.innerWidth,
+      this.container?.clientHeight || window.innerHeight
+    );
+    this.syncCameraReferences(camera);
+    this.emit('camera-projection-change', { projection: 'orthographic', camera });
+    return camera;
+  }
+
+  setPerspectiveCamera() {
+    if (!this.cameraManager) {
+      return null;
+    }
+
+    const camera = this.cameraManager.setPerspective(
+      this.container?.clientWidth || window.innerWidth,
+      this.container?.clientHeight || window.innerHeight
+    );
+    this.syncCameraReferences(camera);
+    this.emit('camera-projection-change', { projection: 'perspective', camera });
+    return camera;
+  }
+
+  syncCameraReferences(camera = this.cameraManager?.camera) {
+    if (!camera) {
+      return;
+    }
+
+    this.tilesetLoader?.setCamera?.(camera);
+    this.vrManager?.setCamera?.(camera);
+    this.arManager?.setCamera?.(camera);
+    this.diveSystem?.setCamera?.(camera);
+
+    if (this.measurementSystem) {
+      if (typeof this.measurementSystem.setCamera === 'function') {
+        this.measurementSystem.setCamera(camera);
+      } else {
+        this.measurementSystem.camera = camera;
+      }
+    }
+  }
+
   /**
    * Get the Three.js WebGL renderer instance
    * 

@@ -25,6 +25,10 @@ export class DiveSystem {
     
   }
   
+  setCamera(camera) {
+    this.camera = camera;
+  }
+
   /**
    * Toggle between dive and survey modes
    */
