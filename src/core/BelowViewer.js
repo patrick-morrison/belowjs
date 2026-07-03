@@ -145,13 +145,17 @@ export class BelowViewer extends EventSystem {
           antialias: true,
           alpha: false,
           powerPreference: 'high-performance',
-          logarithmicDepthBuffer: false
+          logarithmicDepthBuffer: false,
+          preserveDrawingBuffer: true,
+          xrCompatible: false
         },
         schema: {
           antialias: { type: 'boolean', default: true },
           alpha: { type: 'boolean', default: false },
           powerPreference: { type: 'string', default: 'high-performance' },
-          logarithmicDepthBuffer: { type: 'boolean', default: false }
+          logarithmicDepthBuffer: { type: 'boolean', default: false },
+          preserveDrawingBuffer: { type: 'boolean', default: true },
+          xrCompatible: { type: 'boolean', default: false }
         }
       },
       stereo: {
@@ -280,13 +284,37 @@ export class BelowViewer extends EventSystem {
   }
 
   initRenderer() {
-    this.renderer = new THREE.WebGLRenderer({
+    const rendererOptions = {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
       logarithmicDepthBuffer: this.config.renderer.logarithmicDepthBuffer,
-      preserveDrawingBuffer: true
-    });
+      preserveDrawingBuffer: this.config.renderer.preserveDrawingBuffer
+    };
+
+    if (this.config.renderer.xrCompatible && typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('webgl2', {
+        alpha: this.config.renderer.alpha,
+        depth: true,
+        stencil: false,
+        antialias: this.config.renderer.antialias,
+        premultipliedAlpha: true,
+        preserveDrawingBuffer: this.config.renderer.preserveDrawingBuffer,
+        powerPreference: this.config.renderer.powerPreference,
+        failIfMajorPerformanceCaveat: false,
+        xrCompatible: true
+      });
+
+      if (context) {
+        rendererOptions.canvas = canvas;
+        rendererOptions.context = context;
+      } else {
+        console.warn('XR-compatible WebGL2 context unavailable; falling back to default renderer context');
+      }
+    }
+
+    this.renderer = new THREE.WebGLRenderer(rendererOptions);
     
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);

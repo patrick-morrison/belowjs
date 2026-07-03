@@ -10575,13 +10575,17 @@ class Ch extends Et {
           antialias: !0,
           alpha: !1,
           powerPreference: "high-performance",
-          logarithmicDepthBuffer: !1
+          logarithmicDepthBuffer: !1,
+          preserveDrawingBuffer: !0,
+          xrCompatible: !1
         },
         schema: {
           antialias: { type: "boolean", default: !0 },
           alpha: { type: "boolean", default: !1 },
           powerPreference: { type: "string", default: "high-performance" },
-          logarithmicDepthBuffer: { type: "boolean", default: !1 }
+          logarithmicDepthBuffer: { type: "boolean", default: !1 },
+          preserveDrawingBuffer: { type: "boolean", default: !0 },
+          xrCompatible: { type: "boolean", default: !1 }
         }
       },
       stereo: {
@@ -10640,21 +10644,36 @@ class Ch extends Et {
     }
   }
   initRenderer() {
-    this.renderer = new f.WebGLRenderer({
+    const e = {
       antialias: this.config.renderer.antialias,
       alpha: this.config.renderer.alpha,
       powerPreference: this.config.renderer.powerPreference,
       logarithmicDepthBuffer: this.config.renderer.logarithmicDepthBuffer,
-      preserveDrawingBuffer: !0
-    }), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = f.PCFSoftShadowMap, this.renderer.outputColorSpace = f.SRGBColorSpace;
-    const e = {
+      preserveDrawingBuffer: this.config.renderer.preserveDrawingBuffer
+    };
+    if (this.config.renderer.xrCompatible && typeof document < "u") {
+      const s = document.createElement("canvas"), i = s.getContext("webgl2", {
+        alpha: this.config.renderer.alpha,
+        depth: !0,
+        stencil: !1,
+        antialias: this.config.renderer.antialias,
+        premultipliedAlpha: !0,
+        preserveDrawingBuffer: this.config.renderer.preserveDrawingBuffer,
+        powerPreference: this.config.renderer.powerPreference,
+        failIfMajorPerformanceCaveat: !1,
+        xrCompatible: !0
+      });
+      i ? (e.canvas = s, e.context = i) : console.warn("XR-compatible WebGL2 context unavailable; falling back to default renderer context");
+    }
+    this.renderer = new f.WebGLRenderer(e), this.renderer.setSize(this.container.clientWidth, this.container.clientHeight), this.renderer.setPixelRatio(window.devicePixelRatio), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = f.PCFSoftShadowMap, this.renderer.outputColorSpace = f.SRGBColorSpace;
+    const t = {
       none: f.NoToneMapping,
       linear: f.LinearToneMapping,
       reinhard: f.ReinhardToneMapping,
       cineon: f.CineonToneMapping,
       "aces-filmic": f.ACESFilmicToneMapping
     };
-    this.config.renderer.toneMapping && e[this.config.renderer.toneMapping] && (this.renderer.toneMapping = e[this.config.renderer.toneMapping]), this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure, this.container.appendChild(this.renderer.domElement);
+    this.config.renderer.toneMapping && t[this.config.renderer.toneMapping] && (this.renderer.toneMapping = t[this.config.renderer.toneMapping]), this.renderer.toneMappingExposure = this.config.renderer.toneMappingExposure, this.container.appendChild(this.renderer.domElement);
   }
   initStereo() {
     this.stereoCamera || (this.stereoCamera = new f.StereoCamera()), this.stereoCamera.eyeSep = this.stereoEyeSeparation;
