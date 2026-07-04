@@ -565,7 +565,7 @@
     /* Always-visible compact bar */
     .panel-bar {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      grid-template-columns: auto minmax(0, 1fr) auto auto auto;
       align-items: center;
       gap: 8px;
       padding: 6px 10px;
@@ -600,6 +600,14 @@
       color: var(--muted);
       font-variant-numeric: tabular-nums;
       padding: 0 2px;
+    }
+
+    .bar-status.actionable {
+      color: #2b6cb0;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
     }
 
     .btn-expand {
@@ -1379,6 +1387,7 @@
       </div>
       <span id="controlSummary" class="bar-status">0 matched</span>
       <button id="cameraLockBtn" class="btn btn-icon" title="Lock cameras together"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+      <button id="identityAlignBtn" class="btn" disabled style="height:26px; flex:0 0 auto; font-size:11px; padding:0 8px;" title="Use identity transform because the loaded models are already aligned">Aligned</button>
       <button id="expandBtn" class="btn btn-expand" title="More controls" aria-expanded="false">⌃</button>
 
       <!-- Sub-row for styles -->
@@ -1401,7 +1410,6 @@
           <button id="swapModelsBtn" class="btn" title="Swap models (Z)" style="border-top-left-radius:0; border-bottom-left-radius:0; padding:0 8px; border-left:1px solid var(--panel-border);">⇄</button>
         </div>
         <button id="refineBtn" class="btn primary" disabled style="flex: 1;">Refine</button>
-        <button id="identityAlignBtn" class="btn" disabled style="flex: 0 0 auto; font-size:11px; padding:0 8px;" title="Use identity transform because the loaded models are already aligned">Aligned</button>
         <button id="downloadBtn" class="btn" disabled style="flex: 1;" title="Download B">Save B</button>
         <button id="screenshotBtn" class="btn icon-btn" disabled style="flex: 0 0 auto;" title="Take screenshot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
         <button id="clearBtn" class="btn danger" disabled style="flex: 0 0 auto;" title="Clear alignment">×</button>
@@ -1953,6 +1961,9 @@
     });
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
     els.identityAlignBtn.addEventListener('click', useIdentityAlignment);
+    els.controlSummary.addEventListener('click', () => {
+      if (canUseIdentityAlignment()) useIdentityAlignment();
+    });
     els.refineBtn.addEventListener('click', () => {
       if (state.fit.refinedActive) {
         resetRefinement();
@@ -4097,6 +4108,7 @@
       els.errorStatus.textContent = String(analysis.duplicateGroups);
       els.fitStatus.textContent = state.fit.refinedActive ? 'refined' : 'markers';
       const profile = currentRefineProfile();
+      const identityAvailable = canUseIdentityAlignment();
       const methodDesc = !hasAnyModel()
         ? 'Load two models to compare'
         : !hasBothModels()
@@ -4121,7 +4133,7 @@
       } else if (analysis.pairs.length < 3) {
         els.controlSummary.textContent = state.assumeAligned && state.fit.controlMatrix
           ? 'Already aligned · identity transform'
-          : `${analysis.pairs.length} matched · add ${3 - analysis.pairs.length} more to solve`;
+          : `${analysis.pairs.length} matched · add ${3 - analysis.pairs.length} more or click Aligned`;
       } else if (state.mode === 'heatmap') {
         els.controlSummary.textContent = `C2C ${sideShortLabel(state.heatmapTarget)} → ${sideShortLabel(otherSide(state.heatmapTarget))} · RMS ${rms}`;
       } else if (state.mode === 'heightmap') {
@@ -4129,6 +4141,10 @@
       } else {
         els.controlSummary.textContent = `${analysis.pairs.length} matched · RMS ${rms}`;
       }
+      els.controlSummary.classList.toggle('actionable', identityAvailable && !state.assumeAligned && analysis.pairs.length < 3);
+      els.controlSummary.title = identityAvailable && !state.assumeAligned && analysis.pairs.length < 3
+        ? 'Click to use identity alignment because the models are already aligned'
+        : '';
     }
 
     function updateActions(analysis = analyzeMatches()) {
@@ -4156,7 +4172,7 @@
       els.downloadBtn.disabled = !anyModels;
       els.screenshotBtn.disabled = !anyModels;
       els.clearBtn.disabled = !anyModels;
-      els.identityAlignBtn.disabled = !bothModels;
+      els.identityAlignBtn.disabled = !canUseIdentityAlignment();
       els.identityAlignBtn.classList.toggle('active', state.assumeAligned && Boolean(state.fit.controlMatrix));
       els.identityAlignBtn.textContent = state.assumeAligned && Boolean(state.fit.controlMatrix) ? 'Aligned ✓' : 'Aligned';
       updateUiState();
@@ -4227,6 +4243,10 @@
 
     function hasBothModels() {
       return loadedSides().length === 2;
+    }
+
+    function canUseIdentityAlignment() {
+      return hasBothModels() && analyzeMatches({ preserveErrors: true, updateMarkers: false }).duplicateGroups === 0;
     }
 
     function primaryLoadedSide(preferred = 'reference') {
