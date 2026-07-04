@@ -699,7 +699,7 @@
 
     #refineProfileRow {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
       margin-top: 8px;
@@ -717,6 +717,30 @@
       padding: 0 8px;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .sample-count-control {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .sample-count-control input {
+      width: 72px;
+      height: 22px;
+      padding: 0 6px;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.72);
+      color: var(--text);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     .btn {
@@ -1371,6 +1395,10 @@
           <button id="refineBalancedBtn" class="seg-btn" title="Balanced marker and surface refinement.">Balanced</button>
           <button id="refineSurfaceBtn" class="seg-btn" title="Let surface overlap move more freely. Best when both meshes are clean and complete.">Surface</button>
         </div>
+        <label class="sample-count-control" title="Surface points sampled from each model during ICP refinement. Higher values are slower.">
+          Samples
+          <input id="refineSampleCountInput" type="number" min="3000" max="100000" step="1000" value="9000" inputmode="numeric" aria-label="ICP sample count per model">
+        </label>
       </div>
 
       <div style="display:flex; align-items:center; font-size:11px; margin:8px 0; color:var(--muted); gap: 8px;">
@@ -1594,6 +1622,8 @@
     const ANALYSIS_SAMPLE_BASELINE_SIZE_M = 20;
     const ANALYSIS_SAMPLE_BASELINE_COUNT = 80000;
     const ANALYSIS_SAMPLE_MAX_COUNT = 250000;
+    const REFINE_SAMPLE_MIN_COUNT = 3000;
+    const REFINE_SAMPLE_MAX_COUNT = 100000;
     const ANALYSIS_PROBE_LABEL_SCREEN = { minWidth: 148, height: 42, paddingX: 24 };
 
     const MARKER_LABEL_SCREEN = { minWidth: 34, height: 28, paddingX: 14 };
@@ -1665,6 +1695,7 @@
       },
       refining: false,
       refineProfile: 'anchored',
+      refineSampleCount: REFINE_PROFILES.anchored.sampleCount,
       nextPointNumber: 1,
       pendingPoint: null,
       dragDepth: { reference: 0, updated: 0 },
@@ -1789,6 +1820,7 @@
       refineAnchoredBtn: document.getElementById('refineAnchoredBtn'),
       refineBalancedBtn: document.getElementById('refineBalancedBtn'),
       refineSurfaceBtn: document.getElementById('refineSurfaceBtn'),
+      refineSampleCountInput: document.getElementById('refineSampleCountInput'),
       downloadBtn: document.getElementById('downloadBtn'),
       clearBtn: document.getElementById('clearBtn'),
       downloadHeatmapBtn: document.getElementById('downloadHeatmapBtn'),
@@ -1871,6 +1903,14 @@
     els.refineAnchoredBtn.addEventListener('click', () => setRefineProfile('anchored'));
     els.refineBalancedBtn.addEventListener('click', () => setRefineProfile('balanced'));
     els.refineSurfaceBtn.addEventListener('click', () => setRefineProfile('surface'));
+    els.refineSampleCountInput.addEventListener('change', () => setRefineSampleCount(els.refineSampleCountInput.value));
+    els.refineSampleCountInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        setRefineSampleCount(els.refineSampleCountInput.value);
+        els.refineSampleCountInput.blur();
+      }
+    });
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
     els.refineBtn.addEventListener('click', () => {
       if (state.fit.refinedActive) {
@@ -2542,6 +2582,7 @@
         analyzeAndFit();
         setupMeasurementSync();
         resizeViewers();
+        frameLoadedModels();
       } catch (error) {
         console.error(error);
         state.models[side] = null;
@@ -4215,9 +4256,32 @@
       return REFINE_PROFILES[state.refineProfile] ?? REFINE_PROFILES.anchored;
     }
 
+    function clampRefineSampleCount(value) {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isFinite(parsed)) return currentRefineProfile().sampleCount;
+      return Math.round(THREE.MathUtils.clamp(parsed, REFINE_SAMPLE_MIN_COUNT, REFINE_SAMPLE_MAX_COUNT));
+    }
+
+    function currentRefineSampleCount() {
+      return clampRefineSampleCount(state.refineSampleCount);
+    }
+
+    function setRefineSampleCount(value) {
+      const nextCount = clampRefineSampleCount(value);
+      state.refineSampleCount = nextCount;
+      updateRefineProfileControls();
+      if (state.fit.refinedActive) {
+        invalidateRefinement();
+        analyzeAndFit();
+      } else {
+        updateActions();
+      }
+    }
+
     function setRefineProfile(profileKey) {
       if (!REFINE_PROFILES[profileKey] || state.refineProfile === profileKey) return;
       state.refineProfile = profileKey;
+      state.refineSampleCount = REFINE_PROFILES[profileKey].sampleCount;
       updateRefineProfileControls();
 
       if (state.fit.refinedActive && hasBothModels()) {
@@ -4237,6 +4301,8 @@
       els.refineAnchoredBtn.disabled = disabled;
       els.refineBalancedBtn.disabled = disabled;
       els.refineSurfaceBtn.disabled = disabled;
+      els.refineSampleCountInput.value = String(currentRefineSampleCount());
+      els.refineSampleCountInput.disabled = disabled;
     }
 
     function markerRmsForPairs(matrix, pairs) {
@@ -4261,11 +4327,15 @@
       if (savedFit.profile && REFINE_PROFILES[savedFit.profile]) {
         state.refineProfile = savedFit.profile;
       }
+      if (Number.isFinite(savedFit.sampleCount)) {
+        state.refineSampleCount = clampRefineSampleCount(savedFit.sampleCount);
+      }
       state.fit.refineMetrics = savedFit.refineMetrics
         ? {
             rms: Number(savedFit.refineMetrics.rms),
             pairs: Number(savedFit.refineMetrics.pairs),
-            profile: savedFit.refineMetrics.profile ?? savedFit.profile ?? state.refineProfile
+            profile: savedFit.refineMetrics.profile ?? savedFit.profile ?? state.refineProfile,
+            sampleCount: clampRefineSampleCount(savedFit.refineMetrics.sampleCount ?? savedFit.sampleCount)
           }
         : null;
       updateRefineProfileControls();
@@ -4386,6 +4456,7 @@
       }
 
       const profile = currentRefineProfile();
+      const sampleCount = currentRefineSampleCount();
       const markerMatrix = state.fit.controlMatrix?.clone() ?? state.models[movingSide()].matrix.clone();
       const markerRms = markerRmsForPairs(markerMatrix, analysis.pairs);
       const refineStartedAt = performance.now();
@@ -4397,8 +4468,8 @@
       updateActions(analysis);
       await waitForFrames(1);
       try {
-        const source = sampleModelPoints(state.models[movingSide()], profile.sampleCount);
-        const target = sampleModelPoints(state.models[state.referenceSide], profile.sampleCount);
+        const source = sampleModelPoints(state.models[movingSide()], sampleCount);
+        const target = sampleModelPoints(state.models[state.referenceSide], sampleCount);
         if (source.length < 12 || target.length < 12) {
           updateActions(analysis);
           return;
@@ -4457,7 +4528,8 @@
         state.fit.refineMetrics = {
           rms: finalRms,
           pairs: finalPairs,
-          profile: state.refineProfile
+          profile: state.refineProfile,
+          sampleCount
         };
         applyModelTransform(movingSide(), matrix);
         updateResiduals(matrix, analysis.pairs);
@@ -6092,6 +6164,9 @@
         if (state.fit.refineMetrics.profile && REFINE_PROFILES[state.fit.refineMetrics.profile]) {
           lines.push(`ICP profile:     ${REFINE_PROFILES[state.fit.refineMetrics.profile].label}`);
         }
+        if (Number.isFinite(state.fit.refineMetrics.sampleCount)) {
+          lines.push(`ICP samples:     ${state.fit.refineMetrics.sampleCount} per model`);
+        }
       }
 
       if (state.fit.controlMatrix) {
@@ -6490,12 +6565,14 @@
           controlMatrix: state.fit.controlMatrix?.elements ? Array.from(state.fit.controlMatrix.elements) : null,
           refinedMatrix: state.fit.refinedMatrix?.elements ? Array.from(state.fit.refinedMatrix.elements) : null,
           refinedActive: Boolean(state.fit.refinedActive),
+          sampleCount: state.fit.refineMetrics?.sampleCount ?? currentRefineSampleCount(),
           profile: state.fit.refineMetrics?.profile ?? state.refineProfile,
           refineMetrics: state.fit.refineMetrics
             ? {
                 rms: state.fit.refineMetrics.rms,
                 pairs: state.fit.refineMetrics.pairs,
-                profile: state.fit.refineMetrics.profile ?? state.refineProfile
+                profile: state.fit.refineMetrics.profile ?? state.refineProfile,
+                sampleCount: state.fit.refineMetrics.sampleCount ?? currentRefineSampleCount()
               }
             : null
         },
