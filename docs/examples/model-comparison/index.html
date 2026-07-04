@@ -754,6 +754,24 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
+    .analysis-sample-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 6px 0 2px 0;
+    }
+
+    .analysis-sample-auto {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
     .btn {
       min-width: 30px;
       height: 30px;
@@ -1397,6 +1415,7 @@
           <button id="swapModelsBtn" class="btn" title="Swap models (Z)" style="border-top-left-radius:0; border-bottom-left-radius:0; padding:0 8px; border-left:1px solid var(--panel-border);">⇄</button>
         </div>
         <button id="refineBtn" class="btn primary" disabled style="flex: 1;">Refine</button>
+        <button id="identityAlignBtn" class="btn" disabled style="flex: 0 0 auto; font-size:11px; padding:0 8px;" title="Use identity transform because the loaded models are already aligned">Aligned</button>
         <button id="downloadBtn" class="btn" disabled style="flex: 1;" title="Download B">Save B</button>
         <button id="screenshotBtn" class="btn icon-btn" disabled style="flex: 0 0 auto;" title="Take screenshot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
         <button id="clearBtn" class="btn danger" disabled style="flex: 0 0 auto;" title="Clear alignment">×</button>
@@ -1410,7 +1429,7 @@
           <button id="refineSurfaceBtn" class="seg-btn" title="Let surface overlap move more freely. Best when both meshes are clean and complete.">Surface</button>
         </div>
         <label class="sample-count-control" title="Surface points sampled from each model during ICP refinement. Higher values are slower.">
-          Samples
+          ICP samples
           <input id="refineSampleCountInput" type="number" min="3000" max="100000" step="1000" value="9000" inputmode="numeric" aria-label="ICP sample count per model">
         </label>
       </div>
@@ -1428,6 +1447,13 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px;">
           <span id="heatmapTitle" style="font-size:10px; font-weight: 600; text-transform: uppercase; color: var(--muted);">Visible Distance Range</span>
           <span id="heatmapRangeLabel" style="font-size:11px; font-family: ui-monospace, monospace; background: var(--panel-soft); padding: 1px 4px; border-radius: 3px;">0.000 - 0.100 m</span>
+        </div>
+        <div class="analysis-sample-row">
+          <label class="sample-count-control" title="Source cloud points sampled for C2C or Height analysis. Clear the box to use the automatic default.">
+            C2C samples
+            <input id="analysisSampleCountInput" type="number" min="3000" max="250000" step="1000" inputmode="numeric" aria-label="C2C sample count">
+          </label>
+          <span id="analysisSampleAutoLabel" class="analysis-sample-auto">auto</span>
         </div>
         
         <div id="heatmapControlsSpinner" class="computation-spinner">
@@ -1638,6 +1664,7 @@
     const ANALYSIS_SAMPLE_MAX_COUNT = 250000;
     const REFINE_SAMPLE_MIN_COUNT = 3000;
     const REFINE_SAMPLE_MAX_COUNT = 100000;
+    const ANALYSIS_SAMPLE_MIN_COUNT = 3000;
     const ANALYSIS_PROBE_LABEL_SCREEN = { minWidth: 148, height: 42, paddingX: 24 };
 
     const MARKER_LABEL_SCREEN = { minWidth: 34, height: 28, paddingX: 14 };
@@ -1670,6 +1697,7 @@
       combinedSide: 'reference',
       referenceSide: 'reference',
       heatmapTarget: 'updated',
+      assumeAligned: false,
       camerasLocked: false,
       syncingCamera: false,
       markerDragSide: null,
@@ -1710,6 +1738,7 @@
       refining: false,
       refineProfile: 'anchored',
       refineSampleCount: REFINE_PROFILES.anchored.sampleCount,
+      analysisSampleCountOverride: null,
       nextPointNumber: 1,
       pendingPoint: null,
       dragDepth: { reference: 0, updated: 0 },
@@ -1835,6 +1864,7 @@
       refineBalancedBtn: document.getElementById('refineBalancedBtn'),
       refineSurfaceBtn: document.getElementById('refineSurfaceBtn'),
       refineSampleCountInput: document.getElementById('refineSampleCountInput'),
+      identityAlignBtn: document.getElementById('identityAlignBtn'),
       downloadBtn: document.getElementById('downloadBtn'),
       clearBtn: document.getElementById('clearBtn'),
       downloadHeatmapBtn: document.getElementById('downloadHeatmapBtn'),
@@ -1873,6 +1903,8 @@
       heatmapControlsSpinner: document.getElementById('heatmapControlsSpinner'),
       heatmapTitle: document.getElementById('heatmapTitle'),
       heatmapRangeLabel: document.getElementById('heatmapRangeLabel'),
+      analysisSampleCountInput: document.getElementById('analysisSampleCountInput'),
+      analysisSampleAutoLabel: document.getElementById('analysisSampleAutoLabel'),
       heatmapRangeFill: document.getElementById('heatmapRangeFill'),
       heatmapMinLabel: document.getElementById('heatmapMinLabel'),
       heatmapMaxLabel: document.getElementById('heatmapMaxLabel'),
@@ -1925,7 +1957,16 @@
         els.refineSampleCountInput.blur();
       }
     });
+    els.analysisSampleCountInput.addEventListener('change', () => setAnalysisSampleCount(els.analysisSampleCountInput.value));
+    els.analysisSampleCountInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        setAnalysisSampleCount(els.analysisSampleCountInput.value);
+        els.analysisSampleCountInput.blur();
+      }
+    });
     els.referenceToggleBtn.addEventListener('click', () => setReferenceSide(otherSide(state.referenceSide)));
+    els.identityAlignBtn.addEventListener('click', useIdentityAlignment);
     els.refineBtn.addEventListener('click', () => {
       if (state.fit.refinedActive) {
         resetRefinement();
@@ -2556,6 +2597,7 @@
       const viewer = coreViewer(side);
       setPaneLoading(side, true, `Loading ${sideLabel(side)}`);
       invalidateRefinement();
+      state.assumeAligned = false;
       state.analysisRunId += 1;
       state.pendingHeatmap = false;
       state.lastHeatmapKeys = {
@@ -3883,6 +3925,7 @@
       resetModelTransform(state.referenceSide);
 
       if (pairs.length >= 3 && analysis.duplicateGroups === 0 && state.models.reference && state.models.updated) {
+        state.assumeAligned = false;
         const fit = solveSimilarityTransform(
           pairs.map((pair) => movingPoint(pair).local),
           pairs.map((pair) => referencePoint(pair).local)
@@ -3902,6 +3945,12 @@
         if (!hadSolveBefore && !state.camerasLocked) {
           setCameraLock(true);
         }
+      } else if (state.assumeAligned && analysis.duplicateGroups === 0 && state.models.reference && state.models.updated) {
+        resetModelTransform('reference');
+        resetModelTransform('updated');
+        state.fit.controlMatrix = new THREE.Matrix4();
+        els.rmsStatus.textContent = '0.000';
+        clearErrorLines();
       } else {
         invalidateRefinement();
         els.rmsStatus.textContent = '-';
@@ -4068,6 +4117,8 @@
           ? 'Load the second model to align'
           : analysis.duplicateGroups > 0
             ? 'Resolve duplicate point names'
+            : state.assumeAligned && state.fit.controlMatrix
+              ? 'identity alignment · already aligned'
             : analysis.pairs.length < 3
               ? 'Add 3 matched points to solve'
               : state.fit.refinedActive && Number.isFinite(state.fit.refineMetrics?.rms)
@@ -4082,7 +4133,9 @@
       } else if (analysis.duplicateGroups > 0) {
         els.controlSummary.textContent = `${analysis.pairs.length} matched · ${analysis.duplicateGroups} duplicate name${analysis.duplicateGroups === 1 ? '' : 's'}`;
       } else if (analysis.pairs.length < 3) {
-        els.controlSummary.textContent = `${analysis.pairs.length} matched · add ${3 - analysis.pairs.length} more to solve`;
+        els.controlSummary.textContent = state.assumeAligned && state.fit.controlMatrix
+          ? 'Already aligned · identity transform'
+          : `${analysis.pairs.length} matched · add ${3 - analysis.pairs.length} more to solve`;
       } else if (state.mode === 'heatmap') {
         els.controlSummary.textContent = `C2C ${sideShortLabel(state.heatmapTarget)} → ${sideShortLabel(otherSide(state.heatmapTarget))} · RMS ${rms}`;
       } else if (state.mode === 'heightmap') {
@@ -4117,16 +4170,29 @@
       els.downloadBtn.disabled = !anyModels;
       els.screenshotBtn.disabled = !anyModels;
       els.clearBtn.disabled = !anyModels;
+      els.identityAlignBtn.disabled = !bothModels;
+      els.identityAlignBtn.classList.toggle('active', state.assumeAligned && Boolean(state.fit.controlMatrix));
+      els.identityAlignBtn.textContent = state.assumeAligned && Boolean(state.fit.controlMatrix) ? 'Aligned ✓' : 'Aligned';
       updateUiState();
       updateDemoTutorial();
     }
 
     function setReferenceSide(side) {
       invalidateRefinement();
+      state.assumeAligned = false;
       state.referenceSide = side;
       resetModelTransform('reference');
       resetModelTransform('updated');
       updateReferenceControl();
+      analyzeAndFit();
+    }
+
+    function useIdentityAlignment() {
+      if (!hasBothModels()) return;
+      invalidateRefinement();
+      state.assumeAligned = true;
+      resetModelTransform('reference');
+      resetModelTransform('updated');
       analyzeAndFit();
     }
 
@@ -4338,6 +4404,7 @@
       state.fit.controlMatrix = controlMatrix ?? refinedMatrix.clone();
       state.fit.refinedMatrix = refinedMatrix;
       state.fit.refinedActive = Boolean(savedFit.refinedActive && refinedMatrix);
+      state.assumeAligned = Boolean(savedFit.assumeAligned);
       if (savedFit.profile && REFINE_PROFILES[savedFit.profile]) {
         state.refineProfile = savedFit.profile;
       }
@@ -5337,7 +5404,7 @@
       return sampled;
     }
 
-    function analysisSampleCountForModels(sourceModel, targetModel) {
+    function automaticAnalysisSampleCountForModels(sourceModel, targetModel) {
       const sourceSize = modelHorizontalFootprintSize(sourceModel);
       const targetSize = modelHorizontalFootprintSize(targetModel);
       const siteSize = Math.max(sourceSize, targetSize, ANALYSIS_SAMPLE_BASELINE_SIZE_M);
@@ -5347,6 +5414,44 @@
         ANALYSIS_SAMPLE_BASELINE_COUNT,
         ANALYSIS_SAMPLE_MAX_COUNT
       ));
+    }
+
+    function clampAnalysisSampleCount(value) {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isFinite(parsed)) return null;
+      return Math.round(THREE.MathUtils.clamp(parsed, ANALYSIS_SAMPLE_MIN_COUNT, ANALYSIS_SAMPLE_MAX_COUNT));
+    }
+
+    function currentAnalysisSampleCount(sourceModel, targetModel) {
+      const automaticCount = automaticAnalysisSampleCountForModels(sourceModel, targetModel);
+      return state.analysisSampleCountOverride ?? automaticCount;
+    }
+
+    function updateAnalysisSampleCountControl() {
+      const hasModels = Boolean(state.models.reference && state.models.updated);
+      const targetSide = state.heatmapTarget || 'updated';
+      const sourceSide = otherSide(targetSide);
+      const sourceModel = state.models[sourceSide];
+      const targetModel = state.models[targetSide];
+      const automaticCount = hasModels ? automaticAnalysisSampleCountForModels(sourceModel, targetModel) : ANALYSIS_SAMPLE_BASELINE_COUNT;
+      const effectiveCount = state.analysisSampleCountOverride ?? automaticCount;
+      els.analysisSampleCountInput.value = String(effectiveCount);
+      els.analysisSampleCountInput.disabled = !hasModels || state.computingHeatmap;
+      els.analysisSampleAutoLabel.textContent = state.analysisSampleCountOverride == null
+        ? `auto ${automaticCount.toLocaleString()}`
+        : `auto ${automaticCount.toLocaleString()} · overridden`;
+    }
+
+    function setAnalysisSampleCount(value) {
+      const nextCount = String(value ?? '').trim() === ''
+        ? null
+        : clampAnalysisSampleCount(value);
+      state.analysisSampleCountOverride = nextCount;
+      invalidateHeatmap();
+      updateAnalysisSampleCountControl();
+      if (isAnalysisMode(state.mode) && hasBothModels()) {
+        computeC2CHeatmap();
+      }
     }
 
     function modelHorizontalFootprintSize(model) {
@@ -5610,6 +5715,7 @@
       syncAnalysisProbeScale('updated');
       updateLabels();
       updateDemoLaunchBar();
+      updateAnalysisSampleCountControl();
       updateUiState();
     }
 
@@ -5819,6 +5925,7 @@
 
     function clearAlignment() {
       invalidateRefinement();
+      state.assumeAligned = false;
       clearAllAnalysisProbes();
       clearPoints('reference');
       clearPoints('updated');
@@ -6163,7 +6270,7 @@
     function buildMethodText() {
       const analysis = analyzeMatches({ preserveErrors: true, updateMarkers: false });
       const lines = [];
-      lines.push(`Method: ${state.fit.refinedActive ? 'ICP-refined similarity transform' : 'Marker-based least-squares similarity transform'}`);
+      lines.push(`Method: ${state.assumeAligned ? 'Already-aligned identity transform' : state.fit.refinedActive ? 'ICP-refined similarity transform' : 'Marker-based least-squares similarity transform'}`);
       lines.push(`Reference model: ${sideLabel(state.referenceSide)} (${state.labels[state.referenceSide] ?? 'not loaded'})`);
       lines.push(`Moving model:    ${sideLabel(movingSide())} (${state.labels[movingSide()] ?? 'not loaded'})`);
       lines.push(`Matched pairs:   ${analysis.pairs.length}`);
@@ -6510,6 +6617,7 @@
       els.heatmapBtn.disabled = !bothModels || state.computingHeatmap;
       els.heightmapBtn.disabled = !bothModels || state.computingHeatmap;
       els.downloadHeatmapBtn.disabled = !bothModels || !isAnalysisMode(state.mode) || !hasHeatmapData() || state.exportingAnalysisGlb || state.computingHeatmap;
+      updateAnalysisSampleCountControl();
       els.importPtsBtn.disabled = !anyModels;
       els.exportPtsBtn.disabled = allPoints().length === 0;
 
@@ -6524,6 +6632,9 @@
       els.swapModelsBtn.title = swapDescription();
       els.screenshotBtn.title = screenshotDescription();
       els.downloadBtn.title = exportDescription();
+      els.identityAlignBtn.title = bothModels
+        ? 'Use identity transform because the loaded models are already aligned'
+        : 'Load both models to use identity alignment';
       els.downloadBtn.textContent = exportSide ? `Save ${sideShortLabel(exportSide)}` : 'Save';
       els.downloadHeatmapBtn.innerHTML = state.exportingAnalysisGlb
         ? '<span style="display:inline-block;animation:spin 1s linear infinite">↻</span> Exporting...'
@@ -6579,6 +6690,7 @@
           controlMatrix: state.fit.controlMatrix?.elements ? Array.from(state.fit.controlMatrix.elements) : null,
           refinedMatrix: state.fit.refinedMatrix?.elements ? Array.from(state.fit.refinedMatrix.elements) : null,
           refinedActive: Boolean(state.fit.refinedActive),
+          assumeAligned: Boolean(state.assumeAligned),
           sampleCount: state.fit.refineMetrics?.sampleCount ?? currentRefineSampleCount(),
           profile: state.fit.refineMetrics?.profile ?? state.refineProfile,
           refineMetrics: state.fit.refineMetrics
@@ -6797,7 +6909,7 @@
       const sourceSide = otherSide(targetSide);
       const targetModel = state.models[targetSide];
       const sourceModel = state.models[sourceSide];
-      const analysisSampleCount = analysisSampleCountForModels(sourceModel, targetModel);
+      const analysisSampleCount = currentAnalysisSampleCount(sourceModel, targetModel);
       const runId = ++state.analysisRunId;
       
       const currentKey = [
