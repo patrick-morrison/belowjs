@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added configurable asset paths for better offline and local-network support.
+- Added model comparison controls for already-aligned models and C2C/ICP sample counts.
+
+### Fixed
+- Model comparison now frames dropped models after loading.
 
 ## [1.7.6] - 2026-04-28
 
