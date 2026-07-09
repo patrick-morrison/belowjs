@@ -10,9 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added configurable asset paths for better offline and local-network support.
 - Added model comparison controls for already-aligned models and C2C/ICP sample counts.
+- Added `PerfMonitor` (`viewerConfig.perfStats`, `?stats=1` in the tileset example, `perfStats()` debug command) publishing frame times, draw calls and tileset streaming stats as `[BelowPerf]` console JSON for headless capture.
+- Added tileset performance options: `idleGating` (+ epsilons/heartbeat), `vrErrorTargetFloor`, `vrMaxDepth`, `vrMaxTriangles`, `vrPerformanceProfile`, `tileCastShadow`, `tileReceiveShadow`, `tileLighting: 'lambert'`, `boundsUpdateIntervalMs`, and VR tile shadow caster caps (`vrShadowCasterMode`, `vrMaxShadowCastingTiles`, `vrShadowCasterRadius`).
+- Added automatic VR performance profiles (`viewerConfig.vr.performanceProfile: 'auto' | 'standalone' | 'pcvr'`) plus `viewerConfig.vr.shadowProfile`, `viewerConfig.vr.foveation`, and `viewerConfig.vr.framebufferScaleFactor`.
+- Added an autonomous Quest perf harness (`scripts/quest-perf-test.mjs`, `scripts/quest-adb.sh`) that drives the tileset example through a scripted VR tour over adb + Chrome DevTools Protocol and reports page + compositor metrics per A/B variant.
+- Added console helpers for orthographic view, scene brightness, and stereo control.
+
+### Changed
+- Tileset traversal now registers a single XR camera by default (`usePerEyeCameras: false`), halving per-frame tiles traversal in VR; per-frame camera/resolution sync is now allocation-free and change-detected.
+- Tileset updates are skipped while the camera is still and no tiles are streaming (idle gating with a 250 ms heartbeat), removing steady-state CPU cost in VR.
+- In VR, adaptive tileset quality no longer refines below `vrErrorTargetFloor` when holding still — this was the main close-range frame-rate collapse.
+- Tileset bounds recomputation is debounced (500 ms) and skipped entirely while presenting once a valid bounding box exists.
+- The tileset example no longer enables `logarithmicDepthBuffer` by default (it defeats early-Z on standalone headsets); `?logdepth=1` restores it for A/B.
+- The tileset example now scales automatically: standalone Quest gets the measured `0.9` framebuffer / conservative tile profile, while desktop PCVR gets higher framebuffer scale, lower tile error floor, fuller shadows, and a larger VR triangle budget.
+- Desktop tile streaming now budgets queue work per frame and pre-uploads tile textures at load, removing the intermittent ~140 ms hitches when several tiles landed in one frame.
 
 ### Fixed
 - Model comparison now frames dropped models after loading.
+- `viewerConfig.vr` settings are no longer clobbered by `enableVR` in ModelViewer.
 
 ## [1.7.6] - 2026-04-28
 

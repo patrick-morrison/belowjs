@@ -64,6 +64,13 @@ export { FlyControls } from './core/FlyControls.js';
 export { ModelLoader } from './models/ModelLoader.js';
 export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
+export { PerfMonitor } from './utils/PerfMonitor.js';
+export {
+  applyTilesetVRProfileDefaults,
+  applyVRRenderProfileDefaults,
+  detectXRPerformanceClass,
+  resolveXRPerformanceProfile
+} from './utils/VRPerformanceProfile.js';
 
 
 export { Line2, LineMaterial, LineGeometry } from './measurement/ThickLine.js';

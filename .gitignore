@@ -102,3 +102,6 @@ jspm_packages/
 /docs/examples/tileset/**/tileset.json
 /docs/examples/tileset/**/Data/
 /docs/examples/tileset/**/App/
+
+# Local Quest/VR performance run outputs
+/scripts/perf-results/

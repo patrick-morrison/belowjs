@@ -91,6 +91,32 @@ export class DiveTorch {
     
   }
   
+  /**
+   * Switch torch shadow quality. 'reduced' is intended for VR sessions on
+   * standalone headsets where the moving spotlight re-renders its shadow
+   * map every frame over everything it lights.
+   *
+   * @param {string} profile - 'full' or 'reduced'
+   */
+  setQuality(profile = 'full') {
+    if (!this.controllerSpotlight) return;
+
+    const reduced = profile === 'reduced';
+    const shadow = this.controllerSpotlight.shadow;
+    const mapSize = reduced ? 512 : (this.isQuest2 ? 512 : 1024);
+
+    if (shadow.mapSize.width !== mapSize) {
+      shadow.mapSize.set(mapSize, mapSize);
+      if (shadow.map) {
+        shadow.map.dispose();
+        shadow.map = null;
+      }
+    }
+
+    shadow.radius = reduced ? 1 : 4;
+    shadow.blurSamples = reduced ? 4 : 10;
+  }
+
   enableTorch() {
     if (this.controllerSpotlight) {
       this.controllerSpotlight.visible = true;

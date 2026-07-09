@@ -24,6 +24,8 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean|string} [geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
  * @property {boolean} [autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
  * @property {number} [maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+ * @property {number} [vrMaxTriangles] - VR-only triangle budget for adaptive LOD
+ * @property {string} [vrPerformanceProfile='auto'] - VR quality profile for tilesets ('auto', 'standalone', 'pcvr')
  * @property {number} [minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
  * @property {number} [maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
  * @property {boolean} [enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
@@ -300,12 +302,13 @@ export class ModelViewer extends EventSystem {
   init() {
     const viewerConfig = {
       ...this.config.viewerConfig,
-      // Enable VR only if AR is not enabled
-      ...(this.config.enableVR && !this.config.enableAR && { vr: { enabled: true } }),
+      // Enable VR only if AR is not enabled (preserve other vr settings such
+      // as shadowProfile/foveation from viewerConfig)
+      ...(this.config.enableVR && !this.config.enableAR && { vr: { ...(this.config.viewerConfig?.vr || {}), enabled: true } }),
       // Enable AR if requested
       ...(this.config.enableAR && { ar: { enabled: true, ...(this.config.viewerConfig?.ar || {}) } }),
       // Explicitly disable VR when AR is enabled
-      ...(this.config.enableAR && { vr: { enabled: false } }),
+      ...(this.config.enableAR && { vr: { ...(this.config.viewerConfig?.vr || {}), enabled: false } }),
       ...(this.config.audioPath && { audioPath: this.config.audioPath }),
       ...(typeof this.config.enableVRAudio !== 'undefined' && { enableVRAudio: this.config.enableVRAudio }),
       ...(this.config.assetBasePath && { assetBasePath: this.config.assetBasePath }),
@@ -565,6 +568,23 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('ar-session-start', () => {
       if (this.diveSystem) {
         this.diveSystem.setDiveMode(false);
+      }
+    });
+
+    // Match the dive-system shadow quality to the renderer's VR shadow
+    // profile (BelowViewer swaps shadowMap.type at session boundaries).
+    this.belowViewer.on('vr-session-start', () => {
+      const shadowProfile = this.belowViewer.config?.vr?.shadowProfile || 'reduced';
+      if (this.diveSystem && shadowProfile !== 'full') {
+        this.diveSystem.torch?.setQuality?.('reduced');
+        this.diveSystem.lighting?.setShadowQuality?.(shadowProfile);
+      }
+    });
+
+    this.belowViewer.on('vr-session-end', () => {
+      if (this.diveSystem) {
+        this.diveSystem.torch?.setQuality?.('full');
+        this.diveSystem.lighting?.setShadowQuality?.('full');
       }
     });
 
@@ -1907,8 +1927,25 @@ export class ModelViewer extends EventSystem {
         geospatialReorientation: modelConfig.geospatialReorientation,
         autoCenter: modelConfig.autoCenter,
         maxTriangles: modelConfig.maxTriangles,
+        vrMaxTriangles: modelConfig.vrMaxTriangles,
+        vrPerformanceProfile: modelConfig.vrPerformanceProfile,
         minErrorTarget: modelConfig.minErrorTarget,
         maxErrorTarget: modelConfig.maxErrorTarget,
+        tileCastShadow: modelConfig.tileCastShadow,
+        tileReceiveShadow: modelConfig.tileReceiveShadow,
+        tileLighting: modelConfig.tileLighting,
+        vrShadowCasterMode: modelConfig.vrShadowCasterMode,
+        vrMaxShadowCastingTiles: modelConfig.vrMaxShadowCastingTiles,
+        vrShadowCasterRadius: modelConfig.vrShadowCasterRadius,
+        shadowCasterUpdateIntervalMs: modelConfig.shadowCasterUpdateIntervalMs,
+        idleGating: modelConfig.idleGating,
+        idlePositionEpsilon: modelConfig.idlePositionEpsilon,
+        idleAngleEpsilon: modelConfig.idleAngleEpsilon,
+        idleHeartbeatMs: modelConfig.idleHeartbeatMs,
+        vrErrorTargetFloor: modelConfig.vrErrorTargetFloor,
+        vrMaxDepth: modelConfig.vrMaxDepth,
+        usePerEyeCameras: modelConfig.usePerEyeCameras,
+        boundsUpdateIntervalMs: modelConfig.boundsUpdateIntervalMs,
         enableGltfExtensions: modelConfig.enableGltfExtensions,
         assetBasePath: modelConfig.assetBasePath,
         dracoDecoderPath: modelConfig.dracoDecoderPath,

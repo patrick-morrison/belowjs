@@ -5,9 +5,13 @@ import { GLTFExtensionsPlugin } from '3d-tiles-renderer/three/plugins';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { resolveAssetPaths } from '../utils/AssetPathUtils.js';
+import { applyTilesetVRProfileDefaults } from '../utils/VRPerformanceProfile.js';
 
 const DEFAULT_DRACO_DECODER_PATH = 'https://unpkg.com/three@0.179.1/examples/jsm/libs/draco/gltf/';
 const DEFAULT_KTX2_TRANSCODER_PATH = 'https://unpkg.com/three@0.179.1/examples/jsm/libs/basis/';
+
+const _idleSamplePosition = new THREE.Vector3();
+const _idleSampleQuaternion = new THREE.Quaternion();
 
 class BelowTilesRenderer extends TilesRenderer {
   preprocessTileset(json, url, parent = null) {
@@ -33,6 +37,12 @@ export class TilesetLoader {
     this.tilesetStates = new Map();
     this.pendingQueueTasks = [];
     this._resolutionVec2 = new THREE.Vector2();
+
+    // Diagnostics read by PerfMonitor.
+    this.lastUpdateDurationMs = 0;
+    this.maxUpdateDurationMs = 0;
+    this.updateRunCount = 0;
+    this.updateGatedCount = 0;
   }
 
   clamp(value, min, max) {
@@ -48,7 +58,10 @@ export class TilesetLoader {
     return {
       usePerEyeResolution: state?.usePerEyeResolution !== false,
       useDrawingBufferResolution: state?.useDrawingBufferResolution !== false,
-      usePerEyeCameras: state?.usePerEyeCameras !== false
+      // Default false: the XR ArrayCamera carries a union projection spanning
+      // both eyes (three r179), so a single traversal covers VR at half the
+      // cost of registering each eye camera.
+      usePerEyeCameras: state?.usePerEyeCameras === true
     };
   }
 
@@ -57,7 +70,7 @@ export class TilesetLoader {
       return [];
     }
 
-    const usePerEyeCameras = config?.usePerEyeCameras !== false;
+    const usePerEyeCameras = config?.usePerEyeCameras === true;
     if (usePerEyeCameras && camera.isArrayCamera && Array.isArray(camera.cameras) && camera.cameras.length > 0) {
       return camera.cameras.filter(Boolean);
     }
@@ -101,6 +114,12 @@ export class TilesetLoader {
       if (this.camera) {
         const traversalCameras = this.syncTilesetTraversalCameras(tileset, this.camera, resolutionConfig);
         this.setResolutionForCamera(tileset, this.camera, traversalCameras, resolutionConfig);
+        if (state) {
+          state.traversalCameras = traversalCameras;
+          state.syncedTopCamera = this.camera;
+          state.lastResolutionWidth = -1;
+          state.lastResolutionHeight = -1;
+        }
       }
     });
   }
@@ -178,6 +197,12 @@ export class TilesetLoader {
       const resolutionConfig = this.getResolutionConfig(state);
       const traversalCameras = this.syncTilesetTraversalCameras(tileset, this.camera, resolutionConfig);
       this.setResolutionForCamera(tileset, this.camera, traversalCameras, resolutionConfig);
+      if (state) {
+        state.traversalCameras = traversalCameras;
+        state.syncedTopCamera = this.camera;
+        state.lastResolutionWidth = -1;
+        state.lastResolutionHeight = -1;
+      }
     });
   }
 
@@ -384,12 +409,12 @@ export class TilesetLoader {
     return { dracoLoader, ktxLoader, gltfExtensionsPlugin };
   }
 
-  convertBasicMaterial(material) {
+  convertBasicMaterial(material, lighting = 'standard') {
     if (!material?.isMeshBasicMaterial) {
       return material;
     }
 
-    const converted = new THREE.MeshStandardMaterial({
+    const commonProperties = {
       color: material.color ? material.color.clone() : new THREE.Color(0xffffff),
       map: material.map || null,
       alphaMap: material.alphaMap || null,
@@ -402,10 +427,18 @@ export class TilesetLoader {
       vertexColors: material.vertexColors === true,
       wireframe: material.wireframe,
       fog: material.fog
-    });
+    };
+
+    // Lambert shading is markedly cheaper per covered pixel than the PBR
+    // pipeline, which matters at VR resolutions on standalone headsets.
+    const converted = lighting === 'lambert'
+      ? new THREE.MeshLambertMaterial(commonProperties)
+      : new THREE.MeshStandardMaterial(commonProperties);
     converted.name = material.name || converted.name;
-    converted.roughness = 0.92;
-    converted.metalness = 0.03;
+    if (converted.isMeshStandardMaterial) {
+      converted.roughness = 0.92;
+      converted.metalness = 0.03;
+    }
     converted.toneMapped = material.toneMapped;
     converted.visible = material.visible;
     converted.needsUpdate = true;
@@ -413,8 +446,12 @@ export class TilesetLoader {
     return converted;
   }
 
-  normalizeTileModel(scene) {
+  normalizeTileModel(scene, state = null) {
     if (!scene?.traverse) return;
+
+    const castShadow = state?.tileCastShadow !== false;
+    const receiveShadow = state?.tileReceiveShadow !== false;
+    const lighting = state?.tileLighting === 'lambert' ? 'lambert' : 'standard';
 
     const convertedMaterialCache = new WeakMap();
     scene.traverse((obj) => {
@@ -422,6 +459,8 @@ export class TilesetLoader {
 
       // Metashape tiled exports can be unlit and omit normals.
       // When converting to lit materials for torch support we need normals.
+      // This runs on the main thread and can hitch on dense tiles, but only
+      // at load time and only when normals are absent.
       if (obj.geometry?.isBufferGeometry && !obj.geometry.getAttribute('normal') && obj.geometry.getAttribute('position')) {
         try {
           obj.geometry.computeVertexNormals();
@@ -430,8 +469,9 @@ export class TilesetLoader {
         }
       }
 
-      obj.castShadow = true;
-      obj.receiveShadow = true;
+      obj.castShadow = castShadow;
+      obj.userData.belowTileCastShadowDefault = castShadow;
+      obj.receiveShadow = receiveShadow;
 
       const setMaterial = (material, index = -1) => {
         if (!material) return;
@@ -441,7 +481,7 @@ export class TilesetLoader {
           if (convertedMaterialCache.has(material)) {
             nextMaterial = convertedMaterialCache.get(material);
           } else {
-            nextMaterial = this.convertBasicMaterial(material);
+            nextMaterial = this.convertBasicMaterial(material, lighting);
             convertedMaterialCache.set(material, nextMaterial);
           }
         }
@@ -449,6 +489,8 @@ export class TilesetLoader {
         if (nextMaterial.map) {
           nextMaterial.map.colorSpace = THREE.SRGBColorSpace;
           nextMaterial.map.needsUpdate = true;
+          // Upload now rather than stalling the frame the tile first draws.
+          this.renderer?.initTexture?.(nextMaterial.map);
         }
         nextMaterial.needsUpdate = true;
 
@@ -505,8 +547,110 @@ export class TilesetLoader {
     return false;
   }
 
-  applyTriangleBudget(state) {
-    if (!state?.maxTriangles || !this.renderer?.info?.render) {
+  getActiveTriangleBudget(state, isXR = false) {
+    if (!state) return null;
+    return isXR
+      ? (state.vrMaxTriangles || state.maxTriangles || null)
+      : (state.maxTriangles || null);
+  }
+
+  setSceneCastShadow(scene, castShadow) {
+    if (!scene?.traverse) return;
+    scene.traverse((object) => {
+      if (object?.isMesh) {
+        object.castShadow = castShadow;
+      }
+    });
+  }
+
+  _restoreTileShadowCasters(state) {
+    if (!state?.loadedTileScenes) return;
+    state.loadedTileScenes.forEach((scene) => {
+      this.setSceneCastShadow(scene, state.tileCastShadow !== false);
+    });
+    state.shadowCasterTiles.clear();
+    state.shadowCastersLimited = false;
+  }
+
+  _updateTileShadowCasters(state, camera, nowMs, isXR = false) {
+    if (!state?.loadedTileScenes || state.vrShadowCasterMode === 'all') {
+      if (!isXR && state?.shadowCastersLimited) {
+        this._restoreTileShadowCasters(state);
+      }
+      return;
+    }
+
+    if (!isXR) {
+      if (state.shadowCastersLimited) {
+        this._restoreTileShadowCasters(state);
+      }
+      return;
+    }
+
+    if (state.tileCastShadow === false || state.vrShadowCasterMode === 'none') {
+      if (!state.shadowCastersLimited) {
+        state.loadedTileScenes.forEach((scene) => this.setSceneCastShadow(scene, false));
+        state.shadowCastersLimited = true;
+      }
+      state.shadowCasterTiles.forEach((tile) => {
+        if (tile?.engineData?.scene) {
+          this.setSceneCastShadow(tile.engineData.scene, false);
+        }
+      });
+      state.shadowCasterTiles = new Set();
+      return;
+    }
+
+    if ((nowMs - state.lastShadowCasterUpdateMs) < state.shadowCasterUpdateIntervalMs) {
+      return;
+    }
+    state.lastShadowCasterUpdateMs = nowMs;
+
+    const radius = state.vrShadowCasterRadius;
+    const radiusSq = Number.isFinite(radius) && radius > 0 ? radius * radius : Infinity;
+    const candidates = [];
+    state.tileset.visibleTiles.forEach((tile) => {
+      const scene = tile?.engineData?.scene;
+      if (!scene) return;
+
+      const distance = Number.isFinite(tile.traversal?.distanceFromCamera)
+        ? tile.traversal.distanceFromCamera
+        : Infinity;
+      if (distance * distance > radiusSq) return;
+
+      candidates.push({ tile, scene, distance });
+    });
+
+    candidates.sort((a, b) => a.distance - b.distance);
+    const desired = new Set(
+      candidates
+        .slice(0, state.vrMaxShadowCastingTiles)
+        .map(({ tile }) => tile)
+    );
+
+    if (!state.shadowCastersLimited) {
+      state.loadedTileScenes.forEach((scene) => this.setSceneCastShadow(scene, false));
+      state.shadowCastersLimited = true;
+    }
+
+    state.shadowCasterTiles.forEach((tile) => {
+      if (!desired.has(tile) && tile?.engineData?.scene) {
+        this.setSceneCastShadow(tile.engineData.scene, false);
+      }
+    });
+    desired.forEach((tile) => {
+      if (!state.shadowCasterTiles.has(tile)) {
+        this.setSceneCastShadow(tile.engineData.scene, true);
+      }
+    });
+
+    state.shadowCasterTiles = desired;
+    state.shadowCastersLimited = true;
+  }
+
+  applyTriangleBudget(state, isXR = false) {
+    const maxTriangles = this.getActiveTriangleBudget(state, isXR);
+    if (!maxTriangles || !this.renderer?.info?.render) {
       return;
     }
 
@@ -515,7 +659,7 @@ export class TilesetLoader {
       return;
     }
 
-    const { tileset, maxTriangles, minErrorTarget, maxErrorTarget } = state;
+    const { tileset, minErrorTarget, maxErrorTarget } = state;
     const highThreshold = maxTriangles * 1.08;
     const lowThreshold = maxTriangles * 0.75;
     let nextErrorTarget = tileset.errorTarget;
@@ -524,6 +668,10 @@ export class TilesetLoader {
       nextErrorTarget = Math.min(maxErrorTarget, nextErrorTarget * 1.2 + 0.5);
     } else if (triangles < lowThreshold) {
       nextErrorTarget = Math.max(minErrorTarget, nextErrorTarget * 0.9);
+    }
+
+    if (isXR && state.vrErrorTargetFloor > 0) {
+      nextErrorTarget = Math.max(nextErrorTarget, state.vrErrorTargetFloor);
     }
 
     if (Math.abs(nextErrorTarget - tileset.errorTarget) > 0.05) {
@@ -645,7 +793,7 @@ export class TilesetLoader {
     };
   }
 
-  applyAdaptiveQuality(state, camera) {
+  applyAdaptiveQuality(state, camera, isXR = false) {
     if (!state?.adaptive || !camera) {
       return;
     }
@@ -694,11 +842,12 @@ export class TilesetLoader {
       }
     }
 
-    if (state.maxTriangles && this.renderer?.info?.render) {
+    const maxTriangles = this.getActiveTriangleBudget(state, isXR);
+    if (maxTriangles && this.renderer?.info?.render) {
       const triangles = this.renderer.info.render.triangles;
       if (Number.isFinite(triangles) && triangles > 0) {
-        const highThreshold = state.maxTriangles * 1.08;
-        const lowThreshold = state.maxTriangles * 0.75;
+        const highThreshold = maxTriangles * 1.08;
+        const lowThreshold = maxTriangles * 0.75;
 
         if (triangles > highThreshold) {
           targetErrorTarget = Math.max(targetErrorTarget, targetErrorTarget * 1.2 + 0.5);
@@ -708,6 +857,13 @@ export class TilesetLoader {
           targetTilesProcessed = Math.min(adaptive.maxTilesProcessed, Math.round(targetTilesProcessed * 1.08));
         }
       }
+    }
+
+    // In VR the "still" state must not refine below the floor: standing
+    // still right next to a surface is exactly when the headset has the
+    // least frame headroom for extra geometry.
+    if (isXR && state.vrErrorTargetFloor > 0) {
+      targetErrorTarget = Math.max(targetErrorTarget, state.vrErrorTargetFloor);
     }
 
     targetErrorTarget = this.clamp(targetErrorTarget, minErrorTarget, maxErrorTarget);
@@ -782,6 +938,7 @@ export class TilesetLoader {
       upGroup.add(tilesGroup);
       this.setUpAxis(upGroup, options.up || '+Y');
 
+      const vrProfileDefaults = applyTilesetVRProfileDefaults(options);
       const state = {
         tileset,
         modelGroup,
@@ -792,17 +949,62 @@ export class TilesetLoader {
         hasAutoCentered: false,
         geospatialReorientationMode: this.resolveGeospatialReorientationMode(options.geospatialReorientation),
         hasGeospatialReoriented: false,
-        maxTriangles: Object.prototype.hasOwnProperty.call(options, 'maxTriangles')
-          ? ((typeof options.maxTriangles === 'number' && options.maxTriangles > 0) ? options.maxTriangles : null)
-          : 1000000,
+        maxTriangles: (typeof options.maxTriangles === 'number' && options.maxTriangles > 0) ? options.maxTriangles : null,
+        resolvedVRPerformanceProfile: vrProfileDefaults.resolvedVRPerformanceProfile,
+        vrMaxTriangles: vrProfileDefaults.vrMaxTriangles,
         minErrorTarget: (typeof options.minErrorTarget === 'number' && options.minErrorTarget > 0) ? options.minErrorTarget : 2,
         maxErrorTarget: (typeof options.maxErrorTarget === 'number' && options.maxErrorTarget > 0) ? options.maxErrorTarget : 64,
         usePerEyeResolution: options.usePerEyeResolution !== false,
         useDrawingBufferResolution: options.useDrawingBufferResolution !== false,
-        usePerEyeCameras: options.usePerEyeCameras !== false,
+        usePerEyeCameras: options.usePerEyeCameras === true,
+        tileCastShadow: options.tileCastShadow !== false,
+        tileReceiveShadow: options.tileReceiveShadow !== false,
+        tileLighting: options.tileLighting === 'lambert' ? 'lambert' : 'standard',
+        vrShadowCasterMode: vrProfileDefaults.vrShadowCasterMode,
+        vrMaxShadowCastingTiles: vrProfileDefaults.vrMaxShadowCastingTiles,
+        vrShadowCasterRadius: vrProfileDefaults.vrShadowCasterRadius,
+        shadowCasterUpdateIntervalMs: (typeof options.shadowCasterUpdateIntervalMs === 'number' && options.shadowCasterUpdateIntervalMs >= 0)
+          ? options.shadowCasterUpdateIntervalMs
+          : 180,
+        lastShadowCasterUpdateMs: 0,
+        loadedTileScenes: new Set(),
+        shadowCasterTiles: new Set(),
+        shadowCastersLimited: false,
+        vrErrorTargetFloor: vrProfileDefaults.vrErrorTargetFloor,
+        vrMaxDepth: (typeof options.vrMaxDepth === 'number' && options.vrMaxDepth > 0)
+          ? Math.floor(options.vrMaxDepth)
+          : null,
+        desktopMaxDepth: null,
+        boundsUpdateIntervalMs: (typeof options.boundsUpdateIntervalMs === 'number' && options.boundsUpdateIntervalMs >= 0)
+          ? options.boundsUpdateIntervalMs
+          : 500,
+        lastBoundsUpdateMs: 0,
+        traversalCameras: [],
+        syncedTopCamera: null,
+        lastResolutionWidth: -1,
+        lastResolutionHeight: -1,
+        idle: {
+          enabled: options.idleGating !== false,
+          posEps: (typeof options.idlePositionEpsilon === 'number' && options.idlePositionEpsilon > 0)
+            ? options.idlePositionEpsilon
+            : 0.02,
+          angEps: (typeof options.idleAngleEpsilon === 'number' && options.idleAngleEpsilon > 0)
+            ? options.idleAngleEpsilon
+            : 0.01,
+          heartbeatMs: (typeof options.idleHeartbeatMs === 'number' && options.idleHeartbeatMs >= 0)
+            ? options.idleHeartbeatMs
+            : 250,
+          lastPos: new THREE.Vector3(),
+          lastQuat: new THREE.Quaternion(),
+          lastRealUpdateMs: 0,
+          initialized: false,
+          forceUpdate: true
+        },
         adaptive: null,
         boundsDirty: true,
-        onLoadModel: null
+        onLoadModel: null,
+        onDisposeModel: null,
+        onNeedsUpdate: null
       };
       state.adaptive = this.createAdaptiveState(tileset, options, state.minErrorTarget, state.maxErrorTarget);
 
@@ -814,11 +1016,32 @@ export class TilesetLoader {
 
       state.onLoadModel = (event) => {
         if (event?.scene) {
-          this.normalizeTileModel(event.scene);
+          this.normalizeTileModel(event.scene, state);
+          state.loadedTileScenes.add(event.scene);
+          if (state.shadowCastersLimited) {
+            this.setSceneCastShadow(event.scene, false);
+          }
         }
         state.boundsDirty = true;
       };
       tileset.addEventListener('load-model', state.onLoadModel);
+
+      state.onDisposeModel = (event) => {
+        if (event?.scene) {
+          state.loadedTileScenes.delete(event.scene);
+        }
+        if (event?.tile) {
+          state.shadowCasterTiles.delete(event.tile);
+        }
+      };
+      tileset.addEventListener('dispose-model', state.onDisposeModel);
+
+      // 3d-tiles-renderer fires needs-update when queued work lands; use it
+      // to break out of idle gating without polling.
+      state.onNeedsUpdate = () => {
+        state.idle.forceUpdate = true;
+      };
+      tileset.addEventListener('needs-update', state.onNeedsUpdate);
 
       let abortHandler = null;
       const cleanupLoadListeners = () => {
@@ -842,6 +1065,8 @@ export class TilesetLoader {
       const handleError = (event) => {
         cleanupLoadListeners();
         tileset.removeEventListener('load-model', state.onLoadModel);
+        tileset.removeEventListener('dispose-model', state.onDisposeModel);
+        tileset.removeEventListener('needs-update', state.onNeedsUpdate);
         tileset.dispose();
         reject(event?.error || new Error('Tileset failed to load'));
       };
@@ -853,6 +1078,8 @@ export class TilesetLoader {
         abortHandler = () => {
           cleanupLoadListeners();
           tileset.removeEventListener('load-model', state.onLoadModel);
+          tileset.removeEventListener('dispose-model', state.onDisposeModel);
+          tileset.removeEventListener('needs-update', state.onNeedsUpdate);
           tileset.dispose();
           reject(new Error('Loading cancelled'));
         };
@@ -867,8 +1094,147 @@ export class TilesetLoader {
     });
   }
 
+  _isTilesetBusy(tileset) {
+    return Boolean(
+      tileset.downloadQueue?.running
+      || tileset.parseQueue?.running
+      || tileset.processNodeQueue?.running
+      || this.pendingQueueTasks.length > 0
+    );
+  }
+
+  _shouldRunTilesUpdate(state, camera, nowMs) {
+    const idle = state.idle;
+    if (!idle || !idle.enabled || idle.forceUpdate || !idle.initialized) {
+      return true;
+    }
+    if (this._isTilesetBusy(state.tileset)) {
+      return true;
+    }
+    // Heartbeat catches slow drift below the epsilons (and any missed event).
+    if ((nowMs - idle.lastRealUpdateMs) >= idle.heartbeatMs) {
+      return true;
+    }
+    if (!camera) {
+      return false;
+    }
+
+    camera.getWorldPosition(_idleSamplePosition);
+    camera.getWorldQuaternion(_idleSampleQuaternion);
+    if (_idleSamplePosition.distanceToSquared(idle.lastPos) > idle.posEps * idle.posEps) {
+      return true;
+    }
+    const dot = Math.min(1, Math.abs(_idleSampleQuaternion.dot(idle.lastQuat)));
+    return (2 * Math.acos(dot)) > idle.angEps;
+  }
+
+  _markTilesUpdateRan(state, camera, nowMs) {
+    const idle = state.idle;
+    if (!idle) return;
+    if (camera) {
+      camera.getWorldPosition(idle.lastPos);
+      camera.getWorldQuaternion(idle.lastQuat);
+      idle.initialized = true;
+    }
+    idle.lastRealUpdateMs = nowMs;
+    idle.forceUpdate = false;
+  }
+
+  _syncCamerasIfNeeded(tileset, state, camera) {
+    const config = this.getResolutionConfig(state);
+    const subCameras = (config.usePerEyeCameras && camera.isArrayCamera && Array.isArray(camera.cameras))
+      ? camera.cameras
+      : null;
+
+    let needsSync = state.syncedTopCamera !== camera;
+    if (!needsSync) {
+      const cached = state.traversalCameras;
+      if (subCameras) {
+        if (cached.length !== subCameras.length) {
+          needsSync = true;
+        } else {
+          for (let i = 0; i < subCameras.length; i += 1) {
+            if (cached[i] !== subCameras[i]) {
+              needsSync = true;
+              break;
+            }
+          }
+        }
+      } else if (cached.length !== 1 || cached[0] !== camera) {
+        needsSync = true;
+      }
+    }
+
+    if (needsSync) {
+      state.traversalCameras = this.syncTilesetTraversalCameras(tileset, camera, config);
+      state.syncedTopCamera = camera;
+      state.lastResolutionWidth = -1;
+      state.lastResolutionHeight = -1;
+    }
+
+    this._syncResolutionIfNeeded(tileset, state, camera, config);
+  }
+
+  _syncResolutionIfNeeded(tileset, state, camera, config) {
+    let width = 0;
+    let height = 0;
+
+    if (config.usePerEyeResolution && config.usePerEyeCameras && camera.isArrayCamera) {
+      const viewport = state.traversalCameras[0]?.viewport;
+      width = viewport?.z || 0;
+      height = viewport?.w || 0;
+    } else if (config.useDrawingBufferResolution && this.renderer?.getDrawingBufferSize) {
+      this.renderer.getDrawingBufferSize(this._resolutionVec2);
+      width = this._resolutionVec2.x;
+      height = this._resolutionVec2.y;
+    }
+
+    if (width > 0 && height > 0) {
+      if (width === state.lastResolutionWidth && height === state.lastResolutionHeight) {
+        return;
+      }
+      state.lastResolutionWidth = width;
+      state.lastResolutionHeight = height;
+    }
+
+    this.setResolutionForCamera(tileset, camera, state.traversalCameras, config);
+  }
+
+  _applyVRDepthClamp(state, isXR) {
+    if (!state.vrMaxDepth) return;
+    const tileset = state.tileset;
+    if (isXR) {
+      if (state.desktopMaxDepth === null) {
+        state.desktopMaxDepth = tileset.maxDepth;
+      }
+      tileset.maxDepth = state.vrMaxDepth;
+    } else if (state.desktopMaxDepth !== null) {
+      tileset.maxDepth = state.desktopMaxDepth;
+      state.desktopMaxDepth = null;
+    }
+  }
+
+  _maybeUpdateBounds(state, nowMs, isXR) {
+    const hasValidBox = this.isValidBox3(state.modelGroup?.userData?.boundingBox);
+
+    // Bounds recompute traverses every loaded tile; never pay that while
+    // presenting once a usable box exists.
+    if (isXR && hasValidBox) {
+      return;
+    }
+    if (hasValidBox && (nowMs - state.lastBoundsUpdateMs) < state.boundsUpdateIntervalMs) {
+      return;
+    }
+
+    this.updateBoundsAndCenter(state);
+    state.lastBoundsUpdateMs = nowMs;
+    state.boundsDirty = false;
+  }
+
   update(activeCamera = null, options = {}) {
+    const startMs = performance.now();
     const queueOptions = options?.queueOptions;
+    const isXR = options?.isXR === true;
     this.runScheduledQueueTasks(queueOptions);
 
     const camera = activeCamera || this.camera;
@@ -876,31 +1242,44 @@ export class TilesetLoader {
       this.setCamera(camera);
     }
 
-    if (this.renderer && camera) {
-      this.activeTilesets.forEach((tileset) => {
-        const state = this.tilesetStates.get(tileset);
-        const resolutionConfig = this.getResolutionConfig(state);
-        const traversalCameras = this.syncTilesetTraversalCameras(tileset, camera, resolutionConfig);
-        this.setResolutionForCamera(tileset, camera, traversalCameras, resolutionConfig);
-      });
-    }
-
     this.activeTilesets.forEach((tileset) => {
       const state = this.tilesetStates.get(tileset);
-      if (state) {
-        if (state.adaptive) {
-          this.applyAdaptiveQuality(state, camera);
-        } else {
-          this.applyTriangleBudget(state);
-        }
+      if (!state) {
+        tileset.update();
+        return;
       }
-      tileset.update();
 
-      if (state && state.boundsDirty) {
-        this.updateBoundsAndCenter(state);
-        state.boundsDirty = false;
+      if (!this._shouldRunTilesUpdate(state, camera, startMs)) {
+        this.updateGatedCount += 1;
+        return;
+      }
+
+      if (this.renderer && camera) {
+        this._syncCamerasIfNeeded(tileset, state, camera);
+      }
+
+      if (state.adaptive) {
+        this.applyAdaptiveQuality(state, camera, isXR);
+      } else {
+        this.applyTriangleBudget(state, isXR);
+      }
+      this._applyVRDepthClamp(state, isXR);
+
+      tileset.update();
+      this.updateRunCount += 1;
+      this._updateTileShadowCasters(state, camera, startMs, isXR);
+      this._markTilesUpdateRan(state, camera, startMs);
+
+      if (state.boundsDirty) {
+        this._maybeUpdateBounds(state, startMs, isXR);
       }
     });
+
+    const durationMs = performance.now() - startMs;
+    this.lastUpdateDurationMs = durationMs;
+    if (durationMs > this.maxUpdateDurationMs) {
+      this.maxUpdateDurationMs = durationMs;
+    }
   }
 
   disposeTileset(tileset) {
@@ -914,6 +1293,12 @@ export class TilesetLoader {
     if (state?.onLoadModel) {
       tileset.removeEventListener('load-model', state.onLoadModel);
     }
+    if (state?.onDisposeModel) {
+      tileset.removeEventListener('dispose-model', state.onDisposeModel);
+    }
+    if (state?.onNeedsUpdate) {
+      tileset.removeEventListener('needs-update', state.onNeedsUpdate);
+    }
     this.tilesetStates.delete(tileset);
     tileset.dispose();
   }
@@ -924,6 +1309,12 @@ export class TilesetLoader {
       const state = this.tilesetStates.get(tileset);
       if (state?.onLoadModel) {
         tileset.removeEventListener('load-model', state.onLoadModel);
+      }
+      if (state?.onDisposeModel) {
+        tileset.removeEventListener('dispose-model', state.onDisposeModel);
+      }
+      if (state?.onNeedsUpdate) {
+        tileset.removeEventListener('needs-update', state.onNeedsUpdate);
       }
       tileset.dispose();
     });

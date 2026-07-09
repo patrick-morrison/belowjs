@@ -354,6 +354,16 @@ export class DebugCommands {
       console.warn('stereo() is deprecated. Use camera.setStereo(...) instead.');
       return window.camera.setStereo(enable, eyeSeparation);
     };
+
+    window.perfStats = (enable = true) => {
+      if (!viewer.setPerfStats) {
+        console.warn('Performance monitor unavailable');
+        return null;
+      }
+      const monitor = viewer.setPerfStats(enable);
+      console.log(`📈 Performance stats ${enable ? 'enabled — watch for [BelowPerf] lines' : 'disabled'}`);
+      return monitor;
+    };
     
     window.debugHelp = () => {
       console.log('🔧 BelowJS Debug Commands:');
@@ -367,6 +377,7 @@ export class DebugCommands {
       console.log('  models()                  - Get loaded models information');
       console.log('  particles()               - Get particle system information');
       console.log('  vr()                      - Get VR state and settings');
+      console.log('  perfStats(true|false)     - Toggle [BelowPerf] frame/tileset stats');
       console.log('  stereo()                  - Deprecated; use camera.setStereo()');
       console.log('  debugHelp()               - Show this help message');
       console.log('');
@@ -388,6 +399,7 @@ export class DebugCommands {
     delete window.particles;
     delete window.vr;
     delete window.stereo;
+    delete window.perfStats;
     delete window.debugHelp;
     delete window.belowViewer;
   }

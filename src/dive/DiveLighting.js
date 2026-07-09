@@ -12,6 +12,7 @@ export class DiveLighting {
     this.currentMode = 'survey';
     this.pendingAnimations = new Set();
     this.isDisposed = false;
+    this.shadowProfile = 'full';
     
     this.initializeLighting();
   }
@@ -40,7 +41,7 @@ export class DiveLighting {
       if (!this.clearModeDirectionalLight) {
         this.clearModeDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.32);
         this.clearModeDirectionalLight.position.set(50, 100, 50);
-        this.clearModeDirectionalLight.castShadow = true;
+        this.clearModeDirectionalLight.castShadow = this.shadowProfile === 'full';
 
         this.clearModeDirectionalLight.shadow.mapSize.width = 2048;
         this.clearModeDirectionalLight.shadow.mapSize.height = 2048;
@@ -123,6 +124,20 @@ export class DiveLighting {
     this.currentMode = 'survey';
   }
   
+  /**
+   * Set shadow quality for the survey-mode directional light. Anything
+   * below 'full' turns its shadow casting off — a 2048px map over a whole
+   * tileset is too expensive to re-render on a standalone headset.
+   *
+   * @param {string} profile - 'full', 'reduced', or 'off'
+   */
+  setShadowQuality(profile = 'full') {
+    this.shadowProfile = profile;
+    if (this.clearModeDirectionalLight) {
+      this.clearModeDirectionalLight.castShadow = profile === 'full';
+    }
+  }
+
   setVRDiveMode() {
     if (this.overheadLight && this.scene.children.includes(this.overheadLight)) {
       this.scene.remove(this.overheadLight);

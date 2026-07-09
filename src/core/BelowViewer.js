@@ -9,6 +9,8 @@ import { disposeObject3D } from '../utils/ThreeCleanupUtils.js';
 import { VRManager } from './VRManager.js';
 import { ARManager } from './ARManager.js';
 import { DebugCommands } from './DebugCommands.js';
+import { PerfMonitor } from '../utils/PerfMonitor.js';
+import { applyVRRenderProfileDefaults } from '../utils/VRPerformanceProfile.js';
 
 /**
  * @typedef {Object} BelowViewerConfig
@@ -38,6 +40,9 @@ import { DebugCommands } from './DebugCommands.js';
  * @property {number} [stereo.eyeSeparation=0.064] - Eye separation in meters (clamped to 0.050-0.070m for screen comfort)
  * @property {Object} [vr] - VR configuration
  * @property {boolean} [vr.enabled=true] - Enable VR support
+ * @property {string} [vr.performanceProfile='auto'] - VR performance profile ('auto', 'standalone', 'pcvr')
+ * @property {number} [vr.foveation=1.0] - XR fixed foveation level, 0..1
+ * @property {number} [vr.framebufferScaleFactor=1.0] - XR framebuffer scale; set below 1.0 for GPU-bound VR scenes
  * @property {string} [assetBasePath] - Base path for offline decoder/transcoder/WebXR assets
  * @property {string} [dracoDecoderPath] - DRACO decoder path for GLB and tileset loading
  * @property {string} [ktx2TranscoderPath] - KTX2/Basis transcoder path for GLB and tileset loading
@@ -175,7 +180,11 @@ export class BelowViewer extends EventSystem {
         type: 'object',
         default: { enabled: true },
         schema: {
-          enabled: { type: 'boolean', default: true }
+          enabled: { type: 'boolean', default: true },
+          performanceProfile: { type: 'string', default: 'auto' },
+          foveation: { type: 'number', default: 1.0 },
+          framebufferScaleFactor: { type: 'number', default: 1.0 },
+          shadowProfile: { type: 'string', default: 'reduced' }
         }
       },
       ar: {
@@ -197,6 +206,7 @@ export class BelowViewer extends EventSystem {
       },
       audioPath: { type: 'string', default: './sound/' },
       enableVRAudio: { type: 'boolean', default: false },
+      perfStats: { type: 'boolean', default: false },
       assetBasePath: { type: 'string', default: null },
       dracoDecoderPath: { type: 'string', default: null },
       ktx2TranscoderPath: { type: 'string', default: null },
@@ -204,6 +214,11 @@ export class BelowViewer extends EventSystem {
     };
     
     this.config = new ConfigValidator(schema).validate(config);
+    this.config.vr = applyVRRenderProfileDefaults(
+      this.config.vr,
+      config?.vr?.performanceProfile || 'auto',
+      config?.vr || {}
+    );
     
     this.renderer = null;
     this.sceneManager = null;
@@ -213,6 +228,7 @@ export class BelowViewer extends EventSystem {
     this.vrManager = null;
     this.arManager = null;
     this.stereoCamera = null;
+    this.perfMonitor = null;
 
     this.isVREnabled = this.config.vr?.enabled !== false;
     this.isAREnabled = this.config.ar?.enabled === true;
@@ -274,7 +290,11 @@ export class BelowViewer extends EventSystem {
       if (typeof window !== 'undefined') {
         DebugCommands.init(this);
       }
-      
+
+      if (this.config.perfStats) {
+        this.setPerfStats(true);
+      }
+
       this.emit('initialized');
       
     } catch (error) {
@@ -359,6 +379,7 @@ export class BelowViewer extends EventSystem {
     // API change: audio disabled by default; must be explicitly enabled
     const enableAudio = this.config.enableVRAudio === true;
     this.vrManager = new VRManager(this.renderer, this.cameraManager.camera, this.sceneManager.scene, audioPath, enableAudio, this.container, this.config);
+    this.applyXRFramebufferScaleFactor();
     
 
     this.vrManager.setControls(this.cameraManager.controls);
@@ -391,28 +412,121 @@ export class BelowViewer extends EventSystem {
           this.vrManager.applyVRPositions(currentModel.options.initialPositions);
         }
       }
-      
+
 
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = false;
       }
-      
+
+      this.applyVRRenderProfile();
+
       this.emit('vr-session-start');
     };
-    
+
     this.vrManager.onSessionEnd = () => {
       // VR session cleanup - VRManager handles camera restoration
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = true;
       }
-      
+
       // Reset VR dolly to origin
       this.dolly.position.set(0, 0, 0);
       this.dolly.rotation.set(0, 0, 0);
-      
+
+      this.restoreDesktopRenderProfile();
+
       this.emit('vr-session-end');
     };
 
+  }
+
+  /**
+   * Apply the configured VR render profile at XR session start.
+   *
+   * `vr.shadowProfile`: 'full' leaves shadows untouched; 'reduced' swaps
+   * PCFSoft for plain PCF filtering (much cheaper per covered pixel on
+   * mobile GPUs); 'off' disables shadow maps entirely while presenting.
+   * The desktop state is restored on session end.
+   */
+  applyVRRenderProfile() {
+    if (!this.renderer) return;
+
+    this.applyXRFramebufferScaleFactor();
+
+    const foveation = this.config.vr?.foveation;
+    if (typeof foveation === 'number' && this.renderer.xr?.setFoveation) {
+      this.renderer.xr.setFoveation(Math.min(1, Math.max(0, foveation)));
+    }
+
+    const profile = this.config.vr?.shadowProfile || 'reduced';
+    if (profile === 'full') return;
+
+    this._shadowStateBeforeVR = {
+      enabled: this.renderer.shadowMap.enabled,
+      type: this.renderer.shadowMap.type
+    };
+
+    if (profile === 'off') {
+      this.renderer.shadowMap.enabled = false;
+    } else {
+      this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    }
+    this._flagShadowMaterialsForRecompile();
+  }
+
+  applyXRFramebufferScaleFactor() {
+    const scale = this.config.vr?.framebufferScaleFactor;
+    if (
+      typeof scale !== 'number'
+      || !this.renderer?.xr?.setFramebufferScaleFactor
+      || this.renderer.xr.isPresenting
+    ) {
+      return;
+    }
+    this.renderer.xr.setFramebufferScaleFactor(Math.min(1.5, Math.max(0.5, scale)));
+  }
+
+  restoreDesktopRenderProfile() {
+    if (!this._shadowStateBeforeVR || !this.renderer) return;
+    this.renderer.shadowMap.enabled = this._shadowStateBeforeVR.enabled;
+    this.renderer.shadowMap.type = this._shadowStateBeforeVR.type;
+    this._shadowStateBeforeVR = null;
+    this._flagShadowMaterialsForRecompile();
+  }
+
+  _flagShadowMaterialsForRecompile() {
+    // Shadow filtering is baked into the shaders, so a shadowMap.type or
+    // enabled change only takes effect after materials recompile.
+    this.sceneManager?.scene?.traverse((object) => {
+      if (!object.isMesh || !object.material) return;
+      if (Array.isArray(object.material)) {
+        object.material.forEach((material) => { material.needsUpdate = true; });
+      } else {
+        object.material.needsUpdate = true;
+      }
+    });
+  }
+
+  /**
+   * Enable or disable the runtime performance monitor.
+   *
+   * @param {boolean} enabled - Turn the monitor on or off
+   * @param {Object} [options] - Monitor options
+   * @param {boolean} [options.overlay=true] - Show the DOM overlay readout
+   * @returns {PerfMonitor|null} The active monitor, if any
+   */
+  setPerfStats(enabled, options = {}) {
+    if (enabled && !this.perfMonitor) {
+      this.perfMonitor = new PerfMonitor(this.renderer, {
+        tilesetLoader: this.tilesetLoader,
+        overlay: options.overlay !== false,
+        overlayContainer: typeof document !== 'undefined' ? document.body : null
+      });
+    } else if (!enabled && this.perfMonitor) {
+      this.perfMonitor.dispose();
+      this.perfMonitor = null;
+    }
+    return this.perfMonitor;
   }
 
   initAR() {
@@ -503,6 +617,7 @@ export class BelowViewer extends EventSystem {
    * @param {boolean|string} [options.geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
    * @param {boolean} [options.autoCenter=true] - Recenter streamed tilesets around origin as bounds become available
    * @param {number} [options.maxTriangles] - Approximate triangle budget for adaptive LOD (best-effort)
+   * @param {number} [options.vrMaxTriangles] - VR-only triangle budget for adaptive LOD
    * @param {number} [options.minErrorTarget=2] - Lower clamp for adaptive errorTarget when maxTriangles is set
    * @param {number} [options.maxErrorTarget=64] - Upper clamp for adaptive errorTarget when maxTriangles is set
    * @param {boolean} [options.enableGltfExtensions=true] - Enable GLTFExtensionsPlugin (DRACO/KTX2/RTC) for tilesets
@@ -574,8 +689,26 @@ export class BelowViewer extends EventSystem {
           up: options.up,
           autoCenter: options.autoCenter,
           maxTriangles: options.maxTriangles,
+          vrMaxTriangles: options.vrMaxTriangles,
+          vrPerformanceProfile: options.vrPerformanceProfile || this.config.vr?.performanceProfile,
+          resolvedVRPerformanceProfile: this.config.vr?.resolvedPerformanceProfile,
           minErrorTarget: options.minErrorTarget,
           maxErrorTarget: options.maxErrorTarget,
+          tileCastShadow: options.tileCastShadow,
+          tileReceiveShadow: options.tileReceiveShadow,
+          tileLighting: options.tileLighting,
+          vrShadowCasterMode: options.vrShadowCasterMode,
+          vrMaxShadowCastingTiles: options.vrMaxShadowCastingTiles,
+          vrShadowCasterRadius: options.vrShadowCasterRadius,
+          shadowCasterUpdateIntervalMs: options.shadowCasterUpdateIntervalMs,
+          idleGating: options.idleGating,
+          idlePositionEpsilon: options.idlePositionEpsilon,
+          idleAngleEpsilon: options.idleAngleEpsilon,
+          idleHeartbeatMs: options.idleHeartbeatMs,
+          vrErrorTargetFloor: options.vrErrorTargetFloor,
+          vrMaxDepth: options.vrMaxDepth,
+          usePerEyeCameras: options.usePerEyeCameras,
+          boundsUpdateIntervalMs: options.boundsUpdateIntervalMs,
           enableGltfExtensions: options.enableGltfExtensions,
           assetBasePath: options.assetBasePath || this.config.assetBasePath,
           dracoDecoderPath: options.dracoDecoderPath || this.config.dracoDecoderPath,
@@ -726,11 +859,14 @@ export class BelowViewer extends EventSystem {
   startRenderLoop() {
     let lastTime = 0;
     let lastVRTilesUpdateTimeMs = 0;
-    
+
     const animate = (time) => {
       const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
+      if (this.perfMonitor && lastTime > 0) {
+        this.perfMonitor.sample(time - lastTime);
+      }
       lastTime = time;
-      
+
       if (this.vrManager) {
         this.vrManager.update(deltaTime);
       }
@@ -773,12 +909,15 @@ export class BelowViewer extends EventSystem {
               ? performance.now()
               : time;
 
-            const minUpdateIntervalMs = isMoving ? 28 : 14;
+            // Idle gating inside TilesetLoader covers the stationary case, so the
+            // still interval only bounds how often the epsilon check itself runs.
+            const minUpdateIntervalMs = isMoving ? 28 : 33;
             const shouldUpdateTiles = (nowMs - lastVRTilesUpdateTimeMs) >= minUpdateIntervalMs;
 
             if (shouldUpdateTiles) {
               const activeTilesCamera = this.renderer.xr.getCamera(this.cameraManager.camera);
               this.tilesetLoader.update(activeTilesCamera, {
+                isXR: true,
                 queueOptions: {
                   maxTasks: isMoving ? 1 : 2,
                   timeBudgetMs: isMoving ? 0.7 : 1.5
@@ -790,7 +929,15 @@ export class BelowViewer extends EventSystem {
         } else {
           if (this.tilesetLoader) {
             const activeTilesCamera = this.cameraManager.camera;
-            this.tilesetLoader.update(activeTilesCamera);
+            // Budget queue ticks on desktop too: unbudgeted draining lands
+            // several parsed tiles in one frame, and their first-draw GPU
+            // uploads stack into a visible hitch.
+            this.tilesetLoader.update(activeTilesCamera, {
+              queueOptions: {
+                maxTasks: 4,
+                timeBudgetMs: 2
+              }
+            });
           }
           renderScene();
         }
@@ -1158,7 +1305,12 @@ export class BelowViewer extends EventSystem {
       this.tilesetLoader.dispose();
       this.tilesetLoader = null;
     }
-    
+
+    if (this.perfMonitor) {
+      this.perfMonitor.dispose();
+      this.perfMonitor = null;
+    }
+
     window.removeEventListener('resize', this.onWindowResize.bind(this));
     
     this.removeAllListeners();

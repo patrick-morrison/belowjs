@@ -81,6 +81,43 @@
         const tilesetUrl = params.get('url') || DEFAULT_TILESET_URL;
         const upAxis = params.get('up') || '+Y';
 
+        // --- Performance A/B toggles (see docs: Quest tuning) ---------------
+        // ?stats=1        [BelowPerf] console JSON + overlay readout
+        // ?autotest=1     scripted VR dolly tour for the headless harness
+        // ?logdepth=1     re-enable logarithmicDepthBuffer (default OFF: it
+        //                 defeats early-Z on mobile/tiled GPUs like Quest)
+        // ?vrprofile=auto|standalone|pcvr  automatic VR quality tier
+        // ?shadows=0|full override automatic VR shadow profile
+        // ?tileshadows=0  tiles neither cast nor receive shadows
+        // ?shadowmode=all|near|none  override automatic VR tile shadow caster mode
+        // ?shadowtiles=N  override max nearby visible tiles casting VR shadows
+        // ?shadowradius=N override max tile shadow caster distance in metres
+        // ?idle=0         disable tileset idle gating
+        // ?pereye=1       restore per-eye tileset traversal cameras
+        // ?errfloor=N     override VR errorTarget floor
+        // ?vrtris=N       override VR-only adaptive triangle budget
+        // ?lambert=1      cheaper Lambert shading for converted tile materials
+        // ?foveation=N    override XR foveation 0..1
+        // ?xrscale=N      override XR framebuffer scale 0.5..1.5
+        const statsEnabled = params.get('stats') === '1';
+        const autotestEnabled = params.get('autotest') === '1';
+        const shadowsParam = params.get('shadows');
+        const shadowProfile = shadowsParam === '0' ? 'off' : (shadowsParam === 'full' ? 'full' : null);
+        const profileParam = params.get('vrprofile');
+        const vrPerformanceProfile = ['auto', 'standalone', 'pcvr'].includes(profileParam) ? profileParam : 'auto';
+        const tileShadows = params.get('tileshadows') !== '0';
+        const errFloor = Number.parseFloat(params.get('errfloor'));
+        const vrTriangles = Number.parseInt(params.get('vrtris'), 10);
+        const foveation = Number.parseFloat(params.get('foveation'));
+        const xrScale = Number.parseFloat(params.get('xrscale'));
+        const shadowTiles = Number.parseInt(params.get('shadowtiles'), 10);
+        const shadowRadius = Number.parseFloat(params.get('shadowradius'));
+        const shadowModeParam = params.get('shadowmode');
+        const shadowMode = ['all', 'near', 'none'].includes(shadowModeParam) ? shadowModeParam : null;
+
+        const VR_START = { x: 74.088, y: -108.156, z: -12.676 };
+        const DESKTOP_TARGET = { x: 71.603, y: -110.98, z: -9.382 };
+
         const viewer = new ModelViewer('#viewer', {
             showInfo: true,
             enableVR: true,
@@ -90,17 +127,27 @@
                 tileset: {
                     url: tilesetUrl,
                     type: 'tileset',
-                    name: 'Tiled Datest',
+                    name: 'Tiled Dataset',
                     credit: 'Denton Holme and Macedon 2023',
                     up: upAxis,
                     autoCenter: true,
+                    tileCastShadow: tileShadows,
+                    tileReceiveShadow: tileShadows,
+                    ...(params.get('lambert') === '1' && { tileLighting: 'lambert' }),
+                    ...(params.get('idle') === '0' && { idleGating: false }),
+                    ...(params.get('pereye') === '1' && { usePerEyeCameras: true }),
+                    ...(Number.isFinite(errFloor) && { vrErrorTargetFloor: errFloor }),
+                    ...(Number.isFinite(vrTriangles) && { vrMaxTriangles: vrTriangles }),
+                    ...(shadowMode && { vrShadowCasterMode: shadowMode }),
+                    ...(Number.isFinite(shadowTiles) && { vrMaxShadowCastingTiles: shadowTiles }),
+                    ...(Number.isFinite(shadowRadius) && { vrShadowCasterRadius: shadowRadius }),
                     initialPositions: {
                         desktop: {
                             camera: { x: 74.088, y: -108.156, z: -12.676 },
-                            target: { x: 71.603, y: -110.98, z: -9.382 }
+                            target: DESKTOP_TARGET
                         },
                         vr: {
-                            dolly: { x: 74.088, y: -108.156, z: -12.676 },
+                            dolly: VR_START,
                             rotation: { x: 0, y: 2.495, z: 0 }
                         }
                     }
@@ -112,7 +159,17 @@
                     fog: { enabled: false }
                 },
                 renderer: {
-                    logarithmicDepthBuffer: true
+                    // Log depth forces gl_FragDepth writes, which disables
+                    // early-Z on tiled GPUs (Quest). Keep it off unless the
+                    // scene actually z-fights; prefer raising camera.near.
+                    logarithmicDepthBuffer: params.get('logdepth') === '1'
+                },
+                perfStats: statsEnabled || autotestEnabled,
+                vr: {
+                    performanceProfile: vrPerformanceProfile,
+                    ...(shadowProfile && { shadowProfile }),
+                    ...(Number.isFinite(foveation) && { foveation }),
+                    ...(Number.isFinite(xrScale) && { framebufferScaleFactor: xrScale })
                 }
             }
         });
@@ -129,6 +186,116 @@
 
         applyCustomInfoTitle();
         viewer.on('initialized', applyCustomInfoTitle);
+
+        // --- Autonomous test tour (?autotest=1) -----------------------------
+        // Drives the VR dolly through a fixed route that reproduces the
+        // close-range worst case, sampling [BelowPerf] once per second into
+        // window.__perfSamples for the harness (scripts/quest-perf-test.mjs).
+        if (autotestEnabled) {
+            window.__perfSamples = [];
+            window.__autotestDone = false;
+            window.__autotestPhase = 'waiting';
+
+            const lerp = (a, b, t) => a + (b - a) * t;
+            const setDolly = (dolly, from, to, t) => {
+                dolly.position.set(
+                    lerp(from.x, to.x, t),
+                    lerp(from.y, to.y, t),
+                    lerp(from.z, to.z, t)
+                );
+            };
+
+            const runTour = () => {
+                if (window.__autotestStarted) return;
+                const belowViewer = viewer.belowViewer;
+                const dolly = belowViewer?.dolly;
+                if (!dolly) return;
+                window.__autotestStarted = true;
+
+                // Close point: 0.4 m short of the desktop orbit target, which
+                // sits on the wreck surface — the reported lag hotspot.
+                const dir = {
+                    x: DESKTOP_TARGET.x - VR_START.x,
+                    y: DESKTOP_TARGET.y - VR_START.y,
+                    z: DESKTOP_TARGET.z - VR_START.z
+                };
+                const len = Math.hypot(dir.x, dir.y, dir.z);
+                const closePoint = {
+                    x: DESKTOP_TARGET.x - (dir.x / len) * 0.4,
+                    y: DESKTOP_TARGET.y - (dir.y / len) * 0.4,
+                    z: DESKTOP_TARGET.z - (dir.z / len) * 0.4
+                };
+                const strafeAxis = { x: -dir.z / len, y: 0, z: dir.x / len };
+                const runPoints = [
+                    -2.4,
+                    -1.2,
+                    0,
+                    1.2,
+                    2.4,
+                    1.2,
+                    0,
+                    -1.2
+                ].map((offset) => ({
+                    x: closePoint.x + strafeAxis.x * offset,
+                    y: closePoint.y,
+                    z: closePoint.z + strafeAxis.z * offset
+                }));
+
+                const runCloseLine = (t) => {
+                    const scaled = t * (runPoints.length - 1);
+                    const index = Math.min(runPoints.length - 2, Math.floor(scaled));
+                    const localT = scaled - index;
+                    setDolly(dolly, runPoints[index], runPoints[index + 1], localT);
+                };
+
+                const phases = [
+                    { name: 'settle', durationMs: 8000, step: () => {} },
+                    { name: 'approach', durationMs: 10000, step: (t) => setDolly(dolly, VR_START, closePoint, t) },
+                    { name: 'close-hold', durationMs: 12000, step: () => {} },
+                    { name: 'close-run', durationMs: 16000, step: runCloseLine },
+                    { name: 'retreat', durationMs: 8000, step: (t) => setDolly(dolly, closePoint, VR_START, t) }
+                ];
+
+                const sampler = setInterval(() => {
+                    if (window.__belowPerf) {
+                        window.__perfSamples.push({
+                            phase: window.__autotestPhase,
+                            ...window.__belowPerf
+                        });
+                    }
+                }, 1000);
+
+                let phaseIndex = 0;
+                let phaseStartMs = performance.now();
+                const tick = () => {
+                    const phase = phases[phaseIndex];
+                    if (!phase) {
+                        clearInterval(sampler);
+                        window.__autotestPhase = 'done';
+                        window.__autotestDone = true;
+                        console.log('[BelowAutotest] done', JSON.stringify({ samples: window.__perfSamples.length }));
+                        return;
+                    }
+                    window.__autotestPhase = phase.name;
+                    const elapsed = performance.now() - phaseStartMs;
+                    const t = Math.min(1, elapsed / phase.durationMs);
+                    phase.step(t);
+                    if (t >= 1) {
+                        phaseIndex += 1;
+                        phaseStartMs = performance.now();
+                    }
+                    setTimeout(tick, 50);
+                };
+                console.log('[BelowAutotest] starting tour');
+                setTimeout(tick, 50);
+            };
+            window.__startBelowTilesetAutotest = runTour;
+
+            viewer.on('vr-session-start', () => {
+                // Give the session a beat to apply initial positions first.
+                setTimeout(runTour, 1500);
+            });
+        }
     </script>
     <!-- Docs event tracking for this site only. Remove if you are reusing this example elsewhere. -->
     <script src="../../assets/navigation.js"></script>
