@@ -746,6 +746,9 @@ export class BelowViewer extends EventSystem {
       
       this.sceneManager.add(model);
       this.loadedModels.push({ model, url, options, originalCenter, tileset });
+      if (options.autoClip !== false) {
+        this.fitCameraClippingToModel(model, options.cameraFarMultiplier ?? 2);
+      }
       
       if (this.loadedModels.length === 1 && options.autoFrame !== false) {
         this.frameModel(model);
@@ -795,6 +798,69 @@ export class BelowViewer extends EventSystem {
     const center = box.getCenter(new THREE.Vector3());
     
     this.cameraManager.frameObject(center, size);
+  }
+
+  fitCameraClippingToModel(model, multiplier = 2) {
+    const box = this.getValidModelBoundingBox(model);
+    if (!box || !this.cameraManager) {
+      return null;
+    }
+
+    const size = box.getSize(new THREE.Vector3());
+    const modelSize = Math.max(size.length(), size.x, size.y, size.z, 0.001);
+    const farMultiplier = Math.max(Number(multiplier) || 2, 1);
+    const minimumFar = modelSize * farMultiplier;
+    const clipping = this.cameraManager.ensureMinimumFar(minimumFar);
+
+    this.emit('camera-clipping-change', {
+      model,
+      modelSize,
+      multiplier: farMultiplier,
+      ...clipping
+    });
+
+    return {
+      modelSize,
+      multiplier: farMultiplier,
+      ...clipping
+    };
+  }
+
+  fitCameraClipping(multiplier = 2) {
+    if (!this.loadedModels.length) {
+      return null;
+    }
+
+    const bounds = new THREE.Box3();
+    let hasBounds = false;
+    this.loadedModels.forEach(({ model }) => {
+      const box = this.getValidModelBoundingBox(model);
+      if (!box) return;
+      bounds.union(box);
+      hasBounds = true;
+    });
+
+    if (!hasBounds) {
+      return null;
+    }
+
+    const tempGroup = new THREE.Group();
+    tempGroup.userData.boundingBox = bounds;
+    return this.fitCameraClippingToModel(tempGroup, multiplier);
+  }
+
+  setCameraClipping({ near, far } = {}) {
+    if (!this.cameraManager) {
+      return null;
+    }
+
+    const clipping = this.cameraManager.setClipping({ near, far });
+    this.emit('camera-clipping-change', clipping);
+    return clipping;
+  }
+
+  setCameraFar(far) {
+    return this.setCameraClipping({ far });
   }
 
   isValidBox3(box) {

@@ -1402,11 +1402,45 @@ export class ModelViewer extends EventSystem {
 
     if (this.ui.dropdown) {
       this.ui.dropdown.addEventListener('change', (event) => {
-        if (event.target.value) {
-          this.loadModel(event.target.value);
+        const modelKey = event.target.value;
+        if (modelKey) {
+          this.releaseModelSelectorInteraction(event);
+          this.loadModel(modelKey);
         }
       });
     }
+  }
+
+  focusRendererCanvas() {
+    const canvas = this.belowViewer?.renderer?.domElement;
+    if (!canvas) return;
+    if (!canvas.hasAttribute('tabindex')) {
+      canvas.tabIndex = -1;
+    }
+    canvas.focus?.({ preventScroll: true });
+  }
+
+  releaseModelSelectorInteraction(event = {}) {
+    const dropdown = event.target?.closest?.('.model-selector__dropdown') || this.ui.dropdown;
+    if (dropdown) {
+      dropdown.blur();
+    }
+    this.focusRendererCanvas();
+  }
+
+  settleControlsAfterModelSwitch() {
+    this.releaseModelSelectorInteraction();
+    const controls = this.belowViewer?.cameraManager?.getControls?.();
+    if (controls) {
+      controls.enabled = true;
+      this.belowViewer?.cameraManager?.resetControlInteractionState?.();
+      controls.update?.();
+    }
+    requestAnimationFrame(() => {
+      this.releaseModelSelectorInteraction();
+      this.belowViewer?.cameraManager?.resetControlInteractionState?.();
+      controls?.update?.();
+    });
   }
 
   ensureUiRoot() {
@@ -1970,6 +2004,7 @@ export class ModelViewer extends EventSystem {
 
         this.modelReady = true;
         this.recoveryAttempts = 0;
+        this.settleControlsAfterModelSwitch();
         this.emit('model-switched', { modelKey, model, config: modelConfig });
         this.emit('modelLoaded', { modelKey, model, config: modelConfig });
       } else if (this.currentModelKey === modelKey) {

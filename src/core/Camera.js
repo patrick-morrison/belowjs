@@ -155,6 +155,78 @@ export class Camera extends EventSystem {
     return this.replaceCamera(nextCamera);
   }
 
+  setClipping({ near, far } = {}) {
+    if (!this.camera) {
+      return null;
+    }
+
+    const nextNear = Number(near);
+    const nextFar = Number(far);
+
+    const finalFar = (Number.isFinite(nextFar) && nextFar > 0)
+      ? nextFar
+      : this.camera.far;
+
+    if (Number.isFinite(nextNear) && nextNear > 0 && nextNear < finalFar) {
+      this.camera.near = nextNear;
+      this.config.near = nextNear;
+    }
+
+    if (Number.isFinite(nextFar) && nextFar > this.camera.near) {
+      this.camera.far = nextFar;
+      this.config.far = nextFar;
+      this.camera.userData ||= {};
+      this.camera.userData.belowMinimumFar = nextFar;
+    }
+
+    this.camera.updateProjectionMatrix();
+    this.emit('change', { camera: this.camera });
+    return {
+      near: this.camera.near,
+      far: this.camera.far
+    };
+  }
+
+  setFar(far) {
+    return this.setClipping({ far });
+  }
+
+  ensureMinimumFar(minimumFar) {
+    if (!this.camera) {
+      return null;
+    }
+
+    const requestedFar = Number(minimumFar);
+    if (!Number.isFinite(requestedFar) || requestedFar <= this.camera.near) {
+      return {
+        near: this.camera.near,
+        far: this.camera.far
+      };
+    }
+
+    const existingMinimum = Number(this.camera.userData?.belowMinimumFar);
+    const nextMinimum = Math.max(
+      Number.isFinite(existingMinimum) ? existingMinimum : 0,
+      requestedFar
+    );
+
+    this.camera.userData ||= {};
+    this.camera.userData.belowMinimumFar = nextMinimum;
+
+    if (this.camera.far < nextMinimum) {
+      this.camera.far = nextMinimum;
+      this.config.far = nextMinimum;
+      this.camera.updateProjectionMatrix();
+      this.emit('change', { camera: this.camera });
+    }
+
+    return {
+      near: this.camera.near,
+      far: this.camera.far,
+      minimumFar: nextMinimum
+    };
+  }
+
   replaceCamera(nextCamera) {
     const previousCamera = this.camera;
     if (!previousCamera || !nextCamera) {

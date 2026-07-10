@@ -292,8 +292,8 @@ export class VRCore {
   applyQuestOptimizations(deviceType) {
 
     if (deviceType === 'quest2') {
-
-      this.camera.far = 20;
+      const minimumFar = Number(this.camera.userData?.belowMinimumFar);
+      this.camera.far = Math.max(20, Number.isFinite(minimumFar) ? minimumFar : 0);
       this.camera.updateProjectionMatrix();
     }
   }

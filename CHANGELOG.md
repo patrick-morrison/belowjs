@@ -14,9 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tileset performance options: `idleGating` (+ epsilons/heartbeat), `vrErrorTargetFloor`, `vrMaxDepth`, `vrMaxTriangles`, `vrPerformanceProfile`, `tileCastShadow`, `tileReceiveShadow`, `tileLighting: 'lambert'`, `boundsUpdateIntervalMs`, and VR tile shadow caster caps (`vrShadowCasterMode`, `vrMaxShadowCastingTiles`, `vrShadowCasterRadius`).
 - Added automatic VR performance profiles (`viewerConfig.vr.performanceProfile: 'auto' | 'standalone' | 'pcvr'`) plus `viewerConfig.vr.shadowProfile`, `viewerConfig.vr.foveation`, and `viewerConfig.vr.framebufferScaleFactor`.
 - Added an autonomous Quest perf harness (`scripts/quest-perf-test.mjs`, `scripts/quest-adb.sh`) that drives the tileset example through a scripted VR tour over adb + Chrome DevTools Protocol and reports page + compositor metrics per A/B variant.
-- Added console helpers for orthographic view, scene brightness, and stereo control.
+- Added console helpers for orthographic view, clipping distance, scene brightness, and stereo control.
 
 ### Changed
+- Model loads now keep the camera far clipping plane at least 2x the model size.
 - Tileset traversal now registers a single XR camera by default (`usePerEyeCameras: false`), halving per-frame tiles traversal in VR; per-frame camera/resolution sync is now allocation-free and change-detected.
 - Tileset updates are skipped while the camera is still and no tiles are streaming (idle gating with a 250 ms heartbeat), removing steady-state CPU cost in VR.
 - In VR, adaptive tileset quality no longer refines below `vrErrorTargetFloor` when holding still — this was the main close-range frame-rate collapse.

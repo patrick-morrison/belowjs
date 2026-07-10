@@ -90,9 +90,11 @@ export class DiveSystem {
    * Apply Quest-specific optimizations
    */
   applyQuestOptimizations() {
+    const minimumFar = Number(this.camera.userData?.belowMinimumFar);
+
     if (this.isQuest2) {
 
-      this.camera.far = 20;
+      this.camera.far = Math.max(20, Number.isFinite(minimumFar) ? minimumFar : 0);
       this.camera.updateProjectionMatrix();
       
 
@@ -102,7 +104,7 @@ export class DiveSystem {
       
     } else {
 
-      this.camera.far = 2000;
+      this.camera.far = Math.max(2000, Number.isFinite(minimumFar) ? minimumFar : 0);
       this.camera.updateProjectionMatrix();
       
 

@@ -104,6 +104,59 @@ export class DebugCommands {
       return { projection: 'perspective', camera };
     };
 
+    window.camera.setFar = (far = 2000) => {
+      const distance = Number(far);
+      if (!Number.isFinite(distance) || distance <= 0) {
+        console.warn('Usage: camera.setFar(10000)');
+        return null;
+      }
+
+      const clipping = viewer.setCameraFar?.(distance) || viewer.cameraManager?.setFar?.(distance);
+      if (!clipping) {
+        console.warn('Camera not initialized');
+        return null;
+      }
+
+      console.log(`Camera far clipping: ${clipping.far}`);
+      return clipping;
+    };
+
+    window.camera.setClipping = (near, far) => {
+      if (near === undefined && far === undefined) {
+        const camera = viewer.cameraManager?.camera;
+        if (!camera) {
+          console.warn('Camera not initialized');
+          return null;
+        }
+
+        const clipping = { near: camera.near, far: camera.far };
+        console.table(clipping);
+        console.log('Usage: camera.setClipping(0.05, 10000) or camera.setClipping(10000)');
+        return clipping;
+      }
+
+      const clippingArgs = far === undefined ? { far: near } : { near, far };
+      const clipping = viewer.setCameraClipping?.(clippingArgs) || viewer.cameraManager?.setClipping?.(clippingArgs);
+      if (!clipping) {
+        console.warn('Camera not initialized');
+        return null;
+      }
+
+      console.log(`Camera clipping: near ${clipping.near}, far ${clipping.far}`);
+      return clipping;
+    };
+
+    window.camera.fitClipping = (multiplier = 2) => {
+      const clipping = viewer.fitCameraClipping?.(multiplier);
+      if (!clipping) {
+        console.warn('No model bounds available');
+        return null;
+      }
+
+      console.log(`Camera far clipping: ${clipping.far} (minimum ${clipping.minimumFar.toFixed(3)}, ${clipping.multiplier}x model size)`);
+      return clipping;
+    };
+
     window.camera.setStereo = (enable, eyeSeparation) => {
       if (enable === undefined) {
         const stereoInfo = {
@@ -370,6 +423,9 @@ export class DebugCommands {
       console.log('  camera()                  - Get current camera position data');
       console.log('  camera.setOrthographic()  - Switch desktop camera to orthographic projection');
       console.log('  camera.setPerspective()   - Switch desktop camera to perspective projection');
+      console.log('  camera.setFar(n)          - Set camera far clipping distance');
+      console.log('  camera.setClipping(n, f)  - Set near/far, or one value for far only');
+      console.log('  camera.fitClipping(2)     - Set far clipping to at least 2x loaded model size');
       console.log('  camera.setStereo()        - Get/set stereo mode and eye separation');
       console.log('  scene()                   - Get scene information and object counts');
       console.log('  scene.setBrightness(n)    - Set scene brightness from -3 dark to +3 bright');
