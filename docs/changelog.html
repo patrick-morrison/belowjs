@@ -222,7 +222,7 @@
                         <li><span class="change-type new">New</span> Model comparison controls for already-aligned models and C2C/ICP sample counts</li>
                         <li><span class="change-type new">New</span> PerfMonitor diagnostics (<code>viewerConfig.perfStats</code>, <code>?stats=1</code>) with frame times, draw calls and tileset streaming stats</li>
                         <li><span class="change-type new">New</span> Tileset performance options: idle gating, VR error-target floor, VR-only triangle budget, automatic VR quality profile, tile shadow caster caps, and tile lighting controls</li>
-                        <li><span class="change-type new">New</span> VR render controls: <code>viewerConfig.vr.performanceProfile</code>, <code>viewerConfig.vr.shadowProfile</code>, <code>viewerConfig.vr.foveation</code>, and <code>viewerConfig.vr.framebufferScaleFactor</code>, covering standalone Quest and desktop PCVR headsets such as Valve Index</li>
+                        <li><span class="change-type new">New</span> VR render controls: <code>viewerConfig.vr.performanceProfile</code>, <code>viewerConfig.vr.shadowProfile</code>, <code>viewerConfig.vr.foveation</code>, and <code>viewerConfig.vr.framebufferScaleFactor</code></li>
                         <li><span class="change-type new">New</span> Autonomous Quest perf harness (adb + DevTools) with a scripted VR test tour in the tileset example</li>
                         <li><span class="change-type new">New</span> Console helpers for orthographic view, clipping distance, scene brightness, and stereo control</li>
                     </ul>
@@ -232,7 +232,7 @@
                         <li><span class="change-type improved">Improved</span> Model loads keep the camera far clipping plane at least 2x the model size</li>
                         <li><span class="change-type improved">Improved</span> VR tileset performance: single-camera traversal, allocation-free per-frame sync, idle-gated updates, close-range refinement floor, debounced bounds</li>
                         <li><span class="change-type improved">Improved</span> Tileset example no longer enables logarithmic depth by default (costly on standalone headsets); <code>?logdepth=1</code> restores it</li>
-                        <li><span class="change-type improved">Improved</span> Tileset example scales automatically: standalone Quest uses the measured conservative profile, while desktop PCVR/Valve Index opens the framebuffer, shadow, and tileset quality gates</li>
+                        <li><span class="change-type improved">Improved</span> Tileset example scales automatically: standalone Quest uses the measured conservative profile, while desktop PCVR opens the framebuffer, shadow, and tileset quality gates</li>
                         <li><span class="change-type improved">Improved</span> Desktop tile streaming budgets queue work per frame and pre-uploads textures, removing intermittent hitches as tiles land</li>
                     </ul>
 
