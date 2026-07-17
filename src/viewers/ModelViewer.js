@@ -74,7 +74,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {Object} [desktop] - Desktop-specific camera controls
  * @property {boolean} [desktop.enableDamping=true] - Enable camera damping
  * @property {number} [desktop.dampingFactor=0.08] - Damping factor (0-1)
- * @property {number} [desktop.maxDistance=100] - Maximum zoom distance
+ * @property {number} [desktop.maxDistance=150] - Maximum zoom distance
  * @property {number} [desktop.minDistance=0.5] - Minimum zoom distance
  */
 

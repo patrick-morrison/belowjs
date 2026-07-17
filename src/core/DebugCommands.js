@@ -157,6 +157,39 @@ export class DebugCommands {
       return clipping;
     };
 
+    window.camera.setMaxDistance = (maxDistance) => {
+      const controls = viewer.cameraManager?.getControls?.();
+      if (!controls) {
+        console.warn('Camera controls not initialized');
+        return null;
+      }
+
+      if (maxDistance === undefined) {
+        const limits = {
+          minDistance: controls.minDistance,
+          maxDistance: controls.maxDistance
+        };
+        console.table(limits);
+        console.log('Usage: camera.setMaxDistance(250)');
+        return limits;
+      }
+
+      const distance = Number(maxDistance);
+      if (!Number.isFinite(distance) || distance <= controls.minDistance) {
+        console.warn(`Usage: camera.setMaxDistance(n) where n is greater than ${controls.minDistance}`);
+        return null;
+      }
+
+      controls.maxDistance = distance;
+      controls.update();
+
+      console.log(`Camera max distance: ${controls.maxDistance}`);
+      return {
+        minDistance: controls.minDistance,
+        maxDistance: controls.maxDistance
+      };
+    };
+
     window.camera.setStereo = (enable, eyeSeparation) => {
       if (enable === undefined) {
         const stereoInfo = {
@@ -426,6 +459,7 @@ export class DebugCommands {
       console.log('  camera.setFar(n)          - Set camera far clipping distance');
       console.log('  camera.setClipping(n, f)  - Set near/far, or one value for far only');
       console.log('  camera.fitClipping(2)     - Set far clipping to at least 2x loaded model size');
+      console.log('  camera.setMaxDistance(n)  - Set desktop orbit zoom-out distance');
       console.log('  camera.setStereo()        - Get/set stereo mode and eye separation');
       console.log('  scene()                   - Get scene information and object counts');
       console.log('  scene.setBrightness(n)    - Set scene brightness from -3 dark to +3 bright');

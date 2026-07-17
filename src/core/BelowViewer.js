@@ -132,7 +132,7 @@ export class BelowViewer extends EventSystem {
           desktop: {
             enableDamping: true,
             dampingFactor: 0.08,
-            maxDistance: 100,
+            maxDistance: 150,
             minDistance: 0.5
           }
         },

@@ -641,7 +641,7 @@ class wa extends Et {
     if (!this.controls) {
       this.controls = new ca(this.camera, e);
       const t = this.config.desktop || {};
-      this.controls.enableDamping = t.enableDamping ?? !0, this.controls.dampingFactor = t.dampingFactor ?? 0.08, this.controls.maxDistance = t.maxDistance ?? 100, this.controls.minDistance = t.minDistance ?? 0.5, this.controls.addEventListener("change", () => {
+      this.controls.enableDamping = t.enableDamping ?? !0, this.controls.dampingFactor = t.dampingFactor ?? 0.08, this.controls.maxDistance = t.maxDistance ?? 150, this.controls.minDistance = t.minDistance ?? 0.5, this.controls.addEventListener("change", () => {
         this.emit("change");
       });
     }
@@ -10662,6 +10662,22 @@ class _r {
     }, window.camera.fitClipping = (t = 2) => {
       const s = e.fitCameraClipping?.(t);
       return s ? (console.log(`Camera far clipping: ${s.far} (minimum ${s.minimumFar.toFixed(3)}, ${s.multiplier}x model size)`), s) : (console.warn("No model bounds available"), null);
+    }, window.camera.setMaxDistance = (t) => {
+      const s = e.cameraManager?.getControls?.();
+      if (!s)
+        return console.warn("Camera controls not initialized"), null;
+      if (t === void 0) {
+        const r = {
+          minDistance: s.minDistance,
+          maxDistance: s.maxDistance
+        };
+        return console.table(r), console.log("Usage: camera.setMaxDistance(250)"), r;
+      }
+      const i = Number(t);
+      return !Number.isFinite(i) || i <= s.minDistance ? (console.warn(`Usage: camera.setMaxDistance(n) where n is greater than ${s.minDistance}`), null) : (s.maxDistance = i, s.update(), console.log(`Camera max distance: ${s.maxDistance}`), {
+        minDistance: s.minDistance,
+        maxDistance: s.maxDistance
+      });
     }, window.camera.setStereo = (t, s) => {
       if (t === void 0) {
         const i = {
@@ -10800,7 +10816,7 @@ class _r {
       const s = e.setPerfStats(t);
       return console.log(`📈 Performance stats ${t ? "enabled — watch for [BelowPerf] lines" : "disabled"}`), s;
     }, window.debugHelp = () => {
-      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()                  - Get current camera position data"), console.log("  camera.setOrthographic()  - Switch desktop camera to orthographic projection"), console.log("  camera.setPerspective()   - Switch desktop camera to perspective projection"), console.log("  camera.setFar(n)          - Set camera far clipping distance"), console.log("  camera.setClipping(n, f)  - Set near/far, or one value for far only"), console.log("  camera.fitClipping(2)     - Set far clipping to at least 2x loaded model size"), console.log("  camera.setStereo()        - Get/set stereo mode and eye separation"), console.log("  scene()                   - Get scene information and object counts"), console.log("  scene.setBrightness(n)    - Set scene brightness from -3 dark to +3 bright"), console.log("  vertices()                - Get scene vertex counts"), console.log("  models()                  - Get loaded models information"), console.log("  particles()               - Get particle system information"), console.log("  vr()                      - Get VR state and settings"), console.log("  perfStats(true|false)     - Toggle [BelowPerf] frame/tileset stats"), console.log("  stereo()                  - Deprecated; use camera.setStereo()"), console.log("  debugHelp()               - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
+      console.log("🔧 BelowJS Debug Commands:"), console.log("  camera()                  - Get current camera position data"), console.log("  camera.setOrthographic()  - Switch desktop camera to orthographic projection"), console.log("  camera.setPerspective()   - Switch desktop camera to perspective projection"), console.log("  camera.setFar(n)          - Set camera far clipping distance"), console.log("  camera.setClipping(n, f)  - Set near/far, or one value for far only"), console.log("  camera.fitClipping(2)     - Set far clipping to at least 2x loaded model size"), console.log("  camera.setMaxDistance(n)  - Set desktop orbit zoom-out distance"), console.log("  camera.setStereo()        - Get/set stereo mode and eye separation"), console.log("  scene()                   - Get scene information and object counts"), console.log("  scene.setBrightness(n)    - Set scene brightness from -3 dark to +3 bright"), console.log("  vertices()                - Get scene vertex counts"), console.log("  models()                  - Get loaded models information"), console.log("  particles()               - Get particle system information"), console.log("  vr()                      - Get VR state and settings"), console.log("  perfStats(true|false)     - Toggle [BelowPerf] frame/tileset stats"), console.log("  stereo()                  - Deprecated; use camera.setStereo()"), console.log("  debugHelp()               - Show this help message"), console.log(""), console.log("Global objects:"), console.log("  belowViewer - Direct access to BelowViewer instance");
     });
   }
   /**
@@ -10949,7 +10965,7 @@ class Th extends Et {
           desktop: {
             enableDamping: !0,
             dampingFactor: 0.08,
-            maxDistance: 100,
+            maxDistance: 150,
             minDistance: 0.5
           }
         },

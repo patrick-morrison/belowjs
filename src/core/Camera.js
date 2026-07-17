@@ -69,7 +69,7 @@ export class Camera extends EventSystem {
       const controlsConfig = this.config.desktop || {};
       this.controls.enableDamping = controlsConfig.enableDamping ?? true;
       this.controls.dampingFactor = controlsConfig.dampingFactor ?? 0.08;
-      this.controls.maxDistance = controlsConfig.maxDistance ?? 100;
+      this.controls.maxDistance = controlsConfig.maxDistance ?? 150;
       this.controls.minDistance = controlsConfig.minDistance ?? 0.5;
       
       this.controls.addEventListener('change', () => {
