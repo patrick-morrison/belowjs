@@ -218,11 +218,22 @@
                     <h4>Added</h4>
                     <ul>
                         <li><span class="change-type new">New</span> <code>camera.setMaxDistance(n)</code> for adjusting the desktop orbit zoom-out limit from the console</li>
+                        <li><span class="change-type new">New</span> <code>loadAncestors</code> and <code>ktxWorkerLimit</code> tileset options for refinement continuity and texture-transcoding control</li>
+                        <li><span class="change-type new">New</span> Single-tab Quest route capture and replay tooling for benchmarking real headset paths without storing model data in the repository</li>
                     </ul>
 
                     <h4>Changed</h4>
                     <ul>
                         <li><span class="change-type improved">Improved</span> Default desktop orbit max distance increased from 100 to 150</li>
+                        <li><span class="change-type improved">Improved</span> Upgraded <code>3d-tiles-renderer</code> to 0.5.0 and aligned tileset traversal with its current ancestor-fallback and unlimited-depth defaults</li>
+                        <li><span class="change-type improved">Improved</span> Tile scheduling now follows the active WebXR animation frame</li>
+                        <li><span class="change-type improved">Improved</span> Standalone VR uses two KTX2 workers to reduce streaming bursts, while PCVR keeps four for faster loading on more capable hardware</li>
+                        <li><span class="change-type improved">Improved</span> Tileset performance telemetry includes queued and cached tile counts plus the active processing limit</li>
+                    </ul>
+
+                    <h4>Fixed</h4>
+                    <ul>
+                        <li><span class="change-type fixed">Fixed</span> Removed the old implicit tileset depth cap that could leave deeply nested model sections missing</li>
                     </ul>
                 </div>
             </div>

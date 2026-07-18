@@ -9,9 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added `camera.setMaxDistance(n)` for adjusting the desktop orbit zoom-out limit from the console.
+- Added `loadAncestors` and `ktxWorkerLimit` tileset options for explicit refinement continuity and texture-transcoding control.
+- Added single-tab Quest route capture and replay tooling so real headset paths can be benchmarked without storing model data in the repository.
 
 ### Changed
 - Increased the default desktop orbit max distance from 100 to 150.
+- Upgraded `3d-tiles-renderer` to 0.5.0 and aligned BelowJS with its current traversal defaults, including ancestor fallback and unlimited hierarchy depth.
+- Synced the renderer scheduler with the active WebXR session so queued tile work follows the headset animation frame.
+- Standalone VR now uses two KTX2 transcoder workers to reduce streaming bursts; PCVR keeps four workers for faster loading on more capable hardware.
+- `PerfMonitor` tileset telemetry now includes queued and cached tile counts plus the active per-frame processing limit.
+
+### Fixed
+- Removed the old implicit tileset depth cap that could leave deeply nested model sections missing.
 
 ## [1.8.0] - 2026-07-17
 

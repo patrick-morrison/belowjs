@@ -17,8 +17,10 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {number} [errorTarget] - Tileset SSE target for streaming refinement
  * @property {number} [maxDepth] - Tileset traversal depth limit
  * @property {boolean} [loadSiblings] - Load sibling tiles for smoother refinement
- * @property {boolean} [optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+ * @property {boolean} [loadAncestors] - Keep coarse ancestors visible while detailed children load
+ * @property {boolean} [optimizedLoadStrategy] - Deprecated alias; true sets loadAncestors=false
  * @property {number} [maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+ * @property {number} [ktxWorkerLimit] - KTX2 transcoder workers; defaults by VR performance profile
  * @property {Object} [fetchOptions] - Fetch options for tileset network requests
  * @property {string} [up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
  * @property {boolean|string} [geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
@@ -1954,8 +1956,10 @@ export class ModelViewer extends EventSystem {
         errorTarget: modelConfig.errorTarget,
         maxDepth: modelConfig.maxDepth,
         loadSiblings: modelConfig.loadSiblings,
+        loadAncestors: modelConfig.loadAncestors,
         optimizedLoadStrategy: modelConfig.optimizedLoadStrategy,
         maxTilesProcessed: modelConfig.maxTilesProcessed,
+        ktxWorkerLimit: modelConfig.ktxWorkerLimit,
         fetchOptions: modelConfig.fetchOptions,
         up: modelConfig.up,
         geospatialReorientation: modelConfig.geospatialReorientation,

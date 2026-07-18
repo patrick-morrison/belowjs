@@ -610,8 +610,10 @@ export class BelowViewer extends EventSystem {
    * @param {number} [options.errorTarget] - Tileset SSE target for streaming refinement
    * @param {number} [options.maxDepth] - Tileset traversal depth limit
    * @param {boolean} [options.loadSiblings] - Load sibling tiles for smoother refinement
-   * @param {boolean} [options.optimizedLoadStrategy] - Prioritize closer tiles over SSE error
+   * @param {boolean} [options.loadAncestors] - Keep coarse ancestors visible while detailed children load
+   * @param {boolean} [options.optimizedLoadStrategy] - Deprecated alias; true sets loadAncestors=false
    * @param {number} [options.maxTilesProcessed] - Tiles processed per frame for streaming tilesets
+   * @param {number} [options.ktxWorkerLimit] - KTX2 transcoder workers; defaults by VR performance profile
    * @param {Object} [options.fetchOptions] - Fetch options for tileset network requests
    * @param {string} [options.up='+Y'] - Up-axis hint for tilesets ('+Y', '+Z', '-Z', '+X', '-X', '-Y')
    * @param {boolean|string} [options.geospatialReorientation='auto'] - Auto-level geospatial tilesets ('auto' | 'force' | false)
@@ -683,8 +685,10 @@ export class BelowViewer extends EventSystem {
           errorTarget: options.errorTarget,
           maxDepth: options.maxDepth,
           loadSiblings: options.loadSiblings,
+          loadAncestors: options.loadAncestors,
           optimizedLoadStrategy: options.optimizedLoadStrategy,
           maxTilesProcessed: options.maxTilesProcessed,
+          ktxWorkerLimit: options.ktxWorkerLimit,
           fetchOptions: options.fetchOptions,
           up: options.up,
           autoCenter: options.autoCenter,
@@ -966,6 +970,7 @@ export class BelowViewer extends EventSystem {
         // In VR, prioritize rendering first and throttle tile update work to
         // reduce locomotion hitches from streaming/parsing bursts.
         if (isXRPresenting) {
+          this.tilesetLoader?.setXRSession(this.renderer.xr.getSession());
           renderScene();
 
           if (this.tilesetLoader) {
@@ -993,6 +998,7 @@ export class BelowViewer extends EventSystem {
             }
           }
         } else {
+          this.tilesetLoader?.setXRSession(null);
           if (this.tilesetLoader) {
             const activeTilesCamera = this.cameraManager.camera;
             // Budget queue ticks on desktop too: unbudgeted draining lands

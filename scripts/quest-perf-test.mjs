@@ -21,14 +21,22 @@
  */
 
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const PORT = process.env.PORT || '5173';
+const MODEL_PORT = process.env.MODEL_PORT || '';
+const TILESET_URL = process.env.TILESET_URL || '';
+const ROUTE_FILE = process.env.ROUTE_FILE || '';
+const PERF_OUTPUT_DIR = process.env.PERF_OUTPUT_DIR || '';
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}/examples/tileset/`;
 const RUN_TIMEOUT_MS = 180000;
 const VARIANTS = {
   baseline: '',
+  'no-ancestors': 'ancestors=0',
+  'no-ancestors-no-siblings': 'ancestors=0&siblings=0',
+  'ktx-workers-2': 'ktxworkers=2',
+  'ktx-workers-1': 'ktxworkers=1',
   'profile-standalone': 'vrprofile=standalone',
   'profile-pcvr': 'vrprofile=pcvr',
   logdepth: 'logdepth=1',
@@ -40,6 +48,8 @@ const VARIANTS = {
   'tileshadows-off': 'tileshadows=0',
   lambert: 'lambert=1',
   'errfloor-4': 'errfloor=4',
+  'errfloor-8': 'errfloor=8',
+  'errfloor-12': 'errfloor=12',
   'errfloor-16': 'errfloor=16',
   'errfloor-20': 'errfloor=20',
   'vrtris-550k': 'vrtris=550000',
@@ -49,7 +59,6 @@ const VARIANTS = {
 
 const adb = (...args) => execFileSync('adb', args, { encoding: 'utf8' });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const shellQuote = (value) => `'${String(value).replaceAll("'", "'\\''")}'`;
 
 // ---------------------------------------------------------------------------
 // CDP client — minimal single-session wrapper over the built-in WebSocket.
@@ -124,6 +133,10 @@ function preflight() {
 
   adb('reverse', `tcp:${PORT}`, `tcp:${PORT}`);
   console.log(`✓ adb reverse tcp:${PORT}`);
+  if (MODEL_PORT && MODEL_PORT !== PORT) {
+    adb('reverse', `tcp:${MODEL_PORT}`, `tcp:${MODEL_PORT}`);
+    console.log(`✓ adb reverse tcp:${MODEL_PORT}`);
+  }
 
   adb('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP');
   adb('shell', 'am', 'broadcast', '-a', 'com.oculus.vrpowermanager.automation_disable');
@@ -135,14 +148,6 @@ function restoreDevice() {
   try { adb('shell', 'am', 'broadcast', '-a', 'com.oculus.vrpowermanager.automation_enable'); } catch { /* best effort */ }
   try { adb('forward', '--remove-all'); } catch { /* best effort */ }
   try { adb('reverse', '--remove-all'); } catch { /* best effort */ }
-}
-
-function launchBrowser(url) {
-  execFileSync(
-    'adb',
-    ['shell', `am start -a android.intent.action.VIEW -d ${shellQuote(url)} -p com.oculus.browser`],
-    { encoding: 'utf8' }
-  );
 }
 
 function forwardDevtools() {
@@ -162,62 +167,18 @@ async function listTabs() {
   return response.json();
 }
 
-async function closeTab(tab) {
-  if (!tab?.id) return;
+async function prepareBrowserTab() {
   try {
-    await fetch(`http://127.0.0.1:9222/json/close/${encodeURIComponent(tab.id)}`);
+    forwardDevtools();
   } catch {
-    // Best effort; duplicate tabs are annoying, not fatal to the run.
+    throw new Error('Quest Browser DevTools is unavailable. Open one browser tab on the headset first.');
   }
-}
 
-async function closeDuplicateTilesetTabs(keepTab) {
   const tabs = await listTabs();
-  const duplicates = tabs.filter((tab) => (
-    tab.type === 'page'
-    && tab.id !== keepTab.id
-    && tab.url.includes('/examples/tileset/')
-  ));
-  for (const tab of duplicates) {
-    await closeTab(tab);
+  const tab = tabs.find((candidate) => candidate.type === 'page' && candidate.webSocketDebuggerUrl);
+  if (!tab) {
+    throw new Error('No existing Quest Browser page target found. The harness will not create extra tabs.');
   }
-  if (duplicates.length > 0) {
-    console.log(`✓ closed ${duplicates.length} duplicate tileset tab${duplicates.length === 1 ? '' : 's'}`);
-  }
-}
-
-async function findTab(urlFragment) {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    try {
-      const tabs = await listTabs();
-      const tab = tabs.find((t) => t.type === 'page' && t.url.includes(urlFragment));
-      if (tab?.webSocketDebuggerUrl) return tab;
-    } catch { /* devtools not ready yet */ }
-    await sleep(1000);
-  }
-  throw new Error(`Tab matching "${urlFragment}" not found via CDP.`);
-}
-
-async function prepareBrowserTab(url) {
-  try {
-    forwardDevtools();
-  } catch {
-    launchBrowser(url);
-    await sleep(6000);
-    forwardDevtools();
-  }
-
-  let tab = null;
-  try {
-    tab = await findTab('examples/tileset');
-  } catch {
-    launchBrowser(url);
-    await sleep(6000);
-    forwardDevtools();
-    tab = await findTab('examples/tileset');
-  }
-
-  await closeDuplicateTilesetTabs(tab);
   return tab;
 }
 
@@ -254,7 +215,12 @@ function startVrApiCapture() {
 // One variant run
 // ---------------------------------------------------------------------------
 async function runVariant(name, extraParams) {
-  const params = new URLSearchParams({ stats: '1', autotest: '1', run: String(Date.now()) });
+  const params = new URLSearchParams({ stats: '1', run: String(Date.now()) });
+  if (!ROUTE_FILE) params.set('autotest', '1');
+  if (TILESET_URL) {
+    params.set('url', TILESET_URL);
+    params.set('route', 'auto');
+  }
   if (extraParams) {
     for (const pair of extraParams.split('&')) {
       const [key, value = '1'] = pair.split('=');
@@ -265,7 +231,7 @@ async function runVariant(name, extraParams) {
   console.log(`\n── ${name} ──────────────────────────────`);
   console.log(`   ${url}`);
 
-  const tab = await prepareBrowserTab(url);
+  const tab = await prepareBrowserTab();
   const cdp = new Cdp(tab.webSocketDebuggerUrl);
   await cdp.connect();
   await cdp.send('Runtime.enable');
@@ -273,7 +239,7 @@ async function runVariant(name, extraParams) {
   try {
     // Drive the same Quest Browser tab for every variant instead of opening
     // fresh tabs. Quest Browser keeps launched intents around aggressively.
-    await cdp.eval('window.belowViewer?.renderer?.xr?.getSession()?.end()');
+    await endImmersiveSession(cdp);
     await cdp.eval(`window.location.replace(${JSON.stringify(url)})`);
     await sleep(6000);
 
@@ -306,8 +272,52 @@ async function runVariant(name, extraParams) {
     if (!presenting) {
       throw new Error('Could not enter VR via CDP — try `adb shell input tap` fallback or check headset state.');
     }
-    console.log('✓ presenting in VR, tour starting');
-    await cdp.eval('window.__startBelowTilesetAutotest?.()');
+    console.log(`✓ presenting in VR, ${ROUTE_FILE ? 'recorded route' : 'tour'} starting`);
+    if (ROUTE_FILE) {
+      const route = JSON.parse(readFileSync(ROUTE_FILE, 'utf8'));
+      const poses = route.samples
+        .filter((sample) => Array.isArray(sample.dollyPosition) && Array.isArray(sample.dollyQuaternion))
+        .map((sample) => ({
+          t: sample.t,
+          position: sample.dollyPosition,
+          quaternion: sample.dollyQuaternion
+        }));
+      await cdp.eval(`
+        (() => {
+          const poses = ${JSON.stringify(poses)};
+          window.__perfSamples = [];
+          window.__autotestDone = false;
+          window.__autotestPhase = 'recorded-route';
+          const startedAt = performance.now();
+          const samplePerf = () => {
+            if (window.__belowPerf) window.__perfSamples.push({ phase: 'recorded-route', ...window.__belowPerf });
+            if (!window.__autotestDone) setTimeout(samplePerf, 1000);
+          };
+          const step = (index) => {
+            if (index >= poses.length) {
+              window.__autotestDone = true;
+              window.__autotestPhase = 'done';
+              return;
+            }
+            const pose = poses[index];
+            const dolly = window.belowViewer?.dolly;
+            if (dolly) {
+              dolly.position.fromArray(pose.position);
+              dolly.quaternion.fromArray(pose.quaternion);
+              dolly.updateMatrixWorld(true);
+            }
+            const nextDelay = index + 1 < poses.length ? Math.max(0, poses[index + 1].t - pose.t) : 0;
+            setTimeout(() => step(index + 1), nextDelay);
+          };
+          samplePerf();
+          step(0);
+          window.__autotestRoute = { kind: 'recorded', samples: poses.length, durationMs: poses.at(-1)?.t || 0 };
+          window.__recordedRouteStartedAt = startedAt;
+        })()
+      `);
+    } else {
+      await cdp.eval('window.__startBelowTilesetAutotest?.()');
+    }
     await sleep(500);
 
     const vrapi = startVrApiCapture();
@@ -315,7 +325,7 @@ async function runVariant(name, extraParams) {
     let payload = null;
     while (Date.now() - startMs < RUN_TIMEOUT_MS) {
       await sleep(2000);
-      payload = await cdp.eval('JSON.stringify({done: window.__autotestDone === true, phase: window.__autotestPhase, samples: window.__perfSamples || []})');
+      payload = await cdp.eval('JSON.stringify({done: window.__autotestDone === true, phase: window.__autotestPhase, route: window.__autotestRoute || null, samples: window.__perfSamples || []})');
       const parsed = JSON.parse(payload);
       process.stdout.write(`\r   phase: ${parsed.phase || '…'}  samples: ${parsed.samples.length}   `);
       if (parsed.done) break;
@@ -326,12 +336,27 @@ async function runVariant(name, extraParams) {
     if (!parsed.done) {
       console.warn('   ⚠ tour did not finish before timeout — partial data');
     }
-    return { name, url, samples: parsed.samples || [], vrapi: vrapiLines };
+    return { name, url, route: parsed.route || null, samples: parsed.samples || [], vrapi: vrapiLines };
   } finally {
     // Leave VR so the next variant starts clean.
-    try { await cdp.eval('window.belowViewer?.renderer?.xr?.getSession()?.end()'); } catch { /* session may be gone */ }
+    try { await endImmersiveSession(cdp); } catch { /* session may be gone */ }
     cdp.close();
   }
+}
+
+async function endImmersiveSession(cdp) {
+  await cdp.eval(`
+    (() => {
+      const session = window.belowViewer?.renderer?.xr?.getSession?.();
+      if (!session) return Promise.resolve();
+      return new Promise((resolve) => {
+        session.addEventListener('end', resolve, { once: true });
+        session.end().catch(resolve);
+        setTimeout(resolve, 3000);
+      });
+    })()
+  `);
+  await sleep(1000);
 }
 
 async function waitFor(cdp, expression, timeoutMs, label) {
@@ -366,6 +391,8 @@ function summarize(result) {
     errorTarget: median(use.map((s) => s.tiles?.tilesets?.[0]?.errorTarget).filter(Number.isFinite)),
     vrProfile: use.find((s) => s.tiles?.tilesets?.[0]?.vrProfile)?.tiles?.tilesets?.[0]?.vrProfile ?? null,
     tilesVisible: median(use.map((s) => s.tiles?.tilesets?.[0]?.visible).filter(Number.isFinite)),
+    tilesQueued: median(use.map((s) => s.tiles?.tilesets?.[0]?.queued).filter(Number.isFinite)),
+    tilesCached: median(use.map((s) => s.tiles?.tilesets?.[0]?.inCache).filter(Number.isFinite)),
     shadowCasters: median(use.map((s) => s.tiles?.tilesets?.[0]?.shadowCasters).filter(Number.isFinite)),
     vrapiFps: median(result.vrapi.map((l) => l.fps)),
     vrapiStaleTotal: stale.length > 0 ? stale.reduce((a, b) => a + b, 0) : null
@@ -373,9 +400,9 @@ function summarize(result) {
 }
 
 function writeReport(dir, summaries, results) {
-  const header = '| variant | profile | fps (page) | frame ms p95 | draw calls | tris | errorTarget | tiles vis | shadow casters | VrApi FPS | Stale total |';
-  const divider = '|---|---|---|---|---|---|---|---|---|---|---|';
-  const rows = summaries.map((s) => `| ${s.variant} | ${s.vrProfile ?? '-'} | ${s.fps ?? '-'} | ${s.frameMsP95 ?? '-'} | ${s.calls ?? '-'} | ${s.triangles ? (s.triangles / 1e6).toFixed(2) + 'M' : '-'} | ${s.errorTarget ?? '-'} | ${s.tilesVisible ?? '-'} | ${s.shadowCasters ?? '-'} | ${s.vrapiFps ?? '-'} | ${s.vrapiStaleTotal ?? '-'} |`);
+  const header = '| variant | profile | fps (page) | frame ms p95 | draw calls | tris | errorTarget | tiles vis | queued | cached | shadow casters | VrApi FPS | Stale total |';
+  const divider = '|---|---|---|---|---|---|---|---|---|---|---|---|---|';
+  const rows = summaries.map((s) => `| ${s.variant} | ${s.vrProfile ?? '-'} | ${s.fps ?? '-'} | ${s.frameMsP95 ?? '-'} | ${s.calls ?? '-'} | ${s.triangles ? (s.triangles / 1e6).toFixed(2) + 'M' : '-'} | ${s.errorTarget ?? '-'} | ${s.tilesVisible ?? '-'} | ${s.tilesQueued ?? '-'} | ${s.tilesCached ?? '-'} | ${s.shadowCasters ?? '-'} | ${s.vrapiFps ?? '-'} | ${s.vrapiStaleTotal ?? '-'} |`);
 
   const report = [
     '# Quest tileset perf report',
@@ -416,7 +443,7 @@ async function main() {
     restoreDevice();
   }
 
-  const dir = join('scripts', 'perf-results', new Date().toISOString().replace(/[:.]/g, '-'));
+  const dir = PERF_OUTPUT_DIR || join('scripts', 'perf-results', new Date().toISOString().replace(/[:.]/g, '-'));
   mkdirSync(dir, { recursive: true });
   writeReport(dir, results.map(summarize), results);
 }

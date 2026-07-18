@@ -89,12 +89,12 @@
     <div class="docs-container">
         <div class="docs-content">
             <h1>Tiled Models</h1>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, February 15, 2026</em></p>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 1.5rem;"><em>Patrick Morrison, updated July 18, 2026</em></p>
 
             <h2>BelowJS supports tiled models to handle massive scenes</h2>
             <p>BelowJS supports both single-file GLB models and streamed 3D Tiles datasets. Use a standard model entry (default <code>type: 'gltf'</code>) for single-file delivery, or set <code>type: 'tileset'</code> when you need hierarchical streaming from a root <code>tileset.json</code>. For Quest-targeted GLBs, a practical upper limit is around 1.2 million polygons; if you cannot stay near that after optimisation, use tilesets.</p>
             <p>At this scale, a single full-resolution model would be very slow to load over the internet, and trying to render all detail at once on a standalone Quest headset can freeze the device. With tilesets, BelowJS streams only the detail needed for the current view. During VR sessions, BelowJS prioritises rendering, then throttles and schedules tile queue work with small per-frame budgets to reduce locomotion hitches while streaming.</p>
-            <p>We have tested datasets up to 20 million vertices; in theory, this streaming approach should scale arbitrarily, similar to how Google Earth streams the entire planet.</p>
+            <p>The complete dataset can be much larger than device memory because only a working set is downloaded, decoded, cached, and drawn. Practical scale still depends on a sound tile hierarchy, useful levels of detail, texture sizes, host throughput, and how quickly the viewer moves into uncached areas.</p>
 
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin: 1.5rem 0 2rem 0;">
                 <img src="screenshots/tileset.gif" alt="Denton Holme and Macedon model loading in BelowJS with progressive 3D Tiles streaming" style="width: 100%; height: auto; border-radius: 8px; display: block;">
@@ -116,10 +116,11 @@
   up: '+Z',
   geospatialReorientation: 'auto',
   autoCenter: true,
-  maxTriangles: 1000000
+  maxTriangles: 1000000,
+  loadAncestors: true
 }</code></pre>
-            <p><code>url</code> must point to the root <code>tileset.json</code>. Loader defaults include <code>geospatialReorientation: 'auto'</code>, <code>autoCenter: true</code>, <code>errorTarget: 12</code>, <code>maxDepth: 25</code>, <code>loadSiblings: true</code>, <code>optimizedLoadStrategy: false</code>, and <code>maxTilesProcessed: 224</code>. Set <code>maxTriangles</code> explicitly in your model config (the <a href="../examples/tileset/" target="_blank">tiled model example</a> uses <code>1000000</code>).</p>
-            <p>At runtime, BelowJS updates traversal cameras/resolution and adjusts quality adaptively by changing <code>errorTarget</code> and <code>maxTilesProcessed</code> based on camera motion and rendered triangle counts.</p>
+            <p><code>url</code> must point to the root <code>tileset.json</code>. BelowJS follows the current <code>3d-tiles-renderer</code> defaults unless you override them: <code>errorTarget: 16</code>, unlimited <code>maxDepth</code>, <code>loadSiblings: true</code>, <code>loadAncestors: true</code>, and <code>maxTilesProcessed: 250</code>. Keeping ancestors loaded preserves a coarse fallback until detailed children are ready, which avoids visible holes while moving. Set <code>loadAncestors: false</code> only after measuring the memory and visual-continuity tradeoff on your own tileset.</p>
+            <p>At runtime, BelowJS updates traversal cameras and resolution, then adjusts quality adaptively by changing <code>errorTarget</code> and <code>maxTilesProcessed</code> based on camera motion and rendered triangle counts. Automatic VR profiles use two KTX2 texture-transcoding workers on standalone headsets to limit decode bursts and four on PCVR to use the extra CPU capacity; <code>ktxWorkerLimit</code> can override this per model.</p>
 
             <h2>Troubleshooting</h2>
             <ul>
@@ -137,7 +138,7 @@
 
             <h2>References</h2>
             <ul>
-                <li><a href="https://github.com/NASA-AMMOS/3DTilesRendererJS" target="_blank">NASA-AMMOS 3DTilesRendererJS (GitHub)</a> - powers tiled-model loading in BelowJS; we tune it, add more robust VR scheduling, and link with the rest of the BelowJS features</li>
+                <li><a href="https://github.com/NASA-AMMOS/3DTilesRendererJS" target="_blank">NASA-AMMOS 3DTilesRendererJS (GitHub)</a> - powers tiled-model loading in BelowJS; BelowJS 1.8 development tracks its 0.5 traversal and scheduling APIs</li>
                 <li><a href="https://github.com/CesiumGS/3d-tiles-tools" target="_blank">CesiumGS 3d-tiles-tools (GitHub)</a> - the CLI used by <code>convert-3tz.sh</code> to convert and upgrade Metashape exports</li>
             </ul>
 

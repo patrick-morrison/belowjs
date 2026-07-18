@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Scheduler } from '3d-tiles-renderer';
 import { TilesRenderer } from '3d-tiles-renderer/three';
 import { ImplicitTilingPlugin } from '3d-tiles-renderer/plugins';
 import { GLTFExtensionsPlugin } from '3d-tiles-renderer/three/plugins';
@@ -36,6 +37,7 @@ export class TilesetLoader {
     this.activeTilesets = new Set();
     this.tilesetStates = new Map();
     this.pendingQueueTasks = [];
+    this.xrSession = null;
     this._resolutionVec2 = new THREE.Vector2();
 
     // Diagnostics read by PerfMonitor.
@@ -52,6 +54,12 @@ export class TilesetLoader {
   setRenderer(renderer) {
     this.renderer = renderer;
     this.updateResolution();
+  }
+
+  setXRSession(session = null) {
+    if (session === this.xrSession) return;
+    this.xrSession = session;
+    Scheduler.setXRSession(session);
   }
 
   getResolutionConfig(state) {
@@ -395,6 +403,9 @@ export class TilesetLoader {
 
     const ktxLoader = new KTX2Loader();
     ktxLoader.setTranscoderPath(assetPaths.ktx2TranscoderPath);
+    if (Number.isFinite(options.ktxWorkerLimit) && options.ktxWorkerLimit > 0) {
+      ktxLoader.setWorkerLimit(Math.max(1, Math.floor(options.ktxWorkerLimit)));
+    }
     if (this.renderer) {
       ktxLoader.detectSupport(this.renderer);
     }
@@ -686,7 +697,7 @@ export class TilesetLoader {
 
     const baseErrorTarget = (typeof options.errorTarget === 'number' && options.errorTarget > 0)
       ? options.errorTarget
-      : (typeof tileset.errorTarget === 'number' && tileset.errorTarget > 0 ? tileset.errorTarget : 12);
+      : (typeof tileset.errorTarget === 'number' && tileset.errorTarget > 0 ? tileset.errorTarget : 16);
 
     const movingErrorTarget = this.clamp(
       typeof options.adaptiveMovingErrorTarget === 'number'
@@ -896,25 +907,23 @@ export class TilesetLoader {
       errorTarget,
       maxDepth,
       loadSiblings,
+      loadAncestors,
       optimizedLoadStrategy,
       maxTilesProcessed,
       fetchOptions
     } = options;
 
+    // Preserve 3d-tiles-renderer defaults unless a caller deliberately opts out.
     if (typeof errorTarget === 'number') tileset.errorTarget = errorTarget;
-    else tileset.errorTarget = 12;
-
     if (typeof maxDepth === 'number') tileset.maxDepth = maxDepth;
-    else tileset.maxDepth = 25;
-
     if (typeof loadSiblings === 'boolean') tileset.loadSiblings = loadSiblings;
-    else tileset.loadSiblings = true;
-
-    if (typeof optimizedLoadStrategy === 'boolean') tileset.optimizedLoadStrategy = optimizedLoadStrategy;
-    else tileset.optimizedLoadStrategy = false;
-
+    if (typeof loadAncestors === 'boolean') {
+      tileset.loadAncestors = loadAncestors;
+    } else if (typeof optimizedLoadStrategy === 'boolean') {
+      // Backward compatibility with 3d-tiles-renderer <= 0.4.x terminology.
+      tileset.loadAncestors = !optimizedLoadStrategy;
+    }
     if (typeof maxTilesProcessed === 'number') tileset.maxTilesProcessed = maxTilesProcessed;
-    else tileset.maxTilesProcessed = 224;
 
     if (fetchOptions && typeof fetchOptions === 'object') tileset.fetchOptions = fetchOptions;
   }
@@ -922,11 +931,15 @@ export class TilesetLoader {
   load(url, options = {}) {
     return new Promise((resolve, reject) => {
       const tileset = new BelowTilesRenderer(url);
+      const vrProfileDefaults = applyTilesetVRProfileDefaults(options);
       // Add support for subtree-based implicit tiling, common in 3D Tiles 1.1 datasets.
       tileset.registerPlugin(new ImplicitTilingPlugin());
       this.configureScheduling(tileset);
       this.applyOptions(tileset, options);
-      this.configureGltfExtensions(tileset, options);
+      this.configureGltfExtensions(tileset, {
+        ...options,
+        ktxWorkerLimit: vrProfileDefaults.ktxWorkerLimit
+      });
 
       const modelGroup = new THREE.Group();
       const geoGroup = new THREE.Group();
@@ -938,7 +951,6 @@ export class TilesetLoader {
       upGroup.add(tilesGroup);
       this.setUpAxis(upGroup, options.up || '+Y');
 
-      const vrProfileDefaults = applyTilesetVRProfileDefaults(options);
       const state = {
         tileset,
         modelGroup,

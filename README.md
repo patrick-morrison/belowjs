@@ -224,11 +224,13 @@ new ModelViewer('#container', {
       autoCenter: true,
       maxTriangles: 1000000, // adaptive LOD target for VR
       errorTarget: 16,
-      optimizedLoadStrategy: true
+      loadAncestors: true
     }
   }
 });
 ```
+
+Ancestor fallback keeps a coarse tile visible until its detailed children are ready, avoiding distracting holes during movement. BelowJS automatically uses a smaller texture-transcoding worker pool on standalone headsets and a larger pool on PCVR; set `ktxWorkerLimit` only when profiling a specific deployment.
 
 ### URL Parameter Integration
 The embed example supports URL parameters for dynamic configuration:

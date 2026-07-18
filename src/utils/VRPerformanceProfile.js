@@ -6,6 +6,7 @@ const STANDALONE_PROFILE = {
     shadowProfile: 'reduced'
   },
   tileset: {
+    ktxWorkerLimit: 2,
     vrMaxTriangles: 750000,
     vrErrorTargetFloor: 16,
     vrShadowCasterMode: 'near',
@@ -22,6 +23,7 @@ const PCVR_PROFILE = {
     shadowProfile: 'full'
   },
   tileset: {
+    ktxWorkerLimit: 4,
     vrMaxTriangles: 2400000,
     vrErrorTargetFloor: 4,
     vrShadowCasterMode: 'all',
@@ -85,6 +87,9 @@ export function applyTilesetVRProfileDefaults(options = {}) {
   const defaults = resolved.tileset;
   return {
     resolvedVRPerformanceProfile: resolved.name,
+    ktxWorkerLimit: (typeof options.ktxWorkerLimit === 'number' && options.ktxWorkerLimit > 0)
+      ? Math.floor(options.ktxWorkerLimit)
+      : defaults.ktxWorkerLimit,
     vrMaxTriangles: (typeof options.vrMaxTriangles === 'number' && options.vrMaxTriangles > 0)
       ? options.vrMaxTriangles
       : defaults.vrMaxTriangles,

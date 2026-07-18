@@ -60,6 +60,7 @@
     <div id="viewer"></div>
 
     <script type="module">
+        import * as THREE from 'three';
         import { ModelViewer } from 'belowjs';
 
         const DEFAULT_TILESET_URL = 'https://raw.githubusercontent.com/patrick-morrison/dentonholme-tiled/main/DentonHolmeMacedon2023_tiles/tileset.json';
@@ -85,6 +86,8 @@
         // ?lambert=1      cheaper Lambert shading for converted tile materials
         // ?foveation=N    override XR foveation 0..1
         // ?xrscale=N      override XR framebuffer scale 0.5..1.5
+        // ?ancestors=0    prioritize nearby tiles without coarse ancestor fallback
+        // ?siblings=0     do not preload sibling tiles during refinement
         const statsEnabled = params.get('stats') === '1';
         const autotestEnabled = params.get('autotest') === '1';
         const shadowsParam = params.get('shadows');
@@ -100,6 +103,9 @@
         const shadowRadius = Number.parseFloat(params.get('shadowradius'));
         const shadowModeParam = params.get('shadowmode');
         const shadowMode = ['all', 'near', 'none'].includes(shadowModeParam) ? shadowModeParam : null;
+        const loadAncestors = params.get('ancestors') !== '0' && params.get('optimised') !== '1';
+        const loadSiblings = params.get('siblings') !== '0';
+        const ktxWorkerLimit = Number.parseInt(params.get('ktxworkers'), 10);
 
         const VR_START = { x: 74.088, y: -108.156, z: -12.676 };
         const DESKTOP_TARGET = { x: 71.603, y: -110.98, z: -9.382 };
@@ -117,6 +123,9 @@
                     credit: 'Denton Holme and Macedon 2023',
                     up: upAxis,
                     autoCenter: true,
+                    loadAncestors,
+                    loadSiblings,
+                    ...(Number.isFinite(ktxWorkerLimit) && { ktxWorkerLimit }),
                     tileCastShadow: tileShadows,
                     tileReceiveShadow: tileShadows,
                     ...(params.get('lambert') === '1' && { tileLighting: 'lambert' }),
@@ -198,29 +207,94 @@
                 if (!dolly) return;
                 window.__autotestStarted = true;
 
-                // Close point: 0.4 m short of the desktop orbit target, which
-                // sits on the wreck surface — the reported lag hotspot.
-                const dir = {
-                    x: DESKTOP_TARGET.x - VR_START.x,
-                    y: DESKTOP_TARGET.y - VR_START.y,
-                    z: DESKTOP_TARGET.z - VR_START.z
+                const loadedModelRecord = belowViewer.getCurrentModel();
+                const loadedModel = loadedModelRecord?.model || loadedModelRecord;
+                const streamedBox = loadedModel ? new THREE.Box3().setFromObject(loadedModel) : null;
+                const box = streamedBox && !streamedBox.isEmpty()
+                    ? streamedBox
+                    : loadedModel?.userData?.boundingBox;
+                const useAutoRoute = params.get('route') === 'auto' || tilesetUrl !== DEFAULT_TILESET_URL;
+                const center = useAutoRoute && box
+                    ? {
+                        x: (box.min.x + box.max.x) * 0.5,
+                        y: (box.min.y + box.max.y) * 0.5,
+                        z: (box.min.z + box.max.z) * 0.5
+                    }
+                    : { ...DESKTOP_TARGET };
+                const size = useAutoRoute && box
+                    ? {
+                        x: box.max.x - box.min.x,
+                        y: box.max.y - box.min.y,
+                        z: box.max.z - box.min.z
+                    }
+                    : { x: 6, y: 6, z: 6 };
+                const horizontalSpan = Math.max(size.x, size.z, 2);
+                const startPoint = useAutoRoute
+                    ? { x: center.x, y: center.y, z: box.max.z + horizontalSpan * 0.5 }
+                    : { ...VR_START };
+                const rayOrigin = new THREE.Vector3(startPoint.x, startPoint.y, startPoint.z);
+                const rayDirection = new THREE.Vector3(
+                    center.x - startPoint.x,
+                    center.y - startPoint.y,
+                    center.z - startPoint.z
+                ).normalize();
+                const surfaceHit = useAutoRoute
+                    ? new THREE.Raycaster(rayOrigin, rayDirection).intersectObject(loadedModel, true)[0]
+                    : null;
+                const closePoint = useAutoRoute
+                    ? (surfaceHit
+                        ? {
+                            x: surfaceHit.point.x - rayDirection.x * 0.6,
+                            y: surfaceHit.point.y - rayDirection.y * 0.6,
+                            z: surfaceHit.point.z - rayDirection.z * 0.6
+                        }
+                        : { x: center.x, y: center.y, z: box.max.z + 0.6 })
+                    : (() => {
+                        const dir = {
+                            x: DESKTOP_TARGET.x - VR_START.x,
+                            y: DESKTOP_TARGET.y - VR_START.y,
+                            z: DESKTOP_TARGET.z - VR_START.z
+                        };
+                        const len = Math.hypot(dir.x, dir.y, dir.z);
+                        return {
+                            x: DESKTOP_TARGET.x - (dir.x / len) * 0.4,
+                            y: DESKTOP_TARGET.y - (dir.y / len) * 0.4,
+                            z: DESKTOP_TARGET.z - (dir.z / len) * 0.4
+                        };
+                    })();
+                dolly.position.set(startPoint.x, startPoint.y, startPoint.z);
+                if (useAutoRoute) {
+                    const xrCamera = belowViewer.renderer.xr.getCamera(belowViewer.cameraManager.camera);
+                    const currentForward = xrCamera.getWorldDirection(new THREE.Vector3());
+                    const desiredForward = new THREE.Vector3(
+                        center.x - startPoint.x,
+                        0,
+                        center.z - startPoint.z
+                    ).normalize();
+                    const currentYaw = Math.atan2(currentForward.x, currentForward.z);
+                    const desiredYaw = Math.atan2(desiredForward.x, desiredForward.z);
+                    dolly.rotation.y += desiredYaw - currentYaw;
+                }
+                window.__autotestRoute = {
+                    bounds: { x: size.x, y: size.y, z: size.z },
+                    surfaceHit: surfaceHit != null,
+                    closeDistance: Math.hypot(
+                        closePoint.x - center.x,
+                        closePoint.y - center.y,
+                        closePoint.z - center.z
+                    )
                 };
-                const len = Math.hypot(dir.x, dir.y, dir.z);
-                const closePoint = {
-                    x: DESKTOP_TARGET.x - (dir.x / len) * 0.4,
-                    y: DESKTOP_TARGET.y - (dir.y / len) * 0.4,
-                    z: DESKTOP_TARGET.z - (dir.z / len) * 0.4
-                };
-                const strafeAxis = { x: -dir.z / len, y: 0, z: dir.x / len };
+                const strafeAxis = { x: 1, y: 0, z: 0 };
+                const strafeDistance = Math.max(2.4, horizontalSpan * 0.12);
                 const runPoints = [
-                    -2.4,
-                    -1.2,
+                    -strafeDistance,
+                    -strafeDistance * 0.5,
                     0,
-                    1.2,
-                    2.4,
-                    1.2,
+                    strafeDistance * 0.5,
+                    strafeDistance,
+                    strafeDistance * 0.5,
                     0,
-                    -1.2
+                    -strafeDistance * 0.5
                 ].map((offset) => ({
                     x: closePoint.x + strafeAxis.x * offset,
                     y: closePoint.y,
@@ -236,10 +310,10 @@
 
                 const phases = [
                     { name: 'settle', durationMs: 8000, step: () => {} },
-                    { name: 'approach', durationMs: 10000, step: (t) => setDolly(dolly, VR_START, closePoint, t) },
+                    { name: 'approach', durationMs: 10000, step: (t) => setDolly(dolly, startPoint, closePoint, t) },
                     { name: 'close-hold', durationMs: 12000, step: () => {} },
                     { name: 'close-run', durationMs: 16000, step: runCloseLine },
-                    { name: 'retreat', durationMs: 8000, step: (t) => setDolly(dolly, closePoint, VR_START, t) }
+                    { name: 'retreat', durationMs: 8000, step: (t) => setDolly(dolly, closePoint, startPoint, t) }
                 ];
 
                 const sampler = setInterval(() => {
