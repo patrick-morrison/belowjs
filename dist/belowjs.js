@@ -10877,12 +10877,13 @@ class ph {
   }
   styleHandModel(e, t, s) {
     e.traverse((i) => {
-      i.isMesh && (i.material = new f.MeshStandardMaterial({
+      i.isMesh && (i.material?.dispose?.(), i.material = new f.MeshBasicMaterial({
         color: t,
-        roughness: 0.8,
-        metalness: 0.2,
         transparent: !0,
-        opacity: s
+        opacity: s,
+        depthWrite: !1,
+        side: f.FrontSide,
+        toneMapped: !1
       }));
     });
   }

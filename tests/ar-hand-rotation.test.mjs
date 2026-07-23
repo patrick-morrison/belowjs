@@ -32,3 +32,20 @@ test('world-y hand rotation remains stable over a complete revolution', () => {
   for (let i = 0; i < 72; i++) tracking.applyWorldYaw(model, Math.PI / 36);
   assert.ok(model.quaternion.angleTo(new THREE.Quaternion()) < 1e-7);
 });
+
+test('local AR hands use stable unlit front-face shading', () => {
+  const tracking = new ARHandTracking({});
+  const handModel = new THREE.Group();
+  const originalMaterial = new THREE.MeshStandardMaterial();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(), originalMaterial);
+  handModel.add(mesh);
+
+  tracking.styleHandModel(handModel, 0x88ccff, 0.25);
+
+  assert.equal(mesh.material.isMeshBasicMaterial, true);
+  assert.equal(mesh.material.side, THREE.FrontSide);
+  assert.equal(mesh.material.transparent, true);
+  assert.equal(mesh.material.opacity, 0.25);
+  assert.equal(mesh.material.depthWrite, false);
+  assert.equal(mesh.material.toneMapped, false);
+});

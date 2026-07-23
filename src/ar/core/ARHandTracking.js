@@ -121,12 +121,14 @@ export class ARHandTracking {
   styleHandModel(handModel, color, opacity) {
     handModel.traverse((child) => {
       if (child.isMesh) {
-        child.material = new THREE.MeshStandardMaterial({
+        child.material?.dispose?.();
+        child.material = new THREE.MeshBasicMaterial({
           color: color,
-          roughness: 0.8,
-          metalness: 0.2,
           transparent: true,
-          opacity: opacity
+          opacity: opacity,
+          depthWrite: false,
+          side: THREE.FrontSide,
+          toneMapped: false
         });
       }
     });
