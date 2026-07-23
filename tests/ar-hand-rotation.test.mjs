@@ -33,7 +33,7 @@ test('world-y hand rotation remains stable over a complete revolution', () => {
   assert.ok(model.quaternion.angleTo(new THREE.Quaternion()) < 1e-7);
 });
 
-test('local AR hands use stable unlit front-face shading', () => {
+test('local AR hands retain translucent depth shading', () => {
   const tracking = new ARHandTracking({});
   const handModel = new THREE.Group();
   const originalMaterial = new THREE.MeshStandardMaterial();
@@ -42,10 +42,70 @@ test('local AR hands use stable unlit front-face shading', () => {
 
   tracking.styleHandModel(handModel, 0x88ccff, 0.25);
 
-  assert.equal(mesh.material.isMeshBasicMaterial, true);
+  assert.equal(mesh.material.isMeshStandardMaterial, true);
   assert.equal(mesh.material.side, THREE.FrontSide);
   assert.equal(mesh.material.transparent, true);
   assert.equal(mesh.material.opacity, 0.25);
-  assert.equal(mesh.material.depthWrite, false);
-  assert.equal(mesh.material.toneMapped, false);
+  assert.equal(mesh.material.depthWrite, true);
+  assert.equal(mesh.material.roughness, 0.8);
+  assert.equal(mesh.material.metalness, 0.2);
+});
+
+test('an XR slot rebuilds its retained mesh when handedness changes', () => {
+  const tracking = new ARHandTracking({});
+  const handModel = new THREE.Group();
+  const retainedMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshStandardMaterial()
+  );
+  handModel.add(retainedMesh);
+  handModel.motionController = {};
+  handModel.xrInputSource = { handedness: 'left' };
+  handModel.userData.loadedHandedness = 'left';
+
+  tracking.prepareHandModelForHandedness(handModel, 'right');
+
+  assert.equal(handModel.children.length, 0);
+  assert.equal(handModel.motionController, null);
+  assert.equal(handModel.xrInputSource, null);
+  assert.equal(handModel.userData.loadedHandedness, null);
+  assert.equal(handModel.userData.expectedHandedness, 'right');
+});
+
+test('an XR slot keeps its mesh when the same hand reconnects', () => {
+  const tracking = new ARHandTracking({});
+  const handModel = new THREE.Group();
+  const retainedMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshStandardMaterial()
+  );
+  handModel.add(retainedMesh);
+  handModel.motionController = {};
+  handModel.xrInputSource = { handedness: 'left' };
+  handModel.userData.loadedHandedness = 'left';
+
+  tracking.prepareHandModelForHandedness(handModel, 'left');
+
+  assert.equal(handModel.children.length, 1);
+  assert.notEqual(handModel.motionController, null);
+  assert.equal(handModel.userData.expectedHandedness, 'left');
+});
+
+test('a stale asynchronous hand load cannot attach after a slot swap', () => {
+  const tracking = new ARHandTracking({});
+  const handModel = new THREE.Group();
+  handModel.userData.expectedHandedness = 'right';
+  const staleLeftObject = new THREE.Group();
+  const staleMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshStandardMaterial()
+  );
+  staleMesh.name = 'l_handMeshNode';
+  staleLeftObject.add(staleMesh);
+  handModel.add(staleLeftObject);
+
+  tracking.onHandModelLoaded(staleLeftObject);
+
+  assert.equal(handModel.children.length, 0);
+  assert.equal(handModel.userData.loadedHandedness, undefined);
 });

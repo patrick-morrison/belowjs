@@ -10846,7 +10846,10 @@ class uh {
 }
 class ph {
   constructor(e, t = {}) {
-    this.renderer = e, this.assetPaths = cs(t), this.handModelFactory = new uh(), this.handModelFactory.setPath(Kt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.assetPaths = cs(t), this.handColor = t.handColor ?? 16777215, this.handOpacity = t.handOpacity ?? 0.5, this.handModelFactory = new uh(
+      null,
+      (s) => this.onHandModelLoaded(s)
+    ), this.handModelFactory.setPath(Kt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
@@ -10857,7 +10860,8 @@ class ph {
   }
   setupHand(e, t, s) {
     const i = this.renderer.xr.getHand(t);
-    i.userData.pinch = !1, i.userData.handedness = null, i.addEventListener("pinchstart", () => {
+    let r = null;
+    return i.userData.pinch = !1, i.userData.handedness = null, i.addEventListener("pinchstart", () => {
       if (!this.interactionEnabled) {
         i.userData.pinch = !1, this.pinchIntent[s] = 0;
         return;
@@ -10866,24 +10870,50 @@ class ph {
     }), i.addEventListener("pinchend", () => {
       i.userData.pinch = !1, this.onPinchEnd();
     }), i.addEventListener("connected", (n) => {
-      i.userData.handedness = n.data?.handedness || null, i.userData.pinch = !1, this.pinchIntent[s] = 0;
+      const o = n.data?.handedness || null;
+      i.userData.handedness = o, i.userData.pinch = !1, this.pinchIntent[s] = 0, this.prepareHandModelForHandedness(r, o);
     }), i.addEventListener("disconnected", () => {
       i.userData.handedness = null, i.userData.pinch = !1, this.pinchIntent[s] = 0, this.onPinchEnd();
+    }), r = this.handModelFactory.createHandModel(i, "mesh"), i.add(r), e.add(i), i;
+  }
+  getLoadedHandedness(e) {
+    return e?.getObjectByName?.("l_handMeshNode") ? "left" : e?.getObjectByName?.("r_handMeshNode") ? "right" : null;
+  }
+  prepareHandModelForHandedness(e, t) {
+    if (!e || !t) return;
+    const s = e.userData.loadedHandedness || e.xrInputSource?.handedness || null;
+    if (e.userData.expectedHandedness = t, !(!s || s === t)) {
+      for (const i of [...e.children])
+        this.disposeHandObject(i), e.remove(i);
+      e.motionController = null, e.xrInputSource = null, e.userData.loadedHandedness = null;
+    }
+  }
+  onHandModelLoaded(e) {
+    const t = e?.parent, s = this.getLoadedHandedness(e), i = t?.userData?.expectedHandedness || t?.xrInputSource?.handedness || null;
+    if (s && i && s !== i) {
+      t.remove(e), this.disposeHandObject(e);
+      return;
+    }
+    t && (t.userData.loadedHandedness = s), this.styleHandModel(e, this.handColor, this.handOpacity);
+  }
+  disposeHandObject(e) {
+    e?.traverse?.((t) => {
+      t.geometry?.dispose?.();
+      const s = Array.isArray(t.material) ? t.material : [t.material];
+      for (const i of s) i?.dispose?.();
+      t.skeleton?.dispose?.();
     });
-    const r = this.handModelFactory.createHandModel(i, "mesh");
-    return i.add(r), e.add(i), r.addEventListener("connected", () => {
-      this.styleHandModel(r, 16777215, 0.5);
-    }), i;
   }
   styleHandModel(e, t, s) {
     e.traverse((i) => {
-      i.isMesh && (i.material?.dispose?.(), i.material = new f.MeshBasicMaterial({
+      i.isMesh && (i.material?.dispose?.(), i.material = new f.MeshStandardMaterial({
         color: t,
+        roughness: 0.8,
+        metalness: 0.2,
         transparent: !0,
         opacity: s,
-        depthWrite: !1,
-        side: f.FrontSide,
-        toneMapped: !1
+        depthWrite: !0,
+        side: f.FrontSide
       }));
     });
   }

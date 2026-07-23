@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Removed the old implicit tileset depth cap that could leave deeply nested model sections missing.
-- Local AR hand meshes now use unlit front-face shading without transparent depth writes, removing the inside-out lighting and self-occlusion artefact in passthrough.
+- AR hand slots now rebuild a retained mesh when Quest reconnects that slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking single hand while preserving translucent depth shading.
 
 ## [1.8.0] - 2026-07-17
 

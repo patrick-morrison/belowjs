@@ -10,7 +10,12 @@ export class ARHandTracking {
   constructor(renderer, options = {}) {
     this.renderer = renderer;
     this.assetPaths = resolveAssetPaths(options);
-    this.handModelFactory = new XRHandModelFactory();
+    this.handColor = options.handColor ?? 0xffffff;
+    this.handOpacity = options.handOpacity ?? 0.5;
+    this.handModelFactory = new XRHandModelFactory(
+      null,
+      (object) => this.onHandModelLoaded(object)
+    );
     this.handModelFactory.setPath(joinAssetPath(this.assetPaths.webxrInputProfilesPath, 'generic-hand/'));
 
     // Hands
@@ -76,6 +81,7 @@ export class ARHandTracking {
 
   setupHand(scene, index, intentKey) {
     const hand = this.renderer.xr.getHand(index);
+    let handModel = null;
     hand.userData.pinch = false;
     hand.userData.handedness = null;
 
@@ -95,9 +101,11 @@ export class ARHandTracking {
     });
 
     hand.addEventListener('connected', (event) => {
-      hand.userData.handedness = event.data?.handedness || null;
+      const handedness = event.data?.handedness || null;
+      hand.userData.handedness = handedness;
       hand.userData.pinch = false;
       this.pinchIntent[intentKey] = 0;
+      this.prepareHandModelForHandedness(handModel, handedness);
     });
 
     hand.addEventListener('disconnected', () => {
@@ -107,28 +115,81 @@ export class ARHandTracking {
       this.onPinchEnd();
     });
 
-    const handModel = this.handModelFactory.createHandModel(hand, 'mesh');
+    handModel = this.handModelFactory.createHandModel(hand, 'mesh');
     hand.add(handModel);
     scene.add(hand);
 
-    handModel.addEventListener('connected', () => {
-      this.styleHandModel(handModel, 0xffffff, 0.5);
-    });
-
     return hand;
+  }
+
+  getLoadedHandedness(object) {
+    if (object?.getObjectByName?.('l_handMeshNode')) return 'left';
+    if (object?.getObjectByName?.('r_handMeshNode')) return 'right';
+    return null;
+  }
+
+  prepareHandModelForHandedness(handModel, handedness) {
+    if (!handModel || !handedness) return;
+    const loadedHandedness = handModel.userData.loadedHandedness ||
+      handModel.xrInputSource?.handedness ||
+      null;
+
+    handModel.userData.expectedHandedness = handedness;
+    if (!loadedHandedness || loadedHandedness === handedness) return;
+
+    // Three.js intentionally retains XRHandModel.motionController after an
+    // input-source disconnect. Quest can reuse the same XR slot for the other
+    // physical hand after sleep, leaving (for example) a left-hand mesh driven
+    // by right-hand joints. Rebuild only on that handedness mismatch.
+    for (const child of [...handModel.children]) {
+      this.disposeHandObject(child);
+      handModel.remove(child);
+    }
+    handModel.motionController = null;
+    handModel.xrInputSource = null;
+    handModel.userData.loadedHandedness = null;
+  }
+
+  onHandModelLoaded(object) {
+    const handModel = object?.parent;
+    const loadedHandedness = this.getLoadedHandedness(object);
+    const expectedHandedness = handModel?.userData?.expectedHandedness ||
+      handModel?.xrInputSource?.handedness ||
+      null;
+
+    // An old asynchronous GLB load can complete after a slot has changed
+    // handedness. Never let that stale mesh coexist with the replacement.
+    if (loadedHandedness && expectedHandedness && loadedHandedness !== expectedHandedness) {
+      handModel.remove(object);
+      this.disposeHandObject(object);
+      return;
+    }
+
+    if (handModel) handModel.userData.loadedHandedness = loadedHandedness;
+    this.styleHandModel(object, this.handColor, this.handOpacity);
+  }
+
+  disposeHandObject(object) {
+    object?.traverse?.((child) => {
+      child.geometry?.dispose?.();
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      for (const material of materials) material?.dispose?.();
+      child.skeleton?.dispose?.();
+    });
   }
 
   styleHandModel(handModel, color, opacity) {
     handModel.traverse((child) => {
       if (child.isMesh) {
         child.material?.dispose?.();
-        child.material = new THREE.MeshBasicMaterial({
+        child.material = new THREE.MeshStandardMaterial({
           color: color,
+          roughness: 0.8,
+          metalness: 0.2,
           transparent: true,
           opacity: opacity,
-          depthWrite: false,
-          side: THREE.FrontSide,
-          toneMapped: false
+          depthWrite: true,
+          side: THREE.FrontSide
         });
       }
     });
