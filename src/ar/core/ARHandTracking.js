@@ -62,6 +62,8 @@ export class ARHandTracking {
 
     this.tempVec1 = new THREE.Vector3();
     this.tempVec2 = new THREE.Vector3();
+    this.worldUp = new THREE.Vector3(0, 1, 0);
+    this.tempYawQuaternion = new THREE.Quaternion();
 
     this.onGestureStart = null;
     this.onGestureEnd = null;
@@ -274,9 +276,10 @@ export class ARHandTracking {
           Math.min(this.MAX_ROT_DELTA_PER_FRAME, angleDelta)
         );
 
-        // Both angles use Three.js world-y yaw, so applying the signed delta
-        // directly preserves clockwise/anticlockwise grab motion.
-        modelGroup.rotation.y += angleDelta;
+        // Apply around world Y as a quaternion. Mutating Euler rotation.y can
+        // reverse direction after a quaternion-synchronised model crosses the
+        // XYZ Euler branch near +/-90 degrees (x/z jump by PI).
+        this.applyWorldYaw(modelGroup, angleDelta);
 
         if (deltaSeconds > 0) {
           const instantRotVelocity = angleDelta / deltaSeconds;
@@ -327,7 +330,7 @@ export class ARHandTracking {
     this.scaleVelocity *= scaleDecay;
 
     modelGroup.position.addScaledVector(this.posVelocity, deltaSeconds);
-    modelGroup.rotation.y += this.rotVelocity * deltaSeconds;
+    this.applyWorldYaw(modelGroup, this.rotVelocity * deltaSeconds);
 
     // Apply scale velocity in log-space
     const currentLogScale = Math.log(modelGroup.scale.x);
@@ -342,6 +345,14 @@ export class ARHandTracking {
     if (this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0) {
       this.inertiaActive = false;
     }
+  }
+
+  applyWorldYaw(modelGroup, angleDelta) {
+    if (!modelGroup?.quaternion || !Number.isFinite(angleDelta) || angleDelta === 0) return;
+    this.tempYawQuaternion.setFromAxisAngle(this.worldUp, angleDelta);
+    // Premultiply applies the delta in the model group's parent/world basis,
+    // independent of the current Euler representation.
+    modelGroup.quaternion.premultiply(this.tempYawQuaternion).normalize();
   }
 
   stop() {
