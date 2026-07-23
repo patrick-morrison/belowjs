@@ -1086,11 +1086,6 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('ar-session-end', (data) => this.emit('ar-session-end', data));
     this.belowViewer.on('ar-session-pause', (data) => this.emit('ar-session-pause', data));
     this.belowViewer.on('ar-session-resume', (session) => {
-      // The normal render loop was already re-armed by BelowViewer. Submit an
-      // immediate frame as well so Quest never waits on a desktop/window
-      // animation frame before restoring passthrough.
-      this.forceRefreshFrame();
-      session?.requestAnimationFrame?.(() => this.forceRefreshFrame());
       this.emit('ar-session-resume', session);
     });
     this.belowViewer.on('ar-gesture-start', (data) => this.emit('ar-gesture-start', data));
