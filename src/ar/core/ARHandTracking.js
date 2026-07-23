@@ -55,6 +55,8 @@ export class ARHandTracking {
     this.DISTANCE_GAIN_THRESHOLD = 5.0;
     this.MAX_DISTANCE_GAIN = 3.0;
     this.MAX_DELTA_PER_FRAME = 0.5;
+    this.MIN_TWO_HAND_DISTANCE = 0.04;
+    this.MAX_ROT_DELTA_PER_FRAME = 0.35;
 
     this.VELOCITY_SMOOTHING = 0.3;
 
@@ -73,14 +75,33 @@ export class ARHandTracking {
   setupHand(scene, index, intentKey) {
     const hand = this.renderer.xr.getHand(index);
     hand.userData.pinch = false;
+    hand.userData.handedness = null;
 
     hand.addEventListener('pinchstart', () => {
+      if (!this.interactionEnabled) {
+        hand.userData.pinch = false;
+        this.pinchIntent[intentKey] = 0;
+        return;
+      }
       hand.userData.pinch = true;
       this.pinchIntent[intentKey] = performance.now();
     });
 
     hand.addEventListener('pinchend', () => {
       hand.userData.pinch = false;
+      this.onPinchEnd();
+    });
+
+    hand.addEventListener('connected', (event) => {
+      hand.userData.handedness = event.data?.handedness || null;
+      hand.userData.pinch = false;
+      this.pinchIntent[intentKey] = 0;
+    });
+
+    hand.addEventListener('disconnected', () => {
+      hand.userData.handedness = null;
+      hand.userData.pinch = false;
+      this.pinchIntent[intentKey] = 0;
       this.onPinchEnd();
     });
 
@@ -183,15 +204,36 @@ export class ARHandTracking {
       }
     }
     else if (hand1Ready && hand2Ready) {
-      tip1.getWorldPosition(this.tempVec1);
-      tip2.getWorldPosition(this.tempVec2);
+      // XR input-source slots can swap after a headset sleep/reconnect. Always
+      // form the rotation vector left -> right when handedness is available so
+      // the same physical gesture cannot invert between sessions.
+      const slotsReversed =
+        this.hand1.userData.handedness === 'right' &&
+        this.hand2.userData.handedness === 'left';
+      const firstTip = slotsReversed ? tip2 : tip1;
+      const secondTip = slotsReversed ? tip1 : tip2;
+      firstTip.getWorldPosition(this.tempVec1);
+      secondTip.getWorldPosition(this.tempVec2);
+
+      const currentDistance = this.tempVec1.distanceTo(this.tempVec2);
+      // Direction becomes numerically unstable as fingertips meet/cross.
+      // Re-arm from the next separated sample instead of applying a scale or
+      // half-turn spike to the model.
+      if (currentDistance < this.MIN_TWO_HAND_DISTANCE) {
+        this.dragging = false;
+        this.scaling = false;
+        this.rotating = false;
+        this.rotVelocity = 0;
+        this.scaleVelocity = 0;
+        return;
+      }
 
       if (!this.scaling && !this.rotating) {
         this.dragging = false;
         this.scaling = true;
         this.rotating = true;
 
-        this.scaleStartDistance = this.tempVec1.distanceTo(this.tempVec2);
+        this.scaleStartDistance = currentDistance;
 
         const dx = this.tempVec2.x - this.tempVec1.x;
         const dz = this.tempVec2.z - this.tempVec1.z;
@@ -200,7 +242,6 @@ export class ARHandTracking {
         if (this.onGestureStart) this.onGestureStart('two-hand');
       } else {
         // Logarithmic scaling: same hand movement doubles or halves scale at any level
-        const currentDistance = this.tempVec1.distanceTo(this.tempVec2);
         const distanceRatio = currentDistance / this.scaleStartDistance;
 
         const currentLogScale = Math.log(modelGroup.scale.x);
@@ -225,6 +266,10 @@ export class ARHandTracking {
         let angleDelta = currentAngle - this.rotateStartAngle;
         if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
         if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
+        angleDelta = Math.max(
+          -this.MAX_ROT_DELTA_PER_FRAME,
+          Math.min(this.MAX_ROT_DELTA_PER_FRAME, angleDelta)
+        );
 
         modelGroup.rotation.y -= angleDelta;
 
@@ -302,6 +347,10 @@ export class ARHandTracking {
     this.posVelocity.set(0, 0, 0);
     this.rotVelocity = 0;
     this.scaleVelocity = 0;
+    if (this.hand1) this.hand1.userData.pinch = false;
+    if (this.hand2) this.hand2.userData.pinch = false;
+    this.pinchIntent.hand1Start = 0;
+    this.pinchIntent.hand2Start = 0;
   }
 
   /**
@@ -310,6 +359,9 @@ export class ARHandTracking {
    * @param {boolean} enabled - true to allow interactions, false to block them
    */
   setInteractionEnabled(enabled) {
+    if (this.interactionEnabled !== enabled) {
+      this.stop();
+    }
     this.interactionEnabled = enabled;
     if (!enabled) {
       // Stop any active gestures when disabling

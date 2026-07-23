@@ -10848,17 +10848,25 @@ class ph {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
-    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
+    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.MIN_TWO_HAND_DISTANCE = 0.04, this.MAX_ROT_DELTA_PER_FRAME = 0.35, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
   }
   init(e) {
     this.hand1 = this.setupHand(e, 0, "hand1Start"), this.hand2 = this.setupHand(e, 1, "hand2Start");
   }
   setupHand(e, t, s) {
     const i = this.renderer.xr.getHand(t);
-    i.userData.pinch = !1, i.addEventListener("pinchstart", () => {
+    i.userData.pinch = !1, i.userData.handedness = null, i.addEventListener("pinchstart", () => {
+      if (!this.interactionEnabled) {
+        i.userData.pinch = !1, this.pinchIntent[s] = 0;
+        return;
+      }
       i.userData.pinch = !0, this.pinchIntent[s] = performance.now();
     }), i.addEventListener("pinchend", () => {
       i.userData.pinch = !1, this.onPinchEnd();
+    }), i.addEventListener("connected", (n) => {
+      i.userData.handedness = n.data?.handedness || null, i.userData.pinch = !1, this.pinchIntent[s] = 0;
+    }), i.addEventListener("disconnected", () => {
+      i.userData.handedness = null, i.userData.pinch = !1, this.pinchIntent[s] = 0, this.onPinchEnd();
     });
     const r = this.handModelFactory.createHandModel(i, "mesh");
     return i.add(r), e.add(i), r.addEventListener("connected", () => {
@@ -10910,26 +10918,37 @@ class ph {
         }
         this.dragStartPos.copy(this.tempVec1);
       }
-    } else if (o && l)
-      if (i.getWorldPosition(this.tempVec1), r.getWorldPosition(this.tempVec2), !this.scaling && !this.rotating) {
-        this.dragging = !1, this.scaling = !0, this.rotating = !0, this.scaleStartDistance = this.tempVec1.distanceTo(this.tempVec2);
-        const c = this.tempVec2.x - this.tempVec1.x, A = this.tempVec2.z - this.tempVec1.z;
-        this.rotateStartAngle = Math.atan2(A, c), this.onGestureStart && this.onGestureStart("two-hand");
-      } else {
-        const c = this.tempVec1.distanceTo(this.tempVec2), A = c / this.scaleStartDistance, h = Math.log(t.scale.x), d = Math.log(A), u = h + d, p = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(u)));
-        if (t.scale.setScalar(p), e > 0) {
-          const E = d / e, m = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, E));
-          this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + m * this.VELOCITY_SMOOTHING;
-        }
-        this.scaleStartDistance = c;
-        const g = this.tempVec2.x - this.tempVec1.x, b = this.tempVec2.z - this.tempVec1.z, C = Math.atan2(b, g);
-        let y = C - this.rotateStartAngle;
-        if (y > Math.PI && (y -= 2 * Math.PI), y < -Math.PI && (y += 2 * Math.PI), t.rotation.y -= y, e > 0) {
-          const E = -y / e, m = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, E));
-          this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + m * this.VELOCITY_SMOOTHING;
-        }
-        this.rotateStartAngle = C;
+    } else if (o && l) {
+      const c = this.hand1.userData.handedness === "right" && this.hand2.userData.handedness === "left", A = c ? r : i, h = c ? i : r;
+      A.getWorldPosition(this.tempVec1), h.getWorldPosition(this.tempVec2);
+      const d = this.tempVec1.distanceTo(this.tempVec2);
+      if (d < this.MIN_TWO_HAND_DISTANCE) {
+        this.dragging = !1, this.scaling = !1, this.rotating = !1, this.rotVelocity = 0, this.scaleVelocity = 0;
+        return;
       }
+      if (!this.scaling && !this.rotating) {
+        this.dragging = !1, this.scaling = !0, this.rotating = !0, this.scaleStartDistance = d;
+        const u = this.tempVec2.x - this.tempVec1.x, p = this.tempVec2.z - this.tempVec1.z;
+        this.rotateStartAngle = Math.atan2(p, u), this.onGestureStart && this.onGestureStart("two-hand");
+      } else {
+        const u = d / this.scaleStartDistance, p = Math.log(t.scale.x), g = Math.log(u), b = p + g, C = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(b)));
+        if (t.scale.setScalar(C), e > 0) {
+          const B = g / e, w = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, B));
+          this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + w * this.VELOCITY_SMOOTHING;
+        }
+        this.scaleStartDistance = d;
+        const y = this.tempVec2.x - this.tempVec1.x, E = this.tempVec2.z - this.tempVec1.z, m = Math.atan2(E, y);
+        let I = m - this.rotateStartAngle;
+        if (I > Math.PI && (I -= 2 * Math.PI), I < -Math.PI && (I += 2 * Math.PI), I = Math.max(
+          -this.MAX_ROT_DELTA_PER_FRAME,
+          Math.min(this.MAX_ROT_DELTA_PER_FRAME, I)
+        ), t.rotation.y -= I, e > 0) {
+          const B = -I / e, w = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, B));
+          this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + w * this.VELOCITY_SMOOTHING;
+        }
+        this.rotateStartAngle = m;
+      }
+    }
   }
   onPinchEnd() {
     if (!this.hand1.userData.pinch && !this.hand2.userData.pinch) {
@@ -10944,7 +10963,7 @@ class ph {
     t.scale.setScalar(l), this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE && this.posVelocity.set(0, 0, 0), Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE && (this.rotVelocity = 0), Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE && (this.scaleVelocity = 0), this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0 && (this.inertiaActive = !1);
   }
   stop() {
-    this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0;
+    this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0, this.hand1 && (this.hand1.userData.pinch = !1), this.hand2 && (this.hand2.userData.pinch = !1), this.pinchIntent.hand1Start = 0, this.pinchIntent.hand2Start = 0;
   }
   /**
    * Enable or disable hand gesture interactions.
@@ -10952,7 +10971,7 @@ class ph {
    * @param {boolean} enabled - true to allow interactions, false to block them
    */
   setInteractionEnabled(e) {
-    this.interactionEnabled = e, e || this.stop();
+    this.interactionEnabled !== e && this.stop(), this.interactionEnabled = e, e || this.stop();
   }
   dispose() {
     this.hand1 && this.hand1.clear(), this.hand2 && this.hand2.clear(), this.stop();
