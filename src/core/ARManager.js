@@ -132,7 +132,7 @@ export class ARManager extends EventSystem {
           // The regular XR animation loop will retry on its next frame.
         }
       });
-      this.emit('session-resume');
+      this.emit('session-resume', session);
     };
   }
 

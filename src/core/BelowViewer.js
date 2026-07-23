@@ -556,6 +556,29 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-session-end');
     });
 
+    this.arManager.on('session-pause', () => {
+      this.emit('ar-session-pause');
+    });
+
+    this.arManager.on('session-resume', (session) => {
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = false;
+      }
+
+      // Quest may keep the immersive-ar session object alive while the
+      // headset sleeps, but stop the renderer's animation callback. Reapply
+      // the same continuous loop used by the basic viewer instead of
+      // rebuilding the model or session.
+      this.renderer.xr.enabled = true;
+      this.renderer.resetState?.();
+      this.startRenderLoop();
+      session?.requestAnimationFrame?.(() => {
+        this.renderer.setAnimationLoop(this._renderLoop);
+      });
+
+      this.emit('ar-session-resume', session);
+    });
+
     this.arManager.on('gesture-start', (gestureType) => {
       this.emit('ar-gesture-start', gestureType);
     });
@@ -1017,7 +1040,8 @@ export class BelowViewer extends EventSystem {
     };
     
 
-    this.renderer.setAnimationLoop(animate);
+    this._renderLoop = animate;
+    this.renderer.setAnimationLoop(this._renderLoop);
   }
 
   renderSbsStereo() {
