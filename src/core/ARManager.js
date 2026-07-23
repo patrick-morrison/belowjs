@@ -101,6 +101,39 @@ export class ARManager extends EventSystem {
 
       this.emit('session-end');
     };
+
+    this.arCore.onSessionPause = () => {
+      // Headset sleep can leave WebXR hand pinch flags latched. Clear them
+      // immediately so the same session can safely resume.
+      this.handTracking?.stop();
+      this.previousGestureType = null;
+      this.emit('session-pause');
+    };
+
+    this.arCore.onSessionResume = (session) => {
+      this.isARPresenting = true;
+      this.handTracking?.stop();
+      this.previousGestureType = null;
+      this.modelGroup.visible = true;
+      if (this.worldCube) this.worldCube.visible = true;
+
+      // Quest can resume an existing immersive-ar session with stale WebGL
+      // state and a black compositor layer. Re-arm XR and submit one clean
+      // frame in the resumed session; the normal animation loop owns all
+      // subsequent frames.
+      this.renderer.xr.enabled = true;
+      this.renderer.resetState?.();
+      session?.requestAnimationFrame?.(() => {
+        this.scene.updateMatrixWorld(true);
+        this.camera.updateMatrixWorld(true);
+        try {
+          this.renderer.render(this.scene, this.camera);
+        } catch {
+          // The regular XR animation loop will retry on its next frame.
+        }
+      });
+      this.emit('session-resume');
+    };
   }
 
   prepareModel(model, modelConfig = null) {

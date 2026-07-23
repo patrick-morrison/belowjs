@@ -31,6 +31,10 @@ export class ARCore {
     // Callbacks
     this.onSessionStart = null;
     this.onSessionEnd = null;
+    this.onSessionPause = null;
+    this.onSessionResume = null;
+    this.activeSession = null;
+    this.sessionVisibilityHandler = null;
   }
 
   init() {
@@ -160,6 +164,18 @@ export class ARCore {
   setupSessionListeners() {
     this.renderer.xr.addEventListener('sessionstart', () => {
       this.isARPresenting = true;
+      this.activeSession = this.renderer.xr.getSession?.() || null;
+      if (this.activeSession) {
+        this.sessionVisibilityHandler = () => {
+          if (this.activeSession?.visibilityState === 'visible') {
+            this.isARPresenting = true;
+            this.onSessionResume?.(this.activeSession);
+          } else {
+            this.onSessionPause?.(this.activeSession);
+          }
+        };
+        this.activeSession.addEventListener('visibilitychange', this.sessionVisibilityHandler);
+      }
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
 
@@ -170,6 +186,11 @@ export class ARCore {
 
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isARPresenting = false;
+      if (this.activeSession && this.sessionVisibilityHandler) {
+        this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
+      }
+      this.activeSession = null;
+      this.sessionVisibilityHandler = null;
 
       if (this.onSessionEnd) {
         this.onSessionEnd();
@@ -273,6 +294,11 @@ export class ARCore {
   }
 
   dispose() {
+    if (this.activeSession && this.sessionVisibilityHandler) {
+      this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
+    }
+    this.activeSession = null;
+    this.sessionVisibilityHandler = null;
     if (this.buttonObserver) {
       this.buttonObserver.disconnect();
       this.buttonObserver = null;
