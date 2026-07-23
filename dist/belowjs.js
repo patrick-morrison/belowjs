@@ -10931,7 +10931,7 @@ class ph {
       if (!this.scaling && !this.rotating) {
         this.dragging = !1, this.scaling = !0, this.rotating = !0, this.scaleStartDistance = d;
         const u = this.tempVec2.x - this.tempVec1.x, p = this.tempVec2.z - this.tempVec1.z;
-        this.rotateStartAngle = Math.atan2(p, u), this.onGestureStart && this.onGestureStart("two-hand");
+        this.rotateStartAngle = Math.atan2(-p, u), this.onGestureStart && this.onGestureStart("two-hand");
       } else {
         const u = d / this.scaleStartDistance, p = Math.log(t.scale.x), g = Math.log(u), b = p + g, C = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(b)));
         if (t.scale.setScalar(C), e > 0) {
@@ -10939,7 +10939,7 @@ class ph {
           this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + w * this.VELOCITY_SMOOTHING;
         }
         this.scaleStartDistance = d;
-        const y = this.tempVec2.x - this.tempVec1.x, E = this.tempVec2.z - this.tempVec1.z, m = Math.atan2(E, y);
+        const y = this.tempVec2.x - this.tempVec1.x, E = this.tempVec2.z - this.tempVec1.z, m = Math.atan2(-E, y);
         let I = m - this.rotateStartAngle;
         if (I > Math.PI && (I -= 2 * Math.PI), I < -Math.PI && (I += 2 * Math.PI), I = Math.max(
           -this.MAX_ROT_DELTA_PER_FRAME,

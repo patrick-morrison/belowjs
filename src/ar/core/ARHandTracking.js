@@ -237,7 +237,10 @@ export class ARHandTracking {
 
         const dx = this.tempVec2.x - this.tempVec1.x;
         const dz = this.tempVec2.z - this.tempVec1.z;
-        this.rotateStartAngle = Math.atan2(dz, dx);
+        // Three.js positive Y rotation turns +X toward -Z. Express the hand
+        // vector in that same yaw convention so the model follows the hands
+        // exactly, like a grabbed object, rather than mirroring the gesture.
+        this.rotateStartAngle = Math.atan2(-dz, dx);
 
         if (this.onGestureStart) this.onGestureStart('two-hand');
       } else {
@@ -261,7 +264,7 @@ export class ARHandTracking {
 
         const dx = this.tempVec2.x - this.tempVec1.x;
         const dz = this.tempVec2.z - this.tempVec1.z;
-        const currentAngle = Math.atan2(dz, dx);
+        const currentAngle = Math.atan2(-dz, dx);
 
         let angleDelta = currentAngle - this.rotateStartAngle;
         if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
@@ -271,8 +274,8 @@ export class ARHandTracking {
           Math.min(this.MAX_ROT_DELTA_PER_FRAME, angleDelta)
         );
 
-        // Match the model yaw to the left-to-right hand vector. Subtracting
-        // here made the object turn opposite to the physical two-hand twist.
+        // Both angles use Three.js world-y yaw, so applying the signed delta
+        // directly preserves clockwise/anticlockwise grab motion.
         modelGroup.rotation.y += angleDelta;
 
         if (deltaSeconds > 0) {
