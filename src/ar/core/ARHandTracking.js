@@ -271,10 +271,12 @@ export class ARHandTracking {
           Math.min(this.MAX_ROT_DELTA_PER_FRAME, angleDelta)
         );
 
-        modelGroup.rotation.y -= angleDelta;
+        // Match the model yaw to the left-to-right hand vector. Subtracting
+        // here made the object turn opposite to the physical two-hand twist.
+        modelGroup.rotation.y += angleDelta;
 
         if (deltaSeconds > 0) {
-          const instantRotVelocity = -angleDelta / deltaSeconds;
+          const instantRotVelocity = angleDelta / deltaSeconds;
           const targetVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, instantRotVelocity));
           this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + targetVelocity * this.VELOCITY_SMOOTHING;
         }

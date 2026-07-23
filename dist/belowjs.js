@@ -10942,8 +10942,8 @@ class ph {
         if (I > Math.PI && (I -= 2 * Math.PI), I < -Math.PI && (I += 2 * Math.PI), I = Math.max(
           -this.MAX_ROT_DELTA_PER_FRAME,
           Math.min(this.MAX_ROT_DELTA_PER_FRAME, I)
-        ), t.rotation.y -= I, e > 0) {
-          const B = -I / e, w = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, B));
+        ), t.rotation.y += I, e > 0) {
+          const B = I / e, w = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, B));
           this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + w * this.VELOCITY_SMOOTHING;
         }
         this.rotateStartAngle = m;
