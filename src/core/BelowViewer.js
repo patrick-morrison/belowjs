@@ -541,6 +541,7 @@ export class BelowViewer extends EventSystem {
     );
 
     this.arManager.on('session-start', () => {
+      this.syncCurrentModelToAR();
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = false;
       }
@@ -576,11 +577,14 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-gesture-end', gestureType);
     });
 
-    this.on('model-loaded', ({ model, options }) => {
-      if (this.arManager) {
-        this.arManager.setTargetModel(model, options);
-      }
-    });
+    this.syncCurrentModelToAR();
+  }
+
+  syncCurrentModelToAR() {
+    if (!this.arManager) return false;
+    const current = this.loadedModels[this.loadedModels.length - 1] || null;
+    this.arManager.setTargetModel(current?.model || null, current?.options || null);
+    return Boolean(current?.model);
   }
 
   setupEventListeners() {
@@ -765,6 +769,7 @@ export class BelowViewer extends EventSystem {
       
       this.sceneManager.add(model);
       this.loadedModels.push({ model, url, options, originalCenter, tileset });
+      this.syncCurrentModelToAR();
       if (options.autoClip !== false) {
         this.fitCameraClippingToModel(model, options.cameraFarMultiplier ?? 2);
       }

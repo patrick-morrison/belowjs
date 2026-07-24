@@ -10483,7 +10483,7 @@ class ah {
 }
 class lh {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionOfferPromise = null, this.sessionRequestPromise = null, this.sessionRecoveryTimer = null, this.sessionRecoveryInFlight = !1, this.sessionRecoveryDelayMs = 6e3, this.isDisposed = !1;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.isDisposed = !1;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
@@ -10544,7 +10544,7 @@ class lh {
   }
   setupSessionListeners() {
     this.renderer.xr.addEventListener("sessionstart", () => {
-      if (this.clearSessionRecoveryTimer(), this.sessionRecoveryInFlight = !1, this.isARPresenting = !0, this.activeSession = this.renderer.xr.getSession?.() || null, this.updateARButtonState(), this.activeSession) {
+      if (this.isARPresenting = !0, this.activeSession = this.renderer.xr.getSession?.() || null, this.updateARButtonState(), this.activeSession) {
         const t = this.activeSession;
         this.sessionVisibilityHandler = () => {
           this.handleSessionVisibilityChange(t);
@@ -10553,13 +10553,13 @@ class lh {
       const e = this.detectQuestDevice();
       this.applyQuestOptimizations(e), this.onSessionStart && this.onSessionStart();
     }), this.renderer.xr.addEventListener("sessionend", () => {
-      this.clearSessionRecoveryTimer(), this.isARPresenting = !1, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.updateARButtonState(), this.onSessionEnd && this.onSessionEnd();
+      this.isARPresenting = !1, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.updateARButtonState(), this.onSessionEnd && this.onSessionEnd();
     });
   }
   updateARButtonState() {
     if (!this.arButton) return;
-    const e = !!(this.sessionRequestPromise || this.sessionOfferPromise);
-    this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), this.sessionOfferPromise ? this.arButton.textContent = "RESUMING AR" : e ? this.arButton.textContent = "STARTING AR" : this.activeSession ? this.arButton.textContent = "EXIT AR" : this.arButton.textContent = "ENTER AR";
+    const e = !!this.sessionRequestPromise;
+    this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), e ? this.arButton.textContent = "STARTING AR" : this.activeSession ? this.arButton.textContent = "EXIT AR" : this.arButton.textContent = "ENTER AR";
   }
   getSessionInit() {
     return this.sessionInit || (this.sessionInit = {
@@ -10571,60 +10571,20 @@ class lh {
     return !e || this.isDisposed ? (await e?.end?.(), null) : (this.renderer.xr.setReferenceSpaceType?.("local"), await this.renderer.xr.setSession(e), e);
   }
   requestARSession() {
-    if (this.activeSession || this.sessionRequestPromise || this.sessionOfferPromise || this.isDisposed)
-      return this.sessionRequestPromise || this.sessionOfferPromise;
+    if (this.activeSession || this.sessionRequestPromise || this.isDisposed)
+      return this.sessionRequestPromise;
     const e = navigator.xr.requestSession("immersive-ar", this.getSessionInit()).then((t) => this.activateSession(t)).catch((t) => (console.warn("Unable to start AR session", t), null)).finally(() => {
       this.sessionRequestPromise === e && (this.sessionRequestPromise = null, this.updateARButtonState());
     });
     return this.sessionRequestPromise = e, this.updateARButtonState(), e;
   }
-  offerARSession() {
-    if (this.activeSession || this.sessionOfferPromise || this.isDisposed)
-      return this.sessionOfferPromise;
-    if (typeof navigator?.xr?.offerSession != "function") return null;
-    const e = navigator.xr.offerSession("immersive-ar", this.getSessionInit()).then((t) => this.activateSession(t)).catch((t) => (console.warn("Unable to offer replacement AR session", t), null)).finally(() => {
-      this.sessionOfferPromise === e && (this.sessionOfferPromise = null, this.updateARButtonState());
-    });
-    return this.sessionOfferPromise = e, this.updateARButtonState(), e;
-  }
-  waitForRendererSessionEnd(e, t = 1500) {
-    return this.activeSession !== e && this.renderer.xr.getSession?.() !== e ? Promise.resolve(!0) : new Promise((s) => {
-      let i = null;
-      const r = (o) => {
-        this.renderer.xr.removeEventListener("sessionend", n), i && clearTimeout(i), s(o);
-      }, n = () => r(!0);
-      this.renderer.xr.addEventListener("sessionend", n), i = setTimeout(() => {
-        const o = this.activeSession !== e && this.renderer.xr.getSession?.() !== e;
-        r(o);
-      }, t);
-    });
-  }
   handleSessionVisibilityChange(e) {
     if (!(!e || e !== this.activeSession)) {
       if (e.visibilityState === "visible") {
-        this.clearSessionRecoveryTimer(), this.isARPresenting = !0, this.onSessionResume?.(e);
+        this.isARPresenting = !0, this.onSessionResume?.(e);
         return;
       }
-      this.onSessionPause?.(e), e.visibilityState === "hidden" && this.scheduleStalledSessionRecovery(e);
-    }
-  }
-  clearSessionRecoveryTimer() {
-    this.sessionRecoveryTimer && (clearTimeout(this.sessionRecoveryTimer), this.sessionRecoveryTimer = null);
-  }
-  scheduleStalledSessionRecovery(e) {
-    this.clearSessionRecoveryTimer(), !(!e || e !== this.activeSession) && (!this.isQuest2 && !this.isQuest3 || typeof navigator?.xr?.offerSession == "function" && (this.sessionRecoveryTimer = setTimeout(() => {
-      this.sessionRecoveryTimer = null, !(this.isDisposed || e !== this.activeSession) && e.visibilityState === "hidden" && this.recoverStalledSession(e);
-    }, this.sessionRecoveryDelayMs)));
-  }
-  async recoverStalledSession(e) {
-    if (this.sessionRecoveryInFlight || this.isDisposed || !e || e !== this.activeSession || e.visibilityState !== "hidden" || typeof navigator?.xr?.offerSession != "function") return !1;
-    this.sessionRecoveryInFlight = !0;
-    try {
-      return await e.end(), this.isDisposed ? !1 : await this.waitForRendererSessionEnd(e) ? !!await this.offerARSession() : (console.warn("Renderer did not finish ending the stale AR session"), !1);
-    } catch (t) {
-      return console.warn("Unable to recover stalled AR session", t), !1;
-    } finally {
-      this.sessionRecoveryInFlight = !1;
+      this.onSessionPause?.(e);
     }
   }
   detectQuestDevice() {
@@ -10678,7 +10638,7 @@ class lh {
     };
   }
   dispose() {
-    this.isDisposed = !0, this.clearSessionRecoveryTimer(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionOfferPromise = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.isDisposed = !0, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const Tr = new U(), Qr = new x();
@@ -11068,6 +11028,10 @@ class ph extends It {
       this.isARPresenting && this.activateModel();
   }
   activateModel() {
+    if (this.currentModel && this.currentModel === this.pendingModel && this.currentModel.parent === this.modelGroup) {
+      this.modelGroup.visible = !0;
+      return;
+    }
     if (this.currentModel)
       for (this.modelGroup.remove(this.currentModel); this.modelGroup.children.length > 0; )
         this.modelGroup.remove(this.modelGroup.children[0]);
@@ -11724,7 +11688,7 @@ class fh extends It {
       this.container,
       this.config
     ), this.arManager.on("session-start", () => {
-      this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("ar-session-start");
+      this.syncCurrentModelToAR(), this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("ar-session-start");
     }), this.arManager.on("session-end", () => {
       this.cameraManager.controls && (this.cameraManager.controls.enabled = !0), this.emit("ar-session-end");
     }), this.arManager.on("session-pause", () => {
@@ -11735,9 +11699,12 @@ class fh extends It {
       this.emit("ar-gesture-start", t);
     }), this.arManager.on("gesture-end", (t) => {
       this.emit("ar-gesture-end", t);
-    }), this.on("model-loaded", ({ model: t, options: s }) => {
-      this.arManager && this.arManager.setTargetModel(t, s);
-    });
+    }), this.syncCurrentModelToAR();
+  }
+  syncCurrentModelToAR() {
+    if (!this.arManager) return !1;
+    const e = this.loadedModels[this.loadedModels.length - 1] || null;
+    return this.arManager.setTargetModel(e?.model || null, e?.options || null), !!e?.model;
   }
   setupEventListeners() {
     window.addEventListener("resize", this.onWindowResize.bind(this)), this.cameraManager && this.cameraManager.on("change", () => {
@@ -11858,7 +11825,7 @@ class fh extends It {
         return null;
       t.position && o.position.fromArray(t.position), t.rotation && o.rotation.fromArray(t.rotation), t.scale && (typeof t.scale == "number" ? o.scale.setScalar(t.scale) : o.scale.fromArray(t.scale));
       const c = this.centerModelAndRecalculateBounds(o);
-      return this.sceneManager.add(o), this.loadedModels.push({ model: o, url: e, options: t, originalCenter: c, tileset: l }), t.autoClip !== !1 && this.fitCameraClippingToModel(o, t.cameraFarMultiplier ?? 2), this.loadedModels.length === 1 && t.autoFrame !== !1 && this.frameModel(o), this.cameraManager?.resetControlInteractionState?.(), this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), n && n("completed"), this.emit("model-loaded", { model: o, url: e }), o;
+      return this.sceneManager.add(o), this.loadedModels.push({ model: o, url: e, options: t, originalCenter: c, tileset: l }), this.syncCurrentModelToAR(), t.autoClip !== !1 && this.fitCameraClippingToModel(o, t.cameraFarMultiplier ?? 2), this.loadedModels.length === 1 && t.autoFrame !== !1 && this.frameModel(o), this.cameraManager?.resetControlInteractionState?.(), this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), n && n("completed"), this.emit("model-loaded", { model: o, url: e }), o;
     } catch (r) {
       if (this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), !s.aborted && r.message !== "Loading cancelled")
         throw console.error("Failed to load model:", r), this.emit("model-load-error", { url: e, error: r }), r;

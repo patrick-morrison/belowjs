@@ -34,17 +34,7 @@ export class ARCore {
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
     this.sessionInit = null;
-    this.sessionOfferPromise = null;
     this.sessionRequestPromise = null;
-
-    // Quest can occasionally leave an immersive session permanently hidden
-    // after the proximity/Guardian lifecycle has returned to the browser. In
-    // that state the WebGL context is healthy, but no XR frames or input
-    // sources arrive. A short hidden-session watchdog replaces only that stale
-    // session through Quest's user-safe offerSession flow.
-    this.sessionRecoveryTimer = null;
-    this.sessionRecoveryInFlight = false;
-    this.sessionRecoveryDelayMs = 6000;
     this.isDisposed = false;
   }
 
@@ -181,8 +171,6 @@ export class ARCore {
 
   setupSessionListeners() {
     this.renderer.xr.addEventListener('sessionstart', () => {
-      this.clearSessionRecoveryTimer();
-      this.sessionRecoveryInFlight = false;
       this.isARPresenting = true;
       this.activeSession = this.renderer.xr.getSession?.() || null;
       this.updateARButtonState();
@@ -202,7 +190,6 @@ export class ARCore {
     });
 
     this.renderer.xr.addEventListener('sessionend', () => {
-      this.clearSessionRecoveryTimer();
       this.isARPresenting = false;
       if (this.activeSession && this.sessionVisibilityHandler) {
         this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
@@ -220,12 +207,10 @@ export class ARCore {
   updateARButtonState() {
     if (!this.arButton) return;
 
-    const busy = Boolean(this.sessionRequestPromise || this.sessionOfferPromise);
+    const busy = Boolean(this.sessionRequestPromise);
     this.arButton.disabled = busy;
     this.arButton.classList.toggle('ar-generic-disabled', busy);
-    if (this.sessionOfferPromise) {
-      this.arButton.textContent = 'RESUMING AR';
-    } else if (busy) {
+    if (busy) {
       this.arButton.textContent = 'STARTING AR';
     } else if (this.activeSession) {
       this.arButton.textContent = 'EXIT AR';
@@ -256,9 +241,8 @@ export class ARCore {
   }
 
   requestARSession() {
-    if (this.activeSession || this.sessionRequestPromise ||
-        this.sessionOfferPromise || this.isDisposed) {
-      return this.sessionRequestPromise || this.sessionOfferPromise;
+    if (this.activeSession || this.sessionRequestPromise || this.isDisposed) {
+      return this.sessionRequestPromise;
     }
 
     const request = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
@@ -279,110 +263,16 @@ export class ARCore {
     return request;
   }
 
-  offerARSession() {
-    if (this.activeSession || this.sessionOfferPromise || this.isDisposed) {
-      return this.sessionOfferPromise;
-    }
-    if (typeof navigator?.xr?.offerSession !== 'function') return null;
-
-    const offer = navigator.xr.offerSession('immersive-ar', this.getSessionInit())
-      .then((session) => this.activateSession(session))
-      .catch((error) => {
-        console.warn('Unable to offer replacement AR session', error);
-        return null;
-      })
-      .finally(() => {
-        if (this.sessionOfferPromise === offer) {
-          this.sessionOfferPromise = null;
-          this.updateARButtonState();
-        }
-      });
-
-    this.sessionOfferPromise = offer;
-    this.updateARButtonState();
-    return offer;
-  }
-
-  waitForRendererSessionEnd(session, timeoutMs = 1500) {
-    if (this.activeSession !== session &&
-        this.renderer.xr.getSession?.() !== session) {
-      return Promise.resolve(true);
-    }
-
-    return new Promise((resolve) => {
-      let timeout = null;
-      const finish = (ended) => {
-        this.renderer.xr.removeEventListener('sessionend', onSessionEnd);
-        if (timeout) clearTimeout(timeout);
-        resolve(ended);
-      };
-      const onSessionEnd = () => finish(true);
-      this.renderer.xr.addEventListener('sessionend', onSessionEnd);
-      timeout = setTimeout(() => {
-        const ended = this.activeSession !== session &&
-          this.renderer.xr.getSession?.() !== session;
-        finish(ended);
-      }, timeoutMs);
-    });
-  }
-
   handleSessionVisibilityChange(session) {
     if (!session || session !== this.activeSession) return;
 
     if (session.visibilityState === 'visible') {
-      this.clearSessionRecoveryTimer();
       this.isARPresenting = true;
       this.onSessionResume?.(session);
       return;
     }
 
     this.onSessionPause?.(session);
-    if (session.visibilityState === 'hidden') {
-      this.scheduleStalledSessionRecovery(session);
-    }
-  }
-
-  clearSessionRecoveryTimer() {
-    if (!this.sessionRecoveryTimer) return;
-    clearTimeout(this.sessionRecoveryTimer);
-    this.sessionRecoveryTimer = null;
-  }
-
-  scheduleStalledSessionRecovery(session) {
-    this.clearSessionRecoveryTimer();
-    if (!session || session !== this.activeSession) return;
-    if (!this.isQuest2 && !this.isQuest3) return;
-    if (typeof navigator?.xr?.offerSession !== 'function') return;
-
-    this.sessionRecoveryTimer = setTimeout(() => {
-      this.sessionRecoveryTimer = null;
-      if (this.isDisposed || session !== this.activeSession) return;
-      if (session.visibilityState !== 'hidden') return;
-      this.recoverStalledSession(session);
-    }, this.sessionRecoveryDelayMs);
-  }
-
-  async recoverStalledSession(session) {
-    if (this.sessionRecoveryInFlight || this.isDisposed) return false;
-    if (!session || session !== this.activeSession) return false;
-    if (session.visibilityState !== 'hidden') return false;
-    if (typeof navigator?.xr?.offerSession !== 'function') return false;
-
-    this.sessionRecoveryInFlight = true;
-    try {
-      await session.end();
-      if (this.isDisposed) return false;
-      if (!await this.waitForRendererSessionEnd(session)) {
-        console.warn('Renderer did not finish ending the stale AR session');
-        return false;
-      }
-      return Boolean(await this.offerARSession());
-    } catch (error) {
-      console.warn('Unable to recover stalled AR session', error);
-      return false;
-    } finally {
-      this.sessionRecoveryInFlight = false;
-    }
   }
 
   detectQuestDevice() {
@@ -482,13 +372,11 @@ export class ARCore {
 
   dispose() {
     this.isDisposed = true;
-    this.clearSessionRecoveryTimer();
     if (this.activeSession && this.sessionVisibilityHandler) {
       this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
     }
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
-    this.sessionOfferPromise = null;
     this.sessionRequestPromise = null;
     if (this.buttonObserver) {
       this.buttonObserver.disconnect();

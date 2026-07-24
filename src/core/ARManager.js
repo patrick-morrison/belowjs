@@ -147,6 +147,13 @@ export class ARManager extends EventSystem {
   }
 
   activateModel() {
+    if (this.currentModel &&
+        this.currentModel === this.pendingModel &&
+        this.currentModel.parent === this.modelGroup) {
+      this.modelGroup.visible = true;
+      return;
+    }
+
     if (this.currentModel) {
       this.modelGroup.remove(this.currentModel);
       while (this.modelGroup.children.length > 0) {
