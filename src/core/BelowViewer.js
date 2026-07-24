@@ -598,10 +598,7 @@ export class BelowViewer extends EventSystem {
   }
 
   onWindowResize() {
-    // WebXR owns the projection layer dimensions while presenting. Quest can
-    // emit window resize events during headset visibility transitions; do not
-    // let the desktop resize path touch camera/renderer sizing in that epoch.
-    if (!this.isInitialized || this.renderer?.xr?.isPresenting) return;
+    if (!this.isInitialized) return;
     
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
