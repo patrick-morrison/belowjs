@@ -10483,7 +10483,7 @@ class ah {
 }
 class lh {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.failedResumeRecoveryTimer = null, this.longHiddenRecoveryTimer = null, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.failedResumeWindowMs = 2500, this.failedResumeMinHiddenMs = 1e3, this.failedResumeValidationMs = 500, this.longHiddenRecoveryMs = 12e3, this.isDisposed = !1;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.failedResumeRecoveryTimer = null, this.longHiddenRecoveryTimer = null, this.sessionFrameHeartbeatId = null, this.sessionFrameWatchInterval = null, this.sessionFrameValidationTimer = null, this.lastSessionFrameAt = 0, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.failedResumeWindowMs = 2500, this.failedResumeMinHiddenMs = 1e3, this.failedResumeValidationMs = 500, this.longHiddenRecoveryMs = 12e3, this.frameStallRecoveryMs = 12e3, this.frameStallValidationMs = 1e3, this.frameStallPollMs = 1e3, this.isDisposed = !1;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
@@ -10548,12 +10548,12 @@ class lh {
         const t = this.activeSession;
         this.sessionVisibilityHandler = () => {
           this.handleSessionVisibilityChange(t);
-        }, t.addEventListener("visibilitychange", this.sessionVisibilityHandler);
+        }, t.addEventListener("visibilitychange", this.sessionVisibilityHandler), this.startSessionFrameHeartbeat(t);
       }
       const e = this.detectQuestDevice();
       this.applyQuestOptimizations(e), this.onSessionStart && this.onSessionStart();
     }), this.renderer.xr.addEventListener("sessionend", () => {
-      this.isARPresenting = !1, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.recoverySuggested = this.endingFailedResume, this.endingFailedResume = !1, this.updateARButtonState(), this.offerARSession(), this.onSessionEnd && this.onSessionEnd();
+      this.isARPresenting = !1, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.recoverySuggested = this.endingFailedResume, this.endingFailedResume = !1, this.updateARButtonState(), this.offerARSession(), this.onSessionEnd && this.onSessionEnd();
     });
   }
   updateARButtonState() {
@@ -10614,13 +10614,41 @@ class lh {
       );
     }, this.longHiddenRecoveryMs));
   }
-  async endStalledSession(e, t) {
-    if (this.isDisposed || e !== this.activeSession || e.visibilityState === "visible" || Array.from(e.inputSources || []).length > 0) return !1;
+  startSessionFrameHeartbeat(e) {
+    if (this.stopSessionFrameHeartbeat(), !e || typeof e.requestAnimationFrame != "function") return;
+    this.lastSessionFrameAt = Date.now();
+    const t = () => {
+      this.isDisposed || e !== this.activeSession || (this.lastSessionFrameAt = Date.now(), this.sessionFrameHeartbeatId = e.requestAnimationFrame(t));
+    };
+    this.sessionFrameHeartbeatId = e.requestAnimationFrame(t), this.sessionFrameWatchInterval = setInterval(() => {
+      this.isDisposed || e !== this.activeSession || Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs || this.sessionFrameValidationTimer || (this.sessionFrameValidationTimer = setTimeout(() => {
+        this.sessionFrameValidationTimer = null, !(Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs) && this.endStalledSession(
+          e,
+          "AR session stopped producing XR frames; ending it and restoring the native AR offer",
+          { allowVisible: !0, allowInputs: !0 }
+        );
+      }, this.frameStallValidationMs));
+    }, this.frameStallPollMs);
+  }
+  stopSessionFrameHeartbeat() {
+    const e = this.activeSession;
+    if (this.sessionFrameHeartbeatId !== null && e && typeof e.cancelAnimationFrame == "function")
+      try {
+        e.cancelAnimationFrame(this.sessionFrameHeartbeatId);
+      } catch {
+      }
+    this.sessionFrameHeartbeatId = null, this.lastSessionFrameAt = 0, this.sessionFrameWatchInterval && (clearInterval(this.sessionFrameWatchInterval), this.sessionFrameWatchInterval = null), this.sessionFrameValidationTimer && (clearTimeout(this.sessionFrameValidationTimer), this.sessionFrameValidationTimer = null);
+  }
+  async endStalledSession(e, t, { allowVisible: s = !1, allowInputs: i = !1 } = {}) {
+    if (this.isDisposed || e !== this.activeSession || !s && e.visibilityState === "visible")
+      return !1;
+    const r = Array.from(e.inputSources || []);
+    if (!i && r.length > 0) return !1;
     this.endingFailedResume = !0, this.recoverySuggested = !0, this.updateARButtonState(), console.warn(t);
     try {
       return await e.end(), !0;
-    } catch (i) {
-      return this.endingFailedResume = !1, console.warn("Unable to end stalled AR session", i), !1;
+    } catch (n) {
+      return this.endingFailedResume = !1, console.warn("Unable to end stalled AR session", n), !1;
     }
   }
   scheduleFailedResumeRecovery(e) {
@@ -10684,7 +10712,7 @@ class lh {
     };
   }
   dispose() {
-    this.isDisposed = !0, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.isDisposed = !0, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const Tr = new U(), Qr = new x();

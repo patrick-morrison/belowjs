@@ -28,6 +28,24 @@ class FakeSession extends EventTarget {
     this.visibilityState = visibilityState;
     this.inputSources = [];
     this.ended = false;
+    this.nextFrameId = 1;
+    this.frameCallbacks = new Map();
+  }
+
+  requestAnimationFrame(callback) {
+    const id = this.nextFrameId++;
+    this.frameCallbacks.set(id, callback);
+    return id;
+  }
+
+  cancelAnimationFrame(id) {
+    this.frameCallbacks.delete(id);
+  }
+
+  fireFrame() {
+    const callbacks = Array.from(this.frameCallbacks.values());
+    this.frameCallbacks.clear();
+    callbacks.forEach((callback) => callback(performance.now(), {}));
   }
 
   setVisibility(visibilityState) {
@@ -77,6 +95,9 @@ try {
   core.failedResumeWindowMs = 100;
   core.failedResumeValidationMs = 20;
   core.longHiddenRecoveryMs = 60;
+  core.frameStallRecoveryMs = 10000;
+  core.frameStallValidationMs = 10;
+  core.frameStallPollMs = 10;
   core.sessionInit = {
     requiredFeatures: ['local'],
     optionalFeatures: ['hand-tracking']
@@ -141,8 +162,18 @@ try {
   assert.equal(core.activeSession, null);
   assert.equal(core.recoverySuggested, true);
 
+  await core.requestARSession();
+  assert.equal(requests, 4);
+  const frameStalled = core.activeSession;
+  core.frameStallRecoveryMs = 40;
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  assert.equal(frameStalled.visibilityState, 'visible');
+  assert.equal(frameStalled.ended, true);
+  assert.equal(core.activeSession, null);
+  assert.equal(core.recoverySuggested, true);
+
   core.dispose();
-  console.log('AR native offer, brief-bounce guard, prolonged-hidden guard, and explicit restart lifecycle: ok');
+  console.log('AR native offer, brief-bounce guard, prolonged-hidden/frame-stall guards, and explicit restart lifecycle: ok');
 } finally {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,

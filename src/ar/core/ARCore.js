@@ -41,6 +41,10 @@ export class ARCore {
     this.lastHiddenDurationMs = 0;
     this.failedResumeRecoveryTimer = null;
     this.longHiddenRecoveryTimer = null;
+    this.sessionFrameHeartbeatId = null;
+    this.sessionFrameWatchInterval = null;
+    this.sessionFrameValidationTimer = null;
+    this.lastSessionFrameAt = 0;
     this.sessionOfferPromise = null;
     this.recoverySuggested = false;
     this.endingFailedResume = false;
@@ -48,6 +52,9 @@ export class ARCore {
     this.failedResumeMinHiddenMs = 1000;
     this.failedResumeValidationMs = 500;
     this.longHiddenRecoveryMs = 12000;
+    this.frameStallRecoveryMs = 12000;
+    this.frameStallValidationMs = 1000;
+    this.frameStallPollMs = 1000;
     this.isDisposed = false;
   }
 
@@ -205,6 +212,7 @@ export class ARCore {
           this.handleSessionVisibilityChange(session);
         };
         session.addEventListener('visibilitychange', this.sessionVisibilityHandler);
+        this.startSessionFrameHeartbeat(session);
       }
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
@@ -218,6 +226,7 @@ export class ARCore {
       this.isARPresenting = false;
       this.clearFailedResumeRecoveryTimer();
       this.clearLongHiddenRecoveryTimer();
+      this.stopSessionFrameHeartbeat();
       if (this.activeSession && this.sessionVisibilityHandler) {
         this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
       }
@@ -409,16 +418,80 @@ export class ARCore {
     }, this.longHiddenRecoveryMs);
   }
 
-  async endStalledSession(session, warning) {
+  startSessionFrameHeartbeat(session) {
+    this.stopSessionFrameHeartbeat();
+    if (!session || typeof session.requestAnimationFrame !== 'function') return;
+
+    this.lastSessionFrameAt = Date.now();
+    const observeFrame = () => {
+      if (this.isDisposed || session !== this.activeSession) return;
+      this.lastSessionFrameAt = Date.now();
+      this.sessionFrameHeartbeatId = session.requestAnimationFrame(observeFrame);
+    };
+    this.sessionFrameHeartbeatId = session.requestAnimationFrame(observeFrame);
+
+    this.sessionFrameWatchInterval = setInterval(() => {
+      if (
+        this.isDisposed
+        || session !== this.activeSession
+        || Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs
+        || this.sessionFrameValidationTimer
+      ) {
+        return;
+      }
+      // Page timers may resume slightly before the XR compositor. Give the
+      // runtime one final frame-sized grace period before retiring the session.
+      this.sessionFrameValidationTimer = setTimeout(() => {
+        this.sessionFrameValidationTimer = null;
+        if (Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs) return;
+        this.endStalledSession(
+          session,
+          'AR session stopped producing XR frames; ending it and restoring the native AR offer',
+          { allowVisible: true, allowInputs: true }
+        );
+      }, this.frameStallValidationMs);
+    }, this.frameStallPollMs);
+  }
+
+  stopSessionFrameHeartbeat() {
+    const session = this.activeSession;
+    if (
+      this.sessionFrameHeartbeatId !== null
+      && session
+      && typeof session.cancelAnimationFrame === 'function'
+    ) {
+      try {
+        session.cancelAnimationFrame(this.sessionFrameHeartbeatId);
+      } catch {
+        // The runtime may already have invalidated the frame handle.
+      }
+    }
+    this.sessionFrameHeartbeatId = null;
+    this.lastSessionFrameAt = 0;
+    if (this.sessionFrameWatchInterval) {
+      clearInterval(this.sessionFrameWatchInterval);
+      this.sessionFrameWatchInterval = null;
+    }
+    if (this.sessionFrameValidationTimer) {
+      clearTimeout(this.sessionFrameValidationTimer);
+      this.sessionFrameValidationTimer = null;
+    }
+  }
+
+  async endStalledSession(
+    session,
+    warning,
+    { allowVisible = false, allowInputs = false } = {}
+  ) {
     if (
       this.isDisposed
       || session !== this.activeSession
-      || session.visibilityState === 'visible'
+      || (!allowVisible && session.visibilityState === 'visible')
     ) {
       return false;
     }
     const inputSources = Array.from(session.inputSources || []);
-    if (inputSources.length > 0) return false;
+    if (!allowInputs && inputSources.length > 0) return false;
 
     this.endingFailedResume = true;
     this.recoverySuggested = true;
@@ -546,6 +619,7 @@ export class ARCore {
     this.isDisposed = true;
     this.clearFailedResumeRecoveryTimer();
     this.clearLongHiddenRecoveryTimer();
+    this.stopSessionFrameHeartbeat();
     if (this.activeSession && this.sessionVisibilityHandler) {
       this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
     }

@@ -238,7 +238,7 @@
                         <li><span class="change-type fixed">Fixed</span> Desktop focus and resize recovery no longer render into or resize an active WebXR projection target, preventing Quest from invalidating the resumed session framebuffer and turning the headset view black</li>
                         <li><span class="change-type fixed">Fixed</span> AR now leaves headset doff/don suspension entirely to the WebXR runtime and offers an explicit <code>ENTER AR</code> restart only after a genuine session end</li>
                         <li><span class="change-type fixed">Fixed</span> AR detects the Quest-specific failed-resume signature where a retained session briefly becomes visible before returning hidden with no inputs, then exits that stalled session to a one-tap <code>RECOVER AR</code> state</li>
-                        <li><span class="change-type fixed">Fixed</span> AR also retires sessions that remain hidden without inputs and mirrors Three.js VR mode by keeping a single native <code>offerSession()</code> re-entry path available after a session ends</li>
+                        <li><span class="change-type fixed">Fixed</span> AR also retires sessions that remain hidden or stop producing XR frames and mirrors Three.js VR mode by keeping a single native <code>offerSession()</code> re-entry path available after a session ends</li>
                     </ul>
                 </div>
             </div>
