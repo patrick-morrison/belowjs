@@ -10483,7 +10483,7 @@ class ah {
 }
 class lh {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.isDisposed = !1;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionOfferPromise = null, this.isDisposed = !1;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
@@ -10553,12 +10553,12 @@ class lh {
       const e = this.detectQuestDevice();
       this.applyQuestOptimizations(e), this.onSessionStart && this.onSessionStart();
     }), this.renderer.xr.addEventListener("sessionend", () => {
-      this.isARPresenting = !1, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.updateARButtonState(), this.onSessionEnd && this.onSessionEnd();
+      this.isARPresenting = !1, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.updateARButtonState(), this.onSessionEnd && this.onSessionEnd(), this.offerARSession();
     });
   }
   updateARButtonState() {
     if (!this.arButton) return;
-    const e = !!this.sessionRequestPromise;
+    const e = !!(this.sessionRequestPromise || this.sessionOfferPromise);
     this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), e ? this.arButton.textContent = "STARTING AR" : this.activeSession ? this.arButton.textContent = "EXIT AR" : this.arButton.textContent = "ENTER AR";
   }
   getSessionInit() {
@@ -10571,12 +10571,20 @@ class lh {
     return !e || this.isDisposed ? (await e?.end?.(), null) : (this.renderer.xr.setReferenceSpaceType?.("local"), await this.renderer.xr.setSession(e), e);
   }
   requestARSession() {
-    if (this.activeSession || this.sessionRequestPromise || this.isDisposed)
-      return this.sessionRequestPromise;
+    if (this.activeSession || this.sessionRequestPromise || this.sessionOfferPromise || this.isDisposed)
+      return this.sessionRequestPromise || this.sessionOfferPromise;
     const e = navigator.xr.requestSession("immersive-ar", this.getSessionInit()).then((t) => this.activateSession(t)).catch((t) => (console.warn("Unable to start AR session", t), null)).finally(() => {
       this.sessionRequestPromise === e && (this.sessionRequestPromise = null, this.updateARButtonState());
     });
     return this.sessionRequestPromise = e, this.updateARButtonState(), e;
+  }
+  offerARSession() {
+    if (this.activeSession || this.sessionRequestPromise || this.sessionOfferPromise || this.isDisposed || typeof navigator.xr?.offerSession != "function")
+      return this.sessionOfferPromise;
+    const e = navigator.xr.offerSession("immersive-ar", this.getSessionInit()).then((t) => this.activateSession(t)).catch((t) => (console.warn("Unable to offer AR session", t), null)).finally(() => {
+      this.sessionOfferPromise === e && (this.sessionOfferPromise = null, this.updateARButtonState());
+    });
+    return this.sessionOfferPromise = e, this.updateARButtonState(), e;
   }
   handleSessionVisibilityChange(e) {
     if (!(!e || e !== this.activeSession)) {
@@ -10638,7 +10646,7 @@ class lh {
     };
   }
   dispose() {
-    this.isDisposed = !0, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.isDisposed = !0, this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.sessionOfferPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const Tr = new U(), Qr = new x();

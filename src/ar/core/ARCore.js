@@ -35,6 +35,7 @@ export class ARCore {
     this.sessionVisibilityHandler = null;
     this.sessionInit = null;
     this.sessionRequestPromise = null;
+    this.sessionOfferPromise = null;
     this.isDisposed = false;
   }
 
@@ -201,13 +202,20 @@ export class ARCore {
       if (this.onSessionEnd) {
         this.onSessionEnd();
       }
+
+      // Quest may end an AR session when the immersive activity is
+      // backgrounded for long enough. Three's stock XR buttons use
+      // offerSession so the runtime can restore a fresh session without a
+      // second in-page gesture. Start the offer only after renderer
+      // `sessionend`, when Three has fully cleared the old session.
+      this.offerARSession();
     });
   }
 
   updateARButtonState() {
     if (!this.arButton) return;
 
-    const busy = Boolean(this.sessionRequestPromise);
+    const busy = Boolean(this.sessionRequestPromise || this.sessionOfferPromise);
     this.arButton.disabled = busy;
     this.arButton.classList.toggle('ar-generic-disabled', busy);
     if (busy) {
@@ -241,8 +249,8 @@ export class ARCore {
   }
 
   requestARSession() {
-    if (this.activeSession || this.sessionRequestPromise || this.isDisposed) {
-      return this.sessionRequestPromise;
+    if (this.activeSession || this.sessionRequestPromise || this.sessionOfferPromise || this.isDisposed) {
+      return this.sessionRequestPromise || this.sessionOfferPromise;
     }
 
     const request = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
@@ -261,6 +269,37 @@ export class ARCore {
     this.sessionRequestPromise = request;
     this.updateARButtonState();
     return request;
+  }
+
+  offerARSession() {
+    if (
+      this.activeSession ||
+      this.sessionRequestPromise ||
+      this.sessionOfferPromise ||
+      this.isDisposed ||
+      typeof navigator.xr?.offerSession !== 'function'
+    ) {
+      return this.sessionOfferPromise;
+    }
+
+    const offer = navigator.xr.offerSession('immersive-ar', this.getSessionInit())
+      .then((session) => this.activateSession(session))
+      .catch((error) => {
+        // A dismissed system offer is an ordinary user choice. Keep the
+        // in-page ENTER AR button available for a later explicit request.
+        console.warn('Unable to offer AR session', error);
+        return null;
+      })
+      .finally(() => {
+        if (this.sessionOfferPromise === offer) {
+          this.sessionOfferPromise = null;
+          this.updateARButtonState();
+        }
+      });
+
+    this.sessionOfferPromise = offer;
+    this.updateARButtonState();
+    return offer;
   }
 
   handleSessionVisibilityChange(session) {
@@ -378,6 +417,7 @@ export class ARCore {
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
     this.sessionRequestPromise = null;
+    this.sessionOfferPromise = null;
     if (this.buttonObserver) {
       this.buttonObserver.disconnect();
       this.buttonObserver = null;

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the old implicit tileset depth cap that could leave deeply nested model sections missing.
 - AR hand slots now rebuild a retained mesh when Quest reconnects that slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking single hand while preserving translucent depth shading.
 - Restored the proven shared refocus and resize refresh path during active WebXR sessions so Quest can resume both VR and AR cleanly after the immersive activity is backgrounded.
+- AR now serializes a single runtime `offerSession` after a genuine renderer session end, allowing Quest to restore a long-backgrounded AR session without racing duplicate requests or terminating healthy hidden sessions.
 
 ## [1.8.0] - 2026-07-17
 
