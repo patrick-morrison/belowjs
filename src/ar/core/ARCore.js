@@ -35,6 +35,17 @@ export class ARCore {
     this.onSessionResume = null;
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
+    this.sessionInit = null;
+
+    // Quest can occasionally leave an immersive session permanently hidden
+    // after the proximity/Guardian lifecycle has returned to the browser. In
+    // that state the WebGL context is healthy, but no XR frames or input
+    // sources arrive. A short hidden-session watchdog replaces only that stale
+    // session through Quest's user-safe offerSession flow.
+    this.sessionRecoveryTimer = null;
+    this.sessionRecoveryInFlight = false;
+    this.sessionRecoveryDelayMs = 6000;
+    this.isDisposed = false;
   }
 
   init() {
@@ -108,6 +119,7 @@ export class ARCore {
         requiredFeatures: ['local'],
         optionalFeatures: this.getOptionalFeatures()
       };
+      this.sessionInit = sessionInit;
       this.arButton = ARButton.createButton(this.renderer, sessionInit);
       this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
       this.arButton.className = 'ar-button--glass ar-button-available';
@@ -163,18 +175,16 @@ export class ARCore {
 
   setupSessionListeners() {
     this.renderer.xr.addEventListener('sessionstart', () => {
+      this.clearSessionRecoveryTimer();
+      this.sessionRecoveryInFlight = false;
       this.isARPresenting = true;
       this.activeSession = this.renderer.xr.getSession?.() || null;
       if (this.activeSession) {
+        const session = this.activeSession;
         this.sessionVisibilityHandler = () => {
-          if (this.activeSession?.visibilityState === 'visible') {
-            this.isARPresenting = true;
-            this.onSessionResume?.(this.activeSession);
-          } else {
-            this.onSessionPause?.(this.activeSession);
-          }
+          this.handleSessionVisibilityChange(session);
         };
-        this.activeSession.addEventListener('visibilitychange', this.sessionVisibilityHandler);
+        session.addEventListener('visibilitychange', this.sessionVisibilityHandler);
       }
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
@@ -185,6 +195,7 @@ export class ARCore {
     });
 
     this.renderer.xr.addEventListener('sessionend', () => {
+      this.clearSessionRecoveryTimer();
       this.isARPresenting = false;
       if (this.activeSession && this.sessionVisibilityHandler) {
         this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
@@ -196,6 +207,73 @@ export class ARCore {
         this.onSessionEnd();
       }
     });
+  }
+
+  handleSessionVisibilityChange(session) {
+    if (!session || session !== this.activeSession) return;
+
+    if (session.visibilityState === 'visible') {
+      this.clearSessionRecoveryTimer();
+      this.isARPresenting = true;
+      this.onSessionResume?.(session);
+      return;
+    }
+
+    this.onSessionPause?.(session);
+    if (session.visibilityState === 'hidden') {
+      this.scheduleStalledSessionRecovery(session);
+    }
+  }
+
+  clearSessionRecoveryTimer() {
+    if (!this.sessionRecoveryTimer) return;
+    clearTimeout(this.sessionRecoveryTimer);
+    this.sessionRecoveryTimer = null;
+  }
+
+  scheduleStalledSessionRecovery(session) {
+    this.clearSessionRecoveryTimer();
+    if (!session || session !== this.activeSession) return;
+    if (!this.isQuest2 && !this.isQuest3) return;
+    if (typeof navigator?.xr?.offerSession !== 'function') return;
+
+    this.sessionRecoveryTimer = setTimeout(() => {
+      this.sessionRecoveryTimer = null;
+      if (this.isDisposed || session !== this.activeSession) return;
+      if (session.visibilityState !== 'hidden') return;
+      this.recoverStalledSession(session);
+    }, this.sessionRecoveryDelayMs);
+  }
+
+  async recoverStalledSession(session) {
+    if (this.sessionRecoveryInFlight || this.isDisposed) return false;
+    if (!session || session !== this.activeSession) return false;
+    if (session.visibilityState !== 'hidden') return false;
+    if (typeof navigator?.xr?.offerSession !== 'function') return false;
+
+    this.sessionRecoveryInFlight = true;
+    try {
+      await session.end();
+      if (this.isDisposed) return false;
+
+      const sessionInit = this.sessionInit || {
+        requiredFeatures: ['local'],
+        optionalFeatures: this.getOptionalFeatures()
+      };
+      const replacement = await navigator.xr.offerSession('immersive-ar', sessionInit);
+      if (!replacement || this.isDisposed) {
+        await replacement?.end?.();
+        return false;
+      }
+
+      await this.renderer.xr.setSession(replacement);
+      return true;
+    } catch (error) {
+      console.warn('Unable to recover stalled AR session', error);
+      return false;
+    } finally {
+      this.sessionRecoveryInFlight = false;
+    }
   }
 
   detectQuestDevice() {
@@ -294,6 +372,8 @@ export class ARCore {
   }
 
   dispose() {
+    this.isDisposed = true;
+    this.clearSessionRecoveryTimer();
     if (this.activeSession && this.sessionVisibilityHandler) {
       this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
     }
