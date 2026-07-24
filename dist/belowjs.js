@@ -14996,7 +14996,7 @@ class ai extends It {
     }, s));
   }
   async tryRecoverFromInterruption(e, { forceReload: t = !1 } = {}) {
-    if (this.isDisposed || !this.config.enableAutoRecovery || typeof document < "u" && document.hidden) return;
+    if (this.isDisposed || !this.config.enableAutoRecovery || typeof document < "u" && document.hidden || this.belowViewer?.renderer?.xr?.isPresenting) return;
     if (this.isLoading) {
       this.queueRecovery(e, { forceReload: !0, delayMs: 600 });
       return;
@@ -15029,6 +15029,7 @@ class ai extends It {
     if (!(!e || !t || !s))
       try {
         const i = e.xr?.isPresenting;
+        if (i) return;
         this.belowViewer?.stereoEnabled && !i && this.belowViewer?.stereoMode === "sbs" && typeof this.belowViewer.renderSbsStereo == "function" ? this.belowViewer.renderSbsStereo() : e.render(t, s);
       } catch {
       }

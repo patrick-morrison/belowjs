@@ -839,6 +839,11 @@ export class ModelViewer extends EventSystem {
   async tryRecoverFromInterruption(reason, { forceReload = false } = {}) {
     if (this.isDisposed || !this.config.enableAutoRecovery) return;
     if (typeof document !== 'undefined' && document.hidden) return;
+    // The WebXR runtime owns rendering and presentation recovery for the
+    // lifetime of an immersive session. A document focus/visibility event is
+    // normal during headset doff/don and must not trigger the desktop recovery
+    // path while VR or AR is still presenting.
+    if (this.belowViewer?.renderer?.xr?.isPresenting) return;
     if (this.isLoading) {
       this.queueRecovery(reason, { forceReload: true, delayMs: 600 });
       return;
@@ -896,6 +901,7 @@ export class ModelViewer extends EventSystem {
 
     try {
       const isXRPresenting = renderer.xr?.isPresenting;
+      if (isXRPresenting) return;
       if (this.belowViewer?.stereoEnabled && !isXRPresenting && this.belowViewer?.stereoMode === 'sbs' &&
         typeof this.belowViewer.renderSbsStereo === 'function') {
         this.belowViewer.renderSbsStereo();
