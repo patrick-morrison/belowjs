@@ -40,11 +40,14 @@ export class ARCore {
     this.sessionResumedAt = 0;
     this.lastHiddenDurationMs = 0;
     this.failedResumeRecoveryTimer = null;
+    this.longHiddenRecoveryTimer = null;
+    this.sessionOfferPromise = null;
     this.recoverySuggested = false;
     this.endingFailedResume = false;
     this.failedResumeWindowMs = 2500;
     this.failedResumeMinHiddenMs = 1000;
     this.failedResumeValidationMs = 500;
+    this.longHiddenRecoveryMs = 12000;
     this.isDisposed = false;
   }
 
@@ -151,6 +154,7 @@ export class ARCore {
       this.container.appendChild(this.arButton);
       this.updateARButtonState();
       this.styleARButton();
+      this.offerARSession();
     });
   }
 
@@ -191,6 +195,7 @@ export class ARCore {
       this.sessionHiddenAt = 0;
       this.sessionResumedAt = Date.now();
       this.lastHiddenDurationMs = 0;
+      this.sessionOfferPromise = null;
       this.recoverySuggested = false;
       this.endingFailedResume = false;
       this.updateARButtonState();
@@ -212,6 +217,7 @@ export class ARCore {
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isARPresenting = false;
       this.clearFailedResumeRecoveryTimer();
+      this.clearLongHiddenRecoveryTimer();
       if (this.activeSession && this.sessionVisibilityHandler) {
         this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
       }
@@ -224,6 +230,7 @@ export class ARCore {
       this.recoverySuggested = this.endingFailedResume;
       this.endingFailedResume = false;
       this.updateARButtonState();
+      this.offerARSession();
 
       if (this.onSessionEnd) {
         this.onSessionEnd();
@@ -292,6 +299,48 @@ export class ARCore {
     return request;
   }
 
+  /**
+   * Mirror Three.js VRButton's native re-entry path. Quest Browser owns this
+   * pending offer and can expose it in browser chrome even when the page cannot
+   * manufacture the transient user activation required by requestSession().
+   */
+  offerARSession() {
+    if (
+      this.activeSession
+      || this.sessionRequestPromise
+      || this.sessionOfferPromise
+      || this.isDisposed
+      || typeof navigator?.xr?.offerSession !== 'function'
+    ) {
+      return this.sessionOfferPromise;
+    }
+
+    const offer = navigator.xr.offerSession('immersive-ar', this.getSessionInit())
+      .then((session) => {
+        if (!session) return null;
+        if (this.activeSession || this.isDisposed) {
+          session.end?.();
+          return null;
+        }
+        return this.activateSession(session);
+      })
+      .catch((error) => {
+        // A normal button-driven request cancels the outstanding native offer.
+        if (error?.name !== 'AbortError' && !/cancel/i.test(error?.message || '')) {
+          console.warn('Unable to offer AR session', error);
+        }
+        return null;
+      })
+      .finally(() => {
+        if (this.sessionOfferPromise === offer) {
+          this.sessionOfferPromise = null;
+        }
+      });
+
+    this.sessionOfferPromise = offer;
+    return offer;
+  }
+
   handleSessionVisibilityChange(session) {
     if (!session || session !== this.activeSession) return;
 
@@ -301,6 +350,7 @@ export class ARCore {
 
     if (nextState === 'visible') {
       this.clearFailedResumeRecoveryTimer();
+      this.clearLongHiddenRecoveryTimer();
       this.lastHiddenDurationMs = this.sessionHiddenAt
         ? now - this.sessionHiddenAt
         : 0;
@@ -329,6 +379,7 @@ export class ARCore {
     if (failedResumeCandidate) {
       this.scheduleFailedResumeRecovery(session);
     }
+    this.scheduleLongHiddenRecovery(session);
 
     this.onSessionPause?.(session);
   }
@@ -340,32 +391,57 @@ export class ARCore {
     }
   }
 
+  clearLongHiddenRecoveryTimer() {
+    if (this.longHiddenRecoveryTimer) {
+      clearTimeout(this.longHiddenRecoveryTimer);
+      this.longHiddenRecoveryTimer = null;
+    }
+  }
+
+  scheduleLongHiddenRecovery(session) {
+    if (this.longHiddenRecoveryTimer) return;
+    this.longHiddenRecoveryTimer = setTimeout(() => {
+      this.longHiddenRecoveryTimer = null;
+      this.endStalledSession(
+        session,
+        'AR session remained hidden without frames or inputs; ending it and restoring the native AR offer'
+      );
+    }, this.longHiddenRecoveryMs);
+  }
+
+  async endStalledSession(session, warning) {
+    if (
+      this.isDisposed
+      || session !== this.activeSession
+      || session.visibilityState === 'visible'
+    ) {
+      return false;
+    }
+    const inputSources = Array.from(session.inputSources || []);
+    if (inputSources.length > 0) return false;
+
+    this.endingFailedResume = true;
+    this.recoverySuggested = true;
+    this.updateARButtonState();
+    console.warn(warning);
+    try {
+      await session.end();
+      return true;
+    } catch (error) {
+      this.endingFailedResume = false;
+      console.warn('Unable to end stalled AR session', error);
+      return false;
+    }
+  }
+
   scheduleFailedResumeRecovery(session) {
     this.clearFailedResumeRecoveryTimer();
     this.failedResumeRecoveryTimer = setTimeout(async () => {
       this.failedResumeRecoveryTimer = null;
-      if (
-        this.isDisposed
-        || session !== this.activeSession
-        || session.visibilityState === 'visible'
-      ) {
-        return;
-      }
-      const inputSources = Array.from(session.inputSources || []);
-      if (inputSources.length > 0) return;
-
-      this.endingFailedResume = true;
-      this.recoverySuggested = true;
-      this.updateARButtonState();
-      console.warn(
+      await this.endStalledSession(
+        session,
         'AR session briefly resumed then returned hidden without inputs; ending the stalled session for explicit recovery'
       );
-      try {
-        await session.end();
-      } catch (error) {
-        this.endingFailedResume = false;
-        console.warn('Unable to end stalled AR session', error);
-      }
     }, this.failedResumeValidationMs);
   }
 
@@ -469,6 +545,7 @@ export class ARCore {
   dispose() {
     this.isDisposed = true;
     this.clearFailedResumeRecoveryTimer();
+    this.clearLongHiddenRecoveryTimer();
     if (this.activeSession && this.sessionVisibilityHandler) {
       this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
     }

@@ -46,6 +46,7 @@ const xrManager = new FakeXRManager();
 const renderer = { xr: xrManager };
 const camera = { far: 1000, updateProjectionMatrix() {} };
 let requests = 0;
+let offers = 0;
 let pauses = 0;
 let resumes = 0;
 
@@ -59,6 +60,12 @@ Object.defineProperty(globalThis, 'navigator', {
         assert.deepEqual(init.requiredFeatures, ['local']);
         requests += 1;
         return new FakeSession('visible');
+      },
+      offerSession(mode, init) {
+        assert.equal(mode, 'immersive-ar');
+        assert.deepEqual(init.requiredFeatures, ['local']);
+        offers += 1;
+        return new Promise(() => {});
       }
     }
   }
@@ -69,6 +76,7 @@ try {
   core.failedResumeMinHiddenMs = 30;
   core.failedResumeWindowMs = 100;
   core.failedResumeValidationMs = 20;
+  core.longHiddenRecoveryMs = 60;
   core.sessionInit = {
     requiredFeatures: ['local'],
     optionalFeatures: ['hand-tracking']
@@ -103,6 +111,7 @@ try {
   assert.equal(core.isARPresenting, false);
   assert.equal(core.activeSession, null);
   assert.equal(xrManager.getSession(), null);
+  assert.equal(offers, 1);
 
   await core.requestARSession();
   assert.equal(requests, 2);
@@ -125,8 +134,15 @@ try {
   assert.equal(core.recoverySuggested, false);
   assert.ok(core.activeSession);
 
+  const longHidden = core.activeSession;
+  longHidden.setVisibility('hidden');
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  assert.equal(longHidden.ended, true);
+  assert.equal(core.activeSession, null);
+  assert.equal(core.recoverySuggested, true);
+
   core.dispose();
-  console.log('AR runtime-owned pause/resume, failed-resume guard, and explicit restart lifecycle: ok');
+  console.log('AR native offer, brief-bounce guard, prolonged-hidden guard, and explicit restart lifecycle: ok');
 } finally {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,
