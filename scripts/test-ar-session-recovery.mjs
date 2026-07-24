@@ -67,6 +67,7 @@ let requests = 0;
 let offers = 0;
 let pauses = 0;
 let resumes = 0;
+let hangNextRequest = false;
 
 Object.defineProperty(globalThis, 'navigator', {
   configurable: true,
@@ -77,6 +78,10 @@ Object.defineProperty(globalThis, 'navigator', {
         assert.equal(mode, 'immersive-ar');
         assert.deepEqual(init.requiredFeatures, ['local']);
         requests += 1;
+        if (hangNextRequest) {
+          hangNextRequest = false;
+          return new Promise(() => {});
+        }
         return new FakeSession('visible');
       },
       offerSession(mode, init) {
@@ -98,6 +103,7 @@ try {
   core.frameStallRecoveryMs = 10000;
   core.frameStallValidationMs = 10;
   core.frameStallPollMs = 10;
+  core.sessionRequestTimeoutMs = 30;
   core.sessionInit = {
     requiredFeatures: ['local'],
     optionalFeatures: ['hand-tracking']
@@ -106,8 +112,16 @@ try {
   core.onSessionPause = () => { pauses += 1; };
   core.onSessionResume = () => { resumes += 1; };
 
-  await core.requestARSession();
+  hangNextRequest = true;
+  const timedOutRequest = await core.requestARSession();
   assert.equal(requests, 1);
+  assert.equal(timedOutRequest, null);
+  assert.equal(core.sessionRequestPromise, null);
+  assert.equal(core.recoverySuggested, true);
+  assert.equal(core.isARPresenting, false);
+
+  await core.requestARSession();
+  assert.equal(requests, 2);
   assert.equal(core.isARPresenting, true);
 
   const active = xrManager.getSession();
@@ -128,14 +142,14 @@ try {
   xrManager.session = null;
   xrManager.dispatchEvent(new Event('sessionend'));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.equal(requests, 1);
+  assert.equal(requests, 2);
   assert.equal(core.isARPresenting, false);
   assert.equal(core.activeSession, null);
   assert.equal(xrManager.getSession(), null);
   assert.equal(offers, 1);
 
   await core.requestARSession();
-  assert.equal(requests, 2);
+  assert.equal(requests, 3);
   assert.equal(core.isARPresenting, true);
   const failedResume = core.activeSession;
   assert.ok(failedResume);
@@ -151,7 +165,7 @@ try {
   assert.equal(core.recoverySuggested, true);
 
   await core.requestARSession();
-  assert.equal(requests, 3);
+  assert.equal(requests, 4);
   assert.equal(core.recoverySuggested, false);
   assert.ok(core.activeSession);
 
@@ -163,7 +177,7 @@ try {
   assert.equal(core.recoverySuggested, true);
 
   await core.requestARSession();
-  assert.equal(requests, 4);
+  assert.equal(requests, 5);
   const frameStalled = core.activeSession;
   core.frameStallRecoveryMs = 40;
   await new Promise((resolve) => setTimeout(resolve, 80));
@@ -173,7 +187,7 @@ try {
   assert.equal(core.recoverySuggested, true);
 
   core.dispose();
-  console.log('AR native offer, brief-bounce guard, prolonged-hidden/frame-stall guards, and explicit restart lifecycle: ok');
+  console.log('AR request timeout, native offer, brief-bounce guard, prolonged-hidden/frame-stall guards, and explicit restart lifecycle: ok');
 } finally {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,

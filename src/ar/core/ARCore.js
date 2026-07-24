@@ -35,6 +35,8 @@ export class ARCore {
     this.sessionVisibilityHandler = null;
     this.sessionInit = null;
     this.sessionRequestPromise = null;
+    this.sessionRequestGeneration = 0;
+    this.sessionRequestTimeoutId = null;
     this.sessionVisibilityState = 'none';
     this.sessionHiddenAt = 0;
     this.sessionResumedAt = 0;
@@ -55,6 +57,7 @@ export class ARCore {
     this.frameStallRecoveryMs = 12000;
     this.frameStallValidationMs = 1000;
     this.frameStallPollMs = 1000;
+    this.sessionRequestTimeoutMs = 12000;
     this.isDisposed = false;
   }
 
@@ -290,13 +293,35 @@ export class ARCore {
       return this.sessionRequestPromise || this.activeSession;
     }
 
-    const request = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
-      .then((session) => this.activateSession(session))
+    const generation = ++this.sessionRequestGeneration;
+    const nativeRequest = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
+      .then(async (session) => {
+        if (generation !== this.sessionRequestGeneration || this.isDisposed) {
+          await session?.end?.();
+          return null;
+        }
+        return this.activateSession(session);
+      })
       .catch((error) => {
         console.warn('Unable to start AR session', error);
         return null;
-      })
+      });
+    const timeout = new Promise((resolve) => {
+      this.sessionRequestTimeoutId = setTimeout(() => {
+        if (generation === this.sessionRequestGeneration && !this.activeSession) {
+          this.sessionRequestGeneration += 1;
+          this.recoverySuggested = true;
+          console.warn('AR session request timed out; the launch control is available to retry');
+        }
+        resolve(null);
+      }, this.sessionRequestTimeoutMs);
+    });
+    const request = Promise.race([nativeRequest, timeout])
       .finally(() => {
+        if (this.sessionRequestTimeoutId) {
+          clearTimeout(this.sessionRequestTimeoutId);
+          this.sessionRequestTimeoutId = null;
+        }
         if (this.sessionRequestPromise === request) {
           this.sessionRequestPromise = null;
           this.updateARButtonState();
@@ -617,6 +642,11 @@ export class ARCore {
 
   dispose() {
     this.isDisposed = true;
+    this.sessionRequestGeneration += 1;
+    if (this.sessionRequestTimeoutId) {
+      clearTimeout(this.sessionRequestTimeoutId);
+      this.sessionRequestTimeoutId = null;
+    }
     this.clearFailedResumeRecoveryTimer();
     this.clearLongHiddenRecoveryTimer();
     this.stopSessionFrameHeartbeat();

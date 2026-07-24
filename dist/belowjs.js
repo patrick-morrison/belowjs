@@ -10483,7 +10483,7 @@ class ah {
 }
 class lh {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.failedResumeRecoveryTimer = null, this.longHiddenRecoveryTimer = null, this.sessionFrameHeartbeatId = null, this.sessionFrameWatchInterval = null, this.sessionFrameValidationTimer = null, this.lastSessionFrameAt = 0, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.failedResumeWindowMs = 2500, this.failedResumeMinHiddenMs = 1e3, this.failedResumeValidationMs = 500, this.longHiddenRecoveryMs = 12e3, this.frameStallRecoveryMs = 12e3, this.frameStallValidationMs = 1e3, this.frameStallPollMs = 1e3, this.isDisposed = !1;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionRequestGeneration = 0, this.sessionRequestTimeoutId = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.failedResumeRecoveryTimer = null, this.longHiddenRecoveryTimer = null, this.sessionFrameHeartbeatId = null, this.sessionFrameWatchInterval = null, this.sessionFrameValidationTimer = null, this.lastSessionFrameAt = 0, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.failedResumeWindowMs = 2500, this.failedResumeMinHiddenMs = 1e3, this.failedResumeValidationMs = 500, this.longHiddenRecoveryMs = 12e3, this.frameStallRecoveryMs = 12e3, this.frameStallValidationMs = 1e3, this.frameStallPollMs = 1e3, this.sessionRequestTimeoutMs = 12e3, this.isDisposed = !1;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
@@ -10573,10 +10573,14 @@ class lh {
   requestARSession() {
     if (this.activeSession || this.sessionRequestPromise || this.isDisposed)
       return this.sessionRequestPromise || this.activeSession;
-    const e = navigator.xr.requestSession("immersive-ar", this.getSessionInit()).then((t) => this.activateSession(t)).catch((t) => (console.warn("Unable to start AR session", t), null)).finally(() => {
-      this.sessionRequestPromise === e && (this.sessionRequestPromise = null, this.updateARButtonState());
+    const e = ++this.sessionRequestGeneration, t = navigator.xr.requestSession("immersive-ar", this.getSessionInit()).then(async (r) => e !== this.sessionRequestGeneration || this.isDisposed ? (await r?.end?.(), null) : this.activateSession(r)).catch((r) => (console.warn("Unable to start AR session", r), null)), s = new Promise((r) => {
+      this.sessionRequestTimeoutId = setTimeout(() => {
+        e === this.sessionRequestGeneration && !this.activeSession && (this.sessionRequestGeneration += 1, this.recoverySuggested = !0, console.warn("AR session request timed out; the launch control is available to retry")), r(null);
+      }, this.sessionRequestTimeoutMs);
+    }), i = Promise.race([t, s]).finally(() => {
+      this.sessionRequestTimeoutId && (clearTimeout(this.sessionRequestTimeoutId), this.sessionRequestTimeoutId = null), this.sessionRequestPromise === i && (this.sessionRequestPromise = null, this.updateARButtonState());
     });
-    return this.sessionRequestPromise = e, this.updateARButtonState(), e;
+    return this.sessionRequestPromise = i, this.updateARButtonState(), i;
   }
   /**
    * Mirror Three.js VRButton's native re-entry path. Quest Browser owns this
@@ -10712,7 +10716,7 @@ class lh {
     };
   }
   dispose() {
-    this.isDisposed = !0, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.isDisposed = !0, this.sessionRequestGeneration += 1, this.sessionRequestTimeoutId && (clearTimeout(this.sessionRequestTimeoutId), this.sessionRequestTimeoutId = null), this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const Tr = new U(), Qr = new x();
