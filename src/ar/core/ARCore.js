@@ -303,6 +303,29 @@ export class ARCore {
     return offer;
   }
 
+  waitForRendererSessionEnd(session, timeoutMs = 1500) {
+    if (this.activeSession !== session &&
+        this.renderer.xr.getSession?.() !== session) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise((resolve) => {
+      let timeout = null;
+      const finish = (ended) => {
+        this.renderer.xr.removeEventListener('sessionend', onSessionEnd);
+        if (timeout) clearTimeout(timeout);
+        resolve(ended);
+      };
+      const onSessionEnd = () => finish(true);
+      this.renderer.xr.addEventListener('sessionend', onSessionEnd);
+      timeout = setTimeout(() => {
+        const ended = this.activeSession !== session &&
+          this.renderer.xr.getSession?.() !== session;
+        finish(ended);
+      }, timeoutMs);
+    });
+  }
+
   handleSessionVisibilityChange(session) {
     if (!session || session !== this.activeSession) return;
 
@@ -349,6 +372,10 @@ export class ARCore {
     try {
       await session.end();
       if (this.isDisposed) return false;
+      if (!await this.waitForRendererSessionEnd(session)) {
+        console.warn('Renderer did not finish ending the stale AR session');
+        return false;
+      }
       return Boolean(await this.offerARSession());
     } catch (error) {
       console.warn('Unable to recover stalled AR session', error);

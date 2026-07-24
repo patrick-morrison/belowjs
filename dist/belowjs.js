@@ -10587,6 +10587,18 @@ class lh {
     });
     return this.sessionOfferPromise = e, this.updateARButtonState(), e;
   }
+  waitForRendererSessionEnd(e, t = 1500) {
+    return this.activeSession !== e && this.renderer.xr.getSession?.() !== e ? Promise.resolve(!0) : new Promise((s) => {
+      let i = null;
+      const r = (o) => {
+        this.renderer.xr.removeEventListener("sessionend", n), i && clearTimeout(i), s(o);
+      }, n = () => r(!0);
+      this.renderer.xr.addEventListener("sessionend", n), i = setTimeout(() => {
+        const o = this.activeSession !== e && this.renderer.xr.getSession?.() !== e;
+        r(o);
+      }, t);
+    });
+  }
   handleSessionVisibilityChange(e) {
     if (!(!e || e !== this.activeSession)) {
       if (e.visibilityState === "visible") {
@@ -10608,7 +10620,7 @@ class lh {
     if (this.sessionRecoveryInFlight || this.isDisposed || !e || e !== this.activeSession || e.visibilityState !== "hidden" || typeof navigator?.xr?.offerSession != "function") return !1;
     this.sessionRecoveryInFlight = !0;
     try {
-      return await e.end(), this.isDisposed ? !1 : !!await this.offerARSession();
+      return await e.end(), this.isDisposed ? !1 : await this.waitForRendererSessionEnd(e) ? !!await this.offerARSession() : (console.warn("Renderer did not finish ending the stale AR session"), !1);
     } catch (t) {
       return console.warn("Unable to recover stalled AR session", t), !1;
     } finally {

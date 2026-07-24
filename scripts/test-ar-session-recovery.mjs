@@ -14,9 +14,11 @@ class FakeXRManager extends EventTarget {
   async setSession(session) {
     this.session = session;
     session.addEventListener('end', () => {
-      if (this.session !== session) return;
-      this.session = null;
-      this.dispatchEvent(new Event('sessionend'));
+      setTimeout(() => {
+        if (this.session !== session) return;
+        this.session = null;
+        this.dispatchEvent(new Event('sessionend'));
+      }, 0);
     }, { once: true });
     this.dispatchEvent(new Event('sessionstart'));
   }
