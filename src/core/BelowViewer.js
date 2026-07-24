@@ -599,6 +599,11 @@ export class BelowViewer extends EventSystem {
 
   onWindowResize() {
     if (!this.isInitialized) return;
+
+    // Three owns the XR framebuffer dimensions while an immersive session is
+    // active. Resizing it from the page's window event can invalidate the
+    // projection target just after Quest resumes the XR activity.
+    if (this.renderer?.xr?.isPresenting) return;
     
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;

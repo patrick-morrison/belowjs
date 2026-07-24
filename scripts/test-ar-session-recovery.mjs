@@ -40,7 +40,6 @@ const xrManager = new FakeXRManager();
 const renderer = { xr: xrManager };
 const camera = { far: 1000, updateProjectionMatrix() {} };
 let requests = 0;
-let offers = 0;
 let pauses = 0;
 let resumes = 0;
 
@@ -53,12 +52,6 @@ Object.defineProperty(globalThis, 'navigator', {
         assert.equal(mode, 'immersive-ar');
         assert.deepEqual(init.requiredFeatures, ['local']);
         requests += 1;
-        return new FakeSession('visible');
-      },
-      async offerSession(mode, init) {
-        assert.equal(mode, 'immersive-ar');
-        assert.deepEqual(init.requiredFeatures, ['local']);
-        offers += 1;
         return new FakeSession('visible');
       }
     }
@@ -96,15 +89,19 @@ try {
 
   xrManager.session = null;
   xrManager.dispatchEvent(new Event('sessionend'));
-  await core.sessionOfferPromise;
-  assert.equal(offers, 1);
+  await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(requests, 1);
+  assert.equal(core.isARPresenting, false);
+  assert.equal(core.activeSession, null);
+  assert.equal(xrManager.getSession(), null);
+
+  await core.requestARSession();
+  assert.equal(requests, 2);
   assert.equal(core.isARPresenting, true);
   assert.ok(core.activeSession);
-  assert.equal(xrManager.getSession(), core.activeSession);
 
   core.dispose();
-  console.log('AR runtime-owned session and serialized re-offer lifecycle: ok');
+  console.log('AR runtime-owned pause/resume and explicit restart lifecycle: ok');
 } finally {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,

@@ -894,9 +894,14 @@ export class ModelViewer extends EventSystem {
     const camera = this.belowViewer?.cameraManager?.camera;
     if (!renderer || !scene || !camera) return;
 
+    // The XR animation loop is the only safe place to render an immersive
+    // projection layer. A desktop focus recovery render outside rAF can reuse
+    // an invalidated Quest framebuffer and turn an otherwise healthy session
+    // black.
+    if (renderer.xr?.isPresenting) return;
+
     try {
-      const isXRPresenting = renderer.xr?.isPresenting;
-      if (this.belowViewer?.stereoEnabled && !isXRPresenting && this.belowViewer?.stereoMode === 'sbs' &&
+      if (this.belowViewer?.stereoEnabled && this.belowViewer?.stereoMode === 'sbs' &&
         typeof this.belowViewer.renderSbsStereo === 'function') {
         this.belowViewer.renderSbsStereo();
       } else {

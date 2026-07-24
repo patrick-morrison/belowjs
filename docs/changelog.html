@@ -235,8 +235,8 @@
                     <ul>
                         <li><span class="change-type fixed">Fixed</span> Removed the old implicit tileset depth cap that could leave deeply nested model sections missing</li>
                         <li><span class="change-type fixed">Fixed</span> AR hand slots now rebuild a retained mesh when Quest reconnects that slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking single hand while preserving translucent depth shading</li>
-                        <li><span class="change-type fixed">Fixed</span> Restored the proven shared refocus and resize refresh path during active WebXR sessions so Quest can resume both VR and AR cleanly after the immersive activity is backgrounded</li>
-                        <li><span class="change-type fixed">Fixed</span> AR now serializes a single runtime offer after a genuine renderer session end, allowing Quest to restore a long-backgrounded session without racing duplicate requests or terminating healthy hidden sessions</li>
+                        <li><span class="change-type fixed">Fixed</span> Desktop focus and resize recovery no longer render into or resize an active WebXR projection target, preventing Quest from invalidating the resumed session framebuffer and turning the headset view black</li>
+                        <li><span class="change-type fixed">Fixed</span> AR now leaves headset doff/don suspension entirely to the WebXR runtime and offers an explicit <code>ENTER AR</code> restart only after a genuine session end</li>
                     </ul>
                 </div>
             </div>
