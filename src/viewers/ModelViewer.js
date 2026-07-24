@@ -304,6 +304,18 @@ export class ModelViewer extends EventSystem {
   init() {
     const viewerConfig = {
       ...this.config.viewerConfig,
+      // Quest's WebXR projection-layer MSAA target can become invalid across
+      // visibility transitions. AR passthrough is composited by the runtime,
+      // so use an explicitly XR-compatible, non-multisampled context unless a
+      // caller intentionally overrides one of these values.
+      ...(this.config.enableAR && {
+        renderer: {
+          antialias: false,
+          xrCompatible: true,
+          preserveDrawingBuffer: false,
+          ...(this.config.viewerConfig?.renderer || {})
+        }
+      }),
       // Enable VR only if AR is not enabled (preserve other vr settings such
       // as shadowProfile/foveation from viewerConfig)
       ...(this.config.enableVR && !this.config.enableAR && { vr: { ...(this.config.viewerConfig?.vr || {}), enabled: true } }),

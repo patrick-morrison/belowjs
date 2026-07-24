@@ -11730,7 +11730,7 @@ class mh extends wt {
     });
   }
   onWindowResize() {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized || this.renderer?.xr?.isPresenting) return;
     const e = this.container.clientWidth, t = this.container.clientHeight;
     this.cameraManager.setSize(e, t), this.renderer.setSize(e, t), this.tilesetLoader && this.tilesetLoader.updateResolution(), this.emit("resize", { width: e, height: t });
   }
@@ -14773,6 +14773,18 @@ class ai extends wt {
   init() {
     const e = {
       ...this.config.viewerConfig,
+      // Quest's WebXR projection-layer MSAA target can become invalid across
+      // visibility transitions. AR passthrough is composited by the runtime,
+      // so use an explicitly XR-compatible, non-multisampled context unless a
+      // caller intentionally overrides one of these values.
+      ...this.config.enableAR && {
+        renderer: {
+          antialias: !1,
+          xrCompatible: !0,
+          preserveDrawingBuffer: !1,
+          ...this.config.viewerConfig?.renderer || {}
+        }
+      },
       // Enable VR only if AR is not enabled (preserve other vr settings such
       // as shadowProfile/foveation from viewerConfig)
       ...this.config.enableVR && !this.config.enableAR && { vr: { ...this.config.viewerConfig?.vr || {}, enabled: !0 } },
