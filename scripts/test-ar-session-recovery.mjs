@@ -13,6 +13,11 @@ class FakeXRManager extends EventTarget {
 
   async setSession(session) {
     this.session = session;
+    session.addEventListener('end', () => {
+      if (this.session !== session) return;
+      this.session = null;
+      this.dispatchEvent(new Event('sessionend'));
+    }, { once: true });
     this.dispatchEvent(new Event('sessionstart'));
   }
 }
@@ -21,6 +26,7 @@ class FakeSession extends EventTarget {
   constructor(visibilityState = 'visible') {
     super();
     this.visibilityState = visibilityState;
+    this.inputSources = [];
     this.ended = false;
   }
 
@@ -60,6 +66,9 @@ Object.defineProperty(globalThis, 'navigator', {
 
 try {
   const core = new ARCore(renderer, camera, {}, {});
+  core.failedResumeMinHiddenMs = 30;
+  core.failedResumeWindowMs = 100;
+  core.failedResumeValidationMs = 20;
   core.sessionInit = {
     requiredFeatures: ['local'],
     optionalFeatures: ['hand-tracking']
@@ -78,7 +87,7 @@ try {
   assert.equal(core.isQuest3, true);
 
   active.setVisibility('hidden');
-  await new Promise((resolve) => setTimeout(resolve, 40));
+  await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(active.ended, false);
   assert.equal(xrManager.getSession(), active);
   assert.equal(pauses, 1);
@@ -98,10 +107,26 @@ try {
   await core.requestARSession();
   assert.equal(requests, 2);
   assert.equal(core.isARPresenting, true);
+  const failedResume = core.activeSession;
+  assert.ok(failedResume);
+
+  failedResume.setVisibility('hidden');
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(failedResume.ended, false);
+  failedResume.setVisibility('visible');
+  failedResume.setVisibility('hidden');
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(failedResume.ended, true);
+  assert.equal(core.activeSession, null);
+  assert.equal(core.recoverySuggested, true);
+
+  await core.requestARSession();
+  assert.equal(requests, 3);
+  assert.equal(core.recoverySuggested, false);
   assert.ok(core.activeSession);
 
   core.dispose();
-  console.log('AR runtime-owned pause/resume and explicit restart lifecycle: ok');
+  console.log('AR runtime-owned pause/resume, failed-resume guard, and explicit restart lifecycle: ok');
 } finally {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,

@@ -35,6 +35,16 @@ export class ARCore {
     this.sessionVisibilityHandler = null;
     this.sessionInit = null;
     this.sessionRequestPromise = null;
+    this.sessionVisibilityState = 'none';
+    this.sessionHiddenAt = 0;
+    this.sessionResumedAt = 0;
+    this.lastHiddenDurationMs = 0;
+    this.failedResumeRecoveryTimer = null;
+    this.recoverySuggested = false;
+    this.endingFailedResume = false;
+    this.failedResumeWindowMs = 2500;
+    this.failedResumeMinHiddenMs = 1000;
+    this.failedResumeValidationMs = 500;
     this.isDisposed = false;
   }
 
@@ -116,10 +126,13 @@ export class ARCore {
       this.arButton.dataset.belowjsArButton = 'true';
       this.arButton.addEventListener('click', () => {
         if (this.activeSession) {
+          this.recoverySuggested = false;
+          this.endingFailedResume = false;
           this.activeSession.end().catch((error) => {
             console.warn('Unable to end AR session', error);
           });
         } else {
+          this.recoverySuggested = false;
           this.requestARSession();
         }
       });
@@ -174,6 +187,12 @@ export class ARCore {
     this.renderer.xr.addEventListener('sessionstart', () => {
       this.isARPresenting = true;
       this.activeSession = this.renderer.xr.getSession?.() || null;
+      this.sessionVisibilityState = this.activeSession?.visibilityState || 'visible';
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = Date.now();
+      this.lastHiddenDurationMs = 0;
+      this.recoverySuggested = false;
+      this.endingFailedResume = false;
       this.updateARButtonState();
       if (this.activeSession) {
         const session = this.activeSession;
@@ -192,11 +211,18 @@ export class ARCore {
 
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isARPresenting = false;
+      this.clearFailedResumeRecoveryTimer();
       if (this.activeSession && this.sessionVisibilityHandler) {
         this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
       }
       this.activeSession = null;
       this.sessionVisibilityHandler = null;
+      this.sessionVisibilityState = 'none';
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = 0;
+      this.lastHiddenDurationMs = 0;
+      this.recoverySuggested = this.endingFailedResume;
+      this.endingFailedResume = false;
       this.updateARButtonState();
 
       if (this.onSessionEnd) {
@@ -215,6 +241,8 @@ export class ARCore {
       this.arButton.textContent = 'EXIT AR';
     } else if (busy) {
       this.arButton.textContent = 'STARTING AR';
+    } else if (this.recoverySuggested) {
+      this.arButton.textContent = 'RECOVER AR';
     } else {
       this.arButton.textContent = 'ENTER AR';
     }
@@ -267,13 +295,78 @@ export class ARCore {
   handleSessionVisibilityChange(session) {
     if (!session || session !== this.activeSession) return;
 
-    if (session.visibilityState === 'visible') {
+    const now = Date.now();
+    const nextState = session.visibilityState || 'hidden';
+    const previousState = this.sessionVisibilityState;
+
+    if (nextState === 'visible') {
+      this.clearFailedResumeRecoveryTimer();
+      this.lastHiddenDurationMs = this.sessionHiddenAt
+        ? now - this.sessionHiddenAt
+        : 0;
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = now;
+      this.sessionVisibilityState = 'visible';
       this.isARPresenting = true;
       this.onSessionResume?.(session);
       return;
     }
 
+    this.sessionVisibilityState = nextState;
+    if (!this.sessionHiddenAt) {
+      this.sessionHiddenAt = now;
+    }
+
+    // Quest can occasionally report a successful don for a fraction of a
+    // second, then collapse the retained session back to hidden with no input
+    // sources. That is distinct from an ordinary doff: it follows a substantial
+    // hidden period and a very short visible resume. End only that failed
+    // retained session so the browser returns to a usable RECOVER AR button.
+    const failedResumeCandidate = previousState === 'visible'
+      && this.lastHiddenDurationMs >= this.failedResumeMinHiddenMs
+      && this.sessionResumedAt > 0
+      && now - this.sessionResumedAt <= this.failedResumeWindowMs;
+    if (failedResumeCandidate) {
+      this.scheduleFailedResumeRecovery(session);
+    }
+
     this.onSessionPause?.(session);
+  }
+
+  clearFailedResumeRecoveryTimer() {
+    if (this.failedResumeRecoveryTimer) {
+      clearTimeout(this.failedResumeRecoveryTimer);
+      this.failedResumeRecoveryTimer = null;
+    }
+  }
+
+  scheduleFailedResumeRecovery(session) {
+    this.clearFailedResumeRecoveryTimer();
+    this.failedResumeRecoveryTimer = setTimeout(async () => {
+      this.failedResumeRecoveryTimer = null;
+      if (
+        this.isDisposed
+        || session !== this.activeSession
+        || session.visibilityState === 'visible'
+      ) {
+        return;
+      }
+      const inputSources = Array.from(session.inputSources || []);
+      if (inputSources.length > 0) return;
+
+      this.endingFailedResume = true;
+      this.recoverySuggested = true;
+      this.updateARButtonState();
+      console.warn(
+        'AR session briefly resumed then returned hidden without inputs; ending the stalled session for explicit recovery'
+      );
+      try {
+        await session.end();
+      } catch (error) {
+        this.endingFailedResume = false;
+        console.warn('Unable to end stalled AR session', error);
+      }
+    }, this.failedResumeValidationMs);
   }
 
   detectQuestDevice() {
@@ -375,6 +468,7 @@ export class ARCore {
 
   dispose() {
     this.isDisposed = true;
+    this.clearFailedResumeRecoveryTimer();
     if (this.activeSession && this.sessionVisibilityHandler) {
       this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
     }

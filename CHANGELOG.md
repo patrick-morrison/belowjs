@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AR hand slots now rebuild a retained mesh when Quest reconnects that slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking single hand while preserving translucent depth shading.
 - Desktop focus and resize recovery no longer render into or resize an active WebXR projection target, preventing Quest from invalidating the resumed session framebuffer and turning the headset view black.
 - AR now leaves headset doff/don suspension entirely to the WebXR runtime and offers an explicit `ENTER AR` restart only after a genuine session end.
+- AR now detects the Quest-specific failed-resume signature where a retained session briefly becomes visible before returning hidden with no inputs, then exits that stalled session to a one-tap `RECOVER AR` state.
 
 ## [1.8.0] - 2026-07-17
 
