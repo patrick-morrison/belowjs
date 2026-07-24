@@ -13,6 +13,11 @@ class FakeXRManager extends EventTarget {
 
   async setSession(session) {
     this.session = session;
+    session.addEventListener('end', () => {
+      if (this.session !== session) return;
+      this.session = null;
+      this.dispatchEvent(new Event('sessionend'));
+    }, { once: true });
     this.dispatchEvent(new Event('sessionstart'));
   }
 }
@@ -41,12 +46,19 @@ const renderer = { xr: xrManager };
 const camera = { far: 1000, updateProjectionMatrix() {} };
 const replacement = new FakeSession('visible');
 let offers = 0;
+let requests = 0;
 
 Object.defineProperty(globalThis, 'navigator', {
   configurable: true,
   value: {
     userAgent: 'Mozilla/5.0 (X11; Android) OculusBrowser Quest 3',
     xr: {
+      async requestSession(mode, init) {
+        assert.equal(mode, 'immersive-ar');
+        assert.deepEqual(init.requiredFeatures, ['local']);
+        requests += 1;
+        return new FakeSession('visible');
+      },
       async offerSession(mode, init) {
         assert.equal(mode, 'immersive-ar');
         assert.deepEqual(init.requiredFeatures, ['local']);
@@ -66,6 +78,10 @@ try {
   core.sessionRecoveryDelayMs = 15;
   core.setupSessionListeners();
 
+  await core.requestARSession();
+  assert.equal(requests, 1);
+  assert.equal(core.isARPresenting, true);
+
   const initial = new FakeSession('visible');
   await xrManager.setSession(initial);
   assert.equal(core.activeSession, initial);
@@ -78,6 +94,10 @@ try {
   assert.equal(offers, 1);
   assert.equal(xrManager.getSession(), replacement);
   assert.equal(core.activeSession, replacement);
+
+  const duplicateOffer = core.offerARSession();
+  assert.equal(duplicateOffer, null);
+  assert.equal(offers, 1);
 
   const recovered = new ARCore(renderer, camera, {}, {});
   recovered.sessionInit = core.sessionInit;

@@ -5,8 +5,6 @@
  * device detection, and WebXR AR initialization with passthrough.
  */
 
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-
 export class ARCore {
   constructor(renderer, camera, scene, container = null) {
     this.renderer = renderer;
@@ -36,6 +34,8 @@ export class ARCore {
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
     this.sessionInit = null;
+    this.sessionOfferPromise = null;
+    this.sessionRequestPromise = null;
 
     // Quest can occasionally leave an immersive session permanently hidden
     // after the proximity/Guardian lifecycle has returned to the browser. In
@@ -115,15 +115,23 @@ export class ARCore {
 
   createARButton() {
     this.waitForARCSS().then(() => {
-      const sessionInit = {
+      this.sessionInit = {
         requiredFeatures: ['local'],
         optionalFeatures: this.getOptionalFeatures()
       };
-      this.sessionInit = sessionInit;
-      this.arButton = ARButton.createButton(this.renderer, sessionInit);
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      this.arButton = document.createElement('button');
+      this.arButton.id = 'ARButton';
+      this.arButton.type = 'button';
       this.arButton.className = 'ar-button--glass ar-button-available';
-      this.arButton.disabled = false;
+      this.arButton.addEventListener('click', () => {
+        if (this.activeSession) {
+          this.activeSession.end().catch((error) => {
+            console.warn('Unable to end AR session', error);
+          });
+        } else {
+          this.requestARSession();
+        }
+      });
       this.arButton.style.cssText = `
         position: fixed !important;
         bottom: 140px !important;
@@ -137,6 +145,7 @@ export class ARCore {
         cursor: pointer !important;
       `;
       this.container.appendChild(this.arButton);
+      this.updateARButtonState();
       this.styleARButton();
     });
   }
@@ -154,14 +163,11 @@ export class ARCore {
       arBtn.style.display = 'flex';
       arBtn.style.visibility = 'visible';
       arBtn.style.opacity = '1';
-      arBtn.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      this.updateARButtonState();
 
       if (!arBtn.classList.contains('ar-button--glass')) {
         arBtn.classList.add('ar-button--glass');
       }
-
-      arBtn.disabled = false;
-      arBtn.classList.remove('ar-generic-disabled');
 
       return true;
     };
@@ -179,6 +185,7 @@ export class ARCore {
       this.sessionRecoveryInFlight = false;
       this.isARPresenting = true;
       this.activeSession = this.renderer.xr.getSession?.() || null;
+      this.updateARButtonState();
       if (this.activeSession) {
         const session = this.activeSession;
         this.sessionVisibilityHandler = () => {
@@ -202,11 +209,98 @@ export class ARCore {
       }
       this.activeSession = null;
       this.sessionVisibilityHandler = null;
+      this.updateARButtonState();
 
       if (this.onSessionEnd) {
         this.onSessionEnd();
       }
     });
+  }
+
+  updateARButtonState() {
+    if (!this.arButton) return;
+
+    const busy = Boolean(this.sessionRequestPromise || this.sessionOfferPromise);
+    this.arButton.disabled = busy;
+    this.arButton.classList.toggle('ar-generic-disabled', busy);
+    if (this.sessionOfferPromise) {
+      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>RESUMING AR';
+    } else if (busy) {
+      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>STARTING AR';
+    } else if (this.activeSession) {
+      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>EXIT AR';
+    } else {
+      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+    }
+  }
+
+  getSessionInit() {
+    if (!this.sessionInit) {
+      this.sessionInit = {
+        requiredFeatures: ['local'],
+        optionalFeatures: this.getOptionalFeatures()
+      };
+    }
+    return this.sessionInit;
+  }
+
+  async activateSession(session) {
+    if (!session || this.isDisposed) {
+      await session?.end?.();
+      return null;
+    }
+
+    this.renderer.xr.setReferenceSpaceType?.('local');
+    await this.renderer.xr.setSession(session);
+    return session;
+  }
+
+  requestARSession() {
+    if (this.activeSession || this.sessionRequestPromise ||
+        this.sessionOfferPromise || this.isDisposed) {
+      return this.sessionRequestPromise || this.sessionOfferPromise;
+    }
+
+    const request = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
+      .then((session) => this.activateSession(session))
+      .catch((error) => {
+        console.warn('Unable to start AR session', error);
+        return null;
+      })
+      .finally(() => {
+        if (this.sessionRequestPromise === request) {
+          this.sessionRequestPromise = null;
+          this.updateARButtonState();
+        }
+      });
+
+    this.sessionRequestPromise = request;
+    this.updateARButtonState();
+    return request;
+  }
+
+  offerARSession() {
+    if (this.activeSession || this.sessionOfferPromise || this.isDisposed) {
+      return this.sessionOfferPromise;
+    }
+    if (typeof navigator?.xr?.offerSession !== 'function') return null;
+
+    const offer = navigator.xr.offerSession('immersive-ar', this.getSessionInit())
+      .then((session) => this.activateSession(session))
+      .catch((error) => {
+        console.warn('Unable to offer replacement AR session', error);
+        return null;
+      })
+      .finally(() => {
+        if (this.sessionOfferPromise === offer) {
+          this.sessionOfferPromise = null;
+          this.updateARButtonState();
+        }
+      });
+
+    this.sessionOfferPromise = offer;
+    this.updateARButtonState();
+    return offer;
   }
 
   handleSessionVisibilityChange(session) {
@@ -255,19 +349,7 @@ export class ARCore {
     try {
       await session.end();
       if (this.isDisposed) return false;
-
-      const sessionInit = this.sessionInit || {
-        requiredFeatures: ['local'],
-        optionalFeatures: this.getOptionalFeatures()
-      };
-      const replacement = await navigator.xr.offerSession('immersive-ar', sessionInit);
-      if (!replacement || this.isDisposed) {
-        await replacement?.end?.();
-        return false;
-      }
-
-      await this.renderer.xr.setSession(replacement);
-      return true;
+      return Boolean(await this.offerARSession());
     } catch (error) {
       console.warn('Unable to recover stalled AR session', error);
       return false;
@@ -379,6 +461,8 @@ export class ARCore {
     }
     this.activeSession = null;
     this.sessionVisibilityHandler = null;
+    this.sessionOfferPromise = null;
+    this.sessionRequestPromise = null;
     if (this.buttonObserver) {
       this.buttonObserver.disconnect();
       this.buttonObserver = null;
