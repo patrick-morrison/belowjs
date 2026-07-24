@@ -10559,7 +10559,7 @@ class lh {
   updateARButtonState() {
     if (!this.arButton) return;
     const e = !!(this.sessionRequestPromise || this.sessionOfferPromise);
-    this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), this.sessionOfferPromise ? this.arButton.innerHTML = '<span class="ar-icon">👁️</span>RESUMING AR' : e ? this.arButton.innerHTML = '<span class="ar-icon">👁️</span>STARTING AR' : this.activeSession ? this.arButton.innerHTML = '<span class="ar-icon">👁️</span>EXIT AR' : this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+    this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), this.sessionOfferPromise ? this.arButton.textContent = "RESUMING AR" : e ? this.arButton.textContent = "STARTING AR" : this.activeSession ? this.arButton.textContent = "EXIT AR" : this.arButton.textContent = "ENTER AR";
   }
   getSessionInit() {
     return this.sessionInit || (this.sessionInit = {

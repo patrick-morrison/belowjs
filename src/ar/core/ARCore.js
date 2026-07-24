@@ -224,13 +224,13 @@ export class ARCore {
     this.arButton.disabled = busy;
     this.arButton.classList.toggle('ar-generic-disabled', busy);
     if (this.sessionOfferPromise) {
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>RESUMING AR';
+      this.arButton.textContent = 'RESUMING AR';
     } else if (busy) {
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>STARTING AR';
+      this.arButton.textContent = 'STARTING AR';
     } else if (this.activeSession) {
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>EXIT AR';
+      this.arButton.textContent = 'EXIT AR';
     } else {
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      this.arButton.textContent = 'ENTER AR';
     }
   }
 
