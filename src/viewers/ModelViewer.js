@@ -306,6 +306,18 @@ export class ModelViewer extends EventSystem {
   init() {
     const viewerConfig = {
       ...this.config.viewerConfig,
+      // Quest's WebXR projection-layer MSAA target can become invalid across
+      // visibility transitions. AR passthrough is composited by the runtime,
+      // so use an explicitly XR-compatible, non-multisampled context unless a
+      // caller intentionally overrides one of these values.
+      ...(this.config.enableAR && {
+        renderer: {
+          antialias: false,
+          xrCompatible: true,
+          preserveDrawingBuffer: false,
+          ...(this.config.viewerConfig?.renderer || {})
+        }
+      }),
       // Enable VR only if AR is not enabled (preserve other vr settings such
       // as shadowProfile/foveation from viewerConfig)
       ...(this.config.enableVR && !this.config.enableAR && { vr: { ...(this.config.viewerConfig?.vr || {}), enabled: true } }),
@@ -928,9 +940,14 @@ export class ModelViewer extends EventSystem {
     const camera = this.belowViewer?.cameraManager?.camera;
     if (!renderer || !scene || !camera) return;
 
+    // The XR animation loop is the only safe place to render an immersive
+    // projection layer. A desktop focus recovery render outside rAF can reuse
+    // an invalidated Quest framebuffer and turn an otherwise healthy session
+    // black.
+    if (renderer.xr?.isPresenting) return;
+
     try {
-      const isXRPresenting = renderer.xr?.isPresenting;
-      if (this.belowViewer?.stereoEnabled && !isXRPresenting && this.belowViewer?.stereoMode === 'sbs' &&
+      if (this.belowViewer?.stereoEnabled && this.belowViewer?.stereoMode === 'sbs' &&
         typeof this.belowViewer.renderSbsStereo === 'function') {
         this.belowViewer.renderSbsStereo();
       } else {
@@ -1127,6 +1144,15 @@ export class ModelViewer extends EventSystem {
     this.belowViewer.on('vr-movement-start', (data) => this.emit('vr-movement-start', data));
     this.belowViewer.on('vr-movement-stop', (data) => this.emit('vr-movement-stop', data));
     this.belowViewer.on('vr-movement-update', (data) => this.emit('vr-movement-update', data));
+
+    this.belowViewer.on('ar-session-start', (data) => this.emit('ar-session-start', data));
+    this.belowViewer.on('ar-session-end', (data) => this.emit('ar-session-end', data));
+    this.belowViewer.on('ar-session-pause', (data) => this.emit('ar-session-pause', data));
+    this.belowViewer.on('ar-session-resume', (session) => {
+      this.emit('ar-session-resume', session);
+    });
+    this.belowViewer.on('ar-gesture-start', (data) => this.emit('ar-gesture-start', data));
+    this.belowViewer.on('ar-gesture-end', (data) => this.emit('ar-gesture-end', data));
   }
 
 

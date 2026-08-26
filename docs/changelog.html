@@ -210,6 +210,24 @@
 
             <div class="version-section">
                 <div class="version-header">
+                    <div class="version-number">Unreleased</div>
+                    <div class="version-tag">Next</div>
+                </div>
+
+                <div class="changes-list">
+                    <h4>Fixed</h4>
+                    <ul>
+                        <li><span class="change-type fixed">Fixed</span> AR hand slots rebuild a retained mesh when Quest reconnects a slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking hand while preserving translucent depth shading</li>
+                        <li><span class="change-type fixed">Fixed</span> Desktop focus and resize recovery no longer render into or resize an active WebXR projection target, preventing Quest from invalidating a resumed session framebuffer</li>
+                        <li><span class="change-type fixed">Fixed</span> AR leaves headset doff/don suspension to the WebXR runtime and offers an explicit <code>ENTER AR</code> restart only after a genuine session end</li>
+                        <li><span class="change-type fixed">Fixed</span> AR detects the Quest failed-resume signature and exits a stalled session to a one-tap <code>RECOVER AR</code> state</li>
+                        <li><span class="change-type fixed">Fixed</span> AR retires sessions that remain hidden or stop producing XR frames and keeps a native <code>offerSession()</code> re-entry path available after session end</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
                     <div class="version-number">1.9.0</div>
                     <div class="version-date">August 27, 2026</div>
                     <div class="version-tag">Latest Release</div>

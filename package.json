@@ -20,6 +20,7 @@
     "docs:examples": "node docs/copy-examples.js",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "echo 'Integration tests available via examples' && exit 0",
+    "test:ar-session-recovery": "node scripts/test-ar-session-recovery.mjs",
     "lint": "eslint src/ vite.config.js",
     "lint:fix": "eslint src/ vite.config.js --fix"
   },

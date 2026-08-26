@@ -1,5 +1,5 @@
 import * as f from "three";
-import { Controls as Kn, Vector3 as x, MOUSE as We, TOUCH as je, Quaternion as Ze, Spherical as zs, Vector2 as F, Ray as ss, Plane as Nr, MathUtils as et, TrianglesDrawMode as Yn, TriangleFanDrawMode as js, TriangleStripDrawMode as Gr, Loader as li, LoaderUtils as mt, FileLoader as Te, MeshPhysicalMaterial as de, Color as ye, LinearSRGBColorSpace as ae, SRGBColorSpace as Ce, SpotLight as Wn, PointLight as Jn, DirectionalLight as Xn, Matrix4 as U, InstancedMesh as ci, InstancedBufferAttribute as Zn, Object3D as is, TextureLoader as $n, ImageBitmapLoader as eo, BufferAttribute as re, InterleavedBuffer as to, InterleavedBufferAttribute as De, LinearMipmapLinearFilter as rs, NearestMipmapLinearFilter as so, LinearMipmapNearestFilter as io, NearestMipmapNearestFilter as ro, LinearFilter as Fe, NearestFilter as Vr, RepeatWrapping as Ks, MirroredRepeatWrapping as no, ClampToEdgeWrapping as oo, PointsMaterial as Or, Material as ms, LineBasicMaterial as ao, MeshStandardMaterial as hi, DoubleSide as lo, MeshBasicMaterial as Le, PropertyBinding as co, BufferGeometry as ns, SkinnedMesh as ho, Mesh as os, LineSegments as Ao, Line as uo, LineLoop as po, Points as Hr, Group as Je, PerspectiveCamera as go, OrthographicCamera as qr, Skeleton as fo, AnimationClip as mo, Bone as bo, InterpolateDiscrete as Co, InterpolateLinear as zr, Texture as wi, VectorKeyframeTrack as Ii, NumberKeyframeTrack as Si, QuaternionKeyframeTrack as Bi, ColorManagement as Ys, FrontSide as yo, Interpolant as Eo, Box3 as tt, Sphere as Et, CompressedCubeTexture as wo, CompressedArrayTexture as Io, CompressedTexture as jr, NoColorSpace as Mi, RGBA_BPTC_Format as Ws, RGBA_S3TC_DXT5_Format as Js, RGBA_S3TC_DXT3_Format as vi, RGB_S3TC_DXT1_Format as xi, RGBA_S3TC_DXT1_Format as Xs, RGBA_ASTC_6x6_Format as Ti, RGBA_ASTC_4x4_Format as qt, RGBA_ETC2_EAC_Format as Kr, RGB_ETC2_Format as Yr, RedFormat as ut, RGFormat as pt, RGBAFormat as Ke, UnsignedByteType as oe, HalfFloatType as Ye, FloatType as bt, DataTexture as Wr, Data3DTexture as So, RGB_PVRTC_4BPPV1_Format as Bo, RGB_ETC1_Format as Mo, RGBA_PVRTC_4BPPV1_Format as vo, RGB_BPTC_UNSIGNED_Format as xo, Euler as To, TextureUtils as Qo, LoadingManager as Ro, EventDispatcher as vt, Frustum as Do, DefaultLoadingManager as as, Matrix3 as Jr, Float32BufferAttribute as Wt, WebGLRenderer as Lo, WebGLRenderTarget as Qi, ShaderMaterial as Xr, OneFactor as Po, ZeroFactor as Fo, CustomBlending as ko, Box2 as _o, Matrix2 as Uo, Vector4 as st, SphereGeometry as Zr, BoxGeometry as No, DynamicDrawUsage as Go, InstancedBufferGeometry as Vo, InstancedInterleavedBuffer as Zs, WireframeGeometry as Oo, ShaderLib as zt, UniformsUtils as $r, UniformsLib as jt, Line3 as Ho } from "three";
+import { Controls as Kn, Vector3 as x, MOUSE as We, TOUCH as je, Quaternion as Ze, Spherical as zs, Vector2 as P, Ray as ss, Plane as Nr, MathUtils as et, TrianglesDrawMode as Yn, TriangleFanDrawMode as js, TriangleStripDrawMode as Gr, Loader as li, LoaderUtils as mt, FileLoader as Te, MeshPhysicalMaterial as de, Color as ye, LinearSRGBColorSpace as ae, SRGBColorSpace as Ce, SpotLight as Wn, PointLight as Jn, DirectionalLight as Xn, Matrix4 as U, InstancedMesh as ci, InstancedBufferAttribute as Zn, Object3D as is, TextureLoader as $n, ImageBitmapLoader as eo, BufferAttribute as re, InterleavedBuffer as to, InterleavedBufferAttribute as De, LinearMipmapLinearFilter as rs, NearestMipmapLinearFilter as so, LinearMipmapNearestFilter as io, NearestMipmapNearestFilter as ro, LinearFilter as Pe, NearestFilter as Vr, RepeatWrapping as Ks, MirroredRepeatWrapping as no, ClampToEdgeWrapping as oo, PointsMaterial as Or, Material as ms, LineBasicMaterial as ao, MeshStandardMaterial as hi, DoubleSide as lo, MeshBasicMaterial as Le, PropertyBinding as co, BufferGeometry as ns, SkinnedMesh as ho, Mesh as os, LineSegments as Ao, Line as uo, LineLoop as po, Points as Hr, Group as Je, PerspectiveCamera as go, OrthographicCamera as qr, Skeleton as fo, AnimationClip as mo, Bone as bo, InterpolateDiscrete as Co, InterpolateLinear as zr, Texture as wi, VectorKeyframeTrack as Ii, NumberKeyframeTrack as Si, QuaternionKeyframeTrack as Bi, ColorManagement as Ys, FrontSide as yo, Interpolant as Eo, Box3 as tt, Sphere as Et, CompressedCubeTexture as wo, CompressedArrayTexture as Io, CompressedTexture as jr, NoColorSpace as Mi, RGBA_BPTC_Format as Ws, RGBA_S3TC_DXT5_Format as Js, RGBA_S3TC_DXT3_Format as vi, RGB_S3TC_DXT1_Format as xi, RGBA_S3TC_DXT1_Format as Xs, RGBA_ASTC_6x6_Format as Ti, RGBA_ASTC_4x4_Format as qt, RGBA_ETC2_EAC_Format as Kr, RGB_ETC2_Format as Yr, RedFormat as ut, RGFormat as pt, RGBAFormat as Ke, UnsignedByteType as oe, HalfFloatType as Ye, FloatType as bt, DataTexture as Wr, Data3DTexture as So, RGB_PVRTC_4BPPV1_Format as Bo, RGB_ETC1_Format as Mo, RGBA_PVRTC_4BPPV1_Format as vo, RGB_BPTC_UNSIGNED_Format as xo, Euler as To, TextureUtils as Qo, LoadingManager as Ro, EventDispatcher as vt, Frustum as Do, DefaultLoadingManager as as, Matrix3 as Jr, Float32BufferAttribute as Wt, WebGLRenderer as Lo, WebGLRenderTarget as Qi, ShaderMaterial as Xr, OneFactor as Fo, ZeroFactor as Po, CustomBlending as ko, Box2 as _o, Matrix2 as Uo, Vector4 as st, SphereGeometry as Zr, BoxGeometry as No, DynamicDrawUsage as Go, InstancedBufferGeometry as Vo, InstancedInterleavedBuffer as Zs, WireframeGeometry as Oo, ShaderLib as zt, UniformsUtils as $r, UniformsLib as jt, Line3 as Ho } from "three";
 class wt {
   /**
    * Creates a new EventSystem instance
@@ -182,7 +182,7 @@ class jo extends Kn {
    * @param {?HTMLDOMElement} domElement - The HTML element used for event listeners.
    */
   constructor(e, t = null) {
-    super(e, t), this.state = k.NONE, this.target = new x(), this.cursor = new x(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: We.ROTATE, MIDDLE: We.DOLLY, RIGHT: We.PAN }, this.touches = { ONE: je.ROTATE, TWO: je.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new x(), this._lastQuaternion = new Ze(), this._lastTargetPosition = new x(), this._quat = new Ze().setFromUnitVectors(e.up, new x(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new zs(), this._sphericalDelta = new zs(), this._scale = 1, this._panOffset = new x(), this._rotateStart = new F(), this._rotateEnd = new F(), this._rotateDelta = new F(), this._panStart = new F(), this._panEnd = new F(), this._panDelta = new F(), this._dollyStart = new F(), this._dollyEnd = new F(), this._dollyDelta = new F(), this._dollyDirection = new x(), this._mouse = new F(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Yo.bind(this), this._onPointerDown = Ko.bind(this), this._onPointerUp = Wo.bind(this), this._onContextMenu = sa.bind(this), this._onMouseWheel = Zo.bind(this), this._onKeyDown = $o.bind(this), this._onTouchStart = ea.bind(this), this._onTouchMove = ta.bind(this), this._onMouseDown = Jo.bind(this), this._onMouseMove = Xo.bind(this), this._interceptControlDown = ia.bind(this), this._interceptControlUp = ra.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
+    super(e, t), this.state = k.NONE, this.target = new x(), this.cursor = new x(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: We.ROTATE, MIDDLE: We.DOLLY, RIGHT: We.PAN }, this.touches = { ONE: je.ROTATE, TWO: je.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new x(), this._lastQuaternion = new Ze(), this._lastTargetPosition = new x(), this._quat = new Ze().setFromUnitVectors(e.up, new x(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new zs(), this._sphericalDelta = new zs(), this._scale = 1, this._panOffset = new x(), this._rotateStart = new P(), this._rotateEnd = new P(), this._rotateDelta = new P(), this._panStart = new P(), this._panEnd = new P(), this._panDelta = new P(), this._dollyStart = new P(), this._dollyEnd = new P(), this._dollyDelta = new P(), this._dollyDirection = new x(), this._mouse = new P(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = Yo.bind(this), this._onPointerDown = Ko.bind(this), this._onPointerUp = Wo.bind(this), this._onContextMenu = sa.bind(this), this._onMouseWheel = Zo.bind(this), this._onKeyDown = $o.bind(this), this._onTouchStart = ea.bind(this), this._onTouchMove = ta.bind(this), this._onMouseDown = Jo.bind(this), this._onMouseMove = Xo.bind(this), this._interceptControlDown = ia.bind(this), this._interceptControlUp = ra.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
   }
   connect(e) {
     super.connect(e), this.domElement.addEventListener("pointerdown", this._onPointerDown), this.domElement.addEventListener("pointercancel", this._onPointerUp), this.domElement.addEventListener("contextmenu", this._onContextMenu), this.domElement.addEventListener("wheel", this._onMouseWheel, { passive: !1 }), this.domElement.getRootNode().addEventListener("keydown", this._interceptControlDown, { passive: !0, capture: !0 }), this.domElement.style.touchAction = "none";
@@ -446,7 +446,7 @@ class jo extends Kn {
   }
   _trackPointer(e) {
     let t = this._pointerPositions[e.pointerId];
-    t === void 0 && (t = new F(), this._pointerPositions[e.pointerId] = t), t.set(e.pageX, e.pageY);
+    t === void 0 && (t = new P(), this._pointerPositions[e.pointerId] = t), t.set(e.pageX, e.pageY);
   }
   _getSecondPointerPosition(e) {
     const t = e.pointerId === this._pointers[0] ? this._pointers[1] : this._pointers[0];
@@ -1196,7 +1196,7 @@ class Aa {
     const r = [], n = i.extensions[this.name];
     if (n.clearcoatFactor !== void 0 && (t.clearcoat = n.clearcoatFactor), n.clearcoatTexture !== void 0 && r.push(s.assignTexture(t, "clearcoatMap", n.clearcoatTexture)), n.clearcoatRoughnessFactor !== void 0 && (t.clearcoatRoughness = n.clearcoatRoughnessFactor), n.clearcoatRoughnessTexture !== void 0 && r.push(s.assignTexture(t, "clearcoatRoughnessMap", n.clearcoatRoughnessTexture)), n.clearcoatNormalTexture !== void 0 && (r.push(s.assignTexture(t, "clearcoatNormalMap", n.clearcoatNormalTexture)), n.clearcoatNormalTexture.scale !== void 0)) {
       const o = n.clearcoatNormalTexture.scale;
-      t.clearcoatNormalScale = new F(o, o);
+      t.clearcoatNormalScale = new P(o, o);
     }
     return Promise.all(r);
   }
@@ -1464,7 +1464,7 @@ class Ba {
     }));
   }
 }
-const tn = "glTF", rt = 12, Pi = { JSON: 1313821514, BIN: 5130562 };
+const tn = "glTF", rt = 12, Fi = { JSON: 1313821514, BIN: 5130562 };
 class Ma {
   constructor(e) {
     this.name = L.KHR_BINARY_GLTF, this.content = null, this.body = null;
@@ -1483,10 +1483,10 @@ class Ma {
       const o = r.getUint32(n, !0);
       n += 4;
       const l = r.getUint32(n, !0);
-      if (n += 4, l === Pi.JSON) {
+      if (n += 4, l === Fi.JSON) {
         const c = new Uint8Array(e, rt + n, o);
         this.content = s.decode(c);
-      } else if (l === Pi.BIN) {
+      } else if (l === Fi.BIN) {
         const c = rt + n;
         this.body = e.slice(c, c + o);
       }
@@ -1582,9 +1582,9 @@ const ie = {
   5123: Uint16Array,
   5125: Uint32Array,
   5126: Float32Array
-}, Fi = {
+}, Pi = {
   9728: Vr,
-  9729: Fe,
+  9729: Pe,
   9984: ro,
   9985: io,
   9986: so,
@@ -1646,7 +1646,7 @@ function Qe(a, e, t) {
 function me(a, e) {
   e.extras !== void 0 && (typeof e.extras == "object" ? Object.assign(a.userData, e.extras) : console.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + e.extras));
 }
-function Pa(a, e, t) {
+function Fa(a, e, t) {
   let s = !1, i = !1, r = !1;
   for (let c = 0, A = e.length; c < A; c++) {
     const h = e[c];
@@ -1678,7 +1678,7 @@ function Pa(a, e, t) {
     return s && (a.morphAttributes.position = A), i && (a.morphAttributes.normal = h), r && (a.morphAttributes.color = d), a.morphTargetsRelative = !0, a;
   });
 }
-function Fa(a, e) {
+function Pa(a, e) {
   if (a.updateMorphTargets(), e.weights !== void 0)
     for (let t = 0, s = e.weights.length; t < s; t++)
       a.morphTargetInfluences[t] = e.weights[t];
@@ -2023,7 +2023,7 @@ class Na {
     const c = this.loadImageSource(t, s).then(function(A) {
       A.flipY = !1, A.name = n.name || o.name || "", A.name === "" && typeof o.uri == "string" && o.uri.startsWith("data:image/") === !1 && (A.name = o.uri);
       const d = (r.samplers || {})[n.sampler] || {};
-      return A.magFilter = Fi[d.magFilter] || Fe, A.minFilter = Fi[d.minFilter] || rs, A.wrapS = ki[d.wrapS] || Ks, A.wrapT = ki[d.wrapT] || Ks, A.generateMipmaps = !A.isCompressedTexture && A.minFilter !== Vr && A.minFilter !== Fe, i.associations.set(A, { textures: e }), A;
+      return A.magFilter = Pi[d.magFilter] || Pe, A.minFilter = Pi[d.minFilter] || rs, A.wrapS = ki[d.wrapS] || Ks, A.wrapT = ki[d.wrapT] || Ks, A.generateMipmaps = !A.isCompressedTexture && A.minFilter !== Vr && A.minFilter !== Pe, i.associations.set(A, { textures: e }), A;
     }).catch(function() {
       return null;
     });
@@ -2144,7 +2144,7 @@ class Na {
     }
     r.doubleSided === !0 && (o.side = lo);
     const A = r.alphaMode || ys.OPAQUE;
-    if (A === ys.BLEND ? (o.transparent = !0, o.depthWrite = !1) : (o.transparent = !1, A === ys.MASK && (o.alphaTest = r.alphaCutoff !== void 0 ? r.alphaCutoff : 0.5)), r.normalTexture !== void 0 && n !== Le && (c.push(t.assignTexture(o, "normalMap", r.normalTexture)), o.normalScale = new F(1, 1), r.normalTexture.scale !== void 0)) {
+    if (A === ys.BLEND ? (o.transparent = !0, o.depthWrite = !1) : (o.transparent = !1, A === ys.MASK && (o.alphaTest = r.alphaCutoff !== void 0 ? r.alphaCutoff : 0.5)), r.normalTexture !== void 0 && n !== Le && (c.push(t.assignTexture(o, "normalMap", r.normalTexture)), o.normalScale = new P(1, 1), r.normalTexture.scale !== void 0)) {
       const h = r.normalTexture.scale;
       o.normalScale.set(h, h);
     }
@@ -2227,7 +2227,7 @@ class Na {
           C = new Hr(g, y);
         else
           throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + b.mode);
-        Object.keys(C.geometry.morphAttributes).length > 0 && Fa(C, r), C.name = t.createUniqueName(r.name || "mesh_" + e), me(C, r), b.extensions && Qe(i, C, b), t.assignFinalMaterial(C), h.push(C);
+        Object.keys(C.geometry.morphAttributes).length > 0 && Pa(C, r), C.name = t.createUniqueName(r.name || "mesh_" + e), me(C, r), b.extensions && Qe(i, C, b), t.assignFinalMaterial(C), h.push(C);
       }
       for (let u = 0, p = h.length; u < p; u++)
         t.associations.set(h[u], {
@@ -2534,7 +2534,7 @@ function _i(a, e, t) {
     i.push(n);
   }
   return Ys.workingColorSpace !== ae && "COLOR_0" in s && console.warn(`THREE.GLTFLoader: Converting vertex colors from "srgb-linear" to "${Ys.workingColorSpace}" not supported.`), me(a, e), Ga(a, e, t), Promise.all(i).then(function() {
-    return e.targets !== void 0 ? Pa(a, e.targets, t) : a;
+    return e.targets !== void 0 ? Fa(a, e.targets, t) : a;
   });
 }
 const ws = /* @__PURE__ */ new WeakMap();
@@ -2935,25 +2935,25 @@ function ll(a) {
   const r = i._nextUint32();
   t.supercompressionScheme = i._nextUint32();
   const n = i._nextUint32(), o = i._nextUint32(), l = i._nextUint32(), c = i._nextUint32(), A = i._nextUint64(), h = i._nextUint64(), d = new nt(a, Y.length + s, 3 * r * 8, !0);
-  for (let P = 0; P < r; P++) t.levels.push({ levelData: new Uint8Array(a.buffer, a.byteOffset + d._nextUint64(), d._nextUint64()), uncompressedByteLength: d._nextUint64() });
+  for (let F = 0; F < r; F++) t.levels.push({ levelData: new Uint8Array(a.buffer, a.byteOffset + d._nextUint64(), d._nextUint64()), uncompressedByteLength: d._nextUint64() });
   const u = new nt(a, n, o, !0), p = { vendorId: u._skip(4)._nextUint16(), descriptorType: u._nextUint16(), versionNumber: u._nextUint16(), descriptorBlockSize: u._nextUint16(), colorModel: u._nextUint8(), colorPrimaries: u._nextUint8(), transferFunction: u._nextUint8(), flags: u._nextUint8(), texelBlockDimension: [u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8()], bytesPlane: [u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8()], samples: [] }, g = (p.descriptorBlockSize / 4 - 6) / 4;
-  for (let P = 0; P < g; P++) {
+  for (let F = 0; F < g; F++) {
     const O = { bitOffset: u._nextUint16(), bitLength: u._nextUint8(), channelType: u._nextUint8(), samplePosition: [u._nextUint8(), u._nextUint8(), u._nextUint8(), u._nextUint8()], sampleLower: -1 / 0, sampleUpper: 1 / 0 };
-    64 & O.channelType ? (O.sampleLower = u._nextInt32(), O.sampleUpper = u._nextInt32()) : (O.sampleLower = u._nextUint32(), O.sampleUpper = u._nextUint32()), p.samples[P] = O;
+    64 & O.channelType ? (O.sampleLower = u._nextInt32(), O.sampleUpper = u._nextInt32()) : (O.sampleLower = u._nextUint32(), O.sampleUpper = u._nextUint32()), p.samples[F] = O;
   }
   t.dataFormatDescriptor.length = 0, t.dataFormatDescriptor.push(p);
   const b = new nt(a, l, c, !0);
   for (; b._offset < c; ) {
-    const P = b._nextUint32(), O = b._scan(P), Ee = Gi(O);
-    if (t.keyValue[Ee] = b._nextUint8Array(P - O.byteLength - 1), Ee.match(/^ktx/i)) {
+    const F = b._nextUint32(), O = b._scan(F), Ee = Gi(O);
+    if (t.keyValue[Ee] = b._nextUint8Array(F - O.byteLength - 1), Ee.match(/^ktx/i)) {
       const it = Gi(t.keyValue[Ee]);
       t.keyValue[Ee] = it.substring(0, it.lastIndexOf("\0"));
     }
-    b._skip(P % 4 ? 4 - P % 4 : 0);
+    b._skip(F % 4 ? 4 - F % 4 : 0);
   }
   if (h <= 0) return t;
   const C = new nt(a, A, h, !0), y = C._nextUint16(), E = C._nextUint16(), m = C._nextUint32(), w = C._nextUint32(), S = C._nextUint32(), I = C._nextUint32(), v = [];
-  for (let P = 0; P < r; P++) v.push({ imageFlags: C._nextUint32(), rgbSliceByteOffset: C._nextUint32(), rgbSliceByteLength: C._nextUint32(), alphaSliceByteOffset: C._nextUint32(), alphaSliceByteLength: C._nextUint32() });
+  for (let F = 0; F < r; F++) v.push({ imageFlags: C._nextUint32(), rgbSliceByteOffset: C._nextUint32(), rgbSliceByteLength: C._nextUint32(), alphaSliceByteOffset: C._nextUint32(), alphaSliceByteLength: C._nextUint32() });
   const M = A + C._offset, B = M + m, T = B + w, D = T + S, _ = new Uint8Array(a.buffer, a.byteOffset + M, m), Q = new Uint8Array(a.buffer, a.byteOffset + B, w), K = new Uint8Array(a.buffer, a.byteOffset + T, S), N = new Uint8Array(a.buffer, a.byteOffset + D, I);
   return t.globalData = { endpointCount: y, selectorCount: E, imageDescs: v, endpointsData: _, selectorsData: Q, tablesData: K, extendedData: N }, t;
 }
@@ -3128,7 +3128,7 @@ class te extends li {
       const d = r[0].mipmaps;
       h = t.layerCount > 1 ? new Io(d, n, o, t.layerCount, l, c) : new jr(d, n, o, l, c);
     }
-    return h.minFilter = r[0].mipmaps.length === 1 ? Fe : rs, h.magFilter = Fe, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = En(t), h.premultiplyAlpha = !!(A & qa), h;
+    return h.minFilter = r[0].mipmaps.length === 1 ? Pe : rs, h.magFilter = Pe, h.generateMipmaps = !1, h.needsUpdate = !0, h.colorSpace = En(t), h.premultiplyAlpha = !!(A & qa), h;
   }
   /**
    * @private
@@ -3249,7 +3249,7 @@ te.BasisWorker = function() {
     for (let Q = 0; Q < S; Q++) {
       const K = [];
       for (let N = 0; N < w; N++) {
-        const P = [];
+        const F = [];
         let O, Ee;
         for (let Ge = 0; Ge < m; Ge++) {
           const Ve = g.getImageLevelInfo(N, Ge, Q);
@@ -3258,9 +3258,9 @@ te.BasisWorker = function() {
           const jn = g.transcodeImage(Oe, N, Ge, Q, M, 0, -1, -1);
           if (T === i.HalfFloatType && (Oe = new Uint16Array(Oe.buffer, Oe.byteOffset, Oe.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !jn)
             throw b(), new Error("THREE.KTX2Loader: .transcodeImage failed.");
-          P.push(Oe);
+          F.push(Oe);
         }
-        const it = u(P);
+        const it = u(F);
         K.push({ data: it, width: O, height: Ee }), _.push(it.buffer);
       }
       D.push({ mipmaps: K, width: y, height: E, format: B, type: T });
@@ -3482,7 +3482,7 @@ async function ul(a) {
     i = a.pixelDepth === 0 ? new Wr(s[0].data, a.pixelWidth, a.pixelHeight) : new So(s[0].data, a.pixelWidth, a.pixelHeight, a.pixelDepth);
   else {
     if (a.pixelDepth > 0) throw new Error("THREE.KTX2Loader: Unsupported pixelDepth.");
-    i = new jr(s, a.pixelWidth, a.pixelHeight), i.minFilter = s.length === 1 ? Fe : rs, i.magFilter = Fe;
+    i = new jr(s, a.pixelWidth, a.pixelHeight), i.minFilter = s.length === 1 ? Pe : rs, i.magFilter = Pe;
   }
   return i.mipmaps = s, i.type = Ts[e], i.format = xs[e], i.colorSpace = En(a), i.needsUpdate = !0, Promise.resolve(i);
 }
@@ -4609,7 +4609,7 @@ mi.priorityCallback = (a, e) => {
   const t = a.parent, s = e.parent;
   return t === s ? 0 : t ? s ? us(t, s) : -1 : 1;
 };
-let Pl = class {
+let Fl = class {
   /**
    * Root tile of the loaded root tileset, or null if not yet loaded.
    * @type {Tile|null}
@@ -5153,7 +5153,7 @@ let ps = class {
     const { buffer: s, binOffset: i } = this;
     return s.slice(i + e, i + e + t);
   }
-}, Fl = class {
+}, Pl = class {
   constructor(e) {
     this.batchTable = e;
     const t = e.header.extensions["3DTILES_batch_table_hierarchy"];
@@ -5209,7 +5209,7 @@ class bi extends ps {
   constructor(e, t, s, i, r) {
     super(e, s, i, r), this.count = t, this.extensions = {};
     const n = this.header.extensions;
-    n && n["3DTILES_batch_table_hierarchy"] && (this.extensions["3DTILES_batch_table_hierarchy"] = new Fl(this));
+    n && n["3DTILES_batch_table_hierarchy"] && (this.extensions["3DTILES_batch_table_hierarchy"] = new Pl(this));
   }
   /**
    * Returns an object with all properties of the batch table and its extensions for the
@@ -5626,7 +5626,7 @@ class Qn {
 }
 const gs = new Qn(zi, zi, vl);
 gs.name = "WGS84 Earth";
-const Pt = /* @__PURE__ */ new x(), Ft = /* @__PURE__ */ new x(), $ = /* @__PURE__ */ new x(), kt = /* @__PURE__ */ new ss();
+const Ft = /* @__PURE__ */ new x(), Pt = /* @__PURE__ */ new x(), $ = /* @__PURE__ */ new x(), kt = /* @__PURE__ */ new ss();
 let $i = class {
   constructor(e = new tt(), t = new U()) {
     this.box = e.clone(), this.transform = t.clone(), this.inverseTransform = new U(), this.points = new Array(8).fill().map(() => new x()), this.planes = new Array(6).fill().map(() => new Nr());
@@ -5683,7 +5683,7 @@ let $i = class {
     this.updatePlanes();
   }
   updatePlanes() {
-    Pt.copy(this.box.min).applyMatrix4(this.transform), Ft.copy(this.box.max).applyMatrix4(this.transform), $.set(0, 0, 1).transformDirection(this.transform), this.planes[0].setFromNormalAndCoplanarPoint($, Pt), this.planes[1].setFromNormalAndCoplanarPoint($, Ft).negate(), $.set(0, 1, 0).transformDirection(this.transform), this.planes[2].setFromNormalAndCoplanarPoint($, Pt), this.planes[3].setFromNormalAndCoplanarPoint($, Ft).negate(), $.set(1, 0, 0).transformDirection(this.transform), this.planes[4].setFromNormalAndCoplanarPoint($, Pt), this.planes[5].setFromNormalAndCoplanarPoint($, Ft).negate();
+    Ft.copy(this.box.min).applyMatrix4(this.transform), Pt.copy(this.box.max).applyMatrix4(this.transform), $.set(0, 0, 1).transformDirection(this.transform), this.planes[0].setFromNormalAndCoplanarPoint($, Ft), this.planes[1].setFromNormalAndCoplanarPoint($, Pt).negate(), $.set(0, 1, 0).transformDirection(this.transform), this.planes[2].setFromNormalAndCoplanarPoint($, Ft), this.planes[3].setFromNormalAndCoplanarPoint($, Pt).negate(), $.set(1, 0, 0).transformDirection(this.transform), this.planes[4].setFromNormalAndCoplanarPoint($, Ft), this.planes[5].setFromNormalAndCoplanarPoint($, Pt).negate();
   }
   intersectsSphere(e) {
     return this.clampPoint(e.center, $), $.distanceToSquared(e.center) <= e.radius * e.radius;
@@ -5721,7 +5721,7 @@ let $i = class {
     return !0;
   }
 };
-const Ps = 1e-13, ft = Math.PI, Fs = ft / 2, at = /* @__PURE__ */ new x(), Re = /* @__PURE__ */ new x(), ne = /* @__PURE__ */ new x(), R = /* @__PURE__ */ new x(), J = /* @__PURE__ */ new U(), zl = /* @__PURE__ */ new tt(), er = /* @__PURE__ */ new U();
+const Fs = 1e-13, ft = Math.PI, Ps = ft / 2, at = /* @__PURE__ */ new x(), Re = /* @__PURE__ */ new x(), ne = /* @__PURE__ */ new x(), R = /* @__PURE__ */ new x(), J = /* @__PURE__ */ new U(), zl = /* @__PURE__ */ new tt(), er = /* @__PURE__ */ new U();
 function Me(a, e) {
   e.radius = Math.max(e.radius, a.distanceToSquared(e.center));
 }
@@ -5729,7 +5729,7 @@ function tr(a) {
   return a.x !== a.y;
 }
 class jl extends Qn {
-  constructor(e = 1, t = 1, s = 1, i = -Fs, r = Fs, n = 0, o = 2 * ft, l = 0, c = 0) {
+  constructor(e = 1, t = 1, s = 1, i = -Ps, r = Ps, n = 0, o = 2 * ft, l = 0, c = 0) {
     super(e, t, s), this.latStart = i, this.latEnd = r, this.lonStart = n, this.lonEnd = o, this.heightStart = l, this.heightEnd = c;
   }
   /**
@@ -5751,7 +5751,7 @@ class jl extends Qn {
     let u;
     h ? u = s : d ? u = i : u = 0;
     const { min: p, max: g } = e;
-    p.setScalar(1 / 0), g.setScalar(-1 / 0), n - r <= ft ? (this.getCartographicToNormal(c, A, ne), Re.set(0, 0, 1), at.crossVectors(Re, ne).normalize(), Re.crossVectors(ne, at).normalize(), t.makeBasis(at, Re, ne), J.copy(t).invert(), this.getCartographicToPosition(u, r, l, R).applyMatrix4(J), g.x = Math.abs(R.x), p.x = -g.x, this.getCartographicToPosition(i, r, l, R).applyMatrix4(J), g.y = R.y, this.getCartographicToPosition(i, A, l, R).applyMatrix4(J), g.y = Math.max(R.y, g.y), this.getCartographicToPosition(s, r, l, R).applyMatrix4(J), p.y = R.y, this.getCartographicToPosition(s, A, l, R).applyMatrix4(J), p.y = Math.min(R.y, p.y), this.getCartographicToPosition(c, A, l, R).applyMatrix4(J), g.z = R.z, this.getCartographicToPosition(s, r, o, R).applyMatrix4(J), p.z = R.z, this.getCartographicToPosition(i, r, o, R).applyMatrix4(J), p.z = Math.min(R.z, p.z)) : (this.getCartographicToPosition(u, A, l, ne), ne.z = 0, ne.length() < 1e-10 ? ne.set(1, 0, 0) : ne.normalize(), Re.set(0, 0, 1), at.crossVectors(ne, Re).normalize(), t.makeBasis(at, Re, ne), J.copy(t).invert(), this.getCartographicToPosition(u, A + Fs, l, R).applyMatrix4(J), g.x = Math.abs(R.x), p.x = -g.x, this.getCartographicToPosition(i, 0, d ? o : l, R).applyMatrix4(J), g.y = R.y, this.getCartographicToPosition(s, 0, h ? o : l, R).applyMatrix4(J), p.y = R.y, this.getCartographicToPosition(u, A, l, R).applyMatrix4(J), g.z = R.z, this.getCartographicToPosition(u, n, l, R).applyMatrix4(J), p.z = R.z), e.getCenter(R), e.min.sub(R).multiplyScalar(1 + Ps), e.max.sub(R).multiplyScalar(1 + Ps), R.applyMatrix4(t), t.setPosition(R);
+    p.setScalar(1 / 0), g.setScalar(-1 / 0), n - r <= ft ? (this.getCartographicToNormal(c, A, ne), Re.set(0, 0, 1), at.crossVectors(Re, ne).normalize(), Re.crossVectors(ne, at).normalize(), t.makeBasis(at, Re, ne), J.copy(t).invert(), this.getCartographicToPosition(u, r, l, R).applyMatrix4(J), g.x = Math.abs(R.x), p.x = -g.x, this.getCartographicToPosition(i, r, l, R).applyMatrix4(J), g.y = R.y, this.getCartographicToPosition(i, A, l, R).applyMatrix4(J), g.y = Math.max(R.y, g.y), this.getCartographicToPosition(s, r, l, R).applyMatrix4(J), p.y = R.y, this.getCartographicToPosition(s, A, l, R).applyMatrix4(J), p.y = Math.min(R.y, p.y), this.getCartographicToPosition(c, A, l, R).applyMatrix4(J), g.z = R.z, this.getCartographicToPosition(s, r, o, R).applyMatrix4(J), p.z = R.z, this.getCartographicToPosition(i, r, o, R).applyMatrix4(J), p.z = Math.min(R.z, p.z)) : (this.getCartographicToPosition(u, A, l, ne), ne.z = 0, ne.length() < 1e-10 ? ne.set(1, 0, 0) : ne.normalize(), Re.set(0, 0, 1), at.crossVectors(ne, Re).normalize(), t.makeBasis(at, Re, ne), J.copy(t).invert(), this.getCartographicToPosition(u, A + Ps, l, R).applyMatrix4(J), g.x = Math.abs(R.x), p.x = -g.x, this.getCartographicToPosition(i, 0, d ? o : l, R).applyMatrix4(J), g.y = R.y, this.getCartographicToPosition(s, 0, h ? o : l, R).applyMatrix4(J), p.y = R.y, this.getCartographicToPosition(u, A, l, R).applyMatrix4(J), g.z = R.z, this.getCartographicToPosition(u, n, l, R).applyMatrix4(J), p.z = R.z), e.getCenter(R), e.min.sub(R).multiplyScalar(1 + Fs), e.max.sub(R).multiplyScalar(1 + Fs), R.applyMatrix4(t), t.setPosition(R);
   }
   /**
    * Computes a bounding sphere for this region. Writes the result into `sphere`.
@@ -5768,7 +5768,7 @@ class jl extends Qn {
       heightEnd: o
     } = this, l = (t + s) * 0.5, c = (i + r) * 0.5, A = t > 0, h = s < 0;
     let d;
-    A ? d = t : h ? d = s : d = 0, this.getCartographicToPosition(d, i, o, R), Me(R, e), this.getCartographicToPosition(s, i, o, R), Me(R, e), this.getCartographicToPosition(s, c, o, R), Me(R, e), this.getCartographicToPosition(t, i, o, R), Me(R, e), this.getCartographicToPosition(t, c, o, R), Me(R, e), this.getCartographicToPosition(l, c, o, R), Me(R, e), this.getCartographicToPosition(t, i, n, R), Me(R, e), r - i > ft && (this.getCartographicToPosition(d, c + ft, o, R), Me(R, e)), e.radius = Math.sqrt(e.radius) * (1 + Ps);
+    A ? d = t : h ? d = s : d = 0, this.getCartographicToPosition(d, i, o, R), Me(R, e), this.getCartographicToPosition(s, i, o, R), Me(R, e), this.getCartographicToPosition(s, c, o, R), Me(R, e), this.getCartographicToPosition(t, i, o, R), Me(R, e), this.getCartographicToPosition(t, c, o, R), Me(R, e), this.getCartographicToPosition(l, c, o, R), Me(R, e), this.getCartographicToPosition(t, i, n, R), Me(R, e), r - i > ft && (this.getCartographicToPosition(d, c + ft, o, R), Me(R, e)), e.radius = Math.sqrt(e.radius) * (1 + Fs);
   }
 }
 const ri = 0;
@@ -5839,7 +5839,7 @@ function Wl(a) {
   const e = a >> 11, t = a >> 5 & 63, s = a & 31, i = Math.round(e / 31 * 255), r = Math.round(t / 63 * 255), n = Math.round(s / 31 * 255);
   return [i, r, n];
 }
-const lt = /* @__PURE__ */ new F();
+const lt = /* @__PURE__ */ new P();
 function Jl(a, e, t = new x()) {
   lt.set(a, e).divideScalar(256).multiplyScalar(2).subScalar(1), t.set(lt.x, lt.y, 1 - Math.abs(lt.x) - Math.abs(lt.y));
   const s = et.clamp(-t.z, 0, 1);
@@ -5979,8 +5979,8 @@ class Ln extends _l {
           u.scene.updateMatrixWorld(), u.scene.traverse((Q) => {
             if (Q.isMesh) {
               _.push(Q);
-              const { geometry: K, material: N } = Q, P = new ci(K, N, p);
-              P.position.copy(T), M && (P.position.x += M[0], P.position.y += M[1], P.position.z += M[2]), D.push(P);
+              const { geometry: K, material: N } = Q, F = new ci(K, N, p);
+              F.position.copy(T), M && (F.position.x += M[0], F.position.y += M[1], F.position.z += M[2]), D.push(F);
             }
           });
           for (let Q = 0; Q < p; Q++) {
@@ -6020,10 +6020,10 @@ class Ln extends _l {
               I[Q * 3 + 2]
             ), v && Nt.multiplyScalar(v[Q]);
             for (let K = 0, N = D.length; K < N; K++) {
-              const P = D[K];
-              _s.copy(Ut), B && (P.updateMatrixWorld(), nr.copy(ks).applyMatrix4(P.matrixWorld), this.ellipsoid.getPositionToCartographic(nr, Us), this.ellipsoid.getEastNorthUpFrame(Us.lat, Us.lon, or), _s.setFromRotationMatrix(or)), ze.compose(ks, _s, Nt).multiply(d);
+              const F = D[K];
+              _s.copy(Ut), B && (F.updateMatrixWorld(), nr.copy(ks).applyMatrix4(F.matrixWorld), this.ellipsoid.getPositionToCartographic(nr, Us), this.ellipsoid.getEastNorthUpFrame(Us.lat, Us.lon, or), _s.setFromRotationMatrix(or)), ze.compose(ks, _s, Nt).multiply(d);
               const O = _[K];
-              rr.multiplyMatrices(ze, O.matrixWorld), P.setMatrixAt(Q, rr);
+              rr.multiplyMatrices(ze, O.matrixWorld), F.setMatrixAt(Q, rr);
             }
           }
           u.scene.clear(), u.scene.add(...D), u.batchTable = i, u.featureTable = s, u.scene.batchTable = i, u.scene.featureTable = s, n(u);
@@ -6130,7 +6130,7 @@ function ec(a, e, t, s) {
 function tc(a) {
   return "traversal" in a;
 }
-function Pn(a, e, t, s, i = null) {
+function Fn(a, e, t, s, i = null) {
   if (!tc(e))
     return;
   const { group: r, activeTiles: n } = a, { boundingVolume: o } = e.engineData;
@@ -6139,7 +6139,7 @@ function Pn(a, e, t, s, i = null) {
   n.has(e) && ec(e, t, a, s);
   const l = e.children;
   for (let c = 0, A = l.length; c < A; c++)
-    Pn(a, l[c], t, s, i);
+    Fn(a, l[c], t, s, i);
 }
 const ue = /* @__PURE__ */ new x(), pe = /* @__PURE__ */ new x(), ge = /* @__PURE__ */ new x(), lr = /* @__PURE__ */ new x(), cr = /* @__PURE__ */ new x();
 class sc {
@@ -6282,13 +6282,13 @@ class nc extends Do {
     });
   }
 }
-const Fn = Symbol("INITIAL_FRUSTUM_CULLED"), Gt = /* @__PURE__ */ new U(), ht = /* @__PURE__ */ new x(), Ns = /* @__PURE__ */ new F(), oc = /* @__PURE__ */ new x(1, 0, 0), ac = /* @__PURE__ */ new x(0, 1, 0);
+const Pn = Symbol("INITIAL_FRUSTUM_CULLED"), Gt = /* @__PURE__ */ new U(), ht = /* @__PURE__ */ new x(), Ns = /* @__PURE__ */ new P(), oc = /* @__PURE__ */ new x(1, 0, 0), ac = /* @__PURE__ */ new x(0, 1, 0);
 function hr(a, e) {
   a.traverse((t) => {
-    t.frustumCulled = t[Fn] && e;
+    t.frustumCulled = t[Pn] && e;
   });
 }
-class lc extends Pl {
+class lc extends Fl {
   /**
    * If `true`, all tile meshes automatically have `frustumCulled` set to `false` since the
    * tiles renderer performs its own frustum culling. If `displayActiveTiles` is `true` or
@@ -6373,7 +6373,7 @@ class lc extends Pl {
   raycast(e, t) {
     if (this.root)
       if (this.accelerateRaycast)
-        Pn(this, this.root, e, t);
+        Fn(this, this.root, e, t);
       else {
         const s = e.firstHitOnly ? [] : t;
         for (const i of this.activeTiles) {
@@ -6399,7 +6399,7 @@ class lc extends Pl {
    */
   setCamera(e) {
     const t = this.cameras, s = this.cameraMap;
-    return s.has(e) ? !1 : (s.set(e, new F()), t.push(e), this.dispatchEvent({ type: "add-camera", camera: e }), !0);
+    return s.has(e) ? !1 : (s.set(e, new P()), t.push(e), this.dispatchEvent({ type: "add-camera", camera: e }), !0);
   }
   /**
    * Sets the render resolution for a registered camera, used for screen-space error calculation.
@@ -6560,7 +6560,7 @@ class lc extends Pl {
       throw new Error(`TilesRenderer: Content type "${u}" not supported.`);
     let g, b;
     p.isObject3D ? (g = p, b = null) : (g = p.scene, b = p), g.updateMatrix(), g.matrix.premultiply(h), g.matrix.decompose(g.position, g.quaternion, g.scale), await this.invokeAllPlugins((m) => m.processTileModel && m.processTileModel(g, t)), g.traverse((m) => {
-      m[Fn] = m.frustumCulled;
+      m[Pn] = m.frustumCulled;
     }), hr(g, !this.autoDisableRendererCulling);
     const C = [], y = [], E = [];
     if (g.traverse((m) => {
@@ -7242,7 +7242,7 @@ function ni(a) {
     case "SCALAR":
       return t === "INT64" ? 0n : 0;
     case "VEC2":
-      return new F();
+      return new P();
     case "VEC3":
       return new x();
     case "VEC4":
@@ -7665,11 +7665,11 @@ class ur {
   constructor() {
     this._renderer = new Lo(), this._target = new Qi(1, 1), this._texTarget = new Qi(), this._quad = new kn(new Xr({
       blending: ko,
-      blendDst: Fo,
-      blendSrc: Po,
+      blendDst: Po,
+      blendSrc: Fo,
       uniforms: {
         map: { value: null },
-        pixel: { value: new F() }
+        pixel: { value: new P() }
       },
       vertexShader: (
         /* glsl */
@@ -7724,7 +7724,7 @@ const xe = /* @__PURE__ */ new class {
       e !== "constructor" && (this[e] = (...t) => (a = a || new ur(), a[e](...t)));
     });
   }
-}(), pr = /* @__PURE__ */ new F(), gr = /* @__PURE__ */ new F(), fr = /* @__PURE__ */ new F();
+}(), pr = /* @__PURE__ */ new P(), gr = /* @__PURE__ */ new P(), fr = /* @__PURE__ */ new P();
 function Bc(a, e) {
   return e === 0 ? a.getAttribute("uv") : a.getAttribute(`uv${e}`);
 }
@@ -7740,7 +7740,7 @@ function On(a, e, t, s) {
   const i = a.x - Math.floor(a.x), r = a.y - Math.floor(a.y), n = Math.floor(i * e % e), o = Math.floor(r * t % t);
   return s.set(n, o), s;
 }
-const mr = /* @__PURE__ */ new F(), br = /* @__PURE__ */ new F(), Cr = /* @__PURE__ */ new F();
+const mr = /* @__PURE__ */ new P(), br = /* @__PURE__ */ new P(), Cr = /* @__PURE__ */ new P();
 class Mc extends fs {
   constructor(e, t, s = null) {
     super(e, t, s), this.channels = H(s, "channels", [0]), this.index = H(s, "index", null), this.texCoord = H(s, "texCoord", null), this.valueLength = parseInt(this.type.replace(/[^0-9]/g, "")) || 1;
@@ -8014,7 +8014,7 @@ class Qc {
     });
   }
 }
-const Er = /* @__PURE__ */ new F(), wr = /* @__PURE__ */ new F(), Ir = /* @__PURE__ */ new F();
+const Er = /* @__PURE__ */ new P(), wr = /* @__PURE__ */ new P(), Ir = /* @__PURE__ */ new P();
 function Rc(a) {
   return a.x > a.y && a.x > a.z ? 0 : a.y > a.z ? 1 : 2;
 }
@@ -8144,7 +8144,7 @@ class Lc {
     });
   }
 }
-class Pc {
+class Fc {
   constructor() {
     this.name = "CESIUM_RTC";
   }
@@ -8155,7 +8155,7 @@ class Pc {
     }
   }
 }
-class Fc {
+class Pc {
   constructor(e) {
     e = {
       metadata: !0,
@@ -8170,13 +8170,13 @@ class Fc {
   }
   init(e) {
     const t = new Ne(e.manager);
-    this.dracoLoader && (t.setDRACOLoader(this.dracoLoader), e.manager.addHandler(this._dracoRegex, this.dracoLoader)), this.ktxLoader && t.setKTX2Loader(this.ktxLoader), this.meshoptDecoder && t.setMeshoptDecoder(this.meshoptDecoder), this.rtc && t.register(() => new Pc()), this.metadata && (t.register(() => new Qc()), t.register(() => new Lc())), this.plugins.forEach((s) => t.register(s)), e.manager.addHandler(this._gltfRegex, t), this.tiles = e, this._loader = t;
+    this.dracoLoader && (t.setDRACOLoader(this.dracoLoader), e.manager.addHandler(this._dracoRegex, this.dracoLoader)), this.ktxLoader && t.setKTX2Loader(this.ktxLoader), this.meshoptDecoder && t.setMeshoptDecoder(this.meshoptDecoder), this.rtc && t.register(() => new Fc()), this.metadata && (t.register(() => new Qc()), t.register(() => new Lc())), this.plugins.forEach((s) => t.register(s)), e.manager.addHandler(this._gltfRegex, t), this.tiles = e, this._loader = t;
   }
   dispose() {
     this.tiles.manager.removeHandler(this._gltfRegex), this.tiles.manager.removeHandler(this._dracoRegex), this.autoDispose && (this.ktxLoader.dispose(), this.dracoLoader.dispose());
   }
 }
-const { clamp: Nh } = et;
+const { clamp: Uh } = et;
 new kn(new Le());
 const kc = new Wr(new Uint8Array([255, 255, 255, 255]), 1, 1);
 kc.needsUpdate = !0;
@@ -8462,7 +8462,7 @@ class Hc {
     i.setDecoderPath(s.dracoDecoderPath);
     const r = new te();
     r.setTranscoderPath(s.ktx2TranscoderPath), Number.isFinite(t.ktxWorkerLimit) && t.ktxWorkerLimit > 0 && r.setWorkerLimit(Math.max(1, Math.floor(t.ktxWorkerLimit))), this.renderer && r.detectSupport(this.renderer);
-    const n = new Fc({
+    const n = new Pc({
       rtc: !0,
       dracoLoader: i,
       ktxLoader: r
@@ -9781,8 +9781,8 @@ class rh {
       const _ = S ? T - v : 0, Q = S && _ > 0.1;
       if (!w && Q && D.y <= d) {
         if (B > 0) {
-          const N = c[B - 1], P = (d - N.y) / (D.y - N.y);
-          w = new f.Vector3().lerpVectors(N, D, P), w.y = d;
+          const N = c[B - 1], F = (d - N.y) / (D.y - N.y);
+          w = new f.Vector3().lerpVectors(N, D, F), w.y = d;
         } else
           w = D.clone(), w.y = d;
         c[B] = w, c.length = B + 1;
@@ -9794,9 +9794,9 @@ class rh {
       );
       if (Q && K > r) {
         if (B > 0) {
-          const N = c[B - 1], P = Math.sqrt(
+          const N = c[B - 1], F = Math.sqrt(
             Math.pow(N.x - s.x, 2) + Math.pow(N.z - s.z, 2)
-          ), O = K > P ? (r - P) / (K - P) : 0.5;
+          ), O = K > F ? (r - F) / (K - F) : 0.5;
           w = new f.Vector3(
             N.x + (D.x - N.x) * O,
             d,
@@ -10482,70 +10482,8 @@ class ah {
   }
 }
 class lh {
-  /**
-   * Constructs a new AR button.
-   *
-   * @param {WebGLRenderer|WebGPURenderer} renderer - The renderer.
-   * @param {XRSessionInit} [sessionInit] - The a configuration object for the AR session.
-   * @return {HTMLElement} The button or an error message if `immersive-ar` isn't supported.
-   */
-  static createButton(e, t = {}) {
-    const s = document.createElement("button");
-    function i() {
-      if (t.domOverlay === void 0) {
-        const d = document.createElement("div");
-        d.style.display = "none", document.body.appendChild(d);
-        const u = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        u.setAttribute("width", 38), u.setAttribute("height", 38), u.style.position = "absolute", u.style.right = "20px", u.style.top = "20px", u.addEventListener("click", function() {
-          c.end();
-        }), d.appendChild(u);
-        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        p.setAttribute("d", "M 12,12 L 28,28 M 28,12 12,28"), p.setAttribute("stroke", "#fff"), p.setAttribute("stroke-width", 2), u.appendChild(p), t.optionalFeatures === void 0 && (t.optionalFeatures = []), t.optionalFeatures.push("dom-overlay"), t.domOverlay = { root: d };
-      }
-      let c = null;
-      async function A(d) {
-        d.addEventListener("end", h), e.xr.setReferenceSpaceType("local"), await e.xr.setSession(d), s.textContent = "STOP AR", t.domOverlay.root.style.display = "", c = d;
-      }
-      function h() {
-        c.removeEventListener("end", h), s.textContent = "START AR", t.domOverlay.root.style.display = "none", c = null;
-      }
-      s.style.display = "", s.style.cursor = "pointer", s.style.left = "calc(50% - 50px)", s.style.width = "100px", s.textContent = "START AR", s.onmouseenter = function() {
-        s.style.opacity = "1.0";
-      }, s.onmouseleave = function() {
-        s.style.opacity = "0.5";
-      }, s.onclick = function() {
-        c === null ? navigator.xr.requestSession("immersive-ar", t).then(A) : (c.end(), navigator.xr.offerSession !== void 0 && navigator.xr.offerSession("immersive-ar", t).then(A).catch((d) => {
-          console.warn(d);
-        }));
-      }, navigator.xr.offerSession !== void 0 && navigator.xr.offerSession("immersive-ar", t).then(A).catch((d) => {
-        console.warn(d);
-      });
-    }
-    function r() {
-      s.style.display = "", s.style.cursor = "auto", s.style.left = "calc(50% - 75px)", s.style.width = "150px", s.onmouseenter = null, s.onmouseleave = null, s.onclick = null;
-    }
-    function n() {
-      r(), s.textContent = "AR NOT SUPPORTED";
-    }
-    function o(c) {
-      r(), console.warn("Exception when trying to call xr.isSessionSupported", c), s.textContent = "AR NOT ALLOWED";
-    }
-    function l(c) {
-      c.style.position = "absolute", c.style.bottom = "20px", c.style.padding = "12px 6px", c.style.border = "1px solid #fff", c.style.borderRadius = "4px", c.style.background = "rgba(0,0,0,0.1)", c.style.color = "#fff", c.style.font = "normal 13px sans-serif", c.style.textAlign = "center", c.style.opacity = "0.5", c.style.outline = "none", c.style.zIndex = "999";
-    }
-    if ("xr" in navigator)
-      return s.id = "ARButton", s.style.display = "none", l(s), navigator.xr.isSessionSupported("immersive-ar").then(function(c) {
-        c ? i() : n();
-      }).catch(o), s;
-    {
-      const c = document.createElement("a");
-      return window.isSecureContext === !1 ? (c.href = document.location.href.replace(/^http:/, "https:"), c.innerHTML = "WEBXR NEEDS HTTPS") : (c.href = "https://immersiveweb.dev/", c.innerHTML = "WEBXR NOT AVAILABLE"), c.style.left = "calc(50% - 90px)", c.style.width = "180px", c.style.textDecoration = "none", l(c), c;
-    }
-  }
-}
-class ch {
   constructor(e, t, s, i = null) {
-    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null;
+    this.renderer = e, this.camera = t, this.scene = s, this.container = i || document.body, this.isARSupported = !1, this.isARPresenting = !1, this.isQuest2 = !1, this.isQuest3 = !1, this.arButton = null, this.buttonObserver = null, this.onSessionStart = null, this.onSessionEnd = null, this.onSessionPause = null, this.onSessionResume = null, this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionInit = null, this.sessionRequestPromise = null, this.sessionRequestGeneration = 0, this.sessionRequestTimeoutId = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.failedResumeRecoveryTimer = null, this.longHiddenRecoveryTimer = null, this.sessionFrameHeartbeatId = null, this.sessionFrameWatchInterval = null, this.sessionFrameValidationTimer = null, this.lastSessionFrameAt = 0, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.failedResumeWindowMs = 2500, this.failedResumeMinHiddenMs = 1e3, this.failedResumeValidationMs = 500, this.longHiddenRecoveryMs = 12e3, this.frameStallRecoveryMs = 12e3, this.frameStallValidationMs = 1e3, this.frameStallPollMs = 1e3, this.sessionRequestTimeoutMs = 12e3, this.isDisposed = !1;
   }
   init() {
     this.renderer.xr.enabled = !0, this.removeExistingARButtons(), this.checkARSupported().then(() => {
@@ -10573,11 +10511,14 @@ class ch {
   }
   createARButton() {
     this.waitForARCSS().then(() => {
-      const e = {
+      this.sessionInit = {
         requiredFeatures: ["local"],
         optionalFeatures: this.getOptionalFeatures()
-      };
-      this.arButton = lh.createButton(this.renderer, e), this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', this.arButton.className = "ar-button--glass ar-button-available", this.arButton.disabled = !1, this.arButton.style.cssText = `
+      }, this.arButton = document.createElement("button"), this.arButton.id = "ARButton", this.arButton.type = "button", this.arButton.className = "ar-button--glass ar-button-available", this.arButton.dataset.belowjsArButton = "true", this.arButton.addEventListener("click", () => {
+        this.activeSession ? (this.recoverySuggested = !1, this.endingFailedResume = !1, this.activeSession.end().catch((e) => {
+          console.warn("Unable to end AR session", e);
+        })) : (this.recoverySuggested = !1, this.requestARSession());
+      }), this.arButton.style.cssText = `
         position: fixed !important;
         bottom: 140px !important;
         left: 50% !important;
@@ -10588,7 +10529,7 @@ class ch {
         opacity: 1 !important;
         pointer-events: auto !important;
         cursor: pointer !important;
-      `, this.container.appendChild(this.arButton), this.styleARButton();
+      `, this.container.appendChild(this.arButton), this.updateARButtonState(), this.styleARButton(), this.offerARSession();
     });
   }
   getOptionalFeatures() {
@@ -10597,18 +10538,130 @@ class ch {
   styleARButton() {
     const e = () => {
       const t = document.querySelector("button.ar-button--glass") || this.arButton;
-      return t ? (t.style.display = "flex", t.style.visibility = "visible", t.style.opacity = "1", t.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR', t.classList.contains("ar-button--glass") || t.classList.add("ar-button--glass"), t.disabled = !1, t.classList.remove("ar-generic-disabled"), !0) : !1;
+      return t ? (t.style.display = "flex", t.style.visibility = "visible", t.style.opacity = "1", this.updateARButtonState(), t.classList.contains("ar-button--glass") || t.classList.add("ar-button--glass"), !0) : !1;
     };
     e() || (setTimeout(e, 100), setTimeout(e, 300), setTimeout(e, 500));
   }
   setupSessionListeners() {
     this.renderer.xr.addEventListener("sessionstart", () => {
-      this.isARPresenting = !0;
+      if (this.isARPresenting = !0, this.activeSession = this.renderer.xr.getSession?.() || null, this.sessionVisibilityState = this.activeSession?.visibilityState || "visible", this.sessionHiddenAt = 0, this.sessionResumedAt = Date.now(), this.lastHiddenDurationMs = 0, this.sessionOfferPromise = null, this.recoverySuggested = !1, this.endingFailedResume = !1, this.updateARButtonState(), this.activeSession) {
+        const t = this.activeSession;
+        this.sessionVisibilityHandler = () => {
+          this.handleSessionVisibilityChange(t);
+        }, t.addEventListener("visibilitychange", this.sessionVisibilityHandler), this.startSessionFrameHeartbeat(t);
+      }
       const e = this.detectQuestDevice();
       this.applyQuestOptimizations(e), this.onSessionStart && this.onSessionStart();
     }), this.renderer.xr.addEventListener("sessionend", () => {
-      this.isARPresenting = !1, this.onSessionEnd && this.onSessionEnd();
+      this.isARPresenting = !1, this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionVisibilityState = "none", this.sessionHiddenAt = 0, this.sessionResumedAt = 0, this.lastHiddenDurationMs = 0, this.recoverySuggested = this.endingFailedResume, this.endingFailedResume = !1, this.updateARButtonState(), this.offerARSession(), this.onSessionEnd && this.onSessionEnd();
     });
+  }
+  updateARButtonState() {
+    if (!this.arButton) return;
+    const e = !!this.sessionRequestPromise;
+    this.arButton.disabled = e, this.arButton.classList.toggle("ar-generic-disabled", e), this.activeSession ? this.arButton.textContent = "EXIT AR" : e ? this.arButton.textContent = "STARTING AR" : this.recoverySuggested ? this.arButton.textContent = "RECOVER AR" : this.arButton.textContent = "ENTER AR";
+  }
+  getSessionInit() {
+    return this.sessionInit || (this.sessionInit = {
+      requiredFeatures: ["local"],
+      optionalFeatures: this.getOptionalFeatures()
+    }), this.sessionInit;
+  }
+  async activateSession(e) {
+    return !e || this.isDisposed ? (await e?.end?.(), null) : (this.renderer.xr.setReferenceSpaceType?.("local"), await this.renderer.xr.setSession(e), e);
+  }
+  requestARSession() {
+    if (this.activeSession || this.sessionRequestPromise || this.isDisposed)
+      return this.sessionRequestPromise || this.activeSession;
+    const e = ++this.sessionRequestGeneration, t = navigator.xr.requestSession("immersive-ar", this.getSessionInit()).then(async (r) => e !== this.sessionRequestGeneration || this.isDisposed ? (await r?.end?.(), null) : this.activateSession(r)).catch((r) => (console.warn("Unable to start AR session", r), null)), s = new Promise((r) => {
+      this.sessionRequestTimeoutId = setTimeout(() => {
+        e === this.sessionRequestGeneration && !this.activeSession && (this.sessionRequestGeneration += 1, this.recoverySuggested = !0, console.warn("AR session request timed out; the launch control is available to retry")), r(null);
+      }, this.sessionRequestTimeoutMs);
+    }), i = Promise.race([t, s]).finally(() => {
+      this.sessionRequestTimeoutId && (clearTimeout(this.sessionRequestTimeoutId), this.sessionRequestTimeoutId = null), this.sessionRequestPromise === i && (this.sessionRequestPromise = null, this.updateARButtonState());
+    });
+    return this.sessionRequestPromise = i, this.updateARButtonState(), i;
+  }
+  /**
+   * Mirror Three.js VRButton's native re-entry path. Quest Browser owns this
+   * pending offer and can expose it in browser chrome even when the page cannot
+   * manufacture the transient user activation required by requestSession().
+   */
+  offerARSession() {
+    if (this.activeSession || this.sessionRequestPromise || this.sessionOfferPromise || this.isDisposed || typeof navigator?.xr?.offerSession != "function")
+      return this.sessionOfferPromise;
+    const e = navigator.xr.offerSession("immersive-ar", this.getSessionInit()).then((t) => t ? this.activeSession || this.isDisposed ? (t.end?.(), null) : this.activateSession(t) : null).catch((t) => (t?.name !== "AbortError" && !/cancel/i.test(t?.message || "") && console.warn("Unable to offer AR session", t), null)).finally(() => {
+      this.sessionOfferPromise === e && (this.sessionOfferPromise = null);
+    });
+    return this.sessionOfferPromise = e, e;
+  }
+  handleSessionVisibilityChange(e) {
+    if (!e || e !== this.activeSession) return;
+    const t = Date.now(), s = e.visibilityState || "hidden", i = this.sessionVisibilityState;
+    if (s === "visible") {
+      this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.lastHiddenDurationMs = this.sessionHiddenAt ? t - this.sessionHiddenAt : 0, this.sessionHiddenAt = 0, this.sessionResumedAt = t, this.sessionVisibilityState = "visible", this.isARPresenting = !0, this.onSessionResume?.(e);
+      return;
+    }
+    this.sessionVisibilityState = s, this.sessionHiddenAt || (this.sessionHiddenAt = t), i === "visible" && this.lastHiddenDurationMs >= this.failedResumeMinHiddenMs && this.sessionResumedAt > 0 && t - this.sessionResumedAt <= this.failedResumeWindowMs && this.scheduleFailedResumeRecovery(e), this.scheduleLongHiddenRecovery(e), this.onSessionPause?.(e);
+  }
+  clearFailedResumeRecoveryTimer() {
+    this.failedResumeRecoveryTimer && (clearTimeout(this.failedResumeRecoveryTimer), this.failedResumeRecoveryTimer = null);
+  }
+  clearLongHiddenRecoveryTimer() {
+    this.longHiddenRecoveryTimer && (clearTimeout(this.longHiddenRecoveryTimer), this.longHiddenRecoveryTimer = null);
+  }
+  scheduleLongHiddenRecovery(e) {
+    this.longHiddenRecoveryTimer || (this.longHiddenRecoveryTimer = setTimeout(() => {
+      this.longHiddenRecoveryTimer = null, this.endStalledSession(
+        e,
+        "AR session remained hidden without frames or inputs; ending it and restoring the native AR offer"
+      );
+    }, this.longHiddenRecoveryMs));
+  }
+  startSessionFrameHeartbeat(e) {
+    if (this.stopSessionFrameHeartbeat(), !e || typeof e.requestAnimationFrame != "function") return;
+    this.lastSessionFrameAt = Date.now();
+    const t = () => {
+      this.isDisposed || e !== this.activeSession || (this.lastSessionFrameAt = Date.now(), this.sessionFrameHeartbeatId = e.requestAnimationFrame(t));
+    };
+    this.sessionFrameHeartbeatId = e.requestAnimationFrame(t), this.sessionFrameWatchInterval = setInterval(() => {
+      this.isDisposed || e !== this.activeSession || Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs || this.sessionFrameValidationTimer || (this.sessionFrameValidationTimer = setTimeout(() => {
+        this.sessionFrameValidationTimer = null, !(Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs) && this.endStalledSession(
+          e,
+          "AR session stopped producing XR frames; ending it and restoring the native AR offer",
+          { allowVisible: !0, allowInputs: !0 }
+        );
+      }, this.frameStallValidationMs));
+    }, this.frameStallPollMs);
+  }
+  stopSessionFrameHeartbeat() {
+    const e = this.activeSession;
+    if (this.sessionFrameHeartbeatId !== null && e && typeof e.cancelAnimationFrame == "function")
+      try {
+        e.cancelAnimationFrame(this.sessionFrameHeartbeatId);
+      } catch {
+      }
+    this.sessionFrameHeartbeatId = null, this.lastSessionFrameAt = 0, this.sessionFrameWatchInterval && (clearInterval(this.sessionFrameWatchInterval), this.sessionFrameWatchInterval = null), this.sessionFrameValidationTimer && (clearTimeout(this.sessionFrameValidationTimer), this.sessionFrameValidationTimer = null);
+  }
+  async endStalledSession(e, t, { allowVisible: s = !1, allowInputs: i = !1 } = {}) {
+    if (this.isDisposed || e !== this.activeSession || !s && e.visibilityState === "visible")
+      return !1;
+    const r = Array.from(e.inputSources || []);
+    if (!i && r.length > 0) return !1;
+    this.endingFailedResume = !0, this.recoverySuggested = !0, this.updateARButtonState(), console.warn(t);
+    try {
+      return await e.end(), !0;
+    } catch (n) {
+      return this.endingFailedResume = !1, console.warn("Unable to end stalled AR session", n), !1;
+    }
+  }
+  scheduleFailedResumeRecovery(e) {
+    this.clearFailedResumeRecoveryTimer(), this.failedResumeRecoveryTimer = setTimeout(async () => {
+      this.failedResumeRecoveryTimer = null, await this.endStalledSession(
+        e,
+        "AR session briefly resumed then returned hidden without inputs; ending the stalled session for explicit recovery"
+      );
+    }, this.failedResumeValidationMs);
   }
   detectQuestDevice() {
     try {
@@ -10633,7 +10686,9 @@ class ch {
     });
   }
   removeExistingARButtons() {
-    document.querySelectorAll('button.legacy-ar-button, a[href="#AR"]').forEach((t) => {
+    document.querySelectorAll(
+      '#ARButton, button.legacy-ar-button, a[href="#AR"]'
+    ).forEach((t) => {
       t.parentNode && t.parentNode.removeChild(t);
     });
   }
@@ -10661,7 +10716,7 @@ class ch {
     };
   }
   dispose() {
-    this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
+    this.isDisposed = !0, this.sessionRequestGeneration += 1, this.sessionRequestTimeoutId && (clearTimeout(this.sessionRequestTimeoutId), this.sessionRequestTimeoutId = null), this.clearFailedResumeRecoveryTimer(), this.clearLongHiddenRecoveryTimer(), this.stopSessionFrameHeartbeat(), this.activeSession && this.sessionVisibilityHandler && this.activeSession.removeEventListener("visibilitychange", this.sessionVisibilityHandler), this.activeSession = null, this.sessionVisibilityHandler = null, this.sessionRequestPromise = null, this.buttonObserver && (this.buttonObserver.disconnect(), this.buttonObserver = null), this.arButton && this.arButton.parentNode && this.arButton.parentNode.removeChild(this.arButton), this.isQuest2 = !1, this.isQuest3 = !1, this.isARSupported = !1, this.isARPresenting = !1;
   }
 }
 const Tr = new U(), Qr = new x();
@@ -10721,8 +10776,8 @@ class Rr {
     this.handMesh.count = s, this.handMesh.instanceMatrix.needsUpdate = !0;
   }
 }
-const hh = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/";
-class Ah {
+const ch = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/";
+class hh {
   /**
    * Constructs a new XR hand mesh model.
    *
@@ -10734,7 +10789,7 @@ class Ah {
    * @param {?Function} [onLoad=null] - A callback that is executed when a controller model has been loaded.
    */
   constructor(e, t, s, i, r = null, n = null) {
-    this.controller = t, this.handModel = e, this.bones = [], r === null && (r = new Ne(), r.setPath(s || hh)), r.load(`${i}.glb`, (o) => {
+    this.controller = t, this.handModel = e, this.bones = [], r === null && (r = new Ne(), r.setPath(s || ch)), r.load(`${i}.glb`, (o) => {
       const l = o.scene.children[0];
       this.handModel.add(l);
       const c = l.getObjectByProperty("type", "SkinnedMesh");
@@ -10787,7 +10842,7 @@ class Ah {
     }
   }
 }
-class dh extends is {
+class Ah extends is {
   /**
    * Constructs a new XR hand model.
    *
@@ -10806,7 +10861,7 @@ class dh extends is {
     super.updateMatrixWorld(e), this.motionController && this.motionController.updateMesh();
   }
 }
-class uh {
+class dh {
   /**
    * Constructs a new XR hand model factory.
    *
@@ -10833,46 +10888,85 @@ class uh {
    * @return {XRHandModel} The XR hand model.
    */
   createHandModel(e, t) {
-    const s = new dh(e);
+    const s = new Ah(e);
     return e.addEventListener("connected", (i) => {
       const r = i.data;
-      r.hand && !s.motionController && (s.xrInputSource = r, t === void 0 || t === "spheres" ? s.motionController = new Rr(s, e, this.path, r.handedness, { primitive: "sphere" }) : t === "boxes" ? s.motionController = new Rr(s, e, this.path, r.handedness, { primitive: "box" }) : t === "mesh" && (s.motionController = new Ah(s, e, this.path, r.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
+      r.hand && !s.motionController && (s.xrInputSource = r, t === void 0 || t === "spheres" ? s.motionController = new Rr(s, e, this.path, r.handedness, { primitive: "sphere" }) : t === "boxes" ? s.motionController = new Rr(s, e, this.path, r.handedness, { primitive: "box" }) : t === "mesh" && (s.motionController = new hh(s, e, this.path, r.handedness, this.gltfLoader, this.onLoad))), e.visible = !0;
     }), e.addEventListener("disconnected", () => {
       e.visible = !1;
     }), s;
   }
 }
-class ph {
+class uh {
   constructor(e, t = {}) {
-    this.renderer = e, this.assetPaths = cs(t), this.handModelFactory = new uh(), this.handModelFactory.setPath(Kt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
+    this.renderer = e, this.assetPaths = cs(t), this.handColor = t.handColor ?? 16777215, this.handOpacity = t.handOpacity ?? 0.5, this.handModelFactory = new dh(
+      null,
+      (s) => this.onHandModelLoaded(s)
+    ), this.handModelFactory.setPath(Kt(this.assetPaths.webxrInputProfilesPath, "generic-hand/")), this.hand1 = null, this.hand2 = null, this.interactionEnabled = !0, this.dragging = !1, this.scaling = !1, this.rotating = !1, this.dragStartPos = new f.Vector3(), this.scaleStartDistance = 0, this.rotateStartAngle = 0, this.pinchIntent = {
       hand1Start: 0,
       hand2Start: 0,
       delay: 100
-    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.onGestureStart = null, this.onGestureEnd = null;
+    }, this.inertiaActive = !1, this.posVelocity = new f.Vector3(), this.rotVelocity = 0, this.scaleVelocity = 0, this.POSITION_DAMPING = 100, this.ROTATION_DAMPING = 8, this.SCALE_DAMPING = 8, this.MAX_ROT_VELOCITY = Math.PI, this.MAX_SCALE_VELOCITY = 0.5, this.MIN_SCALE = 0.01, this.MAX_SCALE = 1, this.VELOCITY_DEAD_ZONE = 1e-3, this.DISTANCE_GAIN_THRESHOLD = 5, this.MAX_DISTANCE_GAIN = 3, this.MAX_DELTA_PER_FRAME = 0.5, this.MIN_TWO_HAND_DISTANCE = 0.04, this.MAX_ROT_DELTA_PER_FRAME = 0.35, this.VELOCITY_SMOOTHING = 0.3, this.tempVec1 = new f.Vector3(), this.tempVec2 = new f.Vector3(), this.worldUp = new f.Vector3(0, 1, 0), this.tempYawQuaternion = new f.Quaternion(), this.onGestureStart = null, this.onGestureEnd = null;
   }
   init(e) {
     this.hand1 = this.setupHand(e, 0, "hand1Start"), this.hand2 = this.setupHand(e, 1, "hand2Start");
   }
   setupHand(e, t, s) {
     const i = this.renderer.xr.getHand(t);
-    i.userData.pinch = !1, i.addEventListener("pinchstart", () => {
+    let r = null;
+    return i.userData.pinch = !1, i.userData.handedness = null, i.addEventListener("pinchstart", () => {
+      if (!this.interactionEnabled) {
+        i.userData.pinch = !1, this.pinchIntent[s] = 0;
+        return;
+      }
       i.userData.pinch = !0, this.pinchIntent[s] = performance.now();
     }), i.addEventListener("pinchend", () => {
       i.userData.pinch = !1, this.onPinchEnd();
+    }), i.addEventListener("connected", (n) => {
+      const o = n.data?.handedness || null;
+      i.userData.handedness = o, i.userData.pinch = !1, this.pinchIntent[s] = 0, this.prepareHandModelForHandedness(r, o);
+    }), i.addEventListener("disconnected", () => {
+      i.userData.handedness = null, i.userData.pinch = !1, this.pinchIntent[s] = 0, this.onPinchEnd();
+    }), r = this.handModelFactory.createHandModel(i, "mesh"), i.add(r), e.add(i), i;
+  }
+  getLoadedHandedness(e) {
+    return e?.getObjectByName?.("l_handMeshNode") ? "left" : e?.getObjectByName?.("r_handMeshNode") ? "right" : null;
+  }
+  prepareHandModelForHandedness(e, t) {
+    if (!e || !t) return;
+    const s = e.userData.loadedHandedness || e.xrInputSource?.handedness || null;
+    if (e.userData.expectedHandedness = t, !(!s || s === t)) {
+      for (const i of [...e.children])
+        this.disposeHandObject(i), e.remove(i);
+      e.motionController = null, e.xrInputSource = null, e.userData.loadedHandedness = null;
+    }
+  }
+  onHandModelLoaded(e) {
+    const t = e?.parent, s = this.getLoadedHandedness(e), i = t?.userData?.expectedHandedness || t?.xrInputSource?.handedness || null;
+    if (s && i && s !== i) {
+      t.remove(e), this.disposeHandObject(e);
+      return;
+    }
+    t && (t.userData.loadedHandedness = s), this.styleHandModel(e, this.handColor, this.handOpacity);
+  }
+  disposeHandObject(e) {
+    e?.traverse?.((t) => {
+      t.geometry?.dispose?.();
+      const s = Array.isArray(t.material) ? t.material : [t.material];
+      for (const i of s) i?.dispose?.();
+      t.skeleton?.dispose?.();
     });
-    const r = this.handModelFactory.createHandModel(i, "mesh");
-    return i.add(r), e.add(i), r.addEventListener("connected", () => {
-      this.styleHandModel(r, 16777215, 0.5);
-    }), i;
   }
   styleHandModel(e, t, s) {
     e.traverse((i) => {
-      i.isMesh && (i.material = new f.MeshStandardMaterial({
+      i.isMesh && (i.material?.dispose?.(), i.material = new f.MeshStandardMaterial({
         color: t,
         roughness: 0.8,
         metalness: 0.2,
         transparent: !0,
-        opacity: s
+        opacity: s,
+        depthWrite: !0,
+        side: f.FrontSide
       }));
     });
   }
@@ -10910,26 +11004,37 @@ class ph {
         }
         this.dragStartPos.copy(this.tempVec1);
       }
-    } else if (o && l)
-      if (i.getWorldPosition(this.tempVec1), r.getWorldPosition(this.tempVec2), !this.scaling && !this.rotating) {
-        this.dragging = !1, this.scaling = !0, this.rotating = !0, this.scaleStartDistance = this.tempVec1.distanceTo(this.tempVec2);
-        const c = this.tempVec2.x - this.tempVec1.x, A = this.tempVec2.z - this.tempVec1.z;
-        this.rotateStartAngle = Math.atan2(A, c), this.onGestureStart && this.onGestureStart("two-hand");
-      } else {
-        const c = this.tempVec1.distanceTo(this.tempVec2), A = c / this.scaleStartDistance, h = Math.log(t.scale.x), d = Math.log(A), u = h + d, p = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(u)));
-        if (t.scale.setScalar(p), e > 0) {
-          const E = d / e, m = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, E));
-          this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + m * this.VELOCITY_SMOOTHING;
-        }
-        this.scaleStartDistance = c;
-        const g = this.tempVec2.x - this.tempVec1.x, b = this.tempVec2.z - this.tempVec1.z, C = Math.atan2(b, g);
-        let y = C - this.rotateStartAngle;
-        if (y > Math.PI && (y -= 2 * Math.PI), y < -Math.PI && (y += 2 * Math.PI), t.rotation.y -= y, e > 0) {
-          const E = -y / e, m = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, E));
-          this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + m * this.VELOCITY_SMOOTHING;
-        }
-        this.rotateStartAngle = C;
+    } else if (o && l) {
+      const c = this.hand1.userData.handedness === "right" && this.hand2.userData.handedness === "left", A = c ? r : i, h = c ? i : r;
+      A.getWorldPosition(this.tempVec1), h.getWorldPosition(this.tempVec2);
+      const d = this.tempVec1.distanceTo(this.tempVec2);
+      if (d < this.MIN_TWO_HAND_DISTANCE) {
+        this.dragging = !1, this.scaling = !1, this.rotating = !1, this.rotVelocity = 0, this.scaleVelocity = 0;
+        return;
       }
+      if (!this.scaling && !this.rotating) {
+        this.dragging = !1, this.scaling = !0, this.rotating = !0, this.scaleStartDistance = d;
+        const u = this.tempVec2.x - this.tempVec1.x, p = this.tempVec2.z - this.tempVec1.z;
+        this.rotateStartAngle = Math.atan2(-p, u), this.onGestureStart && this.onGestureStart("two-hand");
+      } else {
+        const u = d / this.scaleStartDistance, p = Math.log(t.scale.x), g = Math.log(u), b = p + g, C = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(b)));
+        if (t.scale.setScalar(C), e > 0) {
+          const S = g / e, I = Math.max(-this.MAX_SCALE_VELOCITY, Math.min(this.MAX_SCALE_VELOCITY, S));
+          this.scaleVelocity = this.scaleVelocity * (1 - this.VELOCITY_SMOOTHING) + I * this.VELOCITY_SMOOTHING;
+        }
+        this.scaleStartDistance = d;
+        const y = this.tempVec2.x - this.tempVec1.x, E = this.tempVec2.z - this.tempVec1.z, m = Math.atan2(-E, y);
+        let w = m - this.rotateStartAngle;
+        if (w > Math.PI && (w -= 2 * Math.PI), w < -Math.PI && (w += 2 * Math.PI), w = Math.max(
+          -this.MAX_ROT_DELTA_PER_FRAME,
+          Math.min(this.MAX_ROT_DELTA_PER_FRAME, w)
+        ), this.applyWorldYaw(t, w), e > 0) {
+          const S = w / e, I = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, S));
+          this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + I * this.VELOCITY_SMOOTHING;
+        }
+        this.rotateStartAngle = m;
+      }
+    }
   }
   onPinchEnd() {
     if (!this.hand1.userData.pinch && !this.hand2.userData.pinch) {
@@ -10939,12 +11044,15 @@ class ph {
   }
   applyInertia(e, t) {
     const s = Math.exp(-this.POSITION_DAMPING * e), i = Math.exp(-this.ROTATION_DAMPING * e), r = Math.exp(-this.SCALE_DAMPING * e);
-    this.posVelocity.multiplyScalar(s), this.rotVelocity *= i, this.scaleVelocity *= r, t.position.addScaledVector(this.posVelocity, e), t.rotation.y += this.rotVelocity * e;
+    this.posVelocity.multiplyScalar(s), this.rotVelocity *= i, this.scaleVelocity *= r, t.position.addScaledVector(this.posVelocity, e), this.applyWorldYaw(t, this.rotVelocity * e);
     const o = Math.log(t.scale.x) + this.scaleVelocity * e, l = Math.max(this.MIN_SCALE, Math.min(this.MAX_SCALE, Math.exp(o)));
     t.scale.setScalar(l), this.posVelocity.lengthSq() < this.VELOCITY_DEAD_ZONE && this.posVelocity.set(0, 0, 0), Math.abs(this.rotVelocity) < this.VELOCITY_DEAD_ZONE && (this.rotVelocity = 0), Math.abs(this.scaleVelocity) < this.VELOCITY_DEAD_ZONE && (this.scaleVelocity = 0), this.posVelocity.lengthSq() === 0 && this.rotVelocity === 0 && this.scaleVelocity === 0 && (this.inertiaActive = !1);
   }
+  applyWorldYaw(e, t) {
+    !e?.quaternion || !Number.isFinite(t) || t === 0 || (this.tempYawQuaternion.setFromAxisAngle(this.worldUp, t), e.quaternion.premultiply(this.tempYawQuaternion).normalize());
+  }
   stop() {
-    this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0;
+    this.dragging = !1, this.scaling = !1, this.rotating = !1, this.inertiaActive = !1, this.posVelocity.set(0, 0, 0), this.rotVelocity = 0, this.scaleVelocity = 0, this.hand1 && (this.hand1.userData.pinch = !1), this.hand2 && (this.hand2.userData.pinch = !1), this.pinchIntent.hand1Start = 0, this.pinchIntent.hand2Start = 0;
   }
   /**
    * Enable or disable hand gesture interactions.
@@ -10952,13 +11060,13 @@ class ph {
    * @param {boolean} enabled - true to allow interactions, false to block them
    */
   setInteractionEnabled(e) {
-    this.interactionEnabled = e, e || this.stop();
+    this.interactionEnabled !== e && this.stop(), this.interactionEnabled = e, e || this.stop();
   }
   dispose() {
     this.hand1 && this.hand1.clear(), this.hand2 && this.hand2.clear(), this.stop();
   }
 }
-class gh extends wt {
+class ph extends wt {
   constructor(e, t, s, i = {}, r = null, n = {}) {
     super(), this.renderer = e, this.camera = t, this.scene = s, this.config = {
       enableHandTracking: !0,
@@ -10967,7 +11075,7 @@ class gh extends wt {
       worldCubeSize: 1e3,
       worldCubeOpacity: 0.1,
       ...i
-    }, this.container = r, this.options = n, this.arCore = new ch(e, t, s, r), this.handTracking = this.config.enableHandTracking ? new ph(e, n) : null, this.modelGroup = new f.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
+    }, this.container = r, this.options = n, this.arCore = new lh(e, t, s, r), this.handTracking = this.config.enableHandTracking ? new uh(e, n) : null, this.modelGroup = new f.Group(), this.modelGroup.name = "AR Model Group", this.scene.add(this.modelGroup), this.currentModel = null, this.pendingModel = null, this.pendingModelConfig = null, this.currentModelScale = this.config.defaultScale, this.worldCube = null, this.config.enableWorldCube && this.createWorldCube(), this.isARPresenting = !1, this.previousGestureType = null, this.init();
   }
   setCamera(e) {
     this.camera = e, this.arCore.camera = e;
@@ -10984,6 +11092,10 @@ class gh extends wt {
       this.isARPresenting = !0, this.activateModel(), this.worldCube && (this.worldCube.visible = !0), this.emit("session-start");
     }, this.arCore.onSessionEnd = () => {
       this.isARPresenting = !1, this.worldCube && (this.worldCube.visible = !1), this.handTracking && this.handTracking.stop(), this.emit("session-end");
+    }, this.arCore.onSessionPause = () => {
+      this.handTracking?.stop(), this.previousGestureType = null, this.emit("session-pause");
+    }, this.arCore.onSessionResume = (e) => {
+      this.isARPresenting = !0, this.handTracking?.stop(), this.previousGestureType = null, this.modelGroup.visible = !0, this.worldCube && (this.worldCube.visible = !0), this.emit("session-resume", e);
     };
   }
   prepareModel(e, t = null) {
@@ -10994,6 +11106,10 @@ class gh extends wt {
       this.isARPresenting && this.activateModel();
   }
   activateModel() {
+    if (this.currentModel && this.currentModel === this.pendingModel && this.currentModel.parent === this.modelGroup) {
+      this.modelGroup.visible = !0;
+      return;
+    }
     if (this.currentModel)
       for (this.modelGroup.remove(this.currentModel); this.modelGroup.children.length > 0; )
         this.modelGroup.remove(this.modelGroup.children[0]);
@@ -11299,7 +11415,7 @@ class Dr {
     typeof window > "u" || (delete window.camera, delete window.scene, delete window.vertices, delete window.models, delete window.particles, delete window.vr, delete window.stereo, delete window.perfStats, delete window.debugHelp, delete window.belowViewer);
   }
 }
-class fh {
+class gh {
   constructor(e, t = {}) {
     this.renderer = e, this.tilesetLoader = t.tilesetLoader || null, this.logIntervalMs = typeof t.logIntervalMs == "number" ? t.logIntervalMs : 2e3, this.maxSamples = 240, this.frameTimes = new Float32Array(this.maxSamples), this.sampleCount = 0, this.sampleIndex = 0, this.lastLogTimeMs = 0, this.lastSummary = null, this.overlayElement = null, this.enabled = !0, t.overlay && typeof document < "u" && this.createOverlay(t.overlayContainer || document.body);
   }
@@ -11410,7 +11526,7 @@ class fh {
     this.enabled = !1, this.overlayElement?.parentNode && this.overlayElement.parentNode.removeChild(this.overlayElement), this.overlayElement = null, typeof window < "u" && window.__belowPerf === this.lastSummary && delete window.__belowPerf;
   }
 }
-class mh extends wt {
+class fh extends wt {
   /**
    * Creates a new BelowViewer instance
    * 
@@ -11634,7 +11750,7 @@ class mh extends wt {
    * @returns {PerfMonitor|null} The active monitor, if any
    */
   setPerfStats(e, t = {}) {
-    return e && !this.perfMonitor ? this.perfMonitor = new fh(this.renderer, {
+    return e && !this.perfMonitor ? this.perfMonitor = new gh(this.renderer, {
       tilesetLoader: this.tilesetLoader,
       overlay: t.overlay !== !1,
       overlayContainer: typeof document < "u" ? document.body : null
@@ -11642,7 +11758,7 @@ class mh extends wt {
   }
   initAR() {
     const e = this.config.ar?.settings || {};
-    this.arManager = new gh(
+    this.arManager = new ph(
       this.renderer,
       this.cameraManager.camera,
       this.sceneManager.scene,
@@ -11650,16 +11766,23 @@ class mh extends wt {
       this.container,
       this.config
     ), this.arManager.on("session-start", () => {
-      this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("ar-session-start");
+      this.syncCurrentModelToAR(), this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("ar-session-start");
     }), this.arManager.on("session-end", () => {
       this.cameraManager.controls && (this.cameraManager.controls.enabled = !0), this.emit("ar-session-end");
+    }), this.arManager.on("session-pause", () => {
+      this.emit("ar-session-pause");
+    }), this.arManager.on("session-resume", (t) => {
+      this.cameraManager.controls && (this.cameraManager.controls.enabled = !1), this.emit("ar-session-resume", t);
     }), this.arManager.on("gesture-start", (t) => {
       this.emit("ar-gesture-start", t);
     }), this.arManager.on("gesture-end", (t) => {
       this.emit("ar-gesture-end", t);
-    }), this.on("model-loaded", ({ model: t, options: s }) => {
-      this.arManager && this.arManager.setTargetModel(t, s);
-    });
+    }), this.syncCurrentModelToAR();
+  }
+  syncCurrentModelToAR() {
+    if (!this.arManager) return !1;
+    const e = this.loadedModels[this.loadedModels.length - 1] || null;
+    return this.arManager.setTargetModel(e?.model || null, e?.options || null), !!e?.model;
   }
   setupEventListeners() {
     window.addEventListener("resize", this.onWindowResize.bind(this)), this.cameraManager && this.cameraManager.on("change", () => {
@@ -11667,7 +11790,7 @@ class mh extends wt {
     });
   }
   onWindowResize() {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized || this.renderer?.xr?.isPresenting) return;
     const e = this.container.clientWidth, t = this.container.clientHeight;
     this.cameraManager.setSize(e, t), this.renderer.setSize(e, t), this.tilesetLoader && this.tilesetLoader.updateResolution(), this.emit("resize", { width: e, height: t });
   }
@@ -11780,7 +11903,7 @@ class mh extends wt {
         return null;
       t.position && o.position.fromArray(t.position), t.rotation && o.rotation.fromArray(t.rotation), t.scale && (typeof t.scale == "number" ? o.scale.setScalar(t.scale) : o.scale.fromArray(t.scale));
       const c = this.centerModelAndRecalculateBounds(o);
-      return this.sceneManager.add(o), this.loadedModels.push({ model: o, url: e, options: t, originalCenter: c, tileset: l }), t.autoClip !== !1 && this.fitCameraClippingToModel(o, t.cameraFarMultiplier ?? 2), this.loadedModels.length === 1 && t.autoFrame !== !1 && this.frameModel(o), this.cameraManager?.resetControlInteractionState?.(), this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), n && n("completed"), this.emit("model-loaded", { model: o, url: e }), o;
+      return this.sceneManager.add(o), this.loadedModels.push({ model: o, url: e, options: t, originalCenter: c, tileset: l }), this.syncCurrentModelToAR(), t.autoClip !== !1 && this.fitCameraClippingToModel(o, t.cameraFarMultiplier ?? 2), this.loadedModels.length === 1 && t.autoFrame !== !1 && this.frameModel(o), this.cameraManager?.resetControlInteractionState?.(), this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), n && n("completed"), this.emit("model-loaded", { model: o, url: e }), o;
     } catch (r) {
       if (this.currentAbortController && this.currentAbortController.signal === s && (this.currentAbortController = null), !s.aborted && r.message !== "Loading cancelled")
         throw console.error("Failed to load model:", r), this.emit("model-load-error", { url: e, error: r }), r;
@@ -12308,7 +12431,7 @@ class zn extends Vo {
 jt.line = {
   worldUnits: { value: 1 },
   linewidth: { value: 1 },
-  resolution: { value: new F(1, 1) },
+  resolution: { value: new P(1, 1) },
   dashOffset: { value: 0 },
   dashScale: { value: 1 },
   dashSize: { value: 1 },
@@ -12854,17 +12977,17 @@ class ts extends Xr {
     this.defines && (e === !0 !== this.alphaToCoverage && (this.needsUpdate = !0), e === !0 ? this.defines.USE_ALPHA_TO_COVERAGE = "" : delete this.defines.USE_ALPHA_TO_COVERAGE);
   }
 }
-const Os = new st(), Pr = new x(), Fr = new x(), q = new st(), z = new st(), ce = new st(), Hs = new x(), qs = new U(), j = new Ho(), kr = new x(), Ot = new tt(), Ht = new Et(), he = new st();
-let Ae, Pe;
+const Os = new st(), Fr = new x(), Pr = new x(), q = new st(), z = new st(), ce = new st(), Hs = new x(), qs = new U(), j = new Ho(), kr = new x(), Ot = new tt(), Ht = new Et(), he = new st();
+let Ae, Fe;
 function _r(a, e, t) {
-  return he.set(0, 0, -e, 1).applyMatrix4(a.projectionMatrix), he.multiplyScalar(1 / he.w), he.x = Pe / t.width, he.y = Pe / t.height, he.applyMatrix4(a.projectionMatrixInverse), he.multiplyScalar(1 / he.w), Math.abs(Math.max(he.x, he.y));
+  return he.set(0, 0, -e, 1).applyMatrix4(a.projectionMatrix), he.multiplyScalar(1 / he.w), he.x = Fe / t.width, he.y = Fe / t.height, he.applyMatrix4(a.projectionMatrixInverse), he.multiplyScalar(1 / he.w), Math.abs(Math.max(he.x, he.y));
 }
-function bh(a, e) {
+function mh(a, e) {
   const t = a.matrixWorld, s = a.geometry, i = s.attributes.instanceStart, r = s.attributes.instanceEnd, n = Math.min(s.instanceCount, i.count);
   for (let o = 0, l = n; o < l; o++) {
     j.start.fromBufferAttribute(i, o), j.end.fromBufferAttribute(r, o), j.applyMatrix4(t);
     const c = new x(), A = new x();
-    Ae.distanceSqToSegment(j.start, j.end, A, c), A.distanceTo(c) < Pe * 0.5 && e.push({
+    Ae.distanceSqToSegment(j.start, j.end, A, c), A.distanceTo(c) < Fe * 0.5 && e.push({
       point: A,
       pointOnLine: c,
       distance: Ae.origin.distanceTo(A),
@@ -12876,7 +12999,7 @@ function bh(a, e) {
     });
   }
 }
-function Ch(a, e, t) {
+function bh(a, e, t) {
   const s = e.projectionMatrix, r = a.material.resolution, n = a.matrixWorld, o = a.geometry, l = o.attributes.instanceStart, c = o.attributes.instanceEnd, A = Math.min(o.instanceCount, l.count), h = -e.near;
   Ae.at(1, ce), ce.w = 1, ce.applyMatrix4(e.matrixWorldInverse), ce.applyMatrix4(s), ce.multiplyScalar(1 / ce.w), ce.x *= r.x / 2, ce.y *= r.y / 2, ce.z = 0, Hs.copy(ce), qs.multiplyMatrices(e.matrixWorldInverse, n);
   for (let d = 0, u = A; d < u; d++) {
@@ -12892,7 +13015,7 @@ function Ch(a, e, t) {
     q.applyMatrix4(s), z.applyMatrix4(s), q.multiplyScalar(1 / q.w), z.multiplyScalar(1 / z.w), q.x *= r.x / 2, q.y *= r.y / 2, z.x *= r.x / 2, z.y *= r.y / 2, j.start.copy(q), j.start.z = 0, j.end.copy(z), j.end.z = 0;
     const g = j.closestPointToPointParameter(Hs, !0);
     j.at(g, kr);
-    const b = et.lerp(q.z, z.z, g), C = b >= -1 && b <= 1, y = Hs.distanceTo(kr) < Pe * 0.5;
+    const b = et.lerp(q.z, z.z, g), C = b >= -1 && b <= 1, y = Hs.distanceTo(kr) < Fe * 0.5;
     if (C && y) {
       j.start.fromBufferAttribute(l, d), j.end.fromBufferAttribute(c, d), j.start.applyMatrix4(n), j.end.applyMatrix4(n);
       const E = new x(), m = new x();
@@ -12909,7 +13032,7 @@ function Ch(a, e, t) {
     }
   }
 }
-class yh extends os {
+class Ch extends os {
   /**
    * Constructs a new wide line.
    *
@@ -12929,7 +13052,7 @@ class yh extends os {
   computeLineDistances() {
     const e = this.geometry, t = e.attributes.instanceStart, s = e.attributes.instanceEnd, i = new Float32Array(2 * t.count);
     for (let n = 0, o = 0, l = t.count; n < l; n++, o += 2)
-      Pr.fromBufferAttribute(t, n), Fr.fromBufferAttribute(s, n), i[o] = o === 0 ? 0 : i[o - 1], i[o + 1] = i[o] + Pr.distanceTo(Fr);
+      Fr.fromBufferAttribute(t, n), Pr.fromBufferAttribute(s, n), i[o] = o === 0 ? 0 : i[o - 1], i[o + 1] = i[o] + Fr.distanceTo(Pr);
     const r = new Zs(i, 2, 1);
     return e.setAttribute("instanceDistanceStart", new De(r, 1, 0)), e.setAttribute("instanceDistanceEnd", new De(r, 1, 1)), this;
   }
@@ -12945,10 +13068,10 @@ class yh extends os {
     const r = e.params.Line2 !== void 0 && e.params.Line2.threshold || 0;
     Ae = e.ray;
     const n = this.matrixWorld, o = this.geometry, l = this.material;
-    Pe = l.linewidth + r, o.boundingSphere === null && o.computeBoundingSphere(), Ht.copy(o.boundingSphere).applyMatrix4(n);
+    Fe = l.linewidth + r, o.boundingSphere === null && o.computeBoundingSphere(), Ht.copy(o.boundingSphere).applyMatrix4(n);
     let c;
     if (s)
-      c = Pe * 0.5;
+      c = Fe * 0.5;
     else {
       const h = Math.max(i.near, Ht.distanceToPoint(Ae.origin));
       c = _r(i, h, l.resolution);
@@ -12958,12 +13081,12 @@ class yh extends os {
     o.boundingBox === null && o.computeBoundingBox(), Ot.copy(o.boundingBox).applyMatrix4(n);
     let A;
     if (s)
-      A = Pe * 0.5;
+      A = Fe * 0.5;
     else {
       const h = Math.max(i.near, Ot.distanceToPoint(Ae.origin));
       A = _r(i, h, l.resolution);
     }
-    Ot.expandByScalar(A), Ae.intersectsBox(Ot) !== !1 && (s ? bh(this, t) : Ch(this, i, t));
+    Ot.expandByScalar(A), Ae.intersectsBox(Ot) !== !1 && (s ? mh(this, t) : bh(this, i, t));
   }
   onBeforeRender(e) {
     const t = this.material.uniforms;
@@ -13024,7 +13147,7 @@ class oi extends zn {
     return this.setPositions(t.attributes.position.array), this;
   }
 }
-class Ur extends yh {
+class Ur extends Ch {
   /**
    * Constructs a new wide line.
    *
@@ -13035,7 +13158,7 @@ class Ur extends yh {
     super(e, t), this.isLine2 = !0, this.type = "Line2";
   }
 }
-class Eh {
+class yh {
   /**
    * Set the objects to use for raycasting during measurement
    * 
@@ -14298,7 +14421,7 @@ class Ei {
     return new Ei(e, t);
   }
 }
-class wh {
+class Eh {
   constructor(e) {
     this.scene = e, this.particleBounds = {
       min: new f.Vector3(-50, -25, -50),
@@ -14500,7 +14623,7 @@ class wh {
     this.particles && (this.scene.remove(this.particles), this.particles.geometry && this.particles.geometry.dispose(), this.particles.material && this.particles.material.dispose(), this.particles = null);
   }
 }
-class Ih {
+class wh {
   constructor(e) {
     this.scene = e, this.controllerSpotlight = null, this.spotlightTarget = null, this.isQuest2 = !1, this.isQuest3 = !1, this.detectQuestDevice(), this.createSpotlight();
   }
@@ -14619,7 +14742,7 @@ class Ih {
     this.controllerSpotlight && (this.scene.remove(this.controllerSpotlight), this.controllerSpotlight = null), this.spotlightTarget && (this.scene.remove(this.spotlightTarget), this.spotlightTarget = null);
   }
 }
-class Sh {
+class Ih {
   constructor(e) {
     this.scene = e, this.overheadLight = null, this.clearModeDirectionalLight = null, this.clearModeHemisphereLight = null, this.isTransitioning = !1, this.currentMode = "survey", this.pendingAnimations = /* @__PURE__ */ new Set(), this.isDisposed = !1, this.shadowProfile = "full", this.initializeLighting();
   }
@@ -14723,9 +14846,9 @@ class Sh {
     });
   }
 }
-class Bh {
+class Sh {
   constructor(e, t, s) {
-    this.scene = e, this.renderer = t, this.camera = s, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new Sh(e), this.particles = new wh(e), this.torch = new Ih(e), this.isQuest2 = !1, this.isQuest3 = !1, this._fallbackHandedness = /* @__PURE__ */ new Map(), this.detectQuestDevice(), this.applyModeSettings();
+    this.scene = e, this.renderer = t, this.camera = s, this.isDiveModeEnabled = !1, this.currentVRMode = null, this.lighting = new Ih(e), this.particles = new Eh(e), this.torch = new wh(e), this.isQuest2 = !1, this.isQuest3 = !1, this._fallbackHandedness = /* @__PURE__ */ new Map(), this.detectQuestDevice(), this.applyModeSettings();
   }
   setCamera(e) {
     this.camera = e;
@@ -14920,7 +15043,7 @@ class Bh {
     this.lighting.dispose(), this.particles.dispose(), this.torch.dispose();
   }
 }
-class Mh extends wt {
+class Bh extends wt {
   /**
    * @param {Object} options
    * @param {HTMLElement} options.domElement - Element used for pointer lock
@@ -15132,6 +15255,18 @@ class ai extends wt {
   init() {
     const e = {
       ...this.config.viewerConfig,
+      // Quest's WebXR projection-layer MSAA target can become invalid across
+      // visibility transitions. AR passthrough is composited by the runtime,
+      // so use an explicitly XR-compatible, non-multisampled context unless a
+      // caller intentionally overrides one of these values.
+      ...this.config.enableAR && {
+        renderer: {
+          antialias: !1,
+          xrCompatible: !0,
+          preserveDrawingBuffer: !1,
+          ...this.config.viewerConfig?.renderer || {}
+        }
+      },
       // Enable VR only if AR is not enabled (preserve other vr settings such
       // as shadowProfile/foveation from viewerConfig)
       ...this.config.enableVR && !this.config.enableAR && { vr: { ...this.config.viewerConfig?.vr || {}, enabled: !0 } },
@@ -15146,7 +15281,7 @@ class ai extends wt {
       ...this.config.ktx2TranscoderPath && { ktx2TranscoderPath: this.config.ktx2TranscoderPath },
       ...this.config.webxrInputProfilesPath && { webxrInputProfilesPath: this.config.webxrInputProfilesPath }
     };
-    if (this.belowViewer = new mh(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
+    if (this.belowViewer = new fh(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
       this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls();
     }), this.belowViewer.isInitialized && (this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
@@ -15155,7 +15290,7 @@ class ai extends wt {
   }
   _maybeAttachMeasurementSystem() {
     if (!this.config.enableMeasurement || this.measurementSystem) return;
-    this.measurementSystem = new Eh({
+    this.measurementSystem = new yh({
       scene: this.belowViewer.sceneManager.scene,
       camera: this.belowViewer.cameraManager.camera,
       renderer: this.belowViewer.renderer,
@@ -15262,7 +15397,7 @@ class ai extends wt {
   }
   _maybeAttachDiveSystem() {
     if (!this.config.enableDiveSystem || this.diveSystem) return;
-    this.diveSystem = new Bh(
+    this.diveSystem = new Sh(
       this.belowViewer.sceneManager.scene,
       this.belowViewer.renderer,
       this.belowViewer.cameraManager.camera
@@ -15314,7 +15449,7 @@ class ai extends wt {
   }
   _maybeAttachFlyControls() {
     if (!this.config.enableFlyControls || this.flyControls || !this.belowViewer?.cameraManager || !this.belowViewer?.renderer) return;
-    this.flyControls = new Mh({
+    this.flyControls = new Bh({
       domElement: this.belowViewer.renderer.domElement,
       camera: this.belowViewer.cameraManager.camera,
       controls: this.belowViewer.cameraManager.controls,
@@ -15411,10 +15546,9 @@ class ai extends wt {
   }
   forceRefreshFrame() {
     const e = this.belowViewer?.renderer, t = this.belowViewer?.sceneManager?.scene, s = this.belowViewer?.cameraManager?.camera;
-    if (!(!e || !t || !s))
+    if (!(!e || !t || !s) && !e.xr?.isPresenting)
       try {
-        const i = e.xr?.isPresenting;
-        this.belowViewer?.stereoEnabled && !i && this.belowViewer?.stereoMode === "sbs" && typeof this.belowViewer.renderSbsStereo == "function" ? this.belowViewer.renderSbsStereo() : e.render(t, s);
+        this.belowViewer?.stereoEnabled && this.belowViewer?.stereoMode === "sbs" && typeof this.belowViewer.renderSbsStereo == "function" ? this.belowViewer.renderSbsStereo() : e.render(t, s);
       } catch {
       }
   }
@@ -15518,7 +15652,9 @@ class ai extends wt {
       this.emit("vr-session-end", e), this.onVRSessionEnd();
     }), this.belowViewer.on("vr-mode-toggle", (e) => {
       this.emit("vr-mode-toggle", e), this.onVRModeToggle();
-    }), this.belowViewer.on("vr-movement-start", (e) => this.emit("vr-movement-start", e)), this.belowViewer.on("vr-movement-stop", (e) => this.emit("vr-movement-stop", e)), this.belowViewer.on("vr-movement-update", (e) => this.emit("vr-movement-update", e));
+    }), this.belowViewer.on("vr-movement-start", (e) => this.emit("vr-movement-start", e)), this.belowViewer.on("vr-movement-stop", (e) => this.emit("vr-movement-stop", e)), this.belowViewer.on("vr-movement-update", (e) => this.emit("vr-movement-update", e)), this.belowViewer.on("ar-session-start", (e) => this.emit("ar-session-start", e)), this.belowViewer.on("ar-session-end", (e) => this.emit("ar-session-end", e)), this.belowViewer.on("ar-session-pause", (e) => this.emit("ar-session-pause", e)), this.belowViewer.on("ar-session-resume", (e) => {
+      this.emit("ar-session-resume", e);
+    }), this.belowViewer.on("ar-gesture-start", (e) => this.emit("ar-gesture-start", e)), this.belowViewer.on("ar-gesture-end", (e) => this.emit("ar-gesture-end", e));
   }
   onVRSessionStart() {
     if (this.flyControls && this.flyControls.exitFlyMode(), this.ui.info && (this.ui.info.style.display = "none"), this.isLoading && this.updateVRLoadingIndicator(), !this.vrUpdateLoop) {
@@ -16326,17 +16462,17 @@ class ai extends wt {
   }
 }
 export {
-  mh as BelowViewer,
+  fh as BelowViewer,
   na as Camera,
   ls as ConfigValidator,
   wt as EventSystem,
-  Mh as FlyControls,
+  Bh as FlyControls,
   Ur as Line2,
   oi as LineGeometry,
   ts as LineMaterial,
   ee as ModelLoader,
   ai as ModelViewer,
-  fh as PerfMonitor,
+  gh as PerfMonitor,
   qo as Scene,
   ah as VRManager,
   Nc as applyTilesetVRProfileDefaults,

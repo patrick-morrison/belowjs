@@ -5,8 +5,6 @@
  * device detection, and WebXR AR initialization with passthrough.
  */
 
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-
 export class ARCore {
   constructor(renderer, camera, scene, container = null) {
     this.renderer = renderer;
@@ -31,6 +29,36 @@ export class ARCore {
     // Callbacks
     this.onSessionStart = null;
     this.onSessionEnd = null;
+    this.onSessionPause = null;
+    this.onSessionResume = null;
+    this.activeSession = null;
+    this.sessionVisibilityHandler = null;
+    this.sessionInit = null;
+    this.sessionRequestPromise = null;
+    this.sessionRequestGeneration = 0;
+    this.sessionRequestTimeoutId = null;
+    this.sessionVisibilityState = 'none';
+    this.sessionHiddenAt = 0;
+    this.sessionResumedAt = 0;
+    this.lastHiddenDurationMs = 0;
+    this.failedResumeRecoveryTimer = null;
+    this.longHiddenRecoveryTimer = null;
+    this.sessionFrameHeartbeatId = null;
+    this.sessionFrameWatchInterval = null;
+    this.sessionFrameValidationTimer = null;
+    this.lastSessionFrameAt = 0;
+    this.sessionOfferPromise = null;
+    this.recoverySuggested = false;
+    this.endingFailedResume = false;
+    this.failedResumeWindowMs = 2500;
+    this.failedResumeMinHiddenMs = 1000;
+    this.failedResumeValidationMs = 500;
+    this.longHiddenRecoveryMs = 12000;
+    this.frameStallRecoveryMs = 12000;
+    this.frameStallValidationMs = 1000;
+    this.frameStallPollMs = 1000;
+    this.sessionRequestTimeoutMs = 12000;
+    this.isDisposed = false;
   }
 
   init() {
@@ -100,14 +128,27 @@ export class ARCore {
 
   createARButton() {
     this.waitForARCSS().then(() => {
-      const sessionInit = {
+      this.sessionInit = {
         requiredFeatures: ['local'],
         optionalFeatures: this.getOptionalFeatures()
       };
-      this.arButton = ARButton.createButton(this.renderer, sessionInit);
-      this.arButton.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      this.arButton = document.createElement('button');
+      this.arButton.id = 'ARButton';
+      this.arButton.type = 'button';
       this.arButton.className = 'ar-button--glass ar-button-available';
-      this.arButton.disabled = false;
+      this.arButton.dataset.belowjsArButton = 'true';
+      this.arButton.addEventListener('click', () => {
+        if (this.activeSession) {
+          this.recoverySuggested = false;
+          this.endingFailedResume = false;
+          this.activeSession.end().catch((error) => {
+            console.warn('Unable to end AR session', error);
+          });
+        } else {
+          this.recoverySuggested = false;
+          this.requestARSession();
+        }
+      });
       this.arButton.style.cssText = `
         position: fixed !important;
         bottom: 140px !important;
@@ -121,7 +162,9 @@ export class ARCore {
         cursor: pointer !important;
       `;
       this.container.appendChild(this.arButton);
+      this.updateARButtonState();
       this.styleARButton();
+      this.offerARSession();
     });
   }
 
@@ -138,14 +181,11 @@ export class ARCore {
       arBtn.style.display = 'flex';
       arBtn.style.visibility = 'visible';
       arBtn.style.opacity = '1';
-      arBtn.innerHTML = '<span class="ar-icon">👁️</span>ENTER AR';
+      this.updateARButtonState();
 
       if (!arBtn.classList.contains('ar-button--glass')) {
         arBtn.classList.add('ar-button--glass');
       }
-
-      arBtn.disabled = false;
-      arBtn.classList.remove('ar-generic-disabled');
 
       return true;
     };
@@ -160,6 +200,23 @@ export class ARCore {
   setupSessionListeners() {
     this.renderer.xr.addEventListener('sessionstart', () => {
       this.isARPresenting = true;
+      this.activeSession = this.renderer.xr.getSession?.() || null;
+      this.sessionVisibilityState = this.activeSession?.visibilityState || 'visible';
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = Date.now();
+      this.lastHiddenDurationMs = 0;
+      this.sessionOfferPromise = null;
+      this.recoverySuggested = false;
+      this.endingFailedResume = false;
+      this.updateARButtonState();
+      if (this.activeSession) {
+        const session = this.activeSession;
+        this.sessionVisibilityHandler = () => {
+          this.handleSessionVisibilityChange(session);
+        };
+        session.addEventListener('visibilitychange', this.sessionVisibilityHandler);
+        this.startSessionFrameHeartbeat(session);
+      }
       const deviceType = this.detectQuestDevice();
       this.applyQuestOptimizations(deviceType);
 
@@ -170,11 +227,320 @@ export class ARCore {
 
     this.renderer.xr.addEventListener('sessionend', () => {
       this.isARPresenting = false;
+      this.clearFailedResumeRecoveryTimer();
+      this.clearLongHiddenRecoveryTimer();
+      this.stopSessionFrameHeartbeat();
+      if (this.activeSession && this.sessionVisibilityHandler) {
+        this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
+      }
+      this.activeSession = null;
+      this.sessionVisibilityHandler = null;
+      this.sessionVisibilityState = 'none';
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = 0;
+      this.lastHiddenDurationMs = 0;
+      this.recoverySuggested = this.endingFailedResume;
+      this.endingFailedResume = false;
+      this.updateARButtonState();
+      this.offerARSession();
 
       if (this.onSessionEnd) {
         this.onSessionEnd();
       }
     });
+  }
+
+  updateARButtonState() {
+    if (!this.arButton) return;
+
+    const busy = Boolean(this.sessionRequestPromise);
+    this.arButton.disabled = busy;
+    this.arButton.classList.toggle('ar-generic-disabled', busy);
+    if (this.activeSession) {
+      this.arButton.textContent = 'EXIT AR';
+    } else if (busy) {
+      this.arButton.textContent = 'STARTING AR';
+    } else if (this.recoverySuggested) {
+      this.arButton.textContent = 'RECOVER AR';
+    } else {
+      this.arButton.textContent = 'ENTER AR';
+    }
+  }
+
+  getSessionInit() {
+    if (!this.sessionInit) {
+      this.sessionInit = {
+        requiredFeatures: ['local'],
+        optionalFeatures: this.getOptionalFeatures()
+      };
+    }
+    return this.sessionInit;
+  }
+
+  async activateSession(session) {
+    if (!session || this.isDisposed) {
+      await session?.end?.();
+      return null;
+    }
+
+    this.renderer.xr.setReferenceSpaceType?.('local');
+    await this.renderer.xr.setSession(session);
+    return session;
+  }
+
+  requestARSession() {
+    if (this.activeSession || this.sessionRequestPromise || this.isDisposed) {
+      return this.sessionRequestPromise || this.activeSession;
+    }
+
+    const generation = ++this.sessionRequestGeneration;
+    const nativeRequest = navigator.xr.requestSession('immersive-ar', this.getSessionInit())
+      .then(async (session) => {
+        if (generation !== this.sessionRequestGeneration || this.isDisposed) {
+          await session?.end?.();
+          return null;
+        }
+        return this.activateSession(session);
+      })
+      .catch((error) => {
+        console.warn('Unable to start AR session', error);
+        return null;
+      });
+    const timeout = new Promise((resolve) => {
+      this.sessionRequestTimeoutId = setTimeout(() => {
+        if (generation === this.sessionRequestGeneration && !this.activeSession) {
+          this.sessionRequestGeneration += 1;
+          this.recoverySuggested = true;
+          console.warn('AR session request timed out; the launch control is available to retry');
+        }
+        resolve(null);
+      }, this.sessionRequestTimeoutMs);
+    });
+    const request = Promise.race([nativeRequest, timeout])
+      .finally(() => {
+        if (this.sessionRequestTimeoutId) {
+          clearTimeout(this.sessionRequestTimeoutId);
+          this.sessionRequestTimeoutId = null;
+        }
+        if (this.sessionRequestPromise === request) {
+          this.sessionRequestPromise = null;
+          this.updateARButtonState();
+        }
+      });
+
+    this.sessionRequestPromise = request;
+    this.updateARButtonState();
+    return request;
+  }
+
+  /**
+   * Mirror Three.js VRButton's native re-entry path. Quest Browser owns this
+   * pending offer and can expose it in browser chrome even when the page cannot
+   * manufacture the transient user activation required by requestSession().
+   */
+  offerARSession() {
+    if (
+      this.activeSession
+      || this.sessionRequestPromise
+      || this.sessionOfferPromise
+      || this.isDisposed
+      || typeof navigator?.xr?.offerSession !== 'function'
+    ) {
+      return this.sessionOfferPromise;
+    }
+
+    const offer = navigator.xr.offerSession('immersive-ar', this.getSessionInit())
+      .then((session) => {
+        if (!session) return null;
+        if (this.activeSession || this.isDisposed) {
+          session.end?.();
+          return null;
+        }
+        return this.activateSession(session);
+      })
+      .catch((error) => {
+        // A normal button-driven request cancels the outstanding native offer.
+        if (error?.name !== 'AbortError' && !/cancel/i.test(error?.message || '')) {
+          console.warn('Unable to offer AR session', error);
+        }
+        return null;
+      })
+      .finally(() => {
+        if (this.sessionOfferPromise === offer) {
+          this.sessionOfferPromise = null;
+        }
+      });
+
+    this.sessionOfferPromise = offer;
+    return offer;
+  }
+
+  handleSessionVisibilityChange(session) {
+    if (!session || session !== this.activeSession) return;
+
+    const now = Date.now();
+    const nextState = session.visibilityState || 'hidden';
+    const previousState = this.sessionVisibilityState;
+
+    if (nextState === 'visible') {
+      this.clearFailedResumeRecoveryTimer();
+      this.clearLongHiddenRecoveryTimer();
+      this.lastHiddenDurationMs = this.sessionHiddenAt
+        ? now - this.sessionHiddenAt
+        : 0;
+      this.sessionHiddenAt = 0;
+      this.sessionResumedAt = now;
+      this.sessionVisibilityState = 'visible';
+      this.isARPresenting = true;
+      this.onSessionResume?.(session);
+      return;
+    }
+
+    this.sessionVisibilityState = nextState;
+    if (!this.sessionHiddenAt) {
+      this.sessionHiddenAt = now;
+    }
+
+    // Quest can occasionally report a successful don for a fraction of a
+    // second, then collapse the retained session back to hidden with no input
+    // sources. That is distinct from an ordinary doff: it follows a substantial
+    // hidden period and a very short visible resume. End only that failed
+    // retained session so the browser returns to a usable RECOVER AR button.
+    const failedResumeCandidate = previousState === 'visible'
+      && this.lastHiddenDurationMs >= this.failedResumeMinHiddenMs
+      && this.sessionResumedAt > 0
+      && now - this.sessionResumedAt <= this.failedResumeWindowMs;
+    if (failedResumeCandidate) {
+      this.scheduleFailedResumeRecovery(session);
+    }
+    this.scheduleLongHiddenRecovery(session);
+
+    this.onSessionPause?.(session);
+  }
+
+  clearFailedResumeRecoveryTimer() {
+    if (this.failedResumeRecoveryTimer) {
+      clearTimeout(this.failedResumeRecoveryTimer);
+      this.failedResumeRecoveryTimer = null;
+    }
+  }
+
+  clearLongHiddenRecoveryTimer() {
+    if (this.longHiddenRecoveryTimer) {
+      clearTimeout(this.longHiddenRecoveryTimer);
+      this.longHiddenRecoveryTimer = null;
+    }
+  }
+
+  scheduleLongHiddenRecovery(session) {
+    if (this.longHiddenRecoveryTimer) return;
+    this.longHiddenRecoveryTimer = setTimeout(() => {
+      this.longHiddenRecoveryTimer = null;
+      this.endStalledSession(
+        session,
+        'AR session remained hidden without frames or inputs; ending it and restoring the native AR offer'
+      );
+    }, this.longHiddenRecoveryMs);
+  }
+
+  startSessionFrameHeartbeat(session) {
+    this.stopSessionFrameHeartbeat();
+    if (!session || typeof session.requestAnimationFrame !== 'function') return;
+
+    this.lastSessionFrameAt = Date.now();
+    const observeFrame = () => {
+      if (this.isDisposed || session !== this.activeSession) return;
+      this.lastSessionFrameAt = Date.now();
+      this.sessionFrameHeartbeatId = session.requestAnimationFrame(observeFrame);
+    };
+    this.sessionFrameHeartbeatId = session.requestAnimationFrame(observeFrame);
+
+    this.sessionFrameWatchInterval = setInterval(() => {
+      if (
+        this.isDisposed
+        || session !== this.activeSession
+        || Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs
+        || this.sessionFrameValidationTimer
+      ) {
+        return;
+      }
+      // Page timers may resume slightly before the XR compositor. Give the
+      // runtime one final frame-sized grace period before retiring the session.
+      this.sessionFrameValidationTimer = setTimeout(() => {
+        this.sessionFrameValidationTimer = null;
+        if (Date.now() - this.lastSessionFrameAt < this.frameStallRecoveryMs) return;
+        this.endStalledSession(
+          session,
+          'AR session stopped producing XR frames; ending it and restoring the native AR offer',
+          { allowVisible: true, allowInputs: true }
+        );
+      }, this.frameStallValidationMs);
+    }, this.frameStallPollMs);
+  }
+
+  stopSessionFrameHeartbeat() {
+    const session = this.activeSession;
+    if (
+      this.sessionFrameHeartbeatId !== null
+      && session
+      && typeof session.cancelAnimationFrame === 'function'
+    ) {
+      try {
+        session.cancelAnimationFrame(this.sessionFrameHeartbeatId);
+      } catch {
+        // The runtime may already have invalidated the frame handle.
+      }
+    }
+    this.sessionFrameHeartbeatId = null;
+    this.lastSessionFrameAt = 0;
+    if (this.sessionFrameWatchInterval) {
+      clearInterval(this.sessionFrameWatchInterval);
+      this.sessionFrameWatchInterval = null;
+    }
+    if (this.sessionFrameValidationTimer) {
+      clearTimeout(this.sessionFrameValidationTimer);
+      this.sessionFrameValidationTimer = null;
+    }
+  }
+
+  async endStalledSession(
+    session,
+    warning,
+    { allowVisible = false, allowInputs = false } = {}
+  ) {
+    if (
+      this.isDisposed
+      || session !== this.activeSession
+      || (!allowVisible && session.visibilityState === 'visible')
+    ) {
+      return false;
+    }
+    const inputSources = Array.from(session.inputSources || []);
+    if (!allowInputs && inputSources.length > 0) return false;
+
+    this.endingFailedResume = true;
+    this.recoverySuggested = true;
+    this.updateARButtonState();
+    console.warn(warning);
+    try {
+      await session.end();
+      return true;
+    } catch (error) {
+      this.endingFailedResume = false;
+      console.warn('Unable to end stalled AR session', error);
+      return false;
+    }
+  }
+
+  scheduleFailedResumeRecovery(session) {
+    this.clearFailedResumeRecoveryTimer();
+    this.failedResumeRecoveryTimer = setTimeout(async () => {
+      this.failedResumeRecoveryTimer = null;
+      await this.endStalledSession(
+        session,
+        'AR session briefly resumed then returned hidden without inputs; ending the stalled session for explicit recovery'
+      );
+    }, this.failedResumeValidationMs);
   }
 
   detectQuestDevice() {
@@ -234,7 +600,9 @@ export class ARCore {
   }
 
   removeExistingARButtons() {
-    const existingButtons = document.querySelectorAll('button.legacy-ar-button, a[href="#AR"]');
+    const existingButtons = document.querySelectorAll(
+      '#ARButton, button.legacy-ar-button, a[href="#AR"]'
+    );
     existingButtons.forEach(button => {
       if (button.parentNode) {
         button.parentNode.removeChild(button);
@@ -273,6 +641,21 @@ export class ARCore {
   }
 
   dispose() {
+    this.isDisposed = true;
+    this.sessionRequestGeneration += 1;
+    if (this.sessionRequestTimeoutId) {
+      clearTimeout(this.sessionRequestTimeoutId);
+      this.sessionRequestTimeoutId = null;
+    }
+    this.clearFailedResumeRecoveryTimer();
+    this.clearLongHiddenRecoveryTimer();
+    this.stopSessionFrameHeartbeat();
+    if (this.activeSession && this.sessionVisibilityHandler) {
+      this.activeSession.removeEventListener('visibilitychange', this.sessionVisibilityHandler);
+    }
+    this.activeSession = null;
+    this.sessionVisibilityHandler = null;
+    this.sessionRequestPromise = null;
     if (this.buttonObserver) {
       this.buttonObserver.disconnect();
       this.buttonObserver = null;

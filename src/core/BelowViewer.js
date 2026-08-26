@@ -541,6 +541,7 @@ export class BelowViewer extends EventSystem {
     );
 
     this.arManager.on('session-start', () => {
+      this.syncCurrentModelToAR();
       if (this.cameraManager.controls) {
         this.cameraManager.controls.enabled = false;
       }
@@ -556,6 +557,18 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-session-end');
     });
 
+    this.arManager.on('session-pause', () => {
+      this.emit('ar-session-pause');
+    });
+
+    this.arManager.on('session-resume', (session) => {
+      if (this.cameraManager.controls) {
+        this.cameraManager.controls.enabled = false;
+      }
+
+      this.emit('ar-session-resume', session);
+    });
+
     this.arManager.on('gesture-start', (gestureType) => {
       this.emit('ar-gesture-start', gestureType);
     });
@@ -564,11 +577,14 @@ export class BelowViewer extends EventSystem {
       this.emit('ar-gesture-end', gestureType);
     });
 
-    this.on('model-loaded', ({ model, options }) => {
-      if (this.arManager) {
-        this.arManager.setTargetModel(model, options);
-      }
-    });
+    this.syncCurrentModelToAR();
+  }
+
+  syncCurrentModelToAR() {
+    if (!this.arManager) return false;
+    const current = this.loadedModels[this.loadedModels.length - 1] || null;
+    this.arManager.setTargetModel(current?.model || null, current?.options || null);
+    return Boolean(current?.model);
   }
 
   setupEventListeners() {
@@ -583,6 +599,11 @@ export class BelowViewer extends EventSystem {
 
   onWindowResize() {
     if (!this.isInitialized) return;
+
+    // Three owns the XR framebuffer dimensions while an immersive session is
+    // active. Resizing it from the page's window event can invalidate the
+    // projection target just after Quest resumes the XR activity.
+    if (this.renderer?.xr?.isPresenting) return;
     
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
@@ -750,6 +771,7 @@ export class BelowViewer extends EventSystem {
       
       this.sceneManager.add(model);
       this.loadedModels.push({ model, url, options, originalCenter, tileset });
+      this.syncCurrentModelToAR();
       if (options.autoClip !== false) {
         this.fitCameraClippingToModel(model, options.cameraFarMultiplier ?? 2);
       }

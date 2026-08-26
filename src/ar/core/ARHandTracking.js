@@ -10,7 +10,12 @@ export class ARHandTracking {
   constructor(renderer, options = {}) {
     this.renderer = renderer;
     this.assetPaths = resolveAssetPaths(options);
-    this.handModelFactory = new XRHandModelFactory();
+    this.handColor = options.handColor ?? 0xffffff;
+    this.handOpacity = options.handOpacity ?? 0.5;
+    this.handModelFactory = new XRHandModelFactory(
+      null,
+      (object) => this.onHandModelLoaded(object)
+    );
     this.handModelFactory.setPath(joinAssetPath(this.assetPaths.webxrInputProfilesPath, 'generic-hand/'));
 
     // Hands
@@ -55,11 +60,15 @@ export class ARHandTracking {
     this.DISTANCE_GAIN_THRESHOLD = 5.0;
     this.MAX_DISTANCE_GAIN = 3.0;
     this.MAX_DELTA_PER_FRAME = 0.5;
+    this.MIN_TWO_HAND_DISTANCE = 0.04;
+    this.MAX_ROT_DELTA_PER_FRAME = 0.35;
 
     this.VELOCITY_SMOOTHING = 0.3;
 
     this.tempVec1 = new THREE.Vector3();
     this.tempVec2 = new THREE.Vector3();
+    this.worldUp = new THREE.Vector3(0, 1, 0);
+    this.tempYawQuaternion = new THREE.Quaternion();
 
     this.onGestureStart = null;
     this.onGestureEnd = null;
@@ -72,9 +81,16 @@ export class ARHandTracking {
 
   setupHand(scene, index, intentKey) {
     const hand = this.renderer.xr.getHand(index);
+    let handModel = null;
     hand.userData.pinch = false;
+    hand.userData.handedness = null;
 
     hand.addEventListener('pinchstart', () => {
+      if (!this.interactionEnabled) {
+        hand.userData.pinch = false;
+        this.pinchIntent[intentKey] = 0;
+        return;
+      }
       hand.userData.pinch = true;
       this.pinchIntent[intentKey] = performance.now();
     });
@@ -84,26 +100,96 @@ export class ARHandTracking {
       this.onPinchEnd();
     });
 
-    const handModel = this.handModelFactory.createHandModel(hand, 'mesh');
+    hand.addEventListener('connected', (event) => {
+      const handedness = event.data?.handedness || null;
+      hand.userData.handedness = handedness;
+      hand.userData.pinch = false;
+      this.pinchIntent[intentKey] = 0;
+      this.prepareHandModelForHandedness(handModel, handedness);
+    });
+
+    hand.addEventListener('disconnected', () => {
+      hand.userData.handedness = null;
+      hand.userData.pinch = false;
+      this.pinchIntent[intentKey] = 0;
+      this.onPinchEnd();
+    });
+
+    handModel = this.handModelFactory.createHandModel(hand, 'mesh');
     hand.add(handModel);
     scene.add(hand);
 
-    handModel.addEventListener('connected', () => {
-      this.styleHandModel(handModel, 0xffffff, 0.5);
-    });
-
     return hand;
+  }
+
+  getLoadedHandedness(object) {
+    if (object?.getObjectByName?.('l_handMeshNode')) return 'left';
+    if (object?.getObjectByName?.('r_handMeshNode')) return 'right';
+    return null;
+  }
+
+  prepareHandModelForHandedness(handModel, handedness) {
+    if (!handModel || !handedness) return;
+    const loadedHandedness = handModel.userData.loadedHandedness ||
+      handModel.xrInputSource?.handedness ||
+      null;
+
+    handModel.userData.expectedHandedness = handedness;
+    if (!loadedHandedness || loadedHandedness === handedness) return;
+
+    // Three.js intentionally retains XRHandModel.motionController after an
+    // input-source disconnect. Quest can reuse the same XR slot for the other
+    // physical hand after sleep, leaving (for example) a left-hand mesh driven
+    // by right-hand joints. Rebuild only on that handedness mismatch.
+    for (const child of [...handModel.children]) {
+      this.disposeHandObject(child);
+      handModel.remove(child);
+    }
+    handModel.motionController = null;
+    handModel.xrInputSource = null;
+    handModel.userData.loadedHandedness = null;
+  }
+
+  onHandModelLoaded(object) {
+    const handModel = object?.parent;
+    const loadedHandedness = this.getLoadedHandedness(object);
+    const expectedHandedness = handModel?.userData?.expectedHandedness ||
+      handModel?.xrInputSource?.handedness ||
+      null;
+
+    // An old asynchronous GLB load can complete after a slot has changed
+    // handedness. Never let that stale mesh coexist with the replacement.
+    if (loadedHandedness && expectedHandedness && loadedHandedness !== expectedHandedness) {
+      handModel.remove(object);
+      this.disposeHandObject(object);
+      return;
+    }
+
+    if (handModel) handModel.userData.loadedHandedness = loadedHandedness;
+    this.styleHandModel(object, this.handColor, this.handOpacity);
+  }
+
+  disposeHandObject(object) {
+    object?.traverse?.((child) => {
+      child.geometry?.dispose?.();
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      for (const material of materials) material?.dispose?.();
+      child.skeleton?.dispose?.();
+    });
   }
 
   styleHandModel(handModel, color, opacity) {
     handModel.traverse((child) => {
       if (child.isMesh) {
+        child.material?.dispose?.();
         child.material = new THREE.MeshStandardMaterial({
           color: color,
           roughness: 0.8,
           metalness: 0.2,
           transparent: true,
-          opacity: opacity
+          opacity: opacity,
+          depthWrite: true,
+          side: THREE.FrontSide
         });
       }
     });
@@ -183,24 +269,47 @@ export class ARHandTracking {
       }
     }
     else if (hand1Ready && hand2Ready) {
-      tip1.getWorldPosition(this.tempVec1);
-      tip2.getWorldPosition(this.tempVec2);
+      // XR input-source slots can swap after a headset sleep/reconnect. Always
+      // form the rotation vector left -> right when handedness is available so
+      // the same physical gesture cannot invert between sessions.
+      const slotsReversed =
+        this.hand1.userData.handedness === 'right' &&
+        this.hand2.userData.handedness === 'left';
+      const firstTip = slotsReversed ? tip2 : tip1;
+      const secondTip = slotsReversed ? tip1 : tip2;
+      firstTip.getWorldPosition(this.tempVec1);
+      secondTip.getWorldPosition(this.tempVec2);
+
+      const currentDistance = this.tempVec1.distanceTo(this.tempVec2);
+      // Direction becomes numerically unstable as fingertips meet/cross.
+      // Re-arm from the next separated sample instead of applying a scale or
+      // half-turn spike to the model.
+      if (currentDistance < this.MIN_TWO_HAND_DISTANCE) {
+        this.dragging = false;
+        this.scaling = false;
+        this.rotating = false;
+        this.rotVelocity = 0;
+        this.scaleVelocity = 0;
+        return;
+      }
 
       if (!this.scaling && !this.rotating) {
         this.dragging = false;
         this.scaling = true;
         this.rotating = true;
 
-        this.scaleStartDistance = this.tempVec1.distanceTo(this.tempVec2);
+        this.scaleStartDistance = currentDistance;
 
         const dx = this.tempVec2.x - this.tempVec1.x;
         const dz = this.tempVec2.z - this.tempVec1.z;
-        this.rotateStartAngle = Math.atan2(dz, dx);
+        // Three.js positive Y rotation turns +X toward -Z. Express the hand
+        // vector in that same yaw convention so the model follows the hands
+        // exactly, like a grabbed object, rather than mirroring the gesture.
+        this.rotateStartAngle = Math.atan2(-dz, dx);
 
         if (this.onGestureStart) this.onGestureStart('two-hand');
       } else {
         // Logarithmic scaling: same hand movement doubles or halves scale at any level
-        const currentDistance = this.tempVec1.distanceTo(this.tempVec2);
         const distanceRatio = currentDistance / this.scaleStartDistance;
 
         const currentLogScale = Math.log(modelGroup.scale.x);
@@ -220,16 +329,23 @@ export class ARHandTracking {
 
         const dx = this.tempVec2.x - this.tempVec1.x;
         const dz = this.tempVec2.z - this.tempVec1.z;
-        const currentAngle = Math.atan2(dz, dx);
+        const currentAngle = Math.atan2(-dz, dx);
 
         let angleDelta = currentAngle - this.rotateStartAngle;
         if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
         if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
+        angleDelta = Math.max(
+          -this.MAX_ROT_DELTA_PER_FRAME,
+          Math.min(this.MAX_ROT_DELTA_PER_FRAME, angleDelta)
+        );
 
-        modelGroup.rotation.y -= angleDelta;
+        // Apply around world Y as a quaternion. Mutating Euler rotation.y can
+        // reverse direction after a quaternion-synchronised model crosses the
+        // XYZ Euler branch near +/-90 degrees (x/z jump by PI).
+        this.applyWorldYaw(modelGroup, angleDelta);
 
         if (deltaSeconds > 0) {
-          const instantRotVelocity = -angleDelta / deltaSeconds;
+          const instantRotVelocity = angleDelta / deltaSeconds;
           const targetVelocity = Math.max(-this.MAX_ROT_VELOCITY, Math.min(this.MAX_ROT_VELOCITY, instantRotVelocity));
           this.rotVelocity = this.rotVelocity * (1 - this.VELOCITY_SMOOTHING) + targetVelocity * this.VELOCITY_SMOOTHING;
         }
@@ -277,7 +393,7 @@ export class ARHandTracking {
     this.scaleVelocity *= scaleDecay;
 
     modelGroup.position.addScaledVector(this.posVelocity, deltaSeconds);
-    modelGroup.rotation.y += this.rotVelocity * deltaSeconds;
+    this.applyWorldYaw(modelGroup, this.rotVelocity * deltaSeconds);
 
     // Apply scale velocity in log-space
     const currentLogScale = Math.log(modelGroup.scale.x);
@@ -294,6 +410,14 @@ export class ARHandTracking {
     }
   }
 
+  applyWorldYaw(modelGroup, angleDelta) {
+    if (!modelGroup?.quaternion || !Number.isFinite(angleDelta) || angleDelta === 0) return;
+    this.tempYawQuaternion.setFromAxisAngle(this.worldUp, angleDelta);
+    // Premultiply applies the delta in the model group's parent/world basis,
+    // independent of the current Euler representation.
+    modelGroup.quaternion.premultiply(this.tempYawQuaternion).normalize();
+  }
+
   stop() {
     this.dragging = false;
     this.scaling = false;
@@ -302,6 +426,10 @@ export class ARHandTracking {
     this.posVelocity.set(0, 0, 0);
     this.rotVelocity = 0;
     this.scaleVelocity = 0;
+    if (this.hand1) this.hand1.userData.pinch = false;
+    if (this.hand2) this.hand2.userData.pinch = false;
+    this.pinchIntent.hand1Start = 0;
+    this.pinchIntent.hand2Start = 0;
   }
 
   /**
@@ -310,6 +438,9 @@ export class ARHandTracking {
    * @param {boolean} enabled - true to allow interactions, false to block them
    */
   setInteractionEnabled(enabled) {
+    if (this.interactionEnabled !== enabled) {
+      this.stop();
+    }
     this.interactionEnabled = enabled;
     if (!enabled) {
       // Stop any active gestures when disabling
