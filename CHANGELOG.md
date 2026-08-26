@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-08-27
+
 ### Fixed
 - AR hand slots now rebuild a retained mesh when Quest reconnects that slot with the opposite handedness, preventing an intermittently twisted or inside-out-looking single hand while preserving translucent depth shading.
 - Desktop focus and resize recovery no longer render into or resize an active WebXR projection target, preventing Quest from invalidating the resumed session framebuffer and turning the headset view black.
