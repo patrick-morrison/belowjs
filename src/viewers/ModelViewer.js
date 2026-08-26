@@ -89,6 +89,7 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean} [showInfo=false] - Show info panel
  * @property {boolean} [enableVR=false] - Enable VR support
  * @property {boolean} [enableMeasurement=false] - Enable measurement system
+ * @property {boolean} [enableMeasurementScaleCalibration=true] - Allow a completed measurement to rescale the model via right-click or long press
  * @property {string} [measurementTheme='dark'] - Measurement panel theme ('dark' or 'light')
  * @property {boolean} [showMeasurementLabels=false] - Show measurement labels in desktop mode (always shown in VR)
  * @property {boolean} [enableVRComfortGlyph=false] - Enable VR comfort settings glyph
@@ -226,6 +227,7 @@ export class ModelViewer extends EventSystem {
       enableVR: { type: 'boolean', default: false },
       enableAR: { type: 'boolean', default: false },
       enableMeasurement: { type: 'boolean', default: true },
+      enableMeasurementScaleCalibration: { type: 'boolean', default: true },
       measurementTheme: { type: 'string', default: 'dark' },
       showMeasurementLabels: { type: 'boolean', default: false },
       enableVRComfortGlyph: { type: 'boolean', default: false },
@@ -370,11 +372,18 @@ export class ModelViewer extends EventSystem {
       uiParent: this.getUiContainer(),
       getRaycastInfo: (event) => this.getPointerRaycastInfo(event),
       theme: this.config.measurementTheme,
-      showMeasurementLabels: this.config.showMeasurementLabels
+      showMeasurementLabels: this.config.showMeasurementLabels,
+      allowScaleCalibration: this.config.enableMeasurementScaleCalibration,
+      onScaleCalibration: ({ scaleFactor }) => this.scaleCurrentModelFromMeasurement(scaleFactor),
+      onMeasurementChange: (change) => this.emit('measurement-changed', change)
     });
     const update = () => this.measurementSystem && this.measurementSystem.update();
     if (this.belowViewer.onAfterRender) {
       this.belowViewer.onAfterRender(update);
+    } else if (typeof this.belowViewer.on === 'function') {
+      // BelowViewer's before-render event is emitted from renderer.setAnimationLoop,
+      // so measurement holds keep advancing inside immersive WebXR sessions.
+      this.belowViewer.on('before-render', update);
     } else if (this.onAfterRender) {
       this.onAfterRender(update);
     } else {
@@ -418,10 +427,47 @@ export class ModelViewer extends EventSystem {
     }
 
     if (measurable && model) {
+      this.measurementSystem.setScaleCalibrationMultiplier?.(1);
       this.measurementSystem.setRaycastTargets(model);
       return;
     }
     this.measurementSystem.setRaycastTargets([]);
+  }
+
+  scaleCurrentModelFromMeasurement(scaleFactor) {
+    if (!Number.isFinite(scaleFactor) || scaleFactor <= 0) return false;
+
+    const loadedModel = this.belowViewer?.getLoadedModels?.().at(-1);
+    const model = loadedModel?.model;
+    if (!model) return false;
+
+    const origin = model.getWorldPosition(new THREE.Vector3());
+    const camera = this.belowViewer?.cameraManager?.camera;
+    const controls = this.belowViewer?.cameraManager?.controls;
+    model.scale.multiplyScalar(scaleFactor);
+    model.updateMatrixWorld(true);
+    if (camera) {
+      camera.position.sub(origin).multiplyScalar(scaleFactor).add(origin);
+    }
+    if (controls?.target) {
+      controls.target.sub(origin).multiplyScalar(scaleFactor).add(origin);
+    }
+    loadedModel.measurementScaleMultiplier = (loadedModel.measurementScaleMultiplier ?? 1) * scaleFactor;
+    loadedModel.options.scale = model.scale.toArray();
+    if (this.currentModelKey && this.config.models[this.currentModelKey]) {
+      this.config.models[this.currentModelKey].scale = model.scale.toArray();
+    }
+    this.belowViewer.fitCameraClippingToModel?.(model, loadedModel.options?.cameraFarMultiplier ?? 2);
+    controls?.update?.();
+    const scaleMultiplier = loadedModel.measurementScaleMultiplier;
+    this.emit('model-scale-calibrated', {
+      model,
+      scaleFactor,
+      scaleMultiplier,
+      modelScale: model.scale.toArray(),
+      origin: origin.clone()
+    });
+    return { origin, scaleMultiplier };
   }
 
   async _maybeAttachVRComfortGlyph() {

@@ -12,8 +12,13 @@ import { Line2, LineMaterial, LineGeometry } from './ThickLine.js';
  * @property {Object} [controls] - Orbit controls for desktop mode
  * @property {THREE.Group} [dolly] - VR dolly for VR mode positioning
  * @property {Object} [config={}] - Additional configuration options
+ * @property {number} [config.measurementDeleteRadius=0.025] - VR controller distance from a measurement point that enables hold-to-delete, in metres
+ * @property {number} [config.measurementDeleteHoldDuration=1250] - Total VR hold duration required to delete a measurement point, in milliseconds
  * @property {string} [theme='dark'] - UI theme ('dark' or 'light')
  * @property {boolean} [showMeasurementLabels=false] - Whether to show measurement labels in desktop mode (always shown in VR)
+ * @property {boolean} [allowScaleCalibration=false] - Allow right-click/long-press editing of a completed measurement
+ * @property {Function} [onScaleCalibration] - Callback that uniformly rescales the measured model
+ * @property {Function} [onMeasurementChange] - Callback fired when unified measurement points change
  */
 
 /**
@@ -148,7 +153,7 @@ export class MeasurementSystem {
    * 
    * @param {MeasurementSystemConfig} config - Configuration object
    */
-  constructor({ scene, camera, renderer, controls, dolly, uiParent, getRaycastInfo, config = {}, theme = 'dark', showMeasurementLabels = false }) {
+  constructor({ scene, camera, renderer, controls, dolly, uiParent, getRaycastInfo, config = {}, theme = 'dark', showMeasurementLabels = false, allowScaleCalibration = false, onScaleCalibration = null, onMeasurementChange = null }) {
     this.ghostSpheres = {
       left: null,
       right: null
@@ -177,6 +182,22 @@ export class MeasurementSystem {
     this.config = config;
     this.theme = theme;
     this.showMeasurementLabels = showMeasurementLabels;
+    this.allowScaleCalibration = allowScaleCalibration === true;
+    this.onScaleCalibration = typeof onScaleCalibration === 'function' ? onScaleCalibration : null;
+    this.onMeasurementChange = typeof onMeasurementChange === 'function' ? onMeasurementChange : null;
+    this.scaleCalibrationMultiplier = 1;
+    this.hasScaleCalibration = false;
+    this.isEditingScale = false;
+    this._suppressPanelClick = false;
+    this._suppressPanelClickTimer = null;
+    this._panelLongPressTimer = null;
+    this._panelLongPressStart = null;
+    this._panelLongPressReady = false;
+    this._panelTouchActive = false;
+    this.scaleEditorUsesModal = false;
+    this._scaleModalViewportTracking = false;
+    this._scaleModalAnchor = null;
+    this._boundUpdateScaleModalPosition = () => this.updateScaleModalPosition();
 
     this._raycastTargets = (scene && scene.children) ? scene.children : [];
 
@@ -199,6 +220,17 @@ export class MeasurementSystem {
     this._cancelFocusOnUserInput = null;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
+    this.VR_DELETE_RADIUS = Number.isFinite(config.measurementDeleteRadius)
+      ? Math.max(0, config.measurementDeleteRadius)
+      : 0.025;
+    this.VR_DELETE_CANCEL_RADIUS = this.VR_DELETE_RADIUS + 0.01;
+    this.VR_DELETE_INTENT_DELAY_MS = 200;
+    this.VR_DELETE_HOLD_MS = Number.isFinite(config.measurementDeleteHoldDuration)
+      ? Math.max(this.VR_DELETE_INTENT_DELAY_MS + 100, config.measurementDeleteHoldDuration)
+      : 1250;
+    this.VR_DELETE_HOVER_DELAY_MS = 160;
+    this._vrDeleteStates = new Map();
+    this._vrDeleteHoverStates = new Map();
 
     const tryAttachMeasurementVR = () => {
       let controller1 = null, controller2 = null;
@@ -379,11 +411,13 @@ export class MeasurementSystem {
   }
 
   clearUnifiedMeasurement() {
+    this.cancelScaleCalibration();
+    this._cancelAllVRDeletionHolds();
+    const hadPoints = this.unifiedMeasurementPoints?.length > 0;
+
     if (this.unifiedMeasurementPoints && this.unifiedMeasurementPoints.length > 0) {
       this.unifiedMeasurementPoints.forEach(point => {
-        if (point.sphere && this.scene.children.includes(point.sphere)) {
-          this.scene.remove(point.sphere);
-        }
+        this._removeUnifiedMeasurementSphere(point.sphere);
       });
       this.unifiedMeasurementPoints.length = 0;
     }
@@ -400,6 +434,7 @@ export class MeasurementSystem {
     }
     
     this.updateMeasurementPanel();
+    if (hadPoints) this._notifyMeasurementChange('cleared');
   }
 
   clearVRMeasurement() {
@@ -448,6 +483,12 @@ export class MeasurementSystem {
         if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
       }
     }
+    this.updateMeasurementPanel();
+  }
+
+  setScaleCalibrationMultiplier(multiplier = 1) {
+    this.scaleCalibrationMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1;
+    this.hasScaleCalibration = Math.abs(this.scaleCalibrationMultiplier - 1) > Number.EPSILON;
     this.updateMeasurementPanel();
   }
 
@@ -664,7 +705,16 @@ export class MeasurementSystem {
    * @since 1.0.0
    */
   attachVR({ controller1, controller2, controllerGrip1, controllerGrip2 }) {
-    
+    if (this._onVRTriggerDown) {
+      [this.controller1, this.controller2].forEach(controller => {
+        if (!controller) return;
+        controller.removeEventListener('selectstart', this._onVRTriggerDown);
+        controller.removeEventListener('selectend', this._onVRTriggerUp);
+        controller.removeEventListener('ybuttondown', this._onVRYButtonDown);
+        controller.removeEventListener('ybuttonup', this._onVRYButtonUp);
+      });
+    }
+
     this.controller1 = controller1;
     this.controller2 = controller2;
     this.controllerGrip1 = controllerGrip1;
@@ -696,10 +746,12 @@ export class MeasurementSystem {
       right: false
     };
 
-    this._onVRTriggerDown = this._onVRTriggerDown.bind(this);
-    this._onVRTriggerUp = this._onVRTriggerUp.bind(this);
-    this._onVRYButtonDown = this._onVRYButtonDown.bind(this);
-    this._onVRYButtonUp = this._onVRYButtonUp.bind(this);
+    if (!this._onVRTriggerDown) {
+      this._onVRTriggerDown = this._handleVRTriggerDown.bind(this);
+      this._onVRTriggerUp = this._handleVRTriggerUp.bind(this);
+      this._onVRYButtonDown = this._handleVRYButtonDown.bind(this);
+      this._onVRYButtonUp = this._handleVRYButtonUp.bind(this);
+    }
     if (this.controller1 && this.controller2) {
       this.controller1.addEventListener('selectstart', this._onVRTriggerDown);
       this.controller1.addEventListener('selectend', this._onVRTriggerUp);
@@ -715,12 +767,29 @@ export class MeasurementSystem {
     this.refreshMeasurementDisplayForVR();
   }
 
-  _onVRTriggerDown() {
+  _handleVRTriggerDown(event) {
+    if (!this.measurementAvailable || !this.measurementSystemEnabled) return;
+
+    const controller = event.target;
+    const point = this._findNearbyUnifiedMeasurementPoint(controller);
+    if (point) {
+      this._startVRDeletionHold(controller, point, event.data);
+    }
   }
 
-  _onVRTriggerUp(event) {
-    if (!this.measurementAvailable) return;
+  _handleVRTriggerUp(event) {
     const controller = event.target;
+
+    const deleteState = this._vrDeleteStates.get(controller);
+    if (deleteState) {
+      const deletionCompleted = deleteState.completedAt !== null
+        || !this.unifiedMeasurementPoints.includes(deleteState.point);
+      this._disposeVRDeleteVisual(deleteState);
+      this._vrDeleteStates.delete(controller);
+      if (deletionCompleted) return;
+    }
+
+    if (!this.measurementAvailable) return;
     
     const now = performance.now();
     if (this.lastTriggerTime && (now - this.lastTriggerTime) < 200) {
@@ -751,11 +820,302 @@ export class MeasurementSystem {
     }
   }
 
-  _onVRYButtonDown() {
+  _handleVRYButtonDown() {
     this.clearUnifiedMeasurement();
   }
 
-  _onVRYButtonUp() {
+  _handleVRYButtonUp() {
+  }
+
+  _getVRControllerPosition(controller, target = new THREE.Vector3()) {
+    const ghostSphere = this._getGhostSphereForController(controller);
+
+    if (ghostSphere) {
+      ghostSphere.getWorldPosition(target);
+    } else {
+      controller.getWorldPosition(target);
+      const forward = new THREE.Vector3(0, 0, -0.05);
+      controller.getWorldQuaternion(this._vrControllerQuaternion || (this._vrControllerQuaternion = new THREE.Quaternion()));
+      forward.applyQuaternion(this._vrControllerQuaternion);
+      target.add(forward);
+    }
+    return target;
+  }
+
+  _getGhostSphereForController(controller) {
+    if (controller === this.controller1) return this.ghostSpheres.left;
+    if (controller === this.controller2) return this.ghostSpheres.right;
+    return null;
+  }
+
+  _getNearbyUnifiedMeasurementPoint(controller, radius = this.VR_DELETE_RADIUS) {
+    if (!controller || !this.unifiedMeasurementPoints.length) return null;
+
+    const controllerPosition = this._getVRControllerPosition(controller);
+    let closestPoint = null;
+    let closestDistance = radius;
+    this.unifiedMeasurementPoints.forEach(point => {
+      const distance = controllerPosition.distanceTo(point.position);
+      if (distance <= closestDistance) {
+        closestPoint = point;
+        closestDistance = distance;
+      }
+    });
+    return closestPoint ? { point: closestPoint, distance: closestDistance } : null;
+  }
+
+  _findNearbyUnifiedMeasurementPoint(controller) {
+    return this._getNearbyUnifiedMeasurementPoint(controller)?.point || null;
+  }
+
+  _startVRDeletionHold(controller, point, inputSource) {
+    const existingState = this._vrDeleteStates.get(controller);
+    if (existingState) this._disposeVRDeleteVisual(existingState);
+    this._vrDeleteHoverStates.delete(controller);
+
+    const state = {
+      controller,
+      point,
+      inputSource,
+      startedAt: performance.now(),
+      completedAt: null,
+      inRange: true,
+      progress: 0,
+      visual: this._createVRDeleteVisual(point.position)
+    };
+    this._vrDeleteStates.set(controller, state);
+    this._pulseVRController(state, 0.12, 24);
+  }
+
+  _createVRDeleteVisual(position) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.name = 'MeasurementHelperDeleteProgress';
+    sprite.position.copy(position);
+    sprite.scale.set(0.05, 0.05, 1);
+    sprite.renderOrder = 1000;
+    this.scene.add(sprite);
+
+    const visual = { canvas, texture, material, sprite };
+    this._drawVRDeleteProgress(visual, 0);
+    return visual;
+  }
+
+  _drawVRDeleteProgress(visual, progress) {
+    if (!visual) return;
+    const context = visual.canvas.getContext('2d');
+    const size = visual.canvas.width;
+    const center = size / 2;
+    const radius = size * 0.37;
+    const clampedProgress = Math.max(0, Math.min(progress, 1));
+    context.clearRect(0, 0, size, size);
+
+    context.beginPath();
+    context.arc(center, center, radius - 8, 0, Math.PI * 2);
+    context.fillStyle = 'rgba(5, 12, 22, 0.58)';
+    context.fill();
+
+    context.beginPath();
+    context.arc(center, center, radius, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(255, 255, 255, 0.34)';
+    context.lineWidth = 12;
+    context.stroke();
+
+    if (clampedProgress > 0) {
+      const green = Math.round(194 - (77 * clampedProgress));
+      const blue = Math.round(107 - (15 * clampedProgress));
+      context.beginPath();
+      context.arc(center, center, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * clampedProgress));
+      context.strokeStyle = `rgba(255, ${green}, ${blue}, 0.98)`;
+      context.lineWidth = 14;
+      context.lineCap = 'round';
+      context.stroke();
+    }
+
+    const glyphRadius = 13 + (clampedProgress * 2);
+    context.beginPath();
+    context.moveTo(center - glyphRadius, center - glyphRadius);
+    context.lineTo(center + glyphRadius, center + glyphRadius);
+    context.moveTo(center + glyphRadius, center - glyphRadius);
+    context.lineTo(center - glyphRadius, center + glyphRadius);
+    context.strokeStyle = `rgba(255, 255, 255, ${0.72 + (clampedProgress * 0.28)})`;
+    context.lineWidth = 8;
+    context.lineCap = 'round';
+    context.stroke();
+
+    visual.texture.needsUpdate = true;
+  }
+
+  _updateVRDeletionHolds(now) {
+    this._vrDeleteStates.forEach(state => {
+      if (state.completedAt !== null) {
+        if (state.visual) {
+          const confirmationProgress = Math.min((now - state.completedAt) / 180, 1);
+          const confirmationScale = 0.05 + (confirmationProgress * 0.014);
+          state.visual.sprite.scale.set(confirmationScale, confirmationScale, 1);
+          state.visual.sprite.material.opacity = 1 - confirmationProgress;
+          if (confirmationProgress >= 1) this._disposeVRDeleteVisual(state);
+        }
+        return;
+      }
+
+      if (!this.unifiedMeasurementPoints.includes(state.point)) {
+        state.startedAt = null;
+        this._disposeVRDeleteVisual(state);
+        return;
+      }
+
+      const controllerPosition = this._getVRControllerPosition(state.controller);
+      const activeRadius = state.startedAt === null ? this.VR_DELETE_RADIUS : this.VR_DELETE_CANCEL_RADIUS;
+      const inRange = controllerPosition.distanceTo(state.point.position) <= activeRadius;
+      if (!inRange) {
+        state.startedAt = null;
+        state.inRange = false;
+        state.progress = 0;
+        this._drawVRDeleteProgress(state.visual, 0);
+        if (state.visual) state.visual.material.opacity = 0.45;
+        return;
+      }
+
+      if (state.startedAt === null) state.startedAt = now;
+      state.inRange = true;
+      if (state.visual) state.visual.material.opacity = 1;
+      const heldFor = now - state.startedAt;
+      const fillDuration = this.VR_DELETE_HOLD_MS - this.VR_DELETE_INTENT_DELAY_MS;
+      state.progress = Math.min(
+        Math.max((heldFor - this.VR_DELETE_INTENT_DELAY_MS) / fillDuration, 0),
+        1
+      );
+      this._drawVRDeleteProgress(state.visual, state.progress);
+
+      if (state.progress >= 1) {
+        this.removeUnifiedMeasurementPoint(state.point);
+        state.completedAt = now;
+        this._pulseVRController(state, 0.65, 80);
+      }
+    });
+  }
+
+  _pulseVRController(state, intensity, duration) {
+    const gamepad = state.inputSource?.gamepad || state.controller?.inputSource?.gamepad;
+    const actuator = gamepad?.hapticActuators?.[0] || gamepad?.vibrationActuator;
+    if (!actuator || typeof actuator.pulse !== 'function') return;
+    Promise.resolve(actuator.pulse(intensity, duration)).catch(() => {});
+  }
+
+  _updateVRDeleteFeedback(now) {
+    this.unifiedMeasurementPoints.forEach(point => {
+      if (!point.sphere) return;
+      const baseScale = point.sphere.userData.measurementBaseScale ?? 0.5;
+      point.sphere.scale.setScalar(baseScale);
+      if (point.sphere.material?.color) point.sphere.material.color.set(0xffffff);
+    });
+
+    const controllers = [this.controller1, this.controller2].filter(Boolean);
+    controllers.forEach(controller => {
+      const ghostSphere = this._getGhostSphereForController(controller);
+      if (ghostSphere) {
+        ghostSphere.scale.setScalar(0.5);
+        ghostSphere.material.color.set(0x888888);
+        ghostSphere.material.opacity = 0.25;
+      }
+    });
+
+    if (!this.measurementAvailable || !this.measurementSystemEnabled) {
+      this._vrDeleteHoverStates.clear();
+      return;
+    }
+
+    controllers.forEach(controller => {
+      const ghostSphere = this._getGhostSphereForController(controller);
+      const deleteState = this._vrDeleteStates.get(controller);
+
+      if (deleteState) {
+        if (deleteState.completedAt !== null) {
+          const completionProgress = Math.min((now - deleteState.completedAt) / 180, 1);
+          if (ghostSphere && completionProgress < 1) {
+            ghostSphere.scale.setScalar(0.66 - (completionProgress * 0.16));
+            ghostSphere.material.color.set(0xff755c).lerp(new THREE.Color(0xffffff), 1 - completionProgress);
+            ghostSphere.material.opacity = 0.72 - (completionProgress * 0.47);
+          }
+          return;
+        }
+
+        if (deleteState.inRange !== false && this.unifiedMeasurementPoints.includes(deleteState.point)) {
+          const pulse = 0.5 + (Math.sin(now / 90) * 0.5);
+          const progress = deleteState.progress || 0;
+          const colour = new THREE.Color(0xffc26b).lerp(new THREE.Color(0xff755c), progress);
+          this._styleMeasurementPointForDelete(deleteState.point, colour, 1.13 + (pulse * 0.035));
+          if (ghostSphere) {
+            ghostSphere.scale.setScalar(0.57 + (pulse * 0.025));
+            ghostSphere.material.color.copy(colour);
+            ghostSphere.material.opacity = 0.58 + (progress * 0.12);
+          }
+        }
+        return;
+      }
+
+      const nearby = this._getNearbyUnifiedMeasurementPoint(controller);
+      if (!nearby) {
+        this._vrDeleteHoverStates.delete(controller);
+        return;
+      }
+
+      const previousHover = this._vrDeleteHoverStates.get(controller);
+      if (!previousHover || previousHover.point !== nearby.point) {
+        this._vrDeleteHoverStates.set(controller, { point: nearby.point, startedAt: now });
+        return;
+      }
+      if ((now - previousHover.startedAt) < this.VR_DELETE_HOVER_DELAY_MS) return;
+
+      const proximity = 1 - (nearby.distance / Math.max(this.VR_DELETE_RADIUS, Number.EPSILON));
+      const pulse = 0.5 + (Math.sin(now / 180) * 0.5);
+      const hoverColour = new THREE.Color(0xffd7a0);
+      this._styleMeasurementPointForDelete(nearby.point, hoverColour, 1.07 + (pulse * 0.018));
+      if (ghostSphere) {
+        ghostSphere.scale.setScalar(0.53 + (proximity * 0.025));
+        ghostSphere.material.color.copy(hoverColour);
+        ghostSphere.material.opacity = 0.34 + (proximity * 0.12);
+      }
+    });
+  }
+
+  _styleMeasurementPointForDelete(point, colour, scaleMultiplier) {
+    if (!point?.sphere) return;
+    const baseScale = point.sphere.userData.measurementBaseScale ?? 0.5;
+    point.sphere.scale.setScalar(baseScale * scaleMultiplier);
+    if (point.sphere.material?.color) point.sphere.material.color.copy(colour);
+  }
+
+  _disposeVRDeleteVisual(state) {
+    if (!state?.visual) return;
+    const { sprite, material, texture } = state.visual;
+    if (sprite.parent) sprite.parent.remove(sprite);
+    material.dispose();
+    texture.dispose();
+    state.visual = null;
+  }
+
+  _cancelAllVRDeletionHolds() {
+    if (!this._vrDeleteStates) return;
+    this._vrDeleteStates.forEach(state => {
+      state.startedAt = null;
+      state.progress = 0;
+      this._disposeVRDeleteVisual(state);
+    });
+    this._vrDeleteStates.clear();
+    this._vrDeleteHoverStates.clear();
   }
 
   _getVRControllerIntersection(controller) {
@@ -815,14 +1175,15 @@ export class MeasurementSystem {
 
     if (this.unifiedMeasurementPoints.length >= 2) {
       const oldestPoint = this.unifiedMeasurementPoints.shift();
-      if (oldestPoint.sphere) this.scene.remove(oldestPoint.sphere);
+      this._removeUnifiedMeasurementSphere(oldestPoint.sphere);
     }
     
 
-    const sphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial);
+    const sphere = new THREE.Mesh(this.sphereGeometry, this.placedMaterial.clone());
     sphere.position.copy(point);
     sphere.scale.setScalar(0.5);
     sphere.userData.isMeasurementSphere = true;
+    sphere.userData.measurementBaseScale = 0.5;
     this.scene.add(sphere);
     
 
@@ -837,7 +1198,53 @@ export class MeasurementSystem {
     
 
     this.updateMeasurementPanel();
+    this._notifyMeasurementChange('point-added', { source });
     
+  }
+
+  removeUnifiedMeasurementPoint(point) {
+    this.cancelScaleCalibration();
+    const pointIndex = this.unifiedMeasurementPoints.indexOf(point);
+    if (pointIndex === -1) return false;
+
+    const [removedPoint] = this.unifiedMeasurementPoints.splice(pointIndex, 1);
+    this._removeUnifiedMeasurementSphere(removedPoint.sphere);
+    this.updateUnifiedMeasurementLine();
+    this.updateMeasurementPanel();
+    this._notifyMeasurementChange('point-removed', { source: removedPoint.source });
+    return true;
+  }
+
+  _notifyMeasurementChange(reason, details = {}) {
+    if (!this.onMeasurementChange) return;
+    const points = this.unifiedMeasurementPoints.map(point => ({
+      position: {
+        x: point.position.x,
+        y: point.position.y,
+        z: point.position.z
+      },
+      source: point.source
+    }));
+    const line = points.length === 2 ? {
+      start: { ...points[0].position },
+      end: { ...points[1].position },
+      length: this.unifiedMeasurementPoints[0].position.distanceTo(this.unifiedMeasurementPoints[1].position)
+    } : null;
+    this.onMeasurementChange({
+      reason,
+      pointCount: points.length,
+      points,
+      line,
+      ...details
+    });
+  }
+
+  _removeUnifiedMeasurementSphere(sphere) {
+    if (!sphere) return;
+    if (sphere.parent) sphere.parent.remove(sphere);
+    if (sphere.material && sphere.material !== this.placedMaterial) {
+      sphere.material.dispose();
+    }
   }
 
   /**
@@ -848,6 +1255,19 @@ export class MeasurementSystem {
     if (this.unifiedMeasurementLine) {
       this.scene.remove(this.unifiedMeasurementLine);
       this.unifiedMeasurementLine = null;
+    }
+
+    if (this.unifiedMeasurementPoints.length !== 2) {
+      if (this.measurementSprite) {
+        this.measurementSprite.visible = false;
+        if (this.measurementSprite.parent) this.measurementSprite.parent.remove(this.measurementSprite);
+      }
+      this.unifiedMeasurementPoints.forEach(point => {
+        if (point.sphere) {
+          point.sphere.userData.measurementBaseScale = 0.5;
+          point.sphere.scale.setScalar(0.5);
+        }
+      });
     }
     
 
@@ -875,6 +1295,7 @@ export class MeasurementSystem {
       const sphereScale = (distance * 100 <= 20.0) ? 0.125 : 0.5;
       this.unifiedMeasurementPoints.forEach(point => {
         if (point.sphere) {
+          point.sphere.userData.measurementBaseScale = sphereScale;
           point.sphere.scale.setScalar(sphereScale);
         }
       });
@@ -930,9 +1351,13 @@ export class MeasurementSystem {
    * Update method called each frame by the render loop
    */
   update() {
-
-
-
+    const now = performance.now();
+    if (this._vrDeleteStates.size > 0) {
+      this._updateVRDeletionHolds(now);
+    }
+    if (this.isVR && this.ghostSpheres) {
+      this._updateVRDeleteFeedback(now);
+    }
     if (this.isVR && this.ghostSpheres) {
       if (this.ghostSpheres.left && this.controller1 && this.ghostSpheres.left.visible) {
 
@@ -973,6 +1398,13 @@ export class MeasurementSystem {
    * @since 1.0.0
    */
   dispose() {
+    clearTimeout(this._suppressPanelClickTimer);
+    this._suppressPanelClickTimer = null;
+    this.cancelScaleCalibration();
+    this.stopScaleModalViewportTracking();
+    if (this.measurementScaleModal?.parentNode) this.measurementScaleModal.remove();
+    this.measurementScaleModal = null;
+    this.measurementModalUi = null;
     if (this.measurementPanel && this.measurementPanel.parentNode) {
       this.measurementPanel.parentNode.removeChild(this.measurementPanel);
       this.measurementPanel = null;
@@ -992,16 +1424,17 @@ export class MeasurementSystem {
     this.renderer.domElement.removeEventListener('mousemove', this._boundOnMouseMove, false);
     this.renderer.domElement.removeEventListener('mouseup', this._boundOnMouseUp, false);
 
-    if (this.controller1 && this.controller2) {
-      this.controller1.removeEventListener('selectstart', this._onVRTriggerDown);
-      this.controller1.removeEventListener('selectend', this._onVRTriggerUp);
-      this.controller2.removeEventListener('selectstart', this._onVRTriggerDown);
-      this.controller2.removeEventListener('selectend', this._onVRTriggerUp);
-      this.controller1.removeEventListener('ybuttondown', this._onVRYButtonDown);
-      this.controller1.removeEventListener('ybuttonup', this._onVRYButtonUp);
-      this.controller2.removeEventListener('ybuttondown', this._onVRYButtonDown);
-      this.controller2.removeEventListener('ybuttonup', this._onVRYButtonUp);
-    }
+    [this.controller1, this.controller2].forEach(controller => {
+      if (!controller) return;
+      controller.removeEventListener('selectstart', this._onVRTriggerDown);
+      controller.removeEventListener('selectend', this._onVRTriggerUp);
+      controller.removeEventListener('ybuttondown', this._onVRYButtonDown);
+      controller.removeEventListener('ybuttonup', this._onVRYButtonUp);
+    });
+
+    this._vrDeleteStates.forEach(state => this._disposeVRDeleteVisual(state));
+    this._vrDeleteStates.clear();
+    this._vrDeleteHoverStates.clear();
 
     this.clearLegacyDesktopMeasurement();
     this.clearVRMeasurement();
@@ -1029,46 +1462,474 @@ export class MeasurementSystem {
 
   createMeasurementPanel() {
     const panel = document.createElement('div');
-    // panel.id removed for BEM compliance
     panel.className = `measurement-panel${this.theme === 'light' ? ' light-theme' : ''}`;
+    panel.innerHTML = `
+      <div class="measurement-status">
+        <div class="measurement-status-primary"></div>
+        <div class="measurement-panel-hint"></div>
+      </div>
+      <form class="measurement-scale-editor" hidden>
+        <div class="measurement-scale-row">
+          <input class="measurement-scale-input" type="text" inputmode="decimal" enterkeyhint="done" readonly aria-label="Correct measurement">
+          <span class="measurement-scale-unit"></span>
+          <button class="measurement-scale-confirm" type="submit" aria-label="Confirm and rescale">&#10003;</button>
+        </div>
+        <label class="measurement-scale-factor-row">
+          <span>Scale</span>
+          <input class="measurement-scale-factor-input" type="text" inputmode="decimal" enterkeyhint="done" aria-label="Correct scale multiplier">
+          <span>&times;</span>
+        </label>
+      </form>
+    `;
+
+    this.measurementUi = {
+      status: panel.querySelector('.measurement-status'),
+      primary: panel.querySelector('.measurement-status-primary'),
+      statusHint: panel.querySelector('.measurement-panel-hint'),
+      editor: panel.querySelector('.measurement-scale-editor'),
+      input: panel.querySelector('.measurement-scale-input'),
+      unit: panel.querySelector('.measurement-scale-unit'),
+      confirm: panel.querySelector('.measurement-scale-confirm'),
+      factorInput: panel.querySelector('.measurement-scale-factor-input')
+    };
     
-    panel.addEventListener('click', () => {
+    panel.addEventListener('click', (_event) => {
+      if (this._suppressPanelClick || this.isEditingScale) {
+        this._suppressPanelClick = false;
+        return;
+      }
       if (!this.measurementAvailable) {
         this.updateMeasurementPanel();
         return;
       }
 
-      if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
-
-        this.desktopMeasurementMode = !this.desktopMeasurementMode;
-        
-        if (!this.desktopMeasurementMode) {
-
-          this.clearUnifiedMeasurement();
-        }
-        this.updateMeasurementPanel();
-      } else {
-
-        this.measurementSystemEnabled = !this.measurementSystemEnabled;
-        
-        if (!this.measurementSystemEnabled) {
-
-          this.clearUnifiedMeasurement();
-          if (this.ghostSpheres.left) this.ghostSpheres.left.visible = false;
-          if (this.ghostSpheres.right) this.ghostSpheres.right.visible = false;
-        } else {
-
-          if (this.ghostSpheres.left) this.ghostSpheres.left.visible = true;
-          if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
-
-          this.resetGhostSpherePositions();
-        }
-        this.updateMeasurementPanel();
-      }
+      this.toggleMeasurementPanelState();
     });
+
+    panel.addEventListener('contextmenu', (event) => {
+      if (!this.canEditScaleCalibration()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (this._panelTouchActive) return;
+      this.beginScaleCalibration({ selectValue: true });
+    });
+
+    panel.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch' || !this.canEditScaleCalibration()) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      this._clearPanelLongPress();
+      this._panelLongPressStart = { x: event.clientX, y: event.clientY };
+      this._panelLongPressTimer = setTimeout(() => {
+        this._panelLongPressTimer = null;
+        this._panelLongPressReady = true;
+        this.beginScaleCalibration({ selectValue: true, focusInput: true });
+      }, 550);
+    });
+
+    panel.addEventListener('pointermove', (event) => {
+      if (!this._panelLongPressTimer || !this._panelLongPressStart) return;
+      const distance = Math.hypot(
+        event.clientX - this._panelLongPressStart.x,
+        event.clientY - this._panelLongPressStart.y
+      );
+      if (distance > 8) this._clearPanelLongPress();
+    });
+    panel.addEventListener('pointerup', (event) => {
+      this._completePanelLongPress(event);
+    });
+    panel.addEventListener('touchstart', (event) => {
+      if (event.touches.length !== 1 || !this.canEditScaleCalibration()) return;
+      this._clearPanelLongPress();
+      const touch = event.touches[0];
+      this._panelTouchActive = true;
+      this._panelLongPressStart = { x: touch.clientX, y: touch.clientY };
+      this._panelLongPressTimer = setTimeout(() => {
+        this._panelLongPressTimer = null;
+        this._panelLongPressReady = true;
+        this.beginScaleCalibration({ selectValue: true, focusInput: false });
+      }, 550);
+    }, { passive: true });
+    panel.addEventListener('touchmove', (event) => {
+      if (!this._panelLongPressStart || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const distance = Math.hypot(
+        touch.clientX - this._panelLongPressStart.x,
+        touch.clientY - this._panelLongPressStart.y
+      );
+      if (distance > 8) this._clearPanelLongPress();
+    }, { passive: true });
+    panel.addEventListener('touchend', (event) => {
+      this._completePanelLongPress(event, true);
+    }, { passive: true });
+    panel.addEventListener('touchcancel', () => this._clearPanelLongPress());
+    panel.addEventListener('pointercancel', () => this._clearPanelLongPress());
+
+    this.measurementUi.editor.addEventListener('click', (event) => {
+      if (this.isEditingScale) event.stopPropagation();
+    });
+    this.measurementUi.editor.addEventListener('submit', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.confirmScaleCalibration();
+    });
+    this.measurementUi.input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.confirmScaleCalibration();
+      }
+      if (event.key === 'Escape') this.cancelScaleCalibration();
+    });
+    this.measurementUi.factorInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.confirmScaleCalibration();
+      }
+      if (event.key === 'Escape') this.cancelScaleCalibration();
+    });
+    this.measurementUi.input.addEventListener('input', () => {
+      this._scaleCalibrationEditSource = 'measurement';
+      this.syncScaleFactorFromMeasurement(this.measurementUi);
+    });
+    this.measurementUi.factorInput.addEventListener('input', () => {
+      this._scaleCalibrationEditSource = 'factor';
+      this.syncMeasurementFromScaleFactor(this.measurementUi);
+    });
+
     const parent = this.uiParent || (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement) || document.body;
     parent.appendChild(panel);
     this.measurementPanel = panel;
+    this.createMeasurementScaleModal(parent);
+  }
+
+  toggleMeasurementPanelState() {
+    if (!(this.renderer && this.renderer.xr && this.renderer.xr.isPresenting)) {
+      this.desktopMeasurementMode = !this.desktopMeasurementMode;
+      if (!this.desktopMeasurementMode) this.clearUnifiedMeasurement();
+      this.updateMeasurementPanel();
+      return;
+    }
+
+    this.measurementSystemEnabled = !this.measurementSystemEnabled;
+    if (!this.measurementSystemEnabled) {
+      this.clearUnifiedMeasurement();
+      if (this.ghostSpheres.left) this.ghostSpheres.left.visible = false;
+      if (this.ghostSpheres.right) this.ghostSpheres.right.visible = false;
+    } else {
+      if (this.ghostSpheres.left) this.ghostSpheres.left.visible = true;
+      if (this.ghostSpheres.right) this.ghostSpheres.right.visible = true;
+      this.resetGhostSpherePositions();
+    }
+    this.updateMeasurementPanel();
+  }
+
+  createMeasurementScaleModal(parent) {
+    const modal = document.createElement('div');
+    modal.className = 'measurement-scale-modal';
+    modal.hidden = true;
+    modal.innerHTML = `
+      <form class="measurement-scale-modal-card">
+        <div class="measurement-scale-modal-title">Correct measurement</div>
+        <div class="measurement-scale-modal-row">
+          <input class="measurement-scale-modal-input" type="text" inputmode="decimal" enterkeyhint="done" aria-label="Correct measurement value">
+          <span class="measurement-scale-modal-unit"></span>
+          <button class="measurement-scale-modal-confirm" type="submit" aria-label="Confirm and rescale">&#10003;</button>
+        </div>
+        <label class="measurement-scale-modal-factor-row">
+          <span>Scale</span>
+          <input class="measurement-scale-modal-factor-input" type="text" inputmode="decimal" enterkeyhint="done" aria-label="Correct scale multiplier">
+          <span>&times;</span>
+        </label>
+      </form>
+    `;
+    this.measurementModalUi = {
+      card: modal.querySelector('.measurement-scale-modal-card'),
+      input: modal.querySelector('.measurement-scale-modal-input'),
+      unit: modal.querySelector('.measurement-scale-modal-unit'),
+      factorInput: modal.querySelector('.measurement-scale-modal-factor-input')
+    };
+    this.measurementModalUi.card.addEventListener('submit', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.confirmScaleCalibration();
+    });
+    this.measurementModalUi.input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.confirmScaleCalibration();
+      }
+      if (event.key === 'Escape') this.cancelScaleCalibration();
+    });
+    this.measurementModalUi.factorInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.confirmScaleCalibration();
+      }
+      if (event.key === 'Escape') this.cancelScaleCalibration();
+    });
+    this.measurementModalUi.input.addEventListener('input', () => {
+      this._scaleCalibrationEditSource = 'measurement';
+      this.syncScaleFactorFromMeasurement(this.measurementModalUi);
+    });
+    this.measurementModalUi.factorInput.addEventListener('input', () => {
+      this._scaleCalibrationEditSource = 'factor';
+      this.syncMeasurementFromScaleFactor(this.measurementModalUi);
+    });
+    modal.addEventListener('pointerdown', (event) => {
+      if (event.target === modal) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.cancelScaleCalibration();
+      }
+    });
+    parent.appendChild(modal);
+    this.measurementScaleModal = modal;
+  }
+
+  startScaleModalViewportTracking() {
+    const viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (!viewport) return;
+    if (!this._scaleModalViewportTracking) {
+      viewport.addEventListener('resize', this._boundUpdateScaleModalPosition);
+      viewport.addEventListener('scroll', this._boundUpdateScaleModalPosition);
+      this._scaleModalViewportTracking = true;
+    }
+    this.updateScaleModalPosition();
+  }
+
+  stopScaleModalViewportTracking() {
+    const viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (viewport) {
+      viewport.removeEventListener('resize', this._boundUpdateScaleModalPosition);
+      viewport.removeEventListener('scroll', this._boundUpdateScaleModalPosition);
+    }
+    this._scaleModalViewportTracking = false;
+    this._scaleModalAnchor = null;
+    const card = this.measurementModalUi?.card;
+    if (card) {
+      card.style.left = '';
+      card.style.top = '';
+    }
+  }
+
+  updateScaleModalPosition() {
+    const viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    const card = this.measurementModalUi?.card;
+    if (!viewport || !card || this.measurementScaleModal?.hidden) return;
+    const rect = card.getBoundingClientRect();
+    if (!this._scaleModalAnchor) {
+      this._scaleModalAnchor = {
+        left: rect.left + (rect.width / 2),
+        top: rect.top + (rect.height / 2)
+      };
+    }
+
+    const margin = 12;
+    const halfWidth = rect.width / 2;
+    const halfHeight = rect.height / 2;
+    const visibleLeft = viewport.offsetLeft + margin;
+    const visibleRight = viewport.offsetLeft + viewport.width - margin;
+    const visibleTop = viewport.offsetTop + margin;
+    const visibleBottom = viewport.offsetTop + viewport.height - margin;
+    const left = Math.min(
+      Math.max(this._scaleModalAnchor.left, visibleLeft + halfWidth),
+      visibleRight - halfWidth
+    );
+    const top = Math.min(
+      Math.max(this._scaleModalAnchor.top, visibleTop + halfHeight),
+      visibleBottom - halfHeight
+    );
+
+    card.style.left = `${left}px`;
+    card.style.top = `${top}px`;
+  }
+
+  _clearPanelLongPress() {
+    if (this._panelLongPressTimer) clearTimeout(this._panelLongPressTimer);
+    this._panelLongPressTimer = null;
+    this._panelLongPressStart = null;
+    this._panelLongPressReady = false;
+    this._panelTouchActive = false;
+  }
+
+  _completePanelLongPress(event, selectValue = true) {
+    const shouldOpenEditor = this._panelLongPressReady;
+    const editorAlreadyOpen = this.isEditingScale;
+    this._clearPanelLongPress();
+    if (!shouldOpenEditor) return;
+    event.stopPropagation();
+    if (editorAlreadyOpen) {
+      this.focusScaleCalibrationInput(selectValue);
+    } else {
+      this.beginScaleCalibration({ selectValue });
+    }
+  }
+
+  canEditScaleCalibration() {
+    const isVR = this.renderer && this.renderer.xr && this.renderer.xr.isPresenting;
+    return this.allowScaleCalibration
+      && !isVR
+      && this.measurementAvailable
+      && this.onScaleCalibration
+      && this.unifiedMeasurementPoints?.length === 2;
+  }
+
+  usesScaleCalibrationModal() {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
+  }
+
+  getActiveScaleInput() {
+    return this.scaleEditorUsesModal ? this.measurementModalUi?.input : this.measurementUi?.input;
+  }
+
+  focusScaleCalibrationInput(selectValue = true) {
+    const input = this.getActiveScaleInput();
+    input?.focus({ preventScroll: true });
+    if (selectValue) {
+      input?.select();
+    } else if (input?.setSelectionRange) {
+      const caretPosition = input.value.length;
+      input.setSelectionRange(caretPosition, caretPosition);
+    }
+  }
+
+  beginScaleCalibration({ selectValue = true, focusInput = true } = {}) {
+    if (!this.canEditScaleCalibration() || this.isEditingScale) return;
+    this.isEditingScale = true;
+    this.scaleEditorUsesModal = this.usesScaleCalibrationModal();
+    this.updateMeasurementPanel();
+    if (focusInput) this.focusScaleCalibrationInput(selectValue);
+  }
+
+  cancelScaleCalibration() {
+    this._clearPanelLongPress();
+    if (!this.isEditingScale) return;
+    this.getActiveScaleInput()?.blur();
+    this.isEditingScale = false;
+    this.scaleEditorUsesModal = false;
+    this.stopScaleModalViewportTracking();
+    if (this.measurementScaleModal) this.measurementScaleModal.hidden = true;
+    this.updateMeasurementPanel();
+  }
+
+  confirmScaleCalibration() {
+    if (!this.isEditingScale || this.unifiedMeasurementPoints?.length !== 2) return;
+    const input = this.getActiveScaleInput();
+    const enteredValue = Number.parseFloat(input?.value);
+    const unit = input?.dataset.unit;
+    const point1 = this.unifiedMeasurementPoints[0].position;
+    const point2 = this.unifiedMeasurementPoints[1].position;
+    const currentDistance = point1.distanceTo(point2);
+    let targetDistance = unit === 'cm' ? enteredValue / 100 : enteredValue;
+
+    if (this._scaleCalibrationEditSource === 'factor') {
+      const factorInput = this.scaleEditorUsesModal
+        ? this.measurementModalUi?.factorInput
+        : this.measurementUi?.factorInput;
+      const targetMultiplier = Number.parseFloat(factorInput?.value);
+      if (!Number.isFinite(targetMultiplier) || targetMultiplier <= 0 || !this._scaleCalibrationEditMultiplier) {
+        factorInput?.setAttribute('aria-invalid', 'true');
+        factorInput?.focus();
+        return;
+      }
+      targetDistance = currentDistance * (targetMultiplier / this._scaleCalibrationEditMultiplier);
+    }
+
+    if (!Number.isFinite(targetDistance) || targetDistance <= 0 || currentDistance <= 0) {
+      input?.setAttribute('aria-invalid', 'true');
+      input?.focus();
+      return;
+    }
+
+    input?.blur();
+    const scaleFactor = targetDistance / currentDistance;
+    const applied = this.onScaleCalibration?.({ scaleFactor, currentDistance, targetDistance });
+    if (applied === false) return;
+
+    const origin = applied?.origin;
+    if (!origin) return;
+    this.scaleCalibrationMultiplier = Number.isFinite(applied?.scaleMultiplier)
+      ? applied.scaleMultiplier
+      : this.scaleCalibrationMultiplier * scaleFactor;
+    this.hasScaleCalibration = true;
+    this.unifiedMeasurementPoints.forEach(point => {
+      point.position.sub(origin).multiplyScalar(scaleFactor).add(origin);
+    });
+    this.unifiedMeasurementPoints.forEach(point => point.sphere?.position.copy(point.position));
+    this.isEditingScale = false;
+    this.scaleEditorUsesModal = false;
+    this.stopScaleModalViewportTracking();
+    if (this.measurementScaleModal) this.measurementScaleModal.hidden = true;
+    this.updateUnifiedMeasurementLine();
+    this.updateMeasurementPanel();
+    this._notifyMeasurementChange('scale-calibrated', {
+      scaleFactor,
+      scaleMultiplier: this.scaleCalibrationMultiplier
+    });
+  }
+
+  updateScaleCalibrationEditor(distance) {
+    if (!this.measurementUi) return;
+    const useCentimetres = distance * 100 <= 20;
+    const unit = useCentimetres ? 'cm' : 'm';
+    const value = useCentimetres ? distance * 100 : distance;
+    const { input, unit: unitLabel, confirm, factorInput } = this.measurementUi;
+    const displayValue = value.toFixed(2);
+    input.value = displayValue;
+    input.style.width = `${Math.max(3, displayValue.length + 0.15)}ch`;
+    input.dataset.unit = unit;
+    input.setAttribute('aria-label', `Correct measurement in ${unit}`);
+    input.readOnly = !this.isEditingScale;
+    input.removeAttribute('aria-invalid');
+    unitLabel.textContent = unit;
+    confirm.hidden = !this.isEditingScale;
+    factorInput.value = this.scaleCalibrationMultiplier.toFixed(2);
+    factorInput.removeAttribute('aria-invalid');
+    this._scaleCalibrationEditDistance = distance;
+    this._scaleCalibrationEditMultiplier = this.scaleCalibrationMultiplier;
+    this._scaleCalibrationEditSource = 'measurement';
+  }
+
+  updateScaleCalibrationModal(distance) {
+    if (!this.measurementModalUi || !this.measurementScaleModal) return;
+    const useCentimetres = distance * 100 <= 20;
+    const unit = useCentimetres ? 'cm' : 'm';
+    const value = useCentimetres ? distance * 100 : distance;
+    const displayValue = value.toFixed(2);
+    this.measurementModalUi.input.value = displayValue;
+    this.measurementModalUi.input.style.width = `${Math.max(3, displayValue.length + 0.15)}ch`;
+    this.measurementModalUi.input.dataset.unit = unit;
+    this.measurementModalUi.input.removeAttribute('aria-invalid');
+    this.measurementModalUi.unit.textContent = unit;
+    this._scaleCalibrationEditDistance = distance;
+    this._scaleCalibrationEditMultiplier = this.scaleCalibrationMultiplier;
+    this._scaleCalibrationEditSource = 'measurement';
+    this.measurementModalUi.factorInput.value = this.scaleCalibrationMultiplier.toFixed(2);
+    this.measurementModalUi.factorInput.removeAttribute('aria-invalid');
+    this.measurementScaleModal.hidden = false;
+    this.startScaleModalViewportTracking();
+  }
+
+  syncScaleFactorFromMeasurement(ui) {
+    const { input, factorInput } = ui || {};
+    const enteredValue = Number.parseFloat(input?.value);
+    const targetDistance = input?.dataset.unit === 'cm' ? enteredValue / 100 : enteredValue;
+    if (!Number.isFinite(targetDistance) || targetDistance <= 0 || !this._scaleCalibrationEditDistance) return;
+    const multiplier = this._scaleCalibrationEditMultiplier * (targetDistance / this._scaleCalibrationEditDistance);
+    factorInput.value = multiplier.toFixed(2);
+    input.removeAttribute('aria-invalid');
+    factorInput.removeAttribute('aria-invalid');
+  }
+
+  syncMeasurementFromScaleFactor(ui) {
+    const { input, factorInput } = ui || {};
+    const multiplier = Number.parseFloat(factorInput?.value);
+    if (!Number.isFinite(multiplier) || multiplier <= 0 || !this._scaleCalibrationEditMultiplier) return;
+    const targetDistance = this._scaleCalibrationEditDistance * (multiplier / this._scaleCalibrationEditMultiplier);
+    const displayValue = input?.dataset.unit === 'cm' ? targetDistance * 100 : targetDistance;
+    input.value = displayValue.toFixed(2);
+    input.style.width = `${Math.max(3, input.value.length + 0.15)}ch`;
+    input.removeAttribute('aria-invalid');
+    factorInput.removeAttribute('aria-invalid');
   }
 
   updateMeasurementPanel() {
@@ -1088,11 +1949,15 @@ export class MeasurementSystem {
     }
     
 
-    panel.classList.remove('disabled', 'active', 'measured', 'unavailable');
+    panel.classList.remove('disabled', 'active', 'measured', 'unavailable', 'editing-scale');
     panel.style.opacity = '';
     panel.style.cursor = 'pointer';
     panel.setAttribute('aria-disabled', 'false');
     panel.removeAttribute('title');
+
+    const { status, primary, statusHint, editor } = this.measurementUi;
+    status.hidden = false;
+    editor.hidden = true;
 
     if (!this.measurementAvailable) {
       panel.classList.add('disabled', 'unavailable');
@@ -1100,32 +1965,39 @@ export class MeasurementSystem {
       panel.style.cursor = 'not-allowed';
       panel.setAttribute('aria-disabled', 'true');
       panel.title = 'This model is marked as not measurable';
-      panel.innerHTML = `
-        <div>MEASURE</div>
-        <div style="font-size: 12px; margin-top: 4px;">Not available</div>
-      `;
+      primary.textContent = 'MEASURE';
+      statusHint.textContent = 'Not available';
       return;
     }
     
     if (!isEnabled) {
       panel.classList.add('disabled');
-      panel.innerHTML = `
-        <div>MEASURE</div>
-        <div style="font-size: 12px; margin-top: 4px;">Click to enable</div>
-      `;
+      primary.textContent = 'MEASURE';
+      statusHint.textContent = 'Click to enable';
     } else if (hasMeasurement) {
       panel.classList.add('measured');
-      panel.innerHTML = `
-        <div>${this.formatDistance(distance)}</div>
-        <div style="font-size: 12px; margin-top: 4px;">Click to disable</div>
-      `;
+      if (this.isEditingScale && !this.scaleEditorUsesModal) panel.classList.add('editing-scale');
+      if (this.allowScaleCalibration && !isVR) {
+        panel.title = 'Right-click or long press to correct scale';
+      }
+      if (this.isEditingScale && !this.scaleEditorUsesModal) {
+        status.hidden = true;
+        editor.hidden = false;
+        this.updateScaleCalibrationEditor(distance);
+      } else {
+        primary.textContent = this.formatDistance(distance);
+        statusHint.textContent = this.allowScaleCalibration && this.hasScaleCalibration
+          ? `Scale ${this.scaleCalibrationMultiplier.toFixed(2)}×`
+          : 'Click to disable';
+        if (this.isEditingScale && this.scaleEditorUsesModal) {
+          this.updateScaleCalibrationModal(distance);
+        }
+      }
     } else {
       panel.classList.add('active');
       const instruction = isVR ? 'Use triggers' : 'Click points';
-      panel.innerHTML = `
-        <div>MEASURE: ON</div>
-        <div style="font-size: 12px; margin-top: 4px;">${instruction} (${hasPoints}/2)</div>
-      `;
+      primary.textContent = 'MEASURE: ON';
+      statusHint.textContent = `${instruction} (${hasPoints}/2)`;
     }
   }
 

@@ -11,13 +11,13 @@
     {
         "imports": {
             "three": "/node_modules/three/build/three.module.js",
-            "belowjs": "/dist/belowjs.js"
+            "belowjs": "/dist/belowjs.js?v=vr-measurement-delete-21"
         }
     }
     </script>
     
     <!-- BelowJS CSS -->
-    <link rel="stylesheet" href="/dist/belowjs.css">
+    <link rel="stylesheet" href="/dist/belowjs.css?v=vr-measurement-delete-21">
     
     <style>
         body, html {
@@ -95,6 +95,7 @@
 
         const viewer = new ModelViewer(viewerContainer, {
           enableVR: true,
+          enableMeasurementScaleCalibration: true,
           showInfo: true,
           models: models,
           enableVRComfortGlyph: true,

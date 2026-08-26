@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `camera.setMaxDistance(n)` for adjusting the desktop orbit zoom-out limit from the console.
 - Added `loadAncestors` and `ktxWorkerLimit` tileset options for explicit refinement continuity and texture-transcoding control.
 - Added single-tab Quest route capture and replay tooling so real headset paths can be benchmarked without storing model data in the repository.
+- Added measurement scale calibration: right-click or long-press a completed measurement, enter the known distance or scale multiplier, and BelowJS rescales the model around its original origin while preserving the current view. On small screens this opens in a compact, keyboard-safe modal.
+- Added deliberate VR endpoint deletion with close-proximity trigger holds, radial progress, cancellation tolerance, and haptic confirmation.
+- Added `measurement-changed` and `model-scale-calibrated` viewer events so integrations can respond immediately to point deletion and model rescaling.
 
 ### Changed
 - Increased the default desktop orbit max distance from 100 to 150.
@@ -18,9 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synced the renderer scheduler with the active WebXR session so queued tile work follows the headset animation frame.
 - Standalone VR now uses two KTX2 transcoder workers to reduce streaming bursts; PCVR keeps four workers for faster loading on more capable hardware.
 - `PerfMonitor` tileset telemetry now includes queued and cached tile counts plus the active per-frame processing limit.
+- Measurement scale calibration is enabled by default and can be disabled with `enableMeasurementScaleCalibration: false`; the model comparison example opts out.
 
 ### Fixed
 - Removed the old implicit tileset depth cap that could leave deeply nested model sections missing.
+- VR measurement deletion progress now runs on the active WebXR animation loop, so the ring fills smoothly and deletion completes reliably in-headset.
 
 ## [1.8.0] - 2026-07-17
 

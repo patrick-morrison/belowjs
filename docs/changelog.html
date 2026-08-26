@@ -220,6 +220,9 @@
                         <li><span class="change-type new">New</span> <code>camera.setMaxDistance(n)</code> for adjusting the desktop orbit zoom-out limit from the console</li>
                         <li><span class="change-type new">New</span> <code>loadAncestors</code> and <code>ktxWorkerLimit</code> tileset options for refinement continuity and texture-transcoding control</li>
                         <li><span class="change-type new">New</span> Single-tab Quest route capture and replay tooling for benchmarking real headset paths without storing model data in the repository</li>
+                        <li><span class="change-type new">New</span> Measurement scale calibration: right-click or long-press a completed measurement, enter the known distance or scale multiplier, and BelowJS rescales the model around its original origin while preserving the current view. Small screens use a compact, keyboard-safe modal</li>
+                        <li><span class="change-type new">New</span> Deliberate VR endpoint deletion with close-proximity trigger holds, radial progress, cancellation tolerance, and haptic confirmation</li>
+                        <li><span class="change-type new">New</span> <code>measurement-changed</code> and <code>model-scale-calibrated</code> viewer events for integrations that need immediate point-deletion and model-scale updates</li>
                     </ul>
 
                     <h4>Changed</h4>
@@ -229,11 +232,13 @@
                         <li><span class="change-type improved">Improved</span> Tile scheduling now follows the active WebXR animation frame</li>
                         <li><span class="change-type improved">Improved</span> Standalone VR uses two KTX2 workers to reduce streaming bursts, while PCVR keeps four for faster loading on more capable hardware</li>
                         <li><span class="change-type improved">Improved</span> Tileset performance telemetry includes queued and cached tile counts plus the active processing limit</li>
+                        <li><span class="change-type improved">Improved</span> Measurement scale calibration is enabled by default and can be disabled with <code>enableMeasurementScaleCalibration: false</code>; the model comparison example opts out</li>
                     </ul>
 
                     <h4>Fixed</h4>
                     <ul>
                         <li><span class="change-type fixed">Fixed</span> Removed the old implicit tileset depth cap that could leave deeply nested model sections missing</li>
+                        <li><span class="change-type fixed">Fixed</span> VR measurement deletion progress now runs on the active WebXR animation loop, so the ring fills smoothly and deletion completes reliably in-headset</li>
                     </ul>
                 </div>
             </div>

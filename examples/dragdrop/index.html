@@ -11,12 +11,12 @@
     {
         "imports": {
             "three": "/node_modules/three/build/three.module.js",
-            "belowjs": "/dist/belowjs.js"
+            "belowjs": "/dist/belowjs.js?v=desktop-measurement-scale-18"
         }
     }
     </script>
     
-    <link rel="stylesheet" href="/dist/belowjs.css">
+    <link rel="stylesheet" href="/dist/belowjs.css?v=desktop-measurement-scale-18">
     
     <style>
         body, html {
@@ -534,6 +534,7 @@
 
   // Configure viewer with dark theme and standalone mode toggle
         const viewer = new ModelViewer(viewerContainer, {
+          enableMeasurementScaleCalibration: true,
           models: models,
           autoLoadFirst: false,
           showDiveToggle: false,

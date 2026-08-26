@@ -46,6 +46,10 @@ export default defineConfig({
     port: 5173,
     open: 'examples/basic/',  // Open the basic example by default
     cors: true,
+    allowedHosts: ['.ts.net'],
+    headers: {
+      'Cache-Control': 'no-store'
+    },
     watch: {
       include: ['src/**/*', 'dist/**/*', 'examples/**/*'],
       ignored: ['**/node_modules/**', '**/.git/**']
