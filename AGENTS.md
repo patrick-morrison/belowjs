@@ -41,7 +41,7 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
    - `docs/index.html` (homepage version pill text + release month/date)
    - `AGENTS.md` and `CLAUDE.md` (release guidance/current version notes)
 8) **VERIFY**: Check all docs files have correct version
-   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.8.0"` (should be empty)
+   - Run: `grep -r "belowjs@1\." docs/*.html README.md | grep -v "1.9.0"` (should be empty)
 9) Commit, tag, and push:
    - Commit message: `release: X.Y.Z – summary`
    - Tag: `vX.Y.Z`
@@ -92,5 +92,5 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.8.0)
-- Added: 3D Tiles VR performance tuning, automatic headset/PCVR profiles, model comparison controls, and offline asset-path support
+## Current (1.9.0)
+- Added: measurement scale calibration, deliberate VR endpoint deletion, integration events, and smoother WebXR tileset streaming

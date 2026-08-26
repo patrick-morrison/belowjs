@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-08-27
+
 ### Added
 - Added `camera.setMaxDistance(n)` for adjusting the desktop orbit zoom-out limit from the console.
 - Added `loadAncestors` and `ktxWorkerLimit` tileset options for explicit refinement continuity and texture-transcoding control.

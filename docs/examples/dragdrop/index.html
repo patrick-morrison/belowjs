@@ -22,12 +22,12 @@
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.8.0/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.9.0/dist/belowjs.js"
         }
     }
     </script>
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.8.0/dist/belowjs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.9.0/dist/belowjs.css">
     
     <style>
         body, html {
@@ -548,6 +548,7 @@
 
   // Configure viewer with dark theme and standalone mode toggle
         const viewer = new ModelViewer(viewerContainer, {
+          enableMeasurementScaleCalibration: true,
           models: models,
           autoLoadFirst: false,
           showDiveToggle: false,
