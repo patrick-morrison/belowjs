@@ -125,12 +125,12 @@
             <h2>Step 2: Download as GLB</h2>
             <p>If your model has downloads enabled, you will find it below the viewer on Sketchfab. Downloading the Sketchfab GLB is the preferred path because it keeps the model orientation you set in Sketchfab and avoids an extra conversion step. You should still <a href="optimisation.html">optimise the GLB</a> for VR performance and fast downloads. If the download option is not visible, check Model Properties or adjust the download permissions in your model settings.</p>
 
-            <h2>Step 3: Test in Drag and Drop viewer</h2>
-            <p>Your model will load immediately and you can check if everything works properly!</p>
+            <h2>Step 3: Open it in the Drag and Drop viewer</h2>
+            <p>Drop the downloaded GLB into the viewer and it will load immediately. You can explore it, take measurements and start studying the model without setting up a site first.</p>
 
             <div style="background: #f8f9fa; border-left: 4px solid #10b981; padding: 1.5rem; margin: 1.5rem 0; border-radius: 4px;">
                 <p style="margin: 0 0 1rem 0; color: #495057; line-height: 1.5;">
-                    Test your model and check file size, polygon count, and performance.
+                    Check the model, measure a known distance and correct its scale if needed. Right-click the completed measurement on desktop or long press it on mobile, then enter the correct distance.
                 </p>
                 <a href="../examples/dragdrop/" target="_blank" style="display: inline-block; background: #047857; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
                     Test your model →
@@ -148,10 +148,8 @@
                 </div>
             </div>
 
-            <h2>Step 4: Optimise and scale your model (Recommended)</h2>
-            <p>If your model wasn't scaled before upload, follow the <a href="model-setup.html">model setup guide</a>.
-                If your model is already oriented from Sketchfab, this is usually the quickest way to finish scaling and
-                optimisation.</p>
+            <h2>Step 4: Optimise and save the scale (Recommended)</h2>
+            <p>You can study the model in the drag-and-drop viewer straight away. When you are ready to publish it or use it in VR, follow the <a href="model-setup.html">model setup guide</a> and make the scale correction permanent.</p>
             
             <p>Sketchfab GLBs are usually decent out of the box, but we can do better for VR. Use the
                 <a href="optimisation.html">optimisation guide</a>, especially if your model is over ~1 million
@@ -159,10 +157,7 @@
             
             <pre><code>belowjs-optimiser pack input.glb</code></pre>
 
-            <p>To scale with the optimiser, measure a known distance in the
-                <a href="../examples/dragdrop/" target="_blank">drag-and-drop viewer</a>, then compute
-                <code>scale factor = expected / measured</code>. Example: if a 1 m scale stick measures 0.85 m, use
-                <code>1.00 / 0.85 = 1.18</code>:</p>
+            <p>The viewer shows the applied scale. Use that same factor with the optimiser to make the correction permanent in the model:</p>
             <pre><code>belowjs-optimiser pack input.glb --scale 1.18</code></pre>
 
             <h2>Step 5: Copy the Basic example</h2>

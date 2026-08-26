@@ -20,7 +20,7 @@ Virtual reality and desktop modes are tightly integrated with a measurement syst
 
 BelowJS can be deployed statically or as part of a system. A simple GitHub page can share optimised models for free, and will last forever with little maintenance. Conversely, it can power dynamic systems like BelowVR, which lets teams virtually dive together.
 
-Sensible defaults make your work look beautiful. We have tools to help you optimise, scale and annotate them.
+Sensible defaults make your work look beautiful. The drag-and-drop viewer helps you inspect, measure and correct model scale before building your own viewer.
 
 The code is yours, as long as you share what you do with it.
 
@@ -108,14 +108,14 @@ npm install && npm run build
 ```
 
 - `npm run dev` — Full-featured viewer with model selection and all systems enabled
-- `npm run dev:dragdrop` — File loader with drag-and-drop GLB support and custom UI elements
+- `npm run dev:dragdrop` — Load a GLB, check measurements and correct its scale
 - `npm run dev:embed` — Lightweight viewer designed for iframe embedding
 - `npm run dev:tileset` — 3D Tiles streaming example for large datasets
 
 ### Live Examples
 
 - [Basic Viewer](https://patrick-morrison.github.io/belowjs/examples/basic/) — Full-featured multi-model viewer
-- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — File loader with custom UI; recommended path for Meta Quest Link desktop streaming
+- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — Load a GLB, check measurements and correct its scale
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
 - [Tileset Viewer](https://patrick-morrison.github.io/belowjs/examples/tileset/) — 3D Tiles streaming example
 
@@ -180,6 +180,18 @@ new ModelViewer('#container', {
       measurable: false // disable measurements for uncertain scale
     }
   }
+});
+```
+
+### Correcting Model Scale
+
+In the [drag-and-drop viewer](https://patrick-morrison.github.io/belowjs/examples/dragdrop/), make a measurement across a known distance, then right-click its measurement box on desktop or long press it on mobile. Enter the correct distance and BelowJS will rescale the model around its original origin. The applied scale is shown so you can use the same factor when preparing the final model.
+
+Scale correction is enabled by default. Disable it for a viewer with:
+
+```javascript
+new ModelViewer('#container', {
+  enableMeasurementScaleCalibration: false
 });
 ```
 

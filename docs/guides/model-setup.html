@@ -113,17 +113,13 @@
             
             <p>If you have a georeferenced model, it will already be scaled - but a scale bar is normally more precise. You can also use known features as a scale bar, if you did not use one - for example: 1) known cray pot dimensions, 2) pre-measured masts or cannons, 3) dive knives. Beware scaling errors. Good practice and multiple checks are important if you care about the accuracy of the BelowJS measurement tool.</p>
 
-            <h2>Scaling with belowjs-optimiser</h2>
-            <p>You can scale a model using belowjs-optimiser. Use the <a href="../examples/dragdrop/">drag-and-drop
-                    viewer</a> to measure a known distance, then compute
-                <code>scale factor = expected / measured</code>. Example: if a 1 m scale
-                stick measures 0.85 m in the viewer, <code>1.00 / 0.85 = 1.18</code>.</p>
-            <p>Then apply that factor with belowjs-optimiser:</p>
+            <h2>Scaling with the drag-and-drop viewer</h2>
+            <p>The <a href="../examples/dragdrop/">drag-and-drop viewer</a> can check and correct scale directly. Measure a known distance, then right-click the completed measurement on desktop or long press it on mobile. Enter the correct distance and the viewer will rescale the model around its original origin.</p>
+            <p>The measurement box shows the applied scale. To make that correction permanent in the model, use the same factor with belowjs-optimiser:</p>
             <pre><code>belowjs-optimiser pack model.glb --scale 1.18</code></pre>
             <p>After scaling, continue with the <a href="optimisation.html">optimisation guide</a> to apply compression
                 and polygon targets for VR/AR performance.</p>
-            <p>If your model is already oriented from a <a href="sketchfab-models.html">Sketchfab download</a>, this is
-                usually the quickest way to get it correctly scaled.</p>
+            <p>If your model is already oriented from a <a href="sketchfab-models.html">Sketchfab download</a>, this is usually the quickest way to get it correctly scaled.</p>
             
             <h2>Scaling in Blender and other open source programs</h2>
             <p>There are tutorials elsewhere on the internet for scaling in free and open source programs. Look for recent tutorials as software interfaces change frequently.</p>
