@@ -1,0 +1,16 @@
+{
+  "format": "belowjs-annotations",
+  "version": 1,
+  "layer": {
+    "name": "Rapid A",
+    "coordinate_space": "model"
+  },
+  "annotations": [
+    {
+      "title": "Stale A",
+      "notes": "This document must lose the rapid-switch race.",
+      "position": { "x": -1.2, "y": 0.2, "z": -8.4 }
+    }
+  ],
+  "scale_bars": []
+}

@@ -6,6 +6,7 @@ import { MeasurementSystem } from '../measurement/MeasurementSystem.js';
 import { VRComfortGlyph } from '../vr/ui/VRComfortGlyph.js';
 import { DiveSystem } from '../dive/DiveSystem.js';
 import { FlyControls } from '../core/FlyControls.js';
+import { AnnotationSystem } from '../annotations/AnnotationSystem.js';
 
 /**
  * @typedef {Object} ModelConfig
@@ -34,6 +35,8 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {string} [dracoDecoderPath] - Optional DRACO decoder path for GLTFExtensionsPlugin
  * @property {string} [ktx2TranscoderPath] - Optional KTX2 transcoder path for GLTFExtensionsPlugin
  * @property {Object} [initialPositions] - Camera and target positions for this model
+ * @property {string|Object} [annotations] - Portable annotation document URL or inline document
+ * @property {boolean} [annotationsVisible=true] - Initial annotation visibility for this model
  * @property {Object} [initialPositions.desktop] - Desktop viewing positions
  * @property {Object} [initialPositions.desktop.camera] - Camera position {x, y, z}
  * @property {Object} [initialPositions.desktop.target] - Camera target {x, y, z}
@@ -125,6 +128,16 @@ import { FlyControls } from '../core/FlyControls.js';
  * @property {boolean} [enableAutoRecovery=true] - Retry loading when tab focus/context interruptions leave the viewer blank
  * @property {string} [initialModel] - Key of model to load initially
  * @property {Object} [initialPositions] - Override initial positions for loaded model
+ * @property {Object} [annotations] - Annotation system configuration
+ * @property {boolean} [annotations.enabled] - Explicitly enable or disable annotations
+ * @property {string} [annotations.mode='view'] - Annotation mode ('view' or 'author')
+ * @property {boolean} [annotations.showToggle=true] - Show the annotation visibility control
+ * @property {boolean} [annotations.showExport=false] - Show the built-in JSON export control in author mode
+ * @property {boolean} [annotations.occlusionFade=true] - Fade markers occluded by model geometry
+ * @property {boolean} [annotations.diveLighting=true] - Dim markers outside the active dive light
+ * @property {Object} [annotations.xr] - Immersive marker presentation settings
+ * @property {boolean} [annotations.xr.enabled=true] - Show model-attached markers in immersive sessions
+ * @property {string} [annotations.xr.interaction='select'] - XR marker interaction mode
  */
 
 /**
@@ -204,7 +217,7 @@ export class ModelViewer extends EventSystem {
 
   /**
    * Creates a new ModelViewer instance
-   * 
+   *
    * @param {HTMLElement|string} container - DOM element or CSS selector for the viewer container
    * @param {ModelViewerOptions} [options={}] - Configuration options
    */
@@ -253,7 +266,8 @@ export class ModelViewer extends EventSystem {
         }
       },
       initialModel: { type: 'string', default: null },
-      initialPositions: { type: 'object', default: null }
+      initialPositions: { type: 'object', default: null },
+      annotations: { type: 'object', default: {} }
     };
 
     this.config = new ConfigValidator(schema).validate(options);
@@ -268,6 +282,7 @@ export class ModelViewer extends EventSystem {
     this.stereoUiSyncQueued = false;
     this.stereoUiActive = false;
     this.measurementSystem = null;
+    this.annotations = null;
     this.comfortGlyph = null;
     this.diveSystem = null;
     this.fullscreenButton = null;
@@ -348,6 +363,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
       this._maybeAttachFlyControls();
+      this._maybeAttachAnnotationSystem();
     });
 
 
@@ -360,6 +376,7 @@ export class ModelViewer extends EventSystem {
       this._maybeAttachScreenshotButton();
       this._maybeAttachFullscreenButton();
       this._maybeAttachFlyControls();
+      this._maybeAttachAnnotationSystem();
     }
 
     if (Object.keys(this.config.models).length > 0) {
@@ -371,6 +388,29 @@ export class ModelViewer extends EventSystem {
         const firstModelKey = Object.keys(this.config.models)[0];
         setTimeout(() => this.loadModel(firstModelKey), 100);
       }
+    }
+  }
+
+  _maybeAttachAnnotationSystem() {
+    if (this.annotations) return;
+    const config = this.config.annotations || {};
+    const hasModelSources = Object.values(this.config.models || {}).some((model) => !!model?.annotations);
+    const enabled = config.enabled === true || (config.enabled !== false && hasModelSources);
+    if (!enabled) return;
+
+    this.annotations = new AnnotationSystem(this, {
+      ...config,
+      container: config.container || this.container
+    });
+    for (const eventName of [
+      'annotations-loaded',
+      'annotations-cleared',
+      'annotation-changed',
+      'annotation-selection-changed',
+      'annotation-visibility-changed',
+      'annotation-error'
+    ]) {
+      this.annotations.on(eventName, (data) => this.emit(eventName, data));
     }
   }
 
@@ -746,6 +786,7 @@ export class ModelViewer extends EventSystem {
 
     this.flyControls.on('fly-mode-change', (data) => {
       this.emit('fly-mode-change', data);
+      if (data.active) this.annotations?.dismissTransientUi();
       if (this.ui.flyIndicator) {
         this.ui.flyIndicator.classList.toggle('visible', data.active);
       }
@@ -1074,6 +1115,12 @@ export class ModelViewer extends EventSystem {
    * @since 1.0.0
    */
   takeScreenshot() {
+    if (this.annotations) {
+      this.annotations.captureScreenshot().catch((err) => {
+        console.error('[ModelViewer] Failed to capture annotated screenshot', err);
+      });
+      return;
+    }
     try {
       const captured = this.captureScreenshotCanvas();
       const dataURL = captured.canvas.toDataURL('image/png');
@@ -1976,8 +2023,13 @@ export class ModelViewer extends EventSystem {
       console.error('Model not found:', modelKey);
       return;
     }
+    // Manual callers can race BelowViewer's initialized event. Attach here as
+    // well so a declared annotation document always starts loading alongside
+    // its model, even on the first request.
+    this._maybeAttachAnnotationSystem();
     this.lastRequestedModelKey = modelKey;
     this.currentModelKey = modelKey;
+    this.annotations?.prepareModel(modelKey, modelConfig);
     this.hadContextLoss = false;
     if (this.recoveryTimer) {
       clearTimeout(this.recoveryTimer);
@@ -2062,6 +2114,7 @@ export class ModelViewer extends EventSystem {
         ktx2TranscoderPath: modelConfig.ktx2TranscoderPath
       });
       if (model) {
+        if (this.currentModelKey !== modelKey) return;
         const hasInitialDesktopPosition = Boolean(modelConfig.initialPositions?.desktop);
         this.applyInitialPositions(modelConfig, model);
         this.belowViewer.cameraManager?.resetControlInteractionState?.();
@@ -2072,6 +2125,7 @@ export class ModelViewer extends EventSystem {
           this.belowViewer.frameModel(model);
         }
 
+        await this.annotations?.activateModel(modelKey, model, modelConfig);
         this.hideLoading();
         this.updateStatus(`Loaded: ${modelConfig.name || modelKey}`);
 
@@ -2095,6 +2149,7 @@ export class ModelViewer extends EventSystem {
 
         this.applyModelMeasurementConfig(modelConfig, null);
         if (this.currentModelKey === modelKey) {
+          this.annotations?.clear();
           const shouldRetryNow = typeof document === 'undefined' || !document.hidden;
           if (shouldRetryNow) {
             this.queueRecovery('model-load-error', { forceReload: true, delayMs: 500 });
@@ -2791,6 +2846,10 @@ export class ModelViewer extends EventSystem {
     if (this.measurementSystem) {
       this.measurementSystem.dispose();
       this.measurementSystem = null;
+    }
+    if (this.annotations) {
+      this.annotations.destroy();
+      this.annotations = null;
     }
     if (this.comfortGlyph) {
       this.comfortGlyph.dispose();

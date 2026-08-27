@@ -1,0 +1,16 @@
+{
+  "format": "belowjs-annotations",
+  "version": 1,
+  "layer": {
+    "name": "Rapid B",
+    "coordinate_space": "model"
+  },
+  "annotations": [
+    {
+      "title": "Current B",
+      "notes": "This document must be active after the rapid-switch race.",
+      "position": { "x": 0.5, "y": 0.1, "z": -13.5 }
+    }
+  ],
+  "scale_bars": []
+}

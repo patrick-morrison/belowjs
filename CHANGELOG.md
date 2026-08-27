@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-08-27
+
+### Added
+- Added first-class per-model annotations for GLB and streamed tileset viewers, with version 1 JSON URL or inline-document loading, stale-load cancellation, model-local coordinates, visibility controls, and explicit JSON download.
+- Added the public `viewer.annotations` facade for loading, clearing, selecting, authoring, scale bars, visibility, model lifecycle, collaboration adapters, and transient presence UI.
+- Added desktop and touch annotation authoring with numbered markers, create/edit/move/delete/collapse actions, multi-selection, scale bars, occlusion and dive-lighting presentation, and annotation-aware screenshots.
+- Added immersive VR/AR model-attached markers, controller selection, and a readable selected-annotation panel.
+- Added a deterministic annotations example and dependency-free codec/store tests.
+
+### Changed
+- Annotation styling now ships in the normal BelowJS stylesheet with theme custom properties rather than runtime style injection.
+- Annotation documents remain compatible with `belowjs-annotations` version 1: new exports identify `layer.coordinate_space` as `model`, while legacy documents without metadata are normalized from world space after the matching model activates.
+
 ## [1.9.1] - 2026-08-27
 
 ### Fixed

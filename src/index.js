@@ -65,6 +65,13 @@ export { ModelLoader } from './models/ModelLoader.js';
 export { EventSystem } from './utils/EventSystem.js';
 export { ConfigValidator } from './utils/ConfigValidator.js';
 export { PerfMonitor } from './utils/PerfMonitor.js';
+export { AnnotationSystem } from './annotations/AnnotationSystem.js';
+export {
+  ANNOTATION_DOCUMENT_FORMAT,
+  ANNOTATION_DOCUMENT_VERSION,
+  normalizeAnnotationDocument,
+  serializeAnnotationDocument
+} from './annotations/AnnotationCodec.js';
 export {
   applyTilesetVRProfileDefaults,
   applyVRRenderProfileDefaults,

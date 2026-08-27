@@ -1,0 +1,563 @@
+:root {
+  --belowjs-annotation-accent: rgb(100, 181, 246);
+  --belowjs-annotation-accent-soft: rgba(100, 181, 246, 0.55);
+  --belowjs-annotation-panel: rgba(16, 20, 28, 0.82);
+  --belowjs-annotation-surface: rgba(13, 18, 26, 0.82);
+  --belowjs-annotation-text: rgba(255, 255, 255, 0.92);
+  --belowjs-annotation-muted: rgba(255, 255, 255, 0.72);
+  --belowjs-annotation-danger: rgb(231, 76, 60);
+}
+
+            .bv-annotation-overlay {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                z-index: 60;
+                overflow: hidden;
+                font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            /* Marker root is a zero-size anchor exactly at the projected 3D
+               point; the dot centers on it so nothing is offset by the title
+               chip's layout. No backdrop-filter on per-frame-moving elements:
+               re-sampling a live WebGL backdrop each frame is a performance
+               cliff. */
+            .bv-annotation-marker {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 0;
+                height: 0;
+                pointer-events: none;
+                cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: none;
+                z-index: 1;
+            }
+            .bv-annotation-marker--collapsed {
+                z-index: 0;
+            }
+            .bv-annotation-marker:has(.bv-annotation-marker__dot:hover),
+            .bv-annotation-marker--selected,
+            .bv-annotation-marker--bar-hover {
+                z-index: 70;
+            }
+            .bv-annotation-marker--remote-editing {
+                z-index: 80;
+            }
+            .bv-annotation-marker--active,
+            .bv-annotation-marker--moving {
+                z-index: 90;
+            }
+            .bv-annotation-marker__dot {
+                position: absolute;
+                left: 0;
+                top: 0;
+                transform: translate(-50%, -50%);
+                pointer-events: auto;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: rgba(13, 18, 26, 0.78);
+                border: 1.5px solid rgba(255, 255, 255, 0.85);
+                color: rgba(255, 255, 255, 0.95);
+                font-size: 11px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+                transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.2s ease;
+            }
+            .bv-annotation-marker__dot::before {
+                content: "";
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 100%;
+                height: 100%;
+                transform: translate(-50%, -50%);
+                border-radius: 50%;
+            }
+            @media (pointer: coarse) {
+                .bv-annotation-marker__dot::before {
+                    width: 44px;
+                    height: 44px;
+                }
+            }
+            .bv-annotation-marker__dot:hover,
+            .bv-annotation-marker--active .bv-annotation-marker__dot {
+                background: var(--belowjs-annotation-accent-soft);
+                border-color: rgba(255, 255, 255, 1);
+            }
+            .bv-annotation-marker--pending .bv-annotation-marker__dot {
+                opacity: 0.55;
+            }
+            .bv-annotation-marker--selected .bv-annotation-marker__dot {
+                border-color: var(--belowjs-annotation-accent);
+                box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.35), 0 1px 6px rgba(0, 0, 0, 0.45);
+            }
+            /* Collapsed: a tiny anonymous dot - present and clickable, but
+               quiet enough for scale bar endpoints to not shout numbers. */
+            .bv-annotation-marker--collapsed .bv-annotation-marker__dot {
+                width: 9px;
+                height: 9px;
+                font-size: 0;
+                border-width: 1px;
+                background: rgba(13, 18, 26, 0.6);
+                border-color: rgba(255, 255, 255, 0.6);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            }
+            .bv-annotation-marker--moving .bv-annotation-marker__dot { cursor: grab; }
+            .bv-annotation-marker--moving .bv-annotation-marker__dot:active { cursor: grabbing; }
+            .bv-annotation-marker--moving .bv-annotation-marker__dot {
+                background: var(--belowjs-annotation-accent-soft);
+                border-style: dashed;
+                animation: bv-annotation-breathe 1.6s ease-in-out infinite;
+            }
+            @keyframes bv-annotation-breathe {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0.45); }
+                50% { box-shadow: 0 0 0 7px rgba(100, 181, 246, 0.0); }
+            }
+            .bv-annotation-marker__title {
+                position: absolute;
+                left: 16px;
+                top: 0;
+                transform: translateY(-50%) translateX(-4px);
+                max-width: 220px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                background: var(--belowjs-annotation-surface);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: var(--belowjs-annotation-text);
+                font-size: 12px;
+                font-weight: 500;
+                padding: 3px 9px;
+                border-radius: 9px;
+                opacity: 0;
+                transition: opacity 0.15s ease, transform 0.15s ease;
+                pointer-events: none;
+            }
+            .bv-annotation-marker__dot:hover + .bv-annotation-marker__title,
+            .bv-annotation-marker--selected .bv-annotation-marker__title,
+            .bv-annotation-marker--remote-editing .bv-annotation-marker__title {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+            /* Once clicked open, the panel shows the details - the hover chip
+               steps aside and STAYS aside while the card is open (the second
+               selector out-ranks the :hover show rule). */
+            .bv-annotation-marker--active .bv-annotation-marker__title,
+            .bv-annotation-marker--active .bv-annotation-marker__dot:hover + .bv-annotation-marker__title {
+                opacity: 0;
+                transform: translateY(-50%) translateX(-4px);
+            }
+            /* Live draft from another user streams into the same title chip
+               the hover uses - one visual, both sources. */
+            .bv-annotation-marker--remote-editing .bv-annotation-marker__title {
+                font-style: italic;
+                border-color: var(--bv-remote-color, rgba(255, 255, 255, 0.3));
+            }
+            .bv-annotation-caret {
+                display: inline-block;
+                width: 1.5px;
+                height: 11px;
+                margin-left: 2px;
+                vertical-align: -1.5px;
+                background: var(--bv-remote-color, rgba(255, 255, 255, 0.8));
+                animation: bv-annotation-caret-blink 1.06s steps(2, start) infinite;
+            }
+            @keyframes bv-annotation-caret-blink {
+                to { visibility: hidden; }
+            }
+            /* Someone else has this marker selected: the gentlest of rings in
+               their avatar colour. */
+            .bv-annotation-marker--remote-selected .bv-annotation-marker__dot {
+                box-shadow: 0 0 0 2.5px var(--bv-remote-ring, rgba(255, 255, 255, 0.25)), 0 1px 6px rgba(0, 0, 0, 0.45);
+            }
+            .bv-annotation-ping {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 0;
+                height: 0;
+                pointer-events: none;
+            }
+            .bv-annotation-ping__core {
+                position: absolute;
+                left: 0;
+                top: 0;
+                transform: translate(-50%, -50%) scale(1);
+                box-sizing: border-box;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                border: 2px solid rgba(255, 255, 255, 0.9);
+                background: rgba(100, 181, 246, 0.45);
+                animation: bv-annotation-ping-pulse 1.1s ease-out infinite;
+                transition: opacity 0.35s ease, transform 0.35s ease;
+            }
+            .bv-annotation-ping--leaving .bv-annotation-ping__core {
+                animation: none;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.35);
+            }
+            /* Other people's pings are quieter than your own. */
+            .bv-annotation-ping--remote .bv-annotation-ping__core {
+                width: 11px;
+                height: 11px;
+                border-color: rgba(255, 255, 255, 0.55);
+                opacity: 0.55;
+            }
+            /* Same chip as the marker hover title - a streaming draft is just
+               a title that hasn't landed yet, so it wears the same clothes
+               (italic until it commits). */
+            .bv-annotation-ping__title {
+                position: absolute;
+                left: 16px;
+                top: 0;
+                transform: translateY(-50%);
+                max-width: 220px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                background: var(--belowjs-annotation-surface);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: var(--belowjs-annotation-text);
+                font-size: 12px;
+                font-weight: 500;
+                font-style: italic;
+                padding: 3px 9px;
+                border-radius: 9px;
+                pointer-events: none;
+                display: none;
+                transition: opacity 0.35s ease;
+            }
+            .bv-annotation-ping--leaving .bv-annotation-ping__title {
+                opacity: 0;
+            }
+            .bv-annotation-marker--bar-hover .bv-annotation-marker__dot {
+                background: var(--belowjs-annotation-accent-soft);
+                border-color: rgba(255, 255, 255, 1);
+            }
+            /* One-shot pulse when a marker settles into a committed position. */
+            .bv-annotation-marker__dot--settle {
+                animation: bv-annotation-settle 0.55s ease-out 1;
+            }
+            @keyframes bv-annotation-settle {
+                0% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0.65); }
+                100% { box-shadow: 0 0 0 16px rgba(100, 181, 246, 0); }
+            }
+            @keyframes bv-annotation-ping-pulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
+                100% { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
+            }
+            .bv-annotation-scale-label {
+                position: absolute;
+                left: 0;
+                top: 0;
+                transform: translate(-50%, -50%);
+                pointer-events: auto;
+                background: rgba(13, 18, 26, 0.85);
+                border: 1.5px solid rgba(100, 181, 246, 0.8);
+                color: #fff;
+                font-size: 12px;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                padding: 4px 11px;
+                border-radius: 9px;
+                box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+                transition: opacity 0.15s ease;
+                cursor: default;
+                user-select: none;
+                -webkit-user-select: none;
+                white-space: nowrap;
+            }
+            .bv-annotation-scale-label--preview {
+                border-style: dashed;
+                border-width: 1px;
+                border-color: rgba(100, 181, 246, 0.5);
+                font-weight: 500;
+                opacity: 0.9;
+            }
+            .bv-annotation-scale-label__hint {
+                display: block;
+                font-size: 9.5px;
+                font-weight: 400;
+                color: rgba(255, 255, 255, 0.55);
+                text-align: center;
+            }
+            .bv-annotation-scale-label--preview {
+                cursor: pointer;
+            }
+            .bv-annotation-scale-label__create {
+                display: block;
+                margin-top: 3px;
+                font-size: 10.5px;
+                font-weight: 600;
+                color: rgba(100, 181, 246, 0.95);
+                text-align: center;
+            }
+            .bv-annotation-scale-label--preview:hover .bv-annotation-scale-label__create {
+                color: #fff;
+            }
+            .bv-annotation-scale-label--remote-selected {
+                border-color: var(--bv-remote-scale-color, rgba(255, 255, 255, 0.75));
+                box-shadow: 0 0 0 2px var(--bv-remote-scale-ring, rgba(255, 255, 255, 0.18)), 0 1px 8px rgba(0, 0, 0, 0.4);
+            }
+            .bv-annotation-menu {
+                position: absolute;
+                z-index: 1004;
+                min-width: 168px;
+                background: rgba(16, 20, 28, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+                padding: 5px;
+                pointer-events: auto;
+                font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            .bv-annotation-menu__item {
+                display: block;
+                width: 100%;
+                text-align: left;
+                background: none;
+                border: none;
+                border-radius: 7px;
+                color: rgba(255, 255, 255, 0.9);
+                font-family: inherit;
+                font-size: 12.5px;
+                font-weight: 500;
+                padding: 7px 11px;
+                cursor: pointer;
+            }
+            .bv-annotation-menu__item:hover {
+                background: rgba(100, 181, 246, 0.22);
+            }
+            .bv-annotation-menu__item--danger:hover {
+                background: rgba(231, 76, 60, 0.28);
+            }
+            .bv-annotation-menu__item:disabled {
+                color: rgba(255, 255, 255, 0.35);
+                cursor: default;
+            }
+            .bv-annotation-menu__item:disabled:hover {
+                background: none;
+            }
+            .bv-annotation-menu__hint {
+                display: block;
+                font-size: 10px;
+                font-weight: 400;
+                color: rgba(255, 255, 255, 0.4);
+            }
+            .bv-annotation-panel {
+                position: absolute;
+                z-index: 1004;
+                min-width: 240px;
+                max-width: 300px;
+                background: var(--belowjs-annotation-panel);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+                color: var(--belowjs-annotation-text);
+                font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                padding: 14px;
+                pointer-events: auto;
+            }
+            .bv-annotation-panel__title {
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0 0 6px 0;
+                word-wrap: break-word;
+            }
+            .bv-annotation-panel__notes {
+                font-size: 12.5px;
+                line-height: 1.5;
+                color: var(--belowjs-annotation-muted);
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                margin: 0 0 8px 0;
+                max-height: 180px;
+                overflow-y: auto;
+            }
+            .bv-annotation-panel__meta {
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.45);
+                margin-bottom: 10px;
+            }
+            .bv-annotation-panel input,
+            .bv-annotation-panel textarea {
+                width: 100%;
+                box-sizing: border-box;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.95);
+                font-family: inherit;
+                font-size: 13px;
+                padding: 8px 10px;
+                margin-bottom: 8px;
+                outline: none;
+                transition: border-color 0.15s ease;
+            }
+            .bv-annotation-panel input:focus,
+            .bv-annotation-panel textarea:focus {
+                border-color: rgba(100, 181, 246, 0.65);
+            }
+            .bv-annotation-panel textarea {
+                resize: vertical;
+                min-height: 64px;
+                max-height: 200px;
+            }
+            .bv-annotation-panel__actions {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+            }
+            .bv-annotation-panel__actions--spread {
+                justify-content: space-between;
+            }
+            .bv-annotation-panel__actions-group {
+                display: flex;
+                gap: 8px;
+            }
+            .bv-annotation-btn {
+                font-family: inherit;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 6px 12px;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                background: rgba(255, 255, 255, 0.06);
+                color: rgba(255, 255, 255, 0.85);
+                cursor: pointer;
+                transition: background 0.15s ease, border-color 0.15s ease;
+            }
+            .bv-annotation-btn:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+            .bv-annotation-btn--primary {
+                background: rgba(100, 181, 246, 0.32);
+                border-color: rgba(100, 181, 246, 0.5);
+                color: #fff;
+            }
+            .bv-annotation-btn--primary:hover {
+                background: rgba(100, 181, 246, 0.45);
+            }
+            .bv-annotation-btn--danger:hover {
+                background: rgba(231, 76, 60, 0.3);
+                border-color: rgba(231, 76, 60, 0.5);
+            }
+            .bv-annotation-btn:disabled,
+            .bv-annotation-btn:disabled:hover {
+                opacity: 0.4;
+                cursor: default;
+                background: rgba(255, 255, 255, 0.06);
+            }
+            /* Same dress as the belowjs screenshot button, one slot above it. */
+            .bv-annotation-vis-button {
+                position: absolute;
+                bottom: 190px;
+                right: 20px;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: var(--below-panel-bg, rgba(255, 255, 255, 0.08));
+                border: 1px solid var(--below-panel-border, rgba(255, 255, 255, 0.12));
+                color: var(--below-text-color, #e8e8e8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 120;
+                backdrop-filter: var(--below-panel-backdrop, blur(20px));
+                -webkit-backdrop-filter: var(--below-panel-backdrop, blur(20px));
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                -webkit-user-select: none;
+                user-select: none;
+                transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+            }
+            .bv-annotation-vis-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            }
+            .bv-annotation-vis-button svg {
+                width: 16px;
+                height: 16px;
+            }
+            .bv-annotation-export-button {
+                bottom: 236px;
+            }
+            .bv-annotation-vis-button--off {
+                color: rgba(255, 255, 255, 0.38);
+            }
+            .bv-annotation-vis-button--off::after {
+                content: '';
+                position: absolute;
+                width: 2px;
+                height: 22px;
+                border-radius: 1px;
+                background: currentColor;
+                transform: rotate(45deg);
+            }
+            .bv-annotation-toast {
+                position: fixed;
+                bottom: 84px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1005;
+                background: rgba(16, 20, 28, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 10px;
+                color: rgba(255, 255, 255, 0.92);
+                font-size: 13px;
+                padding: 9px 16px;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                opacity: 0;
+                transition: opacity 0.25s ease;
+                pointer-events: none;
+            }
+            .bv-annotation-toast--visible {
+                opacity: 1;
+            }
+            /* Touch: bigger targets, inputs at 16px so iOS doesn't zoom. */
+            @media (pointer: coarse) {
+                .bv-annotation-marker__dot {
+                    width: 28px;
+                    height: 28px;
+                    font-size: 12.5px;
+                }
+                .bv-annotation-marker--collapsed .bv-annotation-marker__dot {
+                    width: 13px;
+                    height: 13px;
+                }
+                .bv-annotation-menu__item {
+                    padding: 11px 14px;
+                    font-size: 14px;
+                }
+                .bv-annotation-panel {
+                    min-width: 0;
+                    max-width: min(320px, calc(100vw - 24px));
+                }
+                .bv-annotation-panel input,
+                .bv-annotation-panel textarea {
+                    font-size: 16px;
+                }
+                .bv-annotation-btn {
+                    padding: 9px 16px;
+                    font-size: 13px;
+                }
+                .bv-annotation-scale-label {
+                    padding: 6px 13px;
+                }
+                .bv-annotation-vis-button {
+                    width: 42px;
+                    height: 42px;
+                }
+            }

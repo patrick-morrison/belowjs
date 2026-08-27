@@ -92,5 +92,5 @@ This repository includes guidance for AI coding assistants (Codex CLI and Claude
 - `CHANGELOG.md` – root changelog
 - `docs/changelog.html` – docs changelog
 
-## Current (1.9.1)
-- Fixed: Quest AR session recovery while retaining the v1.9 measurement calibration, VR endpoint deletion, and integration events
+## Current (1.10.0)
+- Added: first-class model-local annotations for static, authored, collaborative, desktop/touch, and XR viewers

@@ -6,7 +6,7 @@
 
 📖 **[Full Documentation & Examples](https://patrick-morrison.github.io/belowjs/)**
 
-> **Current Version:** `1.9.1` - Quest AR session recovery plus the v1.9 measurement calibration, VR endpoint deletion, and integration events.
+> **Current Version:** `1.10.0` - First-class static, authored, collaborative, and XR annotations with model-local anchoring.
 
 **Dive Shipwrecks in Virtual Reality**
 
@@ -60,11 +60,11 @@ This gives you a complete VR-ready 3D viewer with dive lighting, measurement too
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/+esm",
-            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.9.1/dist/belowjs.js"
+            "belowjs": "https://cdn.jsdelivr.net/npm/belowjs@1.10.0/dist/belowjs.js"
         }
     }
     </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.9.1/dist/belowjs.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/belowjs@1.10.0/dist/belowjs.css">
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
     </style>
@@ -111,6 +111,7 @@ npm install && npm run build
 - `npm run dev:dragdrop` — Load a GLB, check measurements and correct its scale
 - `npm run dev:embed` — Lightweight viewer designed for iframe embedding
 - `npm run dev:tileset` — 3D Tiles streaming example for large datasets
+- `npm run dev:annotations` — Per-model annotation loading, authoring, scale bars, export, and XR viewing
 
 ### Live Examples
 
@@ -118,6 +119,7 @@ npm install && npm run build
 - [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — Load a GLB, check measurements and correct its scale
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
 - [Tileset Viewer](https://patrick-morrison.github.io/belowjs/examples/tileset/) — 3D Tiles streaming example
+- [Annotations](https://patrick-morrison.github.io/belowjs/examples/annotations/) — Static JSON annotations with opt-in authoring and download
 
 ## Installation
 
@@ -182,6 +184,47 @@ new ModelViewer('#container', {
   }
 });
 ```
+
+### Per-model annotations
+
+Annotations are read-only by default. Point a model at a portable version 1 JSON document, or pass the document inline. The dedicated annotations example opts into authoring and provides its own JSON download control; ordinary viewers and hosted workspaces do not show export UI. Without a persistence adapter, author-mode edits remain in memory until `download()` is called. New documents declare `layer.coordinate_space: "model"`; legacy version 1 documents without this metadata are interpreted as world space and normalized against the active model when they load.
+
+```javascript
+const viewer = new ModelViewer('#container', {
+  annotations: {
+    mode: 'view',
+    occlusionFade: true,
+    diveLighting: true,
+    xr: { enabled: true, interaction: 'select' }
+  },
+  models: {
+    wreck: {
+      url: './models/wreck.glb',
+      annotations: './annotations/wreck.annotations.json',
+      annotationsVisible: true
+    }
+  }
+});
+
+viewer.annotations.setMode('author');
+viewer.annotations.download();
+```
+
+The stable facade also provides `load`, `clear`, `getDocument`, `setVisible`, `setAdapter`, CRUD operations, scale-bar operations, selection, follow-mode presence, and transient-UI dismissal. Set `annotations.enabled: false` for a hard opt-out. A viewer can explicitly request a built-in export glyph with `showExport: true`, but it is off by default.
+
+Collaborative hosts provide persistence through a small transport adapter; BelowJS remains responsible for state and presentation:
+
+```javascript
+viewer.annotations.setAdapter({
+  setContext({ modelKey, modelConfig }) {},
+  requestSnapshot() {},
+  send(operation) {},
+  subscribe(listener) { return () => {}; },
+  dispose() {}
+});
+```
+
+Adapter listeners receive generic `snapshot`, `operation`, `preview`, `presence`, and `error` events. Static sites omit the adapter entirely.
 
 ### Correcting Model Scale
 

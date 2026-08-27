@@ -200,11 +200,34 @@
 
             <div class="npm-install">
                 <strong>Latest Release:</strong><br>
-                <code>npm install belowjs@1.9.1</code>
+                <code>npm install belowjs@1.10.0</code>
                 <div style="margin-top: 0.75rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.85rem;">
                     or download directly:
-                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.9.1/dist/belowjs.js','belowjs.js');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.js</a>
-                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.9.1/dist/belowjs.css','belowjs.css');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.css</a>
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.10.0/dist/belowjs.js','belowjs.js');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.js</a>
+                    <a href="#" onclick="saveFile('https://cdn.jsdelivr.net/npm/belowjs@1.10.0/dist/belowjs.css','belowjs.css');return false" style="margin-left: 0.5rem; color: #0d3b66; text-decoration: underline; cursor: pointer;">belowjs.css</a>
+                </div>
+            </div>
+
+            <div class="version-section">
+                <div class="version-header">
+                    <div class="version-number">1.10.0</div>
+                    <div class="version-date">August 27, 2026</div>
+                    <div class="version-tag">Latest Release</div>
+                </div>
+
+                <div class="changes-list">
+                    <h4>Added</h4>
+                    <ul>
+                        <li><span class="change-type new">New</span> First-class per-model annotations from a version 1 JSON URL or inline document, with model-local coordinates and safe rapid-switch cancellation</li>
+                        <li><span class="change-type new">New</span> Public <code>viewer.annotations</code> facade for loading, visibility, JSON export, CRUD, scale bars, selection, follow presence, and collaboration adapters</li>
+                        <li><span class="change-type new">New</span> Full desktop/touch authoring and XR marker selection with a readable in-headset detail panel</li>
+                        <li><span class="change-type new">New</span> Deterministic annotations example and codec/store test coverage</li>
+                    </ul>
+                    <h4>Changed</h4>
+                    <ul>
+                        <li><span class="change-type improved">Improved</span> Annotation styles now ship in <code>belowjs.css</code> with theme custom properties</li>
+                        <li><span class="change-type improved">Improved</span> Legacy version 1 documents without coordinate metadata are normalized from world space after the matching model activates</li>
+                    </ul>
                 </div>
             </div>
 
@@ -212,7 +235,7 @@
                 <div class="version-header">
                     <div class="version-number">1.9.1</div>
                     <div class="version-date">August 27, 2026</div>
-                    <div class="version-tag">Latest Release</div>
+                    <div class="version-tag">Patch</div>
                 </div>
 
                 <div class="changes-list">
