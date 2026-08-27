@@ -2,11 +2,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('annotations example keeps a parseable deterministic scenario harness', async () => {
+test('annotations example is a minimal authoring app with an opt-in scenario harness', async () => {
   const html = await readFile(new URL('../examples/annotations/index.html', import.meta.url), 'utf8');
   const moduleSource = html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1] || '';
   const parseableSource = moduleSource.replace(/^\s*import .*;\s*$/m, '');
   assert.doesNotThrow(() => new Function(`return async () => {${parseableSource}};`));
+  assert.match(html, /mode:\s*'author'/);
+  assert.match(html, /id="harness" hidden/);
+  assert.match(html, /has\('debug'\)/);
+  assert.match(html, /Right-click the model to add/);
+  assert.match(html, /Long-press the model to add/);
   for (const scenario of ['Rapid switch', 'Remote update', 'Malformed JSON', 'Reset fixture']) {
     assert.match(html, new RegExp(scenario));
   }
