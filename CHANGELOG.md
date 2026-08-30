@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added desktop and touch annotation authoring with numbered markers, create/edit/move/delete/collapse actions, multi-selection, scale bars, occlusion and dive-lighting presentation, and annotation-aware screenshots.
 - Added immersive VR/AR model-attached markers, controller selection, and a readable selected-annotation panel.
 - Added a deterministic annotations example and dependency-free codec/store tests.
+- The drag-and-drop viewer can now start a model-local annotation layer, import an annotations JSON by dropping it onto a loaded model, and download the edited document.
 
 ### Changed
 - Annotation styling now ships in the normal BelowJS stylesheet with theme custom properties rather than runtime style injection.

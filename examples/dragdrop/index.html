@@ -235,25 +235,110 @@
             display: none;
         }
         
-        /* Loaded state hint */
-        .loaded-hint {
+        /* Annotation authoring tools */
+        .annotation-tools {
             position: fixed;
             bottom: 20px;
             left: 50%;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            max-width: calc(100vw - 40px);
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 12px;
+            color: #e2e8f0;
+            background: rgba(15, 23, 42, 0.84);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(16px) saturate(1.15);
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.8);
-            color: #94a3b8;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
-        
-        .loaded-hint.visible {
-            opacity: 0.7;
+
+        .annotation-tools.visible {
+            display: flex;
+        }
+
+        .annotation-summary {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 190px;
+            padding: 0 10px;
+            line-height: 1.15;
+        }
+
+        .annotation-summary__dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.13);
+        }
+
+        .annotation-summary.is-authoring .annotation-summary__dot {
+            background: #8fe0c3;
+            box-shadow: 0 0 0 4px rgba(143, 224, 195, 0.12);
+        }
+
+        .annotation-summary strong {
+            display: block;
+            color: #f8fafc;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        #annotationStatus {
+            display: block;
+            margin-top: 3px;
+            color: #94a3b8;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .annotation-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .annotation-action {
+            min-height: 40px;
+            padding: 0 13px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.86);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .annotation-action:hover {
+            border-color: #60a5fa;
+            background: #334155;
+            transform: translateY(-1px);
+        }
+
+        .annotation-action.primary {
+            border-color: rgba(191, 219, 254, 0.32);
+            color: #ffffff;
+            background: #2563eb;
+        }
+
+        .annotation-action.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .annotation-action:focus-visible {
+            outline: 2px solid #bfdbfe;
+            outline-offset: 3px;
+        }
+
+        .annotation-action[hidden] {
+            display: none;
         }
 
   /* Camera snippet */
@@ -425,8 +510,32 @@
                 padding: 6px 7px;
             }
 
-            .loaded-hint.visible {
-                display: none;
+            .annotation-tools {
+                right: 12px;
+                bottom: max(12px, env(safe-area-inset-bottom));
+                left: 12px;
+                max-width: none;
+                justify-content: space-between;
+                transform: none;
+            }
+
+            .annotation-summary {
+                min-width: 0;
+                padding-left: 8px;
+            }
+
+            #annotationStatus {
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .annotation-action {
+                padding: 0 11px;
+            }
+
+            .camera-snippet {
+                bottom: 82px;
             }
         }
 
@@ -449,8 +558,8 @@
     <!-- Drag and drop overlay (hidden by default) -->
   <div class="drag-drop-overlay" id="dragOverlay">
     <div class="panel">
-      <div class="dd-title">Drop a shipwreck .glb to load</div>
-      <div class="dd-sub">Or click Choose file</div>
+      <div class="dd-title">Drop a .glb or annotations JSON</div>
+      <div class="dd-sub">Load a model, start a layer, or continue an existing one</div>
     </div>
   </div>
     
@@ -460,8 +569,8 @@
     <h2>Drop a shipwreck model</h2>
     <p class="intro">
       <a href="https://belowjs.com/" target="_blank" rel="noopener">BelowJS</a>
-      is for exploring shipwreck 3D models. Drop a .glb to inspect, measure, and try
-      Survey or Dive mode.
+      is for exploring shipwreck 3D models. Drop a .glb to inspect and measure it,
+      then start an annotation layer or drop an existing annotations JSON.
     </p>
     <div class="resource-links" aria-label="Helpful links">
       <a href="https://belowjs.com/guides/model-setup.html" target="_blank" rel="noopener">Set up models</a>
@@ -469,7 +578,7 @@
       <a href="https://belowjs.com/guides/sketchfab-models.html" target="_blank" rel="noopener">Move from Sketchfab</a>
     </div>
     <button class="file-select-button" onclick="document.getElementById('fileInput').click()">Choose file</button>
-    <input type="file" id="fileInput" accept=".glb" />
+    <input type="file" id="fileInput" accept=".glb,.json,application/json" multiple />
   </div>
     
   <!-- Survey/Dive toggle -->
@@ -488,8 +597,20 @@
         </div>
     </div>
     
-    <!-- Loaded state hint (hidden by default) -->
-  <div class="loaded-hint" id="loadedHint">Drop another .glb to replace</div>
+  <!-- Annotation tools appear after a model has loaded -->
+  <div class="annotation-tools" id="annotationTools" aria-label="Annotation authoring tools">
+    <div class="annotation-summary" id="annotationSummary" aria-live="polite">
+      <span class="annotation-summary__dot" aria-hidden="true"></span>
+      <span>
+        <strong>Annotations</strong>
+        <span id="annotationStatus">Start a layer or drop JSON</span>
+      </span>
+    </div>
+    <div class="annotation-actions">
+      <button type="button" class="annotation-action primary" id="startAnnotations">Start layer</button>
+      <button type="button" class="annotation-action primary" id="downloadAnnotations" hidden>Download JSON</button>
+    </div>
+  </div>
 
   <!-- Model stats panel -->
   <div class="model-stats" id="modelStats" aria-live="polite">
@@ -544,6 +665,13 @@
           enableScreenshot: true,
           showInfo: false,
           showLoadingIndicator: true,
+          annotations: {
+            enabled: true,
+            mode: 'view',
+            showToggle: false,
+            showExport: false,
+            xr: { enabled: true, interaction: 'select' }
+          },
           // No initial model - starts empty
           viewerConfig: {
             scene: {
@@ -554,8 +682,12 @@
 
         const dragOverlay = document.getElementById('dragOverlay');
         const emptyState = document.getElementById('emptyState');
-        const loadedHint = document.getElementById('loadedHint');
         const fileInput = document.getElementById('fileInput');
+        const annotationTools = document.getElementById('annotationTools');
+        const annotationSummary = document.getElementById('annotationSummary');
+        const annotationStatus = document.getElementById('annotationStatus');
+        const startAnnotations = document.getElementById('startAnnotations');
+        const downloadAnnotations = document.getElementById('downloadAnnotations');
         const cameraSnippet = document.getElementById('cameraSnippet');
         const modelStats = document.getElementById('modelStats');
         const camCode = document.getElementById('camCode');
@@ -567,7 +699,88 @@
   const statsNote = document.getElementById('statsNote');
         let dragCounter = 0;
         let hasModel = false;
+        let hasAnnotationLayer = false;
+        let activeModelUrl = null;
+        let modelBaseName = 'model';
+        let annotationFilename = 'model.annotations.json';
         let lastBlobSize = null; // bytes
+        const DROPPED_MODEL_KEY = 'dropped-model';
+
+        const cleanBaseName = (filename) => filename
+          .replace(/\.annotations\.json$/i, '')
+          .replace(/\.(glb|json)$/i, '')
+          .replace(/[^A-Za-z0-9_-]+/g, '-')
+          .replace(/^-+|-+$/g, '') || 'model';
+
+        const blankAnnotationDocument = () => ({
+          format: 'belowjs-annotations',
+          version: 1,
+          layer: { name: modelBaseName, coordinate_space: 'model' },
+          annotations: [],
+          scale_bars: []
+        });
+
+        function updateAnnotationUi() {
+          annotationTools.classList.toggle('visible', hasModel);
+          annotationSummary.classList.toggle('is-authoring', hasAnnotationLayer);
+          startAnnotations.hidden = hasAnnotationLayer;
+          downloadAnnotations.hidden = !hasAnnotationLayer;
+          if (!hasModel) return;
+          if (!hasAnnotationLayer) {
+            annotationStatus.textContent = 'Start a layer or drop JSON';
+            return;
+          }
+          const count = viewer.annotations?.list().length || 0;
+          annotationStatus.textContent = `${count} annotation${count === 1 ? '' : 's'} · right-click to add`;
+        }
+
+        async function beginAnnotationLayer() {
+          if (!hasModel || !viewer.annotations) return;
+          await viewer.annotations.load(blankAnnotationDocument());
+          viewer.annotations.setMode('author');
+          viewer.annotations.setVisible(true);
+          hasAnnotationLayer = true;
+          annotationFilename = `${modelBaseName}.annotations.json`;
+          updateAnnotationUi();
+        }
+
+        async function loadAnnotationFile(file) {
+          if (!hasModel || !viewer.annotations) {
+            alert('Load a .glb model before adding annotations.');
+            return false;
+          }
+          if (!file.name.toLowerCase().endsWith('.json')) {
+            alert('Please select a BelowJS annotations JSON file.');
+            return false;
+          }
+          try {
+            const documentValue = JSON.parse(await file.text());
+            await viewer.annotations.load(documentValue);
+            viewer.annotations.setMode('author');
+            viewer.annotations.setVisible(true);
+            hasAnnotationLayer = true;
+            annotationFilename = file.name.toLowerCase().endsWith('.annotations.json')
+              ? file.name
+              : `${cleanBaseName(file.name)}.annotations.json`;
+            updateAnnotationUi();
+            return true;
+          } catch (error) {
+            alert(`Could not load annotations: ${error.message}`);
+            return false;
+          }
+        }
+
+        async function handleFiles(files) {
+          const selectedFiles = Array.from(files || []);
+          const modelFile = selectedFiles.find((file) => file.name.toLowerCase().endsWith('.glb'));
+          const annotationFile = selectedFiles.find((file) => file.name.toLowerCase().endsWith('.json'));
+          if (!modelFile && !annotationFile) {
+            alert('Drop a .glb model or a BelowJS annotations JSON file.');
+            return;
+          }
+          if (modelFile) await loadModelFile(modelFile);
+          if (annotationFile) await loadAnnotationFile(annotationFile);
+        }
 
   // Format a number to 2 decimals, keep trailing zeros to avoid width changes
   const fmt = (n) => Number(n).toFixed(2);
@@ -755,10 +968,13 @@
 
         // Handle file input selection
         fileInput.addEventListener('change', async (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            await loadModelFile(file);
-          }
+          await handleFiles(e.target.files);
+          e.target.value = '';
+        });
+
+        startAnnotations.addEventListener('click', beginAnnotationLayer);
+        downloadAnnotations.addEventListener('click', () => {
+          if (hasAnnotationLayer) viewer.annotations?.download(annotationFilename);
         });
 
         // Function to load a model file and update UI state
@@ -769,20 +985,31 @@
           }
 
           const url = URL.createObjectURL(file);
+          const previousUrl = activeModelUrl;
           lastBlobSize = file.size;
           try {
-            // Clear any existing models and load the new one
-            if (hasModel) {
-              viewer.belowViewer.clearModels();
-            }
-            await viewer.belowViewer.loadModel(url, { autoFrame: true });
+            modelBaseName = cleanBaseName(file.name);
+            viewer.config.models[DROPPED_MODEL_KEY] = {
+              url,
+              name: modelBaseName,
+              measurable: true
+            };
+            hasAnnotationLayer = false;
+            viewer.annotations?.setMode('view');
+            await viewer.loadModel(DROPPED_MODEL_KEY);
+            const currentModel = viewer.belowViewer.getCurrentModel?.();
+            if (!currentModel) throw new Error('No model was returned.');
+            viewer.belowViewer.frameModel(currentModel.model || currentModel);
+            if (previousUrl) URL.revokeObjectURL(previousUrl);
+            activeModelUrl = url;
+            annotationFilename = `${modelBaseName}.annotations.json`;
             
-            // Hide empty state and show loaded hint when model loads successfully
+            // Hide empty state and reveal model tools when loading succeeds.
             emptyState.style.display = 'none';
             modelStats.style.display = 'block';
             cameraSnippet.style.display = 'block';
-            loadedHint.classList.add('visible');
             hasModel = true;
+            updateAnnotationUi();
             
             updateCameraSnippet();
 
@@ -791,9 +1018,8 @@
             const stats = collectModelStats(modelRoot);
             updateStatsDisplay(stats);
           } catch (err) {
-            alert('Failed to load the model.');
-          } finally {
             URL.revokeObjectURL(url);
+            alert('Failed to load the model.');
           }
         }
 
@@ -823,11 +1049,12 @@
           dragCounter = 0;
           dragOverlay.classList.remove('visible');
           
-          const file = e.dataTransfer.files[0];
-          if (!file) return;
-          
-          await loadModelFile(file);
+          await handleFiles(e.dataTransfer.files);
         });
+
+        viewer.on('annotations-loaded', updateAnnotationUi);
+        viewer.on('annotation-changed', updateAnnotationUi);
+        viewer.on('annotations-cleared', updateAnnotationUi);
 
         // Subscribe to camera changes to keep snippet live-updated
         if (viewer?.belowViewer?.on) {
@@ -836,6 +1063,11 @@
 
         // Initial update
         updateCameraSnippet();
+        updateAnnotationUi();
+
+        window.addEventListener('beforeunload', () => {
+          if (activeModelUrl) URL.revokeObjectURL(activeModelUrl);
+        });
 
         // Periodically refresh stats (in case textures finish loading later)
         setInterval(() => {

@@ -108,7 +108,7 @@ npm install && npm run build
 ```
 
 - `npm run dev` — Full-featured viewer with model selection and all systems enabled
-- `npm run dev:dragdrop` — Load a GLB, check measurements and correct its scale
+- `npm run dev:dragdrop` — Load a GLB, inspect measurements, and create or continue an annotations JSON
 - `npm run dev:embed` — Lightweight viewer designed for iframe embedding
 - `npm run dev:tileset` — 3D Tiles streaming example for large datasets
 - `npm run dev:annotations` — Per-model annotation loading, authoring, scale bars, export, and XR viewing
@@ -116,7 +116,7 @@ npm install && npm run build
 ### Live Examples
 
 - [Basic Viewer](https://patrick-morrison.github.io/belowjs/examples/basic/) — Full-featured multi-model viewer
-- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — Load a GLB, check measurements and correct its scale
+- [Drag & Drop](https://patrick-morrison.github.io/belowjs/examples/dragdrop/) — Load a GLB, inspect measurements, and create or continue an annotations JSON
 - [Embed Viewer](https://patrick-morrison.github.io/belowjs/examples/embed/) — Lightweight iframe-ready viewer
 - [Tileset Viewer](https://patrick-morrison.github.io/belowjs/examples/tileset/) — 3D Tiles streaming example
 - [Annotations](https://patrick-morrison.github.io/belowjs/examples/annotations/) — Static JSON annotations with opt-in authoring and download
