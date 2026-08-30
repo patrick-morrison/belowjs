@@ -378,6 +378,11 @@ test('XR comfort-facing labels ease toward a new headset direction without inher
   layer.updateFacing(1 / 60);
   const initialRight = layer._billboardRight.clone();
 
+  camera.rotation.set(0, THREE.MathUtils.degToRad(12), 0.4);
+  camera.updateMatrixWorld(true);
+  layer.updateFacing(1 / 60);
+  assert.ok(layer._billboardRight.distanceTo(initialRight) < 1e-12, 'ordinary head movement should stay inside the dead zone');
+
   camera.rotation.set(0, Math.PI / 2, 0.6);
   camera.updateMatrixWorld(true);
   layer.updateFacing(1 / 60);
@@ -387,8 +392,9 @@ test('XR comfort-facing labels ease toward a new headset direction without inher
   assert.ok(firstStep.distanceTo(targetRight) > 0.2, 'label should not snap immediately');
 
   for (let index = 0; index < 120; index += 1) layer.updateFacing(1 / 60);
-  assert.ok(layer._billboardRight.distanceTo(targetRight) < 0.002, 'label should settle toward the viewer');
-  assert.ok(Math.abs(layer._billboardUp.y - 1) < 0.002, 'world-up locking should remove headset roll');
+  assert.ok(layer._billboardRight.distanceTo(targetRight) < 0.08, 'label should settle into its quiet stop zone');
+  assert.equal(layer._billboardFollowing, false, 'label should stop updating once comfortably front-on');
+  assert.ok(Math.abs(layer._billboardUp.y - 1) < 0.01, 'world-up locking should remove headset roll');
 });
 
 test('XR controller rays select a marker and trigger it again to close', () => {

@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XR annotations now mirror the desktop visual language with distance-scaled numbered badges and a camera-facing detail card. Controller and hand rays appear only while directly targeting a marker, and annotation selection no longer commits the measurement orb.
 
 ### Fixed
-- XR annotations now update on BelowViewer's WebXR render lifecycle and use mipmapped high-resolution textures. World-anchored markers and compact selected-detail cards ease toward the viewer with upright, roll-free comfort facing; the white targeting ray adds a restrained endpoint reticle plus light acquire and firm select haptics.
+- XR annotations now update on BelowViewer's WebXR render lifecycle and use mipmapped high-resolution textures. World-anchored markers and compact selected-detail cards remain still inside a generous front-facing dead zone, then ease upright toward the viewer only when needed; the white targeting ray adds a restrained endpoint reticle plus light acquire and firm select haptics.
 
 ## [1.9.1] - 2026-08-27
 

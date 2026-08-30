@@ -8,7 +8,9 @@ const MARKER_MIN_RADIUS = 0.025;
 const MARKER_MAX_RADIUS = 0.14;
 const MARKER_ATLAS_CELL = 128;
 const MARKER_ATLAS_COLUMNS = 32;
-const BILLBOARD_RESPONSE = 4.5;
+const BILLBOARD_RESPONSE = 3.2;
+const BILLBOARD_START_ANGLE = THREE.MathUtils.degToRad(22);
+const BILLBOARD_STOP_ANGLE = THREE.MathUtils.degToRad(4);
 
 const MARKER_COLOR = new THREE.Color(0x8dd8f0);
 const MARKER_SELECTED_COLOR = new THREE.Color(0xffffff);
@@ -55,6 +57,7 @@ export class AnnotationXRLayer {
     this._billboardWorldQuaternion = new THREE.Quaternion();
     this._targetBillboardQuaternion = new THREE.Quaternion();
     this._billboardInitialized = false;
+    this._billboardFollowing = false;
     this._billboardRight = new THREE.Vector3(1, 0, 0);
     this._billboardUp = new THREE.Vector3(0, 1, 0);
     this._billboardNormal = new THREE.Vector3(0, 0, 1);
@@ -81,6 +84,7 @@ export class AnnotationXRLayer {
     this.bindControllers();
     this.signature = '';
     this._billboardInitialized = false;
+    this._billboardFollowing = false;
   }
 
   bindControllers() {
@@ -207,6 +211,7 @@ export class AnnotationXRLayer {
     this.group.visible = presenting && this.system.annotationsVisible;
     if (!this.group.visible || !model) {
       this._billboardInitialized = false;
+      this._billboardFollowing = false;
       this.setControllerRaysVisible(false);
       return;
     }
@@ -448,8 +453,16 @@ export class AnnotationXRLayer {
       this._billboardWorldQuaternion.copy(this._targetBillboardQuaternion);
       this._billboardInitialized = true;
     } else {
-      const follow = 1 - Math.exp(-BILLBOARD_RESPONSE * Math.max(0, Math.min(0.1, dt)));
-      this._billboardWorldQuaternion.slerp(this._targetBillboardQuaternion, follow);
+      const facingError = this._billboardWorldQuaternion.angleTo(this._targetBillboardQuaternion);
+      if (this._billboardFollowing) {
+        if (facingError <= BILLBOARD_STOP_ANGLE) this._billboardFollowing = false;
+      } else if (facingError >= BILLBOARD_START_ANGLE) {
+        this._billboardFollowing = true;
+      }
+      if (this._billboardFollowing) {
+        const follow = 1 - Math.exp(-BILLBOARD_RESPONSE * Math.max(0, Math.min(0.1, dt)));
+        this._billboardWorldQuaternion.slerp(this._targetBillboardQuaternion, follow);
+      }
     }
     this._billboardRight.set(1, 0, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();
     this._billboardUp.set(0, 1, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();

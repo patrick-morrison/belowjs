@@ -1,5 +1,5 @@
 import * as m from "three";
-import { Controls as fo, Vector3 as R, MOUSE as et, TOUCH as Xe, Quaternion as st, Spherical as ss, Vector2 as V, Ray as di, Plane as or, MathUtils as rt, TrianglesDrawMode as mo, TriangleFanDrawMode as ns, TriangleStripDrawMode as ar, Loader as ws, LoaderUtils as vt, FileLoader as Le, MeshPhysicalMaterial as ge, Color as Me, LinearSRGBColorSpace as ue, SRGBColorSpace as Se, SpotLight as go, PointLight as bo, DirectionalLight as yo, Matrix4 as G, InstancedMesh as vs, InstancedBufferAttribute as Co, Object3D as ui, TextureLoader as Eo, ImageBitmapLoader as wo, BufferAttribute as ce, InterleavedBuffer as vo, InterleavedBufferAttribute as Ue, LinearMipmapLinearFilter as Ai, NearestMipmapLinearFilter as So, LinearMipmapNearestFilter as Mo, NearestMipmapNearestFilter as Io, LinearFilter as Ge, NearestFilter as lr, RepeatWrapping as rs, MirroredRepeatWrapping as Bo, ClampToEdgeWrapping as xo, PointsMaterial as cr, Material as Ii, LineBasicMaterial as To, MeshStandardMaterial as Ss, DoubleSide as Ro, MeshBasicMaterial as Ve, PropertyBinding as _o, BufferGeometry as pi, SkinnedMesh as Qo, Mesh as fi, LineSegments as Do, Line as Lo, LineLoop as Po, Points as hr, Group as tt, PerspectiveCamera as ko, OrthographicCamera as dr, Skeleton as Fo, AnimationClip as Uo, Bone as Vo, InterpolateDiscrete as No, InterpolateLinear as ur, Texture as Us, VectorKeyframeTrack as Vs, NumberKeyframeTrack as Ns, QuaternionKeyframeTrack as Gs, ColorManagement as os, FrontSide as Go, Interpolant as Oo, Box3 as ot, Sphere as xt, CompressedCubeTexture as Ho, CompressedArrayTexture as zo, CompressedTexture as Ar, NoColorSpace as Os, RGBA_BPTC_Format as as, RGBA_S3TC_DXT5_Format as ls, RGBA_S3TC_DXT3_Format as Hs, RGB_S3TC_DXT1_Format as zs, RGBA_S3TC_DXT1_Format as cs, RGBA_ASTC_6x6_Format as qs, RGBA_ASTC_4x4_Format as Zt, RGBA_ETC2_EAC_Format as pr, RGB_ETC2_Format as fr, RedFormat as yt, RGFormat as Ct, RGBAFormat as $e, UnsignedByteType as de, HalfFloatType as Ze, FloatType as St, DataTexture as mr, Data3DTexture as qo, RGB_PVRTC_4BPPV1_Format as jo, RGB_ETC1_Format as Ko, RGBA_PVRTC_4BPPV1_Format as Yo, RGB_BPTC_UNSIGNED_Format as Wo, Euler as Jo, TextureUtils as Xo, LoadingManager as $o, EventDispatcher as Lt, Frustum as Zo, DefaultLoadingManager as mi, Matrix3 as gr, Float32BufferAttribute as ni, WebGLRenderer as ea, WebGLRenderTarget as js, ShaderMaterial as br, OneFactor as ta, ZeroFactor as ia, CustomBlending as sa, Box2 as na, Matrix2 as ra, Vector4 as at, SphereGeometry as yr, BoxGeometry as oa, DynamicDrawUsage as aa, InstancedBufferGeometry as la, InstancedInterleavedBuffer as hs, WireframeGeometry as ca, ShaderLib as ei, UniformsUtils as Cr, UniformsLib as ti, Line3 as ha } from "three";
+import { Controls as fo, Vector3 as R, MOUSE as et, TOUCH as Xe, Quaternion as st, Spherical as ss, Vector2 as V, Ray as di, Plane as or, MathUtils as rt, TrianglesDrawMode as mo, TriangleFanDrawMode as ns, TriangleStripDrawMode as ar, Loader as ws, LoaderUtils as vt, FileLoader as Le, MeshPhysicalMaterial as ge, Color as Me, LinearSRGBColorSpace as ue, SRGBColorSpace as Se, SpotLight as go, PointLight as bo, DirectionalLight as yo, Matrix4 as G, InstancedMesh as vs, InstancedBufferAttribute as Co, Object3D as ui, TextureLoader as Eo, ImageBitmapLoader as wo, BufferAttribute as ce, InterleavedBuffer as vo, InterleavedBufferAttribute as Ue, LinearMipmapLinearFilter as Ai, NearestMipmapLinearFilter as So, LinearMipmapNearestFilter as Mo, NearestMipmapNearestFilter as Io, LinearFilter as Ge, NearestFilter as lr, RepeatWrapping as rs, MirroredRepeatWrapping as Bo, ClampToEdgeWrapping as xo, PointsMaterial as cr, Material as Ii, LineBasicMaterial as To, MeshStandardMaterial as Ss, DoubleSide as Ro, MeshBasicMaterial as Ve, PropertyBinding as _o, BufferGeometry as pi, SkinnedMesh as Qo, Mesh as fi, LineSegments as Do, Line as Lo, LineLoop as Po, Points as hr, Group as tt, PerspectiveCamera as Fo, OrthographicCamera as dr, Skeleton as ko, AnimationClip as Uo, Bone as Vo, InterpolateDiscrete as No, InterpolateLinear as ur, Texture as Us, VectorKeyframeTrack as Vs, NumberKeyframeTrack as Ns, QuaternionKeyframeTrack as Gs, ColorManagement as os, FrontSide as Go, Interpolant as Oo, Box3 as ot, Sphere as xt, CompressedCubeTexture as Ho, CompressedArrayTexture as zo, CompressedTexture as Ar, NoColorSpace as Os, RGBA_BPTC_Format as as, RGBA_S3TC_DXT5_Format as ls, RGBA_S3TC_DXT3_Format as Hs, RGB_S3TC_DXT1_Format as zs, RGBA_S3TC_DXT1_Format as cs, RGBA_ASTC_6x6_Format as qs, RGBA_ASTC_4x4_Format as Zt, RGBA_ETC2_EAC_Format as pr, RGB_ETC2_Format as fr, RedFormat as yt, RGFormat as Ct, RGBAFormat as $e, UnsignedByteType as de, HalfFloatType as Ze, FloatType as St, DataTexture as mr, Data3DTexture as qo, RGB_PVRTC_4BPPV1_Format as jo, RGB_ETC1_Format as Ko, RGBA_PVRTC_4BPPV1_Format as Yo, RGB_BPTC_UNSIGNED_Format as Wo, Euler as Jo, TextureUtils as Xo, LoadingManager as $o, EventDispatcher as Lt, Frustum as Zo, DefaultLoadingManager as mi, Matrix3 as gr, Float32BufferAttribute as ni, WebGLRenderer as ea, WebGLRenderTarget as js, ShaderMaterial as br, OneFactor as ta, ZeroFactor as ia, CustomBlending as sa, Box2 as na, Matrix2 as ra, Vector4 as at, SphereGeometry as yr, BoxGeometry as oa, DynamicDrawUsage as aa, InstancedBufferGeometry as la, InstancedInterleavedBuffer as hs, WireframeGeometry as ca, ShaderLib as ei, UniformsUtils as Cr, UniformsLib as ti, Line3 as ha } from "three";
 class Pe {
   /**
    * Creates a new EventSystem instance
@@ -875,9 +875,9 @@ class qe extends ws {
     }), this.register(function(t) {
       return new Pa(t);
     }), this.register(function(t) {
-      return new ka(t);
-    }), this.register(function(t) {
       return new Fa(t);
+    }), this.register(function(t) {
+      return new ka(t);
     }), this.register(function(t) {
       return new Ua(t);
     }), this.register(function(t) {
@@ -997,12 +997,12 @@ class qe extends ws {
     else if (e instanceof ArrayBuffer)
       if (a.decode(new Uint8Array(e, 0, 4)) === wr) {
         try {
-          r[k.KHR_BINARY_GLTF] = new Ka(e);
+          r[F.KHR_BINARY_GLTF] = new Ka(e);
         } catch (h) {
           s && s(h);
           return;
         }
-        n = JSON.parse(r[k.KHR_BINARY_GLTF].content);
+        n = JSON.parse(r[F.KHR_BINARY_GLTF].content);
       } else
         n = JSON.parse(a.decode(e));
     else
@@ -1028,16 +1028,16 @@ class qe extends ws {
       for (let d = 0; d < n.extensionsUsed.length; ++d) {
         const h = n.extensionsUsed[d], u = n.extensionsRequired || [];
         switch (h) {
-          case k.KHR_MATERIALS_UNLIT:
+          case F.KHR_MATERIALS_UNLIT:
             r[h] = new Ra();
             break;
-          case k.KHR_DRACO_MESH_COMPRESSION:
+          case F.KHR_DRACO_MESH_COMPRESSION:
             r[h] = new Ya(n, this.dracoLoader);
             break;
-          case k.KHR_TEXTURE_TRANSFORM:
+          case F.KHR_TEXTURE_TRANSFORM:
             r[h] = new Wa();
             break;
-          case k.KHR_MESH_QUANTIZATION:
+          case F.KHR_MESH_QUANTIZATION:
             r[h] = new Ja();
             break;
           default:
@@ -1078,7 +1078,7 @@ function xa() {
     }
   };
 }
-const k = {
+const F = {
   KHR_BINARY_GLTF: "KHR_binary_glTF",
   KHR_DRACO_MESH_COMPRESSION: "KHR_draco_mesh_compression",
   KHR_LIGHTS_PUNCTUAL: "KHR_lights_punctual",
@@ -1104,7 +1104,7 @@ const k = {
 };
 class Ta {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_LIGHTS_PUNCTUAL, this.cache = { refs: {}, uses: {} };
+    this.parser = e, this.name = F.KHR_LIGHTS_PUNCTUAL, this.cache = { refs: {}, uses: {} };
   }
   _markDefs() {
     const e = this.parser, t = this.parser.json.nodes || [];
@@ -1150,7 +1150,7 @@ class Ta {
 }
 class Ra {
   constructor() {
-    this.name = k.KHR_MATERIALS_UNLIT;
+    this.name = F.KHR_MATERIALS_UNLIT;
   }
   getMaterialType() {
     return Ve;
@@ -1171,7 +1171,7 @@ class Ra {
 }
 class _a {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_EMISSIVE_STRENGTH;
+    this.parser = e, this.name = F.KHR_MATERIALS_EMISSIVE_STRENGTH;
   }
   extendMaterialParams(e, t) {
     const s = this.parser.json.materials[e];
@@ -1183,7 +1183,7 @@ class _a {
 }
 class Qa {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_CLEARCOAT;
+    this.parser = e, this.name = F.KHR_MATERIALS_CLEARCOAT;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1203,7 +1203,7 @@ class Qa {
 }
 class Da {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_DISPERSION;
+    this.parser = e, this.name = F.KHR_MATERIALS_DISPERSION;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1219,7 +1219,7 @@ class Da {
 }
 class La {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_IRIDESCENCE;
+    this.parser = e, this.name = F.KHR_MATERIALS_IRIDESCENCE;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1235,7 +1235,7 @@ class La {
 }
 class Pa {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_SHEEN;
+    this.parser = e, this.name = F.KHR_MATERIALS_SHEEN;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1255,9 +1255,9 @@ class Pa {
     return r.sheenRoughnessFactor !== void 0 && (t.sheenRoughness = r.sheenRoughnessFactor), r.sheenColorTexture !== void 0 && n.push(i.assignTexture(t, "sheenColorMap", r.sheenColorTexture, Se)), r.sheenRoughnessTexture !== void 0 && n.push(i.assignTexture(t, "sheenRoughnessMap", r.sheenRoughnessTexture)), Promise.all(n);
   }
 }
-class ka {
+class Fa {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_TRANSMISSION;
+    this.parser = e, this.name = F.KHR_MATERIALS_TRANSMISSION;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1271,9 +1271,9 @@ class ka {
     return r.transmissionFactor !== void 0 && (t.transmission = r.transmissionFactor), r.transmissionTexture !== void 0 && n.push(i.assignTexture(t, "transmissionMap", r.transmissionTexture)), Promise.all(n);
   }
 }
-class Fa {
+class ka {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_VOLUME;
+    this.parser = e, this.name = F.KHR_MATERIALS_VOLUME;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1291,7 +1291,7 @@ class Fa {
 }
 class Ua {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_IOR;
+    this.parser = e, this.name = F.KHR_MATERIALS_IOR;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1307,7 +1307,7 @@ class Ua {
 }
 class Va {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_SPECULAR;
+    this.parser = e, this.name = F.KHR_MATERIALS_SPECULAR;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1325,7 +1325,7 @@ class Va {
 }
 class Na {
   constructor(e) {
-    this.parser = e, this.name = k.EXT_MATERIALS_BUMP;
+    this.parser = e, this.name = F.EXT_MATERIALS_BUMP;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1341,7 +1341,7 @@ class Na {
 }
 class Ga {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_MATERIALS_ANISOTROPY;
+    this.parser = e, this.name = F.KHR_MATERIALS_ANISOTROPY;
   }
   getMaterialType(e) {
     const i = this.parser.json.materials[e];
@@ -1357,7 +1357,7 @@ class Ga {
 }
 class Oa {
   constructor(e) {
-    this.parser = e, this.name = k.KHR_TEXTURE_BASISU;
+    this.parser = e, this.name = F.KHR_TEXTURE_BASISU;
   }
   loadTexture(e) {
     const t = this.parser, i = t.json, s = i.textures[e];
@@ -1374,7 +1374,7 @@ class Oa {
 }
 class Ha {
   constructor(e) {
-    this.parser = e, this.name = k.EXT_TEXTURE_WEBP;
+    this.parser = e, this.name = F.EXT_TEXTURE_WEBP;
   }
   loadTexture(e) {
     const t = this.name, i = this.parser, s = i.json, n = s.textures[e];
@@ -1391,7 +1391,7 @@ class Ha {
 }
 class za {
   constructor(e) {
-    this.parser = e, this.name = k.EXT_TEXTURE_AVIF;
+    this.parser = e, this.name = F.EXT_TEXTURE_AVIF;
   }
   loadTexture(e) {
     const t = this.name, i = this.parser, s = i.json, n = s.textures[e];
@@ -1408,7 +1408,7 @@ class za {
 }
 class qa {
   constructor(e) {
-    this.name = k.EXT_MESHOPT_COMPRESSION, this.parser = e;
+    this.name = F.EXT_MESHOPT_COMPRESSION, this.parser = e;
   }
   loadBufferView(e) {
     const t = this.parser.json, i = t.bufferViews[e];
@@ -1434,7 +1434,7 @@ class qa {
 }
 class ja {
   constructor(e) {
-    this.name = k.EXT_MESH_GPU_INSTANCING, this.parser = e;
+    this.name = F.EXT_MESH_GPU_INSTANCING, this.parser = e;
   }
   createNodeMesh(e) {
     const t = this.parser.json, i = t.nodes[e];
@@ -1467,7 +1467,7 @@ class ja {
 const wr = "glTF", lt = 12, Js = { JSON: 1313821514, BIN: 5130562 };
 class Ka {
   constructor(e) {
-    this.name = k.KHR_BINARY_GLTF, this.content = null, this.body = null;
+    this.name = F.KHR_BINARY_GLTF, this.content = null, this.body = null;
     const t = new DataView(e, 0, lt), i = new TextDecoder();
     if (this.header = {
       magic: i.decode(new Uint8Array(e.slice(0, 4))),
@@ -1500,7 +1500,7 @@ class Ya {
   constructor(e, t) {
     if (!t)
       throw new Error("THREE.GLTFLoader: No DRACOLoader instance provided.");
-    this.name = k.KHR_DRACO_MESH_COMPRESSION, this.json = e, this.dracoLoader = t, this.dracoLoader.preload();
+    this.name = F.KHR_DRACO_MESH_COMPRESSION, this.json = e, this.dracoLoader = t, this.dracoLoader.preload();
   }
   decodePrimitive(e, t) {
     const i = this.json, s = this.dracoLoader, n = e.extensions[this.name].bufferView, r = e.extensions[this.name].attributes, o = {}, a = {}, l = {};
@@ -1530,7 +1530,7 @@ class Ya {
 }
 class Wa {
   constructor() {
-    this.name = k.KHR_TEXTURE_TRANSFORM;
+    this.name = F.KHR_TEXTURE_TRANSFORM;
   }
   extendTexture(e, t) {
     return (t.texCoord === void 0 || t.texCoord === e.channel) && t.offset === void 0 && t.rotation === void 0 && t.scale === void 0 || (e = e.clone(), t.texCoord !== void 0 && (e.channel = t.texCoord), t.offset !== void 0 && e.offset.fromArray(t.offset), t.rotation !== void 0 && (e.rotation = t.rotation), t.scale !== void 0 && e.repeat.fromArray(t.scale), e.needsUpdate = !0), e;
@@ -1538,7 +1538,7 @@ class Wa {
 }
 class Ja {
   constructor() {
-    this.name = k.KHR_MESH_QUANTIZATION;
+    this.name = F.KHR_MESH_QUANTIZATION;
   }
 }
 class vr extends Oo {
@@ -1639,7 +1639,7 @@ function el(c) {
     side: Go
   })), c.DefaultMaterial;
 }
-function ke(c, e, t) {
+function Fe(c, e, t) {
   for (const i in t.extensions)
     c[i] === void 0 && (e.userData.gltfExtensions = e.userData.gltfExtensions || {}, e.userData.gltfExtensions[i] = t.extensions[i]);
 }
@@ -1694,7 +1694,7 @@ function il(c, e) {
 }
 function sl(c) {
   let e;
-  const t = c.extensions && c.extensions[k.KHR_DRACO_MESH_COMPRESSION];
+  const t = c.extensions && c.extensions[F.KHR_DRACO_MESH_COMPRESSION];
   if (t ? e = "draco:" + t.bufferView + ":" + t.indices + ":" + Ri(t.attributes) : e = c.indices + ":" + Ri(c.attributes) + ":" + c.mode, c.targets !== void 0)
     for (let i = 0, s = c.targets.length; i < s; i++)
       e += ":" + Ri(c.targets[i]);
@@ -1765,7 +1765,7 @@ class ol {
         parser: i,
         userData: {}
       };
-      return ke(n, o, s), we(o, s), Promise.all(i._invokeAll(function(a) {
+      return Fe(n, o, s), we(o, s), Promise.all(i._invokeAll(function(a) {
         return a.afterRoot && a.afterRoot(o);
       })).then(function() {
         for (const a of o.scenes)
@@ -1943,7 +1943,7 @@ class ol {
     if (t.type && t.type !== "arraybuffer")
       throw new Error("THREE.GLTFLoader: " + t.type + " buffer type is not supported.");
     if (t.uri === void 0 && e === 0)
-      return Promise.resolve(this.extensions[k.KHR_BINARY_GLTF].body);
+      return Promise.resolve(this.extensions[F.KHR_BINARY_GLTF].body);
     const s = this.options;
     return new Promise(function(n, r) {
       i.load(vt.resolveURL(t.uri, s.path), n, void 0, function() {
@@ -2072,11 +2072,11 @@ class ol {
     const n = this;
     return this.getDependency("texture", i.index).then(function(r) {
       if (!r) return null;
-      if (i.texCoord !== void 0 && i.texCoord > 0 && (r = r.clone(), r.channel = i.texCoord), n.extensions[k.KHR_TEXTURE_TRANSFORM]) {
-        const o = i.extensions !== void 0 ? i.extensions[k.KHR_TEXTURE_TRANSFORM] : void 0;
+      if (i.texCoord !== void 0 && i.texCoord > 0 && (r = r.clone(), r.channel = i.texCoord), n.extensions[F.KHR_TEXTURE_TRANSFORM]) {
+        const o = i.extensions !== void 0 ? i.extensions[F.KHR_TEXTURE_TRANSFORM] : void 0;
         if (o) {
           const a = n.associations.get(r);
-          r = n.extensions[k.KHR_TEXTURE_TRANSFORM].extendTexture(r, o), n.associations.set(r, a);
+          r = n.extensions[F.KHR_TEXTURE_TRANSFORM].extendTexture(r, o), n.associations.set(r, a);
         }
       }
       return s !== void 0 && (r.colorSpace = s), e[t] = r, r;
@@ -2127,8 +2127,8 @@ class ol {
     const t = this, i = this.json, s = this.extensions, n = i.materials[e];
     let r;
     const o = {}, a = n.extensions || {}, l = [];
-    if (a[k.KHR_MATERIALS_UNLIT]) {
-      const h = s[k.KHR_MATERIALS_UNLIT];
+    if (a[F.KHR_MATERIALS_UNLIT]) {
+      const h = s[F.KHR_MATERIALS_UNLIT];
       r = h.getMaterialType(), l.push(h.extendParams(o, n, t));
     } else {
       const h = n.pbrMetallicRoughness || {};
@@ -2154,7 +2154,7 @@ class ol {
     }
     return n.emissiveTexture !== void 0 && r !== Ve && l.push(t.assignTexture(o, "emissiveMap", n.emissiveTexture, Se)), Promise.all(l).then(function() {
       const h = new r(o);
-      return n.name && (h.name = n.name), we(h, n), t.associations.set(h, { materials: e }), n.extensions && ke(s, h, n), h;
+      return n.name && (h.name = n.name), we(h, n), t.associations.set(h, { materials: e }), n.extensions && Fe(s, h, n), h;
     });
   }
   /**
@@ -2180,7 +2180,7 @@ class ol {
   loadGeometries(e) {
     const t = this, i = this.extensions, s = this.primitiveCache;
     function n(o) {
-      return i[k.KHR_DRACO_MESH_COMPRESSION].decodePrimitive(o, t).then(function(a) {
+      return i[F.KHR_DRACO_MESH_COMPRESSION].decodePrimitive(o, t).then(function(a) {
         return Zs(a, o, t);
       });
     }
@@ -2191,7 +2191,7 @@ class ol {
         r.push(h.promise);
       else {
         let u;
-        l.extensions && l.extensions[k.KHR_DRACO_MESH_COMPRESSION] ? u = n(l) : u = Zs(new pi(), l, t), s[d] = { primitive: l, promise: u }, r.push(u);
+        l.extensions && l.extensions[F.KHR_DRACO_MESH_COMPRESSION] ? u = n(l) : u = Zs(new pi(), l, t), s[d] = { primitive: l, promise: u }, r.push(u);
       }
     }
     return Promise.all(r);
@@ -2227,7 +2227,7 @@ class ol {
           b = new hr(f, y);
         else
           throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + g.mode);
-        Object.keys(b.geometry.morphAttributes).length > 0 && il(b, n), b.name = t.createUniqueName(n.name || "mesh_" + e), we(b, n), g.extensions && ke(s, b, g), t.assignFinalMaterial(b), h.push(b);
+        Object.keys(b.geometry.morphAttributes).length > 0 && il(b, n), b.name = t.createUniqueName(n.name || "mesh_" + e), we(b, n), g.extensions && Fe(s, b, g), t.assignFinalMaterial(b), h.push(b);
       }
       for (let A = 0, p = h.length; A < p; A++)
         t.associations.set(h[A], {
@@ -2235,9 +2235,9 @@ class ol {
           primitives: A
         });
       if (h.length === 1)
-        return n.extensions && ke(s, h[0], n), h[0];
+        return n.extensions && Fe(s, h[0], n), h[0];
       const u = new tt();
-      n.extensions && ke(s, u, n), t.associations.set(u, { meshes: e });
+      n.extensions && Fe(s, u, n), t.associations.set(u, { meshes: e });
       for (let A = 0, p = h.length; A < p; A++)
         u.add(h[A]);
       return u;
@@ -2257,7 +2257,7 @@ class ol {
       console.warn("THREE.GLTFLoader: Missing camera parameters.");
       return;
     }
-    return i.type === "perspective" ? t = new ko(rt.radToDeg(s.yfov), s.aspectRatio || 1, s.znear || 1, s.zfar || 2e6) : i.type === "orthographic" && (t = new dr(-s.xmag, s.xmag, s.ymag, -s.ymag, s.znear, s.zfar)), i.name && (t.name = this.createUniqueName(i.name)), we(t, i), Promise.resolve(t);
+    return i.type === "perspective" ? t = new Fo(rt.radToDeg(s.yfov), s.aspectRatio || 1, s.znear || 1, s.zfar || 2e6) : i.type === "orthographic" && (t = new dr(-s.xmag, s.xmag, s.ymag, -s.ymag, s.znear, s.zfar)), i.name && (t.name = this.createUniqueName(i.name)), we(t, i), Promise.resolve(t);
   }
   /**
    * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins
@@ -2281,7 +2281,7 @@ class ol {
         } else
           console.warn('THREE.GLTFLoader: Joint "%s" could not be found.', t.joints[l]);
       }
-      return new Fo(o, a);
+      return new ko(o, a);
     });
   }
   /**
@@ -2374,7 +2374,7 @@ class ol {
       if (n.isBone === !0 ? d = new Vo() : l.length > 1 ? d = new tt() : l.length === 1 ? d = l[0] : d = new ui(), d !== l[0])
         for (let h = 0, u = l.length; h < u; h++)
           d.add(l[h]);
-      if (n.name && (d.userData.name = n.name, d.name = r), we(d, n), n.extensions && ke(i, d, n), n.matrix !== void 0) {
+      if (n.name && (d.userData.name = n.name, d.name = r), we(d, n), n.extensions && Fe(i, d, n), n.matrix !== void 0) {
         const h = new G();
         h.fromArray(n.matrix), d.applyMatrix4(h);
       } else
@@ -2397,7 +2397,7 @@ class ol {
    */
   loadScene(e) {
     const t = this.extensions, i = this.json.scenes[e], s = this, n = new tt();
-    i.name && (n.name = s.createUniqueName(i.name)), we(n, i), i.extensions && ke(t, n, i);
+    i.name && (n.name = s.createUniqueName(i.name)), we(n, i), i.extensions && Fe(t, n, i);
     const r = i.nodes || [], o = [];
     for (let a = 0, l = r.length; a < l; a++)
       o.push(s.getDependency("node", r[a]));
@@ -2878,7 +2878,7 @@ class cl {
     this.workers.forEach((e) => e.terminate()), this.workersResolve.length = 0, this.workers.length = 0, this.queue.length = 0, this.workerStatus = 0;
   }
 }
-const hl = 0, en = 2, dl = 1, tn = 2, ul = 0, Al = 1, pl = 10, fl = 0, Mr = 9, Ir = 15, Br = 16, xr = 22, Tr = 37, Rr = 43, _r = 76, Qr = 83, Dr = 97, Lr = 100, Pr = 103, kr = 109, ml = 131, gl = 132, bl = 133, yl = 134, Cl = 137, El = 138, wl = 141, vl = 142, Sl = 145, Ml = 146, Fr = 148, Ur = 152, Il = 157, Bl = 158, Vr = 165, Nr = 166, Is = 1000066e3;
+const hl = 0, en = 2, dl = 1, tn = 2, ul = 0, Al = 1, pl = 10, fl = 0, Mr = 9, Ir = 15, Br = 16, xr = 22, Tr = 37, Rr = 43, _r = 76, Qr = 83, Dr = 97, Lr = 100, Pr = 103, Fr = 109, ml = 131, gl = 132, bl = 133, yl = 134, Cl = 137, El = 138, wl = 141, vl = 142, Sl = 145, Ml = 146, kr = 148, Ur = 152, Il = 157, Bl = 158, Vr = 165, Nr = 166, Is = 1000066e3;
 class xl {
   constructor() {
     this.vkFormat = 0, this.typeSize = 1, this.pixelWidth = 0, this.pixelHeight = 0, this.pixelDepth = 0, this.layerCount = 0, this.faceCount = 1, this.supercompressionScheme = 0, this.levels = [], this.dataFormatDescriptor = [{ vendorId: 0, descriptorType: 0, descriptorBlockSize: 0, versionNumber: 2, colorModel: 0, colorPrimaries: 1, transferFunction: 2, flags: 0, texelBlockDimension: [0, 0, 0, 0], bytesPlane: [0, 0, 0, 0, 0, 0, 0, 0], samples: [] }], this.keyValue = {}, this.globalData = null;
@@ -2938,14 +2938,14 @@ function Tl(c) {
   for (let Q = 0; Q < n; Q++) t.levels.push({ levelData: new Uint8Array(c.buffer, c.byteOffset + u._nextUint64(), u._nextUint64()), uncompressedByteLength: u._nextUint64() });
   const A = new ct(c, r, o, !0), p = { vendorId: A._skip(4)._nextUint16(), descriptorType: A._nextUint16(), versionNumber: A._nextUint16(), descriptorBlockSize: A._nextUint16(), colorModel: A._nextUint8(), colorPrimaries: A._nextUint8(), transferFunction: A._nextUint8(), flags: A._nextUint8(), texelBlockDimension: [A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8()], bytesPlane: [A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8()], samples: [] }, f = (p.descriptorBlockSize / 4 - 6) / 4;
   for (let Q = 0; Q < f; Q++) {
-    const F = { bitOffset: A._nextUint16(), bitLength: A._nextUint8(), channelType: A._nextUint8(), samplePosition: [A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8()], sampleLower: -1 / 0, sampleUpper: 1 / 0 };
-    64 & F.channelType ? (F.sampleLower = A._nextInt32(), F.sampleUpper = A._nextInt32()) : (F.sampleLower = A._nextUint32(), F.sampleUpper = A._nextUint32()), p.samples[Q] = F;
+    const k = { bitOffset: A._nextUint16(), bitLength: A._nextUint8(), channelType: A._nextUint8(), samplePosition: [A._nextUint8(), A._nextUint8(), A._nextUint8(), A._nextUint8()], sampleLower: -1 / 0, sampleUpper: 1 / 0 };
+    64 & k.channelType ? (k.sampleLower = A._nextInt32(), k.sampleUpper = A._nextInt32()) : (k.sampleLower = A._nextUint32(), k.sampleUpper = A._nextUint32()), p.samples[Q] = k;
   }
   t.dataFormatDescriptor.length = 0, t.dataFormatDescriptor.push(p);
   const g = new ct(c, a, l, !0);
   for (; g._offset < l; ) {
-    const Q = g._nextUint32(), F = g._scan(Q), O = sn(F);
-    if (t.keyValue[O] = g._nextUint8Array(Q - F.byteLength - 1), O.match(/^ktx/i)) {
+    const Q = g._nextUint32(), k = g._scan(Q), O = sn(k);
+    if (t.keyValue[O] = g._nextUint8Array(Q - k.byteLength - 1), O.match(/^ktx/i)) {
       const z = sn(t.keyValue[O]);
       t.keyValue[O] = z.substring(0, z.lastIndexOf("\0"));
     }
@@ -2977,7 +2977,7 @@ let Rl = class {
   }
 };
 const nn = "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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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", _l = "display-p3", Ql = "display-p3-linear", Li = /* @__PURE__ */ new WeakMap();
-let Pi = 0, ki;
+let Pi = 0, Fi;
 class oe extends ws {
   /**
    * Constructs a new KTX2 loader.
@@ -3250,10 +3250,10 @@ oe.BasisWorker = function() {
       const U = [];
       for (let L = 0; L < w; L++) {
         const Q = [];
-        let F, O;
+        let k, O;
         for (let j = 0; j < C; j++) {
           const q = f.getImageLevelInfo(L, j, T);
-          T === 0 && L === 0 && j === 0 && (q.origWidth % 4 !== 0 || q.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), w > 1 ? (F = q.origWidth, O = q.origHeight) : (F = q.width, O = q.height);
+          T === 0 && L === 0 && j === 0 && (q.origWidth % 4 !== 0 || q.origHeight % 4 !== 0) && console.warn("THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions."), w > 1 ? (k = q.origWidth, O = q.origHeight) : (k = q.width, O = q.height);
           let re = new Uint8Array(f.getImageTranscodedSizeInBytes(L, j, 0, B));
           const Dt = f.transcodeImage(re, L, j, T, B, 0, -1, -1);
           if (x === s.HalfFloatType && (re = new Uint16Array(re.buffer, re.byteOffset, re.byteLength / Uint16Array.BYTES_PER_ELEMENT)), !Dt)
@@ -3261,7 +3261,7 @@ oe.BasisWorker = function() {
           Q.push(re);
         }
         const z = A(Q);
-        U.push({ data: z, width: F, height: O }), P.push(z.buffer);
+        U.push({ data: z, width: k, height: O }), P.push(z.buffer);
       }
       _.push({ mipmaps: U, width: y, height: E, format: M, type: x });
     }
@@ -3393,8 +3393,8 @@ oe.BasisWorker = function() {
     return g;
   }
 };
-const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), Fi = {
-  [kr]: $e,
+const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), ki = {
+  [Fr]: $e,
   [Dr]: $e,
   [Tr]: $e,
   [Rr]: $e,
@@ -3406,7 +3406,7 @@ const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), Fi = {
   [_r]: yt,
   [Ir]: yt,
   [Mr]: yt,
-  [Fr]: fr,
+  [kr]: fr,
   [Ur]: pr,
   [Is]: Zt,
   [Bl]: Zt,
@@ -3424,7 +3424,7 @@ const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), Fi = {
   [Ml]: as,
   [Sl]: as
 }, Ui = {
-  [kr]: St,
+  [Fr]: St,
   [Dr]: Ze,
   [Tr]: de,
   [Rr]: de,
@@ -3436,7 +3436,7 @@ const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), Fi = {
   [_r]: Ze,
   [Ir]: de,
   [Mr]: de,
-  [Fr]: de,
+  [kr]: de,
   [Ur]: de,
   [Is]: Ze,
   [Nr]: de,
@@ -3444,13 +3444,13 @@ const Dl = /* @__PURE__ */ new Set([$e, Ct, yt]), Fi = {
 };
 async function Ll(c) {
   const { vkFormat: e } = c;
-  if (Fi[e] === void 0)
+  if (ki[e] === void 0)
     throw new Error("THREE.KTX2Loader: Unsupported vkFormat.");
   let t;
-  c.supercompressionScheme === en && (ki || (ki = new Promise(async (n) => {
+  c.supercompressionScheme === en && (Fi || (Fi = new Promise(async (n) => {
     const r = new Rl();
     await r.init(), n(r);
-  })), t = await ki);
+  })), t = await Fi);
   const i = [];
   for (let n = 0; n < c.levels.length; n++) {
     const r = Math.max(1, c.pixelWidth >> n), o = Math.max(1, c.pixelHeight >> n), a = c.pixelDepth ? Math.max(1, c.pixelDepth >> n) : 0, l = c.levels[n];
@@ -3478,13 +3478,13 @@ async function Ll(c) {
     });
   }
   let s;
-  if (Dl.has(Fi[e]))
+  if (Dl.has(ki[e]))
     s = c.pixelDepth === 0 ? new mr(i[0].data, c.pixelWidth, c.pixelHeight) : new qo(i[0].data, c.pixelWidth, c.pixelHeight, c.pixelDepth);
   else {
     if (c.pixelDepth > 0) throw new Error("THREE.KTX2Loader: Unsupported pixelDepth.");
     s = new Ar(i, c.pixelWidth, c.pixelHeight), s.minFilter = i.length === 1 ? Ge : Ai, s.magFilter = Ge;
   }
-  return s.mipmaps = i, s.type = Ui[e], s.format = Fi[e], s.colorSpace = Gr(c), s.needsUpdate = !0, Promise.resolve(s);
+  return s.mipmaps = i, s.type = Ui[e], s.format = ki[e], s.colorSpace = Gr(c), s.needsUpdate = !0, Promise.resolve(s);
 }
 function Gr(c) {
   const e = c.dataFormatDescriptor[0];
@@ -3703,7 +3703,7 @@ var Pl = function() {
     }
   };
 }();
-function kl(c) {
+function Fl(c) {
   if (!c) return;
   (Array.isArray(c) ? c : [c]).forEach((t) => {
     t && (Object.keys(t).forEach((i) => {
@@ -3714,10 +3714,10 @@ function kl(c) {
 }
 function Vi(c) {
   !c || !c.traverse || c.traverse((e) => {
-    e.geometry && e.geometry.dispose(), e.material && kl(e.material);
+    e.geometry && e.geometry.dispose(), e.material && Fl(e.material);
   });
 }
-function Fl() {
+function kl() {
   m.Cache && typeof m.Cache.clear == "function" && m.Cache.clear();
 }
 const Ul = "https://www.gstatic.com/draco/versioned/decoders/1.5.6/", Vl = "https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/libs/basis/", Nl = "https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles";
@@ -3979,7 +3979,7 @@ class ne {
   }
   releaseParserCaches(e) {
     const t = e?.parser;
-    t && (t.cache && typeof t.cache.removeAll == "function" && t.cache.removeAll(), t.associations && typeof t.associations.clear == "function" && t.associations.clear(), t.primitiveCache = {}, t.nodeCache = {}, t.meshCache = { refs: {}, uses: {} }, t.cameraCache = { refs: {}, uses: {} }, t.lightCache = { refs: {}, uses: {} }, t.sourceCache = {}, t.textureCache = {}, t.nodeNamesUsed = {}, t.json = null, t.extensions = null, t.plugins = null, t.options = null, t.textureLoader = null, e.parser = null, Fl());
+    t && (t.cache && typeof t.cache.removeAll == "function" && t.cache.removeAll(), t.associations && typeof t.associations.clear == "function" && t.associations.clear(), t.primitiveCache = {}, t.nodeCache = {}, t.meshCache = { refs: {}, uses: {} }, t.cameraCache = { refs: {}, uses: {} }, t.lightCache = { refs: {}, uses: {} }, t.sourceCache = {}, t.textureCache = {}, t.nodeNamesUsed = {}, t.json = null, t.extensions = null, t.plugins = null, t.options = null, t.textureLoader = null, e.parser = null, kl());
   }
   dispose() {
     this.dracoLoader && this.dracoLoader.dispose(), this.cache.forEach((e) => {
@@ -4425,7 +4425,7 @@ let yi = class {
     this.scheduled || (this._schedulingCallback(this._runjobs), this.scheduled = !0);
   }
 };
-const Et = -1, Be = 0, kt = 1, Ft = 2, Ni = 3, _e = 4, ln = 6378137, Yl = 6356752314245179e-9, Ut = {
+const Et = -1, Be = 0, Ft = 1, kt = 2, Ni = 3, _e = 4, ln = 6378137, Yl = 6356752314245179e-9, Ut = {
   inView: !1,
   error: 1 / 0,
   distanceFromCamera: 1 / 0
@@ -4734,7 +4734,7 @@ let tc = class {
    */
   update() {
     const { lruCache: e, usedSet: t, stats: i, root: s, downloadQueue: n, parseQueue: r, processNodeQueue: o } = this;
-    if (this.rootLoadingState === Be && (this.rootLoadingState = Ft, this.invokeOnePlugin((d) => d.loadRootTileset && d.loadRootTileset()).then((d) => {
+    if (this.rootLoadingState === Be && (this.rootLoadingState = kt, this.invokeOnePlugin((d) => d.loadRootTileset && d.loadRootTileset()).then((d) => {
       let h = this.rootURL;
       h !== null && this.invokeAllPlugins((u) => h = u.preprocessURL ? u.preprocessURL(h, null) : h), this.rootLoadingState = _e, this.rootTileset = d, this.dispatchEvent({ type: "needs-update" }), this.dispatchEvent({
         type: "load-tileset",
@@ -4917,7 +4917,7 @@ let tc = class {
   removeUnusedPendingTiles() {
     const { lruCache: e, loadingTiles: t } = this, i = [];
     for (const s of t)
-      !e.isUsed(s) && s.internal.loadingState === kt && i.push(s);
+      !e.isUsed(s) && s.internal.loadingState === Ft && i.push(s);
     for (let s = 0; s < i.length; s++)
       e.remove(i[s]);
   }
@@ -4987,12 +4987,12 @@ let tc = class {
     if (r.add(e, (A) => {
       h.abort(), t ? A.children.length = 0 : this.invokeAllPlugins((p) => {
         p.disposeTile && p.disposeTile(A);
-      }), n.inCache--, this.cachedSinceLoadComplete.has(e) && (this.cachedSinceLoadComplete.delete(e), n.inCacheSinceLoad--), A.internal.loadingState === kt ? n.queued-- : A.internal.loadingState === Ft ? n.downloading-- : A.internal.loadingState === Ni ? n.parsing-- : A.internal.loadingState === _e && n.loaded--, A.internal.loadingState = Be, a.remove(A), o.remove(A), l.delete(A);
+      }), n.inCache--, this.cachedSinceLoadComplete.has(e) && (this.cachedSinceLoadComplete.delete(e), n.inCacheSinceLoad--), A.internal.loadingState === Ft ? n.queued-- : A.internal.loadingState === kt ? n.downloading-- : A.internal.loadingState === Ni ? n.parsing-- : A.internal.loadingState === _e && n.loaded--, A.internal.loadingState = Be, a.remove(A), o.remove(A), l.delete(A);
     }))
-      return this.isLoading || (this.isLoading = !0, this.dispatchEvent({ type: "tiles-load-start" })), r.setMemoryUsage(e, this.getBytesUsed(e)), this.cachedSinceLoadComplete.add(e), n.inCacheSinceLoad++, n.inCache++, n.queued++, e.internal.loadingState = kt, l.add(e), o.add(e, (A) => {
+      return this.isLoading || (this.isLoading = !0, this.dispatchEvent({ type: "tiles-load-start" })), r.setMemoryUsage(e, this.getBytesUsed(e)), this.cachedSinceLoadComplete.add(e), n.inCacheSinceLoad++, n.inCache++, n.queued++, e.internal.loadingState = Ft, l.add(e), o.add(e, (A) => {
         if (u.aborted)
           return Promise.resolve();
-        e.internal.loadingState = Ft, n.downloading++, n.queued--;
+        e.internal.loadingState = kt, n.downloading++, n.queued--;
         const p = this.invokeOnePlugin((f) => f.fetchData && f.fetchData(s, { ...this.fetchOptions, signal: u }));
         return this.dispatchEvent({
           type: "tile-download-start",
@@ -5032,7 +5032,7 @@ let tc = class {
           url: s
         });
       }).catch((A) => {
-        u.aborted || (A.name !== "AbortError" ? (a.remove(e), o.remove(e), e.internal.loadingState === kt ? n.queued-- : e.internal.loadingState === Ft ? n.downloading-- : e.internal.loadingState === Ni ? n.parsing-- : e.internal.loadingState === _e && n.loaded--, n.failed++, console.error(`TilesRenderer : Failed to load tile at url "${e.content.uri}".`), console.error(A), e.internal.loadingState = Et, l.delete(e), r.setLoaded(e, !0), this.dispatchEvent({
+        u.aborted || (A.name !== "AbortError" ? (a.remove(e), o.remove(e), e.internal.loadingState === Ft ? n.queued-- : e.internal.loadingState === kt ? n.downloading-- : e.internal.loadingState === Ni ? n.parsing-- : e.internal.loadingState === _e && n.loaded--, n.failed++, console.error(`TilesRenderer : Failed to load tile at url "${e.content.uri}".`), console.error(A), e.internal.loadingState = Et, l.delete(e), r.setLoaded(e, !0), this.dispatchEvent({
           type: "load-error",
           tile: e,
           error: A,
@@ -5721,7 +5721,7 @@ let mn = class {
     return !0;
   }
 };
-const Hi = 1e-13, wt = Math.PI, zi = wt / 2, dt = /* @__PURE__ */ new R(), Fe = /* @__PURE__ */ new R(), he = /* @__PURE__ */ new R(), D = /* @__PURE__ */ new R(), ee = /* @__PURE__ */ new G(), uc = /* @__PURE__ */ new ot(), gn = /* @__PURE__ */ new G();
+const Hi = 1e-13, wt = Math.PI, zi = wt / 2, dt = /* @__PURE__ */ new R(), ke = /* @__PURE__ */ new R(), he = /* @__PURE__ */ new R(), D = /* @__PURE__ */ new R(), ee = /* @__PURE__ */ new G(), uc = /* @__PURE__ */ new ot(), gn = /* @__PURE__ */ new G();
 function Re(c, e) {
   e.radius = Math.max(e.radius, c.distanceToSquared(e.center));
 }
@@ -5751,7 +5751,7 @@ class Ac extends Jr {
     let A;
     h ? A = i : u ? A = s : A = 0;
     const { min: p, max: f } = e;
-    p.setScalar(1 / 0), f.setScalar(-1 / 0), r - n <= wt ? (this.getCartographicToNormal(l, d, he), Fe.set(0, 0, 1), dt.crossVectors(Fe, he).normalize(), Fe.crossVectors(he, dt).normalize(), t.makeBasis(dt, Fe, he), ee.copy(t).invert(), this.getCartographicToPosition(A, n, a, D).applyMatrix4(ee), f.x = Math.abs(D.x), p.x = -f.x, this.getCartographicToPosition(s, n, a, D).applyMatrix4(ee), f.y = D.y, this.getCartographicToPosition(s, d, a, D).applyMatrix4(ee), f.y = Math.max(D.y, f.y), this.getCartographicToPosition(i, n, a, D).applyMatrix4(ee), p.y = D.y, this.getCartographicToPosition(i, d, a, D).applyMatrix4(ee), p.y = Math.min(D.y, p.y), this.getCartographicToPosition(l, d, a, D).applyMatrix4(ee), f.z = D.z, this.getCartographicToPosition(i, n, o, D).applyMatrix4(ee), p.z = D.z, this.getCartographicToPosition(s, n, o, D).applyMatrix4(ee), p.z = Math.min(D.z, p.z)) : (this.getCartographicToPosition(A, d, a, he), he.z = 0, he.length() < 1e-10 ? he.set(1, 0, 0) : he.normalize(), Fe.set(0, 0, 1), dt.crossVectors(he, Fe).normalize(), t.makeBasis(dt, Fe, he), ee.copy(t).invert(), this.getCartographicToPosition(A, d + zi, a, D).applyMatrix4(ee), f.x = Math.abs(D.x), p.x = -f.x, this.getCartographicToPosition(s, 0, u ? o : a, D).applyMatrix4(ee), f.y = D.y, this.getCartographicToPosition(i, 0, h ? o : a, D).applyMatrix4(ee), p.y = D.y, this.getCartographicToPosition(A, d, a, D).applyMatrix4(ee), f.z = D.z, this.getCartographicToPosition(A, r, a, D).applyMatrix4(ee), p.z = D.z), e.getCenter(D), e.min.sub(D).multiplyScalar(1 + Hi), e.max.sub(D).multiplyScalar(1 + Hi), D.applyMatrix4(t), t.setPosition(D);
+    p.setScalar(1 / 0), f.setScalar(-1 / 0), r - n <= wt ? (this.getCartographicToNormal(l, d, he), ke.set(0, 0, 1), dt.crossVectors(ke, he).normalize(), ke.crossVectors(he, dt).normalize(), t.makeBasis(dt, ke, he), ee.copy(t).invert(), this.getCartographicToPosition(A, n, a, D).applyMatrix4(ee), f.x = Math.abs(D.x), p.x = -f.x, this.getCartographicToPosition(s, n, a, D).applyMatrix4(ee), f.y = D.y, this.getCartographicToPosition(s, d, a, D).applyMatrix4(ee), f.y = Math.max(D.y, f.y), this.getCartographicToPosition(i, n, a, D).applyMatrix4(ee), p.y = D.y, this.getCartographicToPosition(i, d, a, D).applyMatrix4(ee), p.y = Math.min(D.y, p.y), this.getCartographicToPosition(l, d, a, D).applyMatrix4(ee), f.z = D.z, this.getCartographicToPosition(i, n, o, D).applyMatrix4(ee), p.z = D.z, this.getCartographicToPosition(s, n, o, D).applyMatrix4(ee), p.z = Math.min(D.z, p.z)) : (this.getCartographicToPosition(A, d, a, he), he.z = 0, he.length() < 1e-10 ? he.set(1, 0, 0) : he.normalize(), ke.set(0, 0, 1), dt.crossVectors(he, ke).normalize(), t.makeBasis(dt, ke, he), ee.copy(t).invert(), this.getCartographicToPosition(A, d + zi, a, D).applyMatrix4(ee), f.x = Math.abs(D.x), p.x = -f.x, this.getCartographicToPosition(s, 0, u ? o : a, D).applyMatrix4(ee), f.y = D.y, this.getCartographicToPosition(i, 0, h ? o : a, D).applyMatrix4(ee), p.y = D.y, this.getCartographicToPosition(A, d, a, D).applyMatrix4(ee), f.z = D.z, this.getCartographicToPosition(A, r, a, D).applyMatrix4(ee), p.z = D.z), e.getCenter(D), e.min.sub(D).multiplyScalar(1 + Hi), e.max.sub(D).multiplyScalar(1 + Hi), D.applyMatrix4(t), t.setPosition(D);
   }
   /**
    * Computes a bounding sphere for this region. Writes the result into `sphere`.
@@ -6022,8 +6022,8 @@ class Zr extends nc {
             for (let U = 0, L = _.length; U < L; U++) {
               const Q = _[U];
               ji.copy(qt), M && (Q.updateMatrixWorld(), wn.copy(qi).applyMatrix4(Q.matrixWorld), this.ellipsoid.getPositionToCartographic(wn, Ki), this.ellipsoid.getEastNorthUpFrame(Ki.lat, Ki.lon, vn), ji.setFromRotationMatrix(vn)), Ye.compose(qi, ji, jt).multiply(u);
-              const F = P[U];
-              En.multiplyMatrices(Ye, F.matrixWorld), Q.setMatrixAt(T, En);
+              const k = P[U];
+              En.multiplyMatrices(Ye, k.matrixWorld), Q.setMatrixAt(T, En);
             }
           }
           A.scene.clear(), A.scene.add(..._), A.batchTable = s, A.featureTable = i, A.scene.batchTable = s, A.scene.featureTable = i, r(A);
@@ -7224,7 +7224,7 @@ function Y(c, e, t) {
 function no(c) {
   return c !== "BOOLEAN" && c !== "STRING" && c !== "ENUM";
 }
-function kc(c) {
+function Fc(c) {
   return /^FLOAT/.test(c);
 }
 function _t(c) {
@@ -7321,7 +7321,7 @@ function It(c, e = null) {
   }
   throw new Error("ClassProperty: invalid type.");
 }
-function Fc(c, e = null) {
+function kc(c, e = null) {
   if (c.array) {
     e = e && Array.isArray(e) ? e : [], e.length = c.count;
     for (let t = 0, i = e.length; t < i; t++)
@@ -7440,7 +7440,7 @@ function Nc(c, e) {
     return h;
   }
   function d(h) {
-    return r && (h = Vc(i, h)), (r || kc(i)) && (h = h * s + n), h;
+    return r && (h = Vc(i, h)), (r || Fc(i)) && (h = h * s + n), h;
   }
 }
 function Ds(c, e, t = null) {
@@ -7504,7 +7504,7 @@ class Mi {
   // resolve the target to the default value for the property for every element if it's an array
   // enums are set to a default string
   resolveDefault(e) {
-    return Fc(this, e);
+    return kc(this, e);
   }
   // converts any instances of no data to the default value
   resolveNoData(e) {
@@ -7740,7 +7740,7 @@ function lo(c, e, t, i) {
   const s = c.x - Math.floor(c.x), n = c.y - Math.floor(c.y), r = Math.floor(s * e % e), o = Math.floor(n * t % t);
   return i.set(r, o), i;
 }
-const Ln = /* @__PURE__ */ new V(), Pn = /* @__PURE__ */ new V(), kn = /* @__PURE__ */ new V();
+const Ln = /* @__PURE__ */ new V(), Pn = /* @__PURE__ */ new V(), Fn = /* @__PURE__ */ new V();
 class Kc extends Mi {
   constructor(e, t, i = null) {
     super(e, t, i), this.channels = Y(i, "channels", [0]), this.index = Y(i, "index", null), this.texCoord = Y(i, "texCoord", null), this.valueLength = parseInt(this.type.replace(/[^0-9]/g, "")) || 1;
@@ -7787,7 +7787,7 @@ class Yc extends Ls {
       if (!o[p])
         continue;
       const f = a[p], g = r[f.index];
-      ao(s, f.texCoord, i, l, Ln), lo(Ln, g.image.width, g.image.height, Pn), kn.set(u, 0), Qe.renderPixelToTarget(g, Pn, kn);
+      ao(s, f.texCoord, i, l, Ln), lo(Ln, g.image.width, g.image.height, Pn), Fn.set(u, 0), Qe.renderPixelToTarget(g, Pn, Fn);
     }
     const d = new Uint8Array(e.length * 4);
     if (this._asyncRead)
@@ -7820,7 +7820,7 @@ class Yc extends Ls {
     });
   }
 }
-class Fn {
+class kn {
   constructor(e, t, i, s = null, n = null) {
     const {
       schema: r,
@@ -8000,14 +8000,14 @@ class Xc {
       Wc(t, n.propertyTextures),
       Jc(t, n.propertyTables),
       s
-    ]), a = new Fn(n, r, o);
+    ]), a = new kn(n, r, o);
     e.userData.structuralMetadata = a, e.traverse((l) => {
       var d;
       if (t.associations.has(l)) {
         const { meshes: h, primitives: u } = t.associations.get(l), A = (d = t.json.meshes[h]) == null ? void 0 : d.primitives[u];
         if (A && A.extensions && A.extensions[mt]) {
           const p = A.extensions[mt];
-          l.userData.structuralMetadata = new Fn(n, r, o, p, l);
+          l.userData.structuralMetadata = new kn(n, r, o, p, l);
         } else
           l.userData.structuralMetadata = a;
       }
@@ -8176,7 +8176,7 @@ class ih {
     this.tiles.manager.removeHandler(this._gltfRegex), this.tiles.manager.removeHandler(this._dracoRegex), this.autoDispose && (this.ktxLoader.dispose(), this.dracoLoader.dispose());
   }
 }
-const { clamp: wd } = rt;
+const { clamp: Sd } = rt;
 new io(new Ve());
 const sh = new mr(new Uint8Array([255, 255, 255, 255]), 1, 1);
 sh.needsUpdate = !0;
@@ -9796,11 +9796,11 @@ class Mh {
         if (M > 0) {
           const L = l[M - 1], Q = Math.sqrt(
             Math.pow(L.x - i.x, 2) + Math.pow(L.z - i.z, 2)
-          ), F = U > Q ? (n - Q) / (U - Q) : 0.5;
+          ), k = U > Q ? (n - Q) / (U - Q) : 0.5;
           w = new m.Vector3(
-            L.x + (_.x - L.x) * F,
+            L.x + (_.x - L.x) * k,
             u,
-            L.z + (_.z - L.z) * F
+            L.z + (_.z - L.z) * k
           ), l[M] = w, l.length = M + 1;
         }
         break;
@@ -11415,7 +11415,7 @@ class Wn {
     typeof window > "u" || (delete window.camera, delete window.scene, delete window.vertices, delete window.models, delete window.particles, delete window.vr, delete window.stereo, delete window.perfStats, delete window.debugHelp, delete window.belowViewer);
   }
 }
-class kh {
+class Fh {
   constructor(e, t = {}) {
     this.renderer = e, this.tilesetLoader = t.tilesetLoader || null, this.logIntervalMs = typeof t.logIntervalMs == "number" ? t.logIntervalMs : 2e3, this.maxSamples = 240, this.frameTimes = new Float32Array(this.maxSamples), this.sampleCount = 0, this.sampleIndex = 0, this.lastLogTimeMs = 0, this.lastSummary = null, this.overlayElement = null, this.enabled = !0, t.overlay && typeof document < "u" && this.createOverlay(t.overlayContainer || document.body);
   }
@@ -11526,7 +11526,7 @@ class kh {
     this.enabled = !1, this.overlayElement?.parentNode && this.overlayElement.parentNode.removeChild(this.overlayElement), this.overlayElement = null, typeof window < "u" && window.__belowPerf === this.lastSummary && delete window.__belowPerf;
   }
 }
-class Fh extends Pe {
+class kh extends Pe {
   /**
    * Creates a new BelowViewer instance
    * 
@@ -11750,7 +11750,7 @@ class Fh extends Pe {
    * @returns {PerfMonitor|null} The active monitor, if any
    */
   setPerfStats(e, t = {}) {
-    return e && !this.perfMonitor ? this.perfMonitor = new kh(this.renderer, {
+    return e && !this.perfMonitor ? this.perfMonitor = new Fh(this.renderer, {
       tilesetLoader: this.tilesetLoader,
       overlay: t.overlay !== !1,
       overlayContainer: typeof document < "u" ? document.body : null
@@ -15361,7 +15361,7 @@ class Wh extends Pe {
     return this.selection = Array.from(new Set(e || [])).filter((t) => this.annotations.has(t)), this.emit("selection-change", { selection: [...this.selection] }), [...this.selection];
   }
 }
-const ts = 1024, is = 420, Jh = 6, ir = 30, Xh = 0.025, $h = 0.14, We = 128, Zh = 32, ed = new m.Color(9296112), td = new m.Color(16777215), id = new m.Color(16765286);
+const ts = 1024, is = 420, Jh = 6, ir = 30, Xh = 0.025, $h = 0.14, We = 128, Zh = 32, ed = m.MathUtils.degToRad(22), td = m.MathUtils.degToRad(4), id = new m.Color(9296112), sd = new m.Color(16777215), nd = new m.Color(16765286);
 function sr(c, e, t) {
   const i = String(e || "").split(/\s+/).filter(Boolean), s = [];
   let n = "";
@@ -15371,12 +15371,12 @@ function sr(c, e, t) {
   }
   return n && s.push(n), s;
 }
-class sd {
+class rd {
   constructor(e, t = {}) {
-    this.system = e, this.enabled = t.enabled !== !1, this.interaction = t.interaction || "select", this.group = new m.Group(), this.group.name = "BelowJSAnnotationsXR", this.group.visible = !1, this.markerMesh = null, this.markerHaloMesh = null, this.markerHitMesh = null, this.markerAtlasTexture = null, this.markerIds = [], this.signature = "", this.panel = null, this.controllers = [], this._raycaster = new m.Raycaster(), this._matrix = new m.Matrix4(), this._origin = new m.Vector3(), this._direction = new m.Vector3(), this._cameraWorldQuaternion = new m.Quaternion(), this._billboardWorldQuaternion = new m.Quaternion(), this._targetBillboardQuaternion = new m.Quaternion(), this._billboardInitialized = !1, this._billboardRight = new m.Vector3(1, 0, 0), this._billboardUp = new m.Vector3(0, 1, 0), this._billboardNormal = new m.Vector3(0, 0, 1), this._worldUp = new m.Vector3(0, 1, 0), this._billboardMatrix = new m.Matrix4(), this._cameraWorldPosition = new m.Vector3(), this._parentWorldScale = new m.Vector3(1, 1, 1), this._worldPosition = new m.Vector3(), this._liftDirection = new m.Vector3(), this._localPosition = new m.Vector3(), this._localScale = new m.Vector3(), this._haloScale = new m.Vector3(), this._panelWorldPosition = new m.Vector3(), this._instanceMatrix = new m.Matrix4(), this._identityQuaternion = new m.Quaternion(), this.hoveredIds = /* @__PURE__ */ new Set();
+    this.system = e, this.enabled = t.enabled !== !1, this.interaction = t.interaction || "select", this.group = new m.Group(), this.group.name = "BelowJSAnnotationsXR", this.group.visible = !1, this.markerMesh = null, this.markerHaloMesh = null, this.markerHitMesh = null, this.markerAtlasTexture = null, this.markerIds = [], this.signature = "", this.panel = null, this.controllers = [], this._raycaster = new m.Raycaster(), this._matrix = new m.Matrix4(), this._origin = new m.Vector3(), this._direction = new m.Vector3(), this._cameraWorldQuaternion = new m.Quaternion(), this._billboardWorldQuaternion = new m.Quaternion(), this._targetBillboardQuaternion = new m.Quaternion(), this._billboardInitialized = !1, this._billboardFollowing = !1, this._billboardRight = new m.Vector3(1, 0, 0), this._billboardUp = new m.Vector3(0, 1, 0), this._billboardNormal = new m.Vector3(0, 0, 1), this._worldUp = new m.Vector3(0, 1, 0), this._billboardMatrix = new m.Matrix4(), this._cameraWorldPosition = new m.Vector3(), this._parentWorldScale = new m.Vector3(1, 1, 1), this._worldPosition = new m.Vector3(), this._liftDirection = new m.Vector3(), this._localPosition = new m.Vector3(), this._localScale = new m.Vector3(), this._haloScale = new m.Vector3(), this._panelWorldPosition = new m.Vector3(), this._instanceMatrix = new m.Matrix4(), this._identityQuaternion = new m.Quaternion(), this.hoveredIds = /* @__PURE__ */ new Set();
   }
   attach(e) {
-    this.group.parent !== e && (this.group.removeFromParent(), e?.add?.(this.group)), this.bindControllers(), this.signature = "", this._billboardInitialized = !1;
+    this.group.parent !== e && (this.group.removeFromParent(), e?.add?.(this.group)), this.bindControllers(), this.signature = "", this._billboardInitialized = !1, this._billboardFollowing = !1;
   }
   bindControllers() {
     const e = this.system.getRenderer?.();
@@ -15458,7 +15458,7 @@ class sd {
     if (!this.enabled) return;
     const i = !!this.system.getRenderer?.()?.xr?.isPresenting, s = this.system._activeModel || this.system.getModelRoot?.();
     if (s && this.group.parent !== s && this.attach(s), this.group.visible = i && this.system.annotationsVisible, !this.group.visible || !s) {
-      this._billboardInitialized = !1, this.setControllerRaysVisible(!1);
+      this._billboardInitialized = !1, this._billboardFollowing = !1, this.setControllerRaysVisible(!1);
       return;
     }
     const n = this.system.sortedAnnotations(), r = n.map((o) => [
@@ -15599,8 +15599,11 @@ class sd {
       if (t.getWorldQuaternion(this._cameraWorldQuaternion), this._billboardNormal.set(0, 0, 1).applyQuaternion(this._cameraWorldQuaternion).normalize(), this._billboardRight.crossVectors(this._worldUp, this._billboardNormal), this._billboardRight.lengthSq() < 1e-6 && this._billboardRight.set(1, 0, 0).applyQuaternion(this._cameraWorldQuaternion), this._billboardRight.normalize(), this._billboardUp.crossVectors(this._billboardNormal, this._billboardRight).normalize(), this._billboardMatrix.makeBasis(this._billboardRight, this._billboardUp, this._billboardNormal), this._targetBillboardQuaternion.setFromRotationMatrix(this._billboardMatrix), !this._billboardInitialized)
         this._billboardWorldQuaternion.copy(this._targetBillboardQuaternion), this._billboardInitialized = !0;
       else {
-        const i = 1 - Math.exp(-4.5 * Math.max(0, Math.min(0.1, e)));
-        this._billboardWorldQuaternion.slerp(this._targetBillboardQuaternion, i);
+        const i = this._billboardWorldQuaternion.angleTo(this._targetBillboardQuaternion);
+        if (this._billboardFollowing ? i <= td && (this._billboardFollowing = !1) : i >= ed && (this._billboardFollowing = !0), this._billboardFollowing) {
+          const s = 1 - Math.exp(-3.2 * Math.max(0, Math.min(0.1, e)));
+          this._billboardWorldQuaternion.slerp(this._targetBillboardQuaternion, s);
+        }
       }
       this._billboardRight.set(1, 0, 0).applyQuaternion(this._billboardWorldQuaternion).normalize(), this._billboardUp.set(0, 1, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();
     }
@@ -15616,7 +15619,7 @@ class sd {
       let l = m.MathUtils.clamp(a * 0.012, Xh, $h);
       r.collapsed && (l *= 0.55), t && (this._liftDirection.copy(this._cameraWorldPosition).sub(this._worldPosition), this._liftDirection.lengthSq() > 1e-10 && (this._liftDirection.normalize(), this._worldPosition.addScaledVector(this._liftDirection, Math.max(6e-3, l * 0.55)), this._localPosition.copy(this._worldPosition), this.group.worldToLocal(this._localPosition))), this._localScale.set(l / i, l / s, l / n), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._localScale), this.markerMesh.setMatrixAt(o, this._instanceMatrix);
       const d = this.system.selection?.includes(r.id), h = this.hoveredIds.has(r.id);
-      this.markerHaloMesh.setColorAt(o, h ? id : d ? td : ed), this._haloScale.copy(this._localScale).multiplyScalar(h || d ? 1.8 : 1.45), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHaloMesh.setMatrixAt(o, this._instanceMatrix), this.markerHitMesh && (this._haloScale.copy(this._localScale).multiplyScalar(2.15), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHitMesh.setMatrixAt(o, this._instanceMatrix));
+      this.markerHaloMesh.setColorAt(o, h ? nd : d ? sd : id), this._haloScale.copy(this._localScale).multiplyScalar(h || d ? 1.8 : 1.45), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHaloMesh.setMatrixAt(o, this._instanceMatrix), this.markerHitMesh && (this._haloScale.copy(this._localScale).multiplyScalar(2.15), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHitMesh.setMatrixAt(o, this._instanceMatrix));
     }), this.markerMesh.instanceMatrix.needsUpdate = !0, this.markerHaloMesh.instanceMatrix.needsUpdate = !0, this.markerHitMesh && (this.markerHitMesh.instanceMatrix.needsUpdate = !0), this.markerHaloMesh.instanceColor && (this.markerHaloMesh.instanceColor.needsUpdate = !0);
   }
   setControllerRaysVisible(e) {
@@ -15715,10 +15718,10 @@ class sd {
     this.controllers = [], this.disposeMarkerMeshes(), this.panel?.material?.uniforms?.panelMap?.value?.dispose(), this.panel?.geometry?.dispose(), this.panel?.material?.dispose(), this.group.removeFromParent(), this.group.clear();
   }
 }
-const Je = 120, gt = 4e3, nd = 66, nr = 6, Xt = 5, rr = 4e3, rd = 8e3, od = 550, bt = 0.1, $t = 0.22;
-class ad extends Pe {
+const Je = 120, gt = 4e3, od = 66, nr = 6, Xt = 5, rr = 4e3, ad = 8e3, ld = 550, bt = 0.1, $t = 0.22;
+class cd extends Pe {
   constructor(e, t = {}) {
-    super(), this.viewer = e, this.mode = t.mode === "author" || t.readOnly === !1 ? "author" : "view", this.readOnly = this.mode !== "author", this.send = t.send || null, this.container = t.container || null, this.adapter = null, this._adapterUnsubscribe = null, this._loadGeneration = 0, this._loadController = null, this._pendingSource = null, this._activeModelKey = null, this._activeModel = null, this._modelReady = !1, this.store = new Wh(), this.xrLayer = new sd(this, t.xr || {}), this.options = {
+    super(), this.viewer = e, this.mode = t.mode === "author" || t.readOnly === !1 ? "author" : "view", this.readOnly = this.mode !== "author", this.send = t.send || null, this.container = t.container || null, this.adapter = null, this._adapterUnsubscribe = null, this._loadGeneration = 0, this._loadController = null, this._pendingSource = null, this._activeModelKey = null, this._activeModel = null, this._modelReady = !1, this.store = new Wh(), this.xrLayer = new rd(this, t.xr || {}), this.options = {
       rightClickPing: t.rightClickPing !== !1,
       // ghost ping at right-click point, shared with the room
       occlusionFade: t.occlusionFade !== !1,
@@ -16850,9 +16853,9 @@ class ad extends Pe {
     const { posAttr: n, index: r, nx: o, ny: a, nz: l, minX: d, minY: h, minZ: u, cellX: A, cellY: p, cellZ: f } = e;
     for (let g = t; g < i; g++) {
       const b = r ? r[g * 3] : g * 3, y = r ? r[g * 3 + 1] : g * 3 + 1, E = r ? r[g * 3 + 2] : g * 3 + 2, C = n.getX(b), w = n.getY(b), S = n.getZ(b), v = n.getX(y), I = n.getY(y), B = n.getZ(y), M = n.getX(E), x = n.getY(E), _ = n.getZ(E);
-      let P = (Math.min(C, v, M) - d) / A | 0, T = (Math.max(C, v, M) - d) / A | 0, U = (Math.min(w, I, x) - h) / p | 0, L = (Math.max(w, I, x) - h) / p | 0, Q = (Math.min(S, B, _) - u) / f | 0, F = (Math.max(S, B, _) - u) / f | 0;
-      P < 0 && (P = 0), U < 0 && (U = 0), Q < 0 && (Q = 0), T >= o && (T = o - 1), L >= a && (L = a - 1), F >= l && (F = l - 1);
-      for (let O = Q; O <= F; O++)
+      let P = (Math.min(C, v, M) - d) / A | 0, T = (Math.max(C, v, M) - d) / A | 0, U = (Math.min(w, I, x) - h) / p | 0, L = (Math.max(w, I, x) - h) / p | 0, Q = (Math.min(S, B, _) - u) / f | 0, k = (Math.max(S, B, _) - u) / f | 0;
+      P < 0 && (P = 0), U < 0 && (U = 0), Q < 0 && (Q = 0), T >= o && (T = o - 1), L >= a && (L = a - 1), k >= l && (k = l - 1);
+      for (let O = Q; O <= k; O++)
         for (let z = U; z <= L; z++) {
           const j = (O * a + z) * o;
           for (let q = P; q <= T; q++) {
@@ -16899,22 +16902,22 @@ class ad extends Pe {
       [s, o, e.minZ, d]
     ];
     for (let L = 0; L < 3; L++) {
-      const [Q, F, O, z] = A[L];
-      if (Math.abs(F) < 1e-12) {
+      const [Q, k, O, z] = A[L];
+      if (Math.abs(k) < 1e-12) {
         if (Q < O || Q > z) return -1;
         continue;
       }
-      const j = (O - Q) / F, q = (z - Q) / F;
+      const j = (O - Q) / k, q = (z - Q) / k;
       h = Math.max(h, Math.min(j, q)), u = Math.min(u, Math.max(j, q));
     }
     if (u < h) return -1;
     const p = 1e-7, f = t + n * (h + p), g = i + r * (h + p), b = s + o * (h + p);
     let y = Math.min(e.nx - 1, Math.max(0, (f - e.minX) / e.cellX | 0)), E = Math.min(e.ny - 1, Math.max(0, (g - e.minY) / e.cellY | 0)), C = Math.min(e.nz - 1, Math.max(0, (b - e.minZ) / e.cellZ | 0));
-    const w = n > 0 ? 1 : -1, S = r > 0 ? 1 : -1, v = o > 0 ? 1 : -1, I = Math.abs(e.cellX / (n || 1e-30)), B = Math.abs(e.cellY / (r || 1e-30)), M = Math.abs(e.cellZ / (o || 1e-30)), x = (L, Q, F, O, z) => Q + (O + (z > 0 ? 1 : 0)) * F;
+    const w = n > 0 ? 1 : -1, S = r > 0 ? 1 : -1, v = o > 0 ? 1 : -1, I = Math.abs(e.cellX / (n || 1e-30)), B = Math.abs(e.cellY / (r || 1e-30)), M = Math.abs(e.cellZ / (o || 1e-30)), x = (L, Q, k, O, z) => Q + (O + (z > 0 ? 1 : 0)) * k;
     let _ = n !== 0 ? h + (x(f, e.minX, e.cellX, y, w) - f) / n : 1 / 0, P = r !== 0 ? h + (x(g, e.minY, e.cellY, E, S) - g) / r : 1 / 0, T = o !== 0 ? h + (x(b, e.minZ, e.cellZ, C, v) - b) / o : 1 / 0, U = 1 / 0;
     for (let L = 0; L < 1024; L++) {
-      const Q = (C * e.ny + E) * e.nx + y, F = e.offsets[Q], O = e.offsets[Q + 1];
-      for (let j = F; j < O; j++) {
+      const Q = (C * e.ny + E) * e.nx + y, k = e.offsets[Q], O = e.offsets[Q + 1];
+      for (let j = k; j < O; j++) {
         const q = this.rayTriangle(e, e.buckets[j], t, i, s, n, r, o);
         q >= h - 1e-6 && q < U && (U = q);
       }
@@ -16933,12 +16936,12 @@ class ad extends Pe {
   rayTriangle(e, t, i, s, n, r, o, a) {
     const { posAttr: l, index: d } = e, h = d ? d[t * 3] : t * 3, u = d ? d[t * 3 + 1] : t * 3 + 1, A = d ? d[t * 3 + 2] : t * 3 + 2, p = l.getX(h), f = l.getY(h), g = l.getZ(h), b = l.getX(u), y = l.getY(u), E = l.getZ(u), C = l.getX(A), w = l.getY(A), S = l.getZ(A), v = b - p, I = y - f, B = E - g, M = C - p, x = w - f, _ = S - g, P = o * _ - a * x, T = a * M - r * _, U = r * x - o * M, L = v * P + I * T + B * U;
     if (L > -1e-12 && L < 1e-12) return -1;
-    const Q = 1 / L, F = i - p, O = s - f, z = n - g, j = (F * P + O * T + z * U) * Q;
+    const Q = 1 / L, k = i - p, O = s - f, z = n - g, j = (k * P + O * T + z * U) * Q;
     if (j < -1e-6 || j > 1 + 1e-6) return -1;
-    const q = O * B - z * I, re = z * v - F * B, Dt = F * I - O * v, ks = (r * q + o * re + a * Dt) * Q;
-    if (ks < -1e-6 || j + ks > 1 + 1e-6) return -1;
-    const Fs = (M * q + x * re + _ * Dt) * Q;
-    return Fs > 1e-6 ? Fs : -1;
+    const q = O * B - z * I, re = z * v - k * B, Dt = k * I - O * v, Fs = (r * q + o * re + a * Dt) * Q;
+    if (Fs < -1e-6 || j + Fs > 1 + 1e-6) return -1;
+    const ks = (M * q + x * re + _ * Dt) * Q;
+    return ks > 1e-6 ? ks : -1;
   }
   runOcclusionTests(e) {
     const t = this._grid;
@@ -17250,7 +17253,7 @@ class ad extends Pe {
       notes: String(e.notes || ""),
       username: e.username || "",
       color: e.avatar_color || null,
-      expiresAt: performance.now() + rd
+      expiresAt: performance.now() + ad
     }), this.applyRemoteFocusVisuals(), this.syncFollowedAnnotationPanel();
   }
   /** Who (if anyone) is editing this annotation right now. */
@@ -17499,7 +17502,7 @@ class ad extends Pe {
       if (A) {
         this.dragState.lastValidPoint = A, this.applyMoveDraftPosition(e, A);
         const p = performance.now();
-        p - this.dragState.lastSentAt >= nd && (this.dragState.lastSentAt = p, this.sendMessage({
+        p - this.dragState.lastSentAt >= od && (this.dragState.lastSentAt = p, this.sendMessage({
           type: "annotation_update",
           action: "move",
           commit: !1,
@@ -18135,7 +18138,7 @@ class ad extends Pe {
     }, a = (d) => {
       d.pointerType !== "touch" || !d.isPrimary || (s = d.clientX, n = d.clientY, r = d.pointerId, clearTimeout(i), i = setTimeout(() => {
         i = null, this._longPressFired = performance.now(), navigator.vibrate?.(15), t(s, n);
-      }, od));
+      }, ld));
     }, l = (d) => {
       if (!i || d.pointerId !== r) return;
       const h = d.clientX - s, u = d.clientY - n;
@@ -18172,7 +18175,7 @@ class ad extends Pe {
     return t.textContent = String(e), t.innerHTML;
   }
 }
-const ld = [
+const hd = [
   "annotations-loaded",
   "annotations-cleared",
   "annotation-changed",
@@ -18180,9 +18183,9 @@ const ld = [
   "annotation-visibility-changed",
   "annotation-error"
 ];
-class cd extends Pe {
+class dd extends Pe {
   constructor(e, t = {}) {
-    super(), this.runtime = new ad(e, t), this._runtimeListeners = ld.map((i) => {
+    super(), this.runtime = new cd(e, t), this._runtimeListeners = hd.map((i) => {
       const s = (n) => this.emit(i, n);
       return this.runtime.on(i, s), { eventName: i, listener: s };
     });
@@ -18358,7 +18361,7 @@ class Es extends Pe {
       ...this.config.ktx2TranscoderPath && { ktx2TranscoderPath: this.config.ktx2TranscoderPath },
       ...this.config.webxrInputProfilesPath && { webxrInputProfilesPath: this.config.webxrInputProfilesPath }
     };
-    if (this.belowViewer = new Fh(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
+    if (this.belowViewer = new kh(this.container, e), this.setupEventForwarding(), this.setupRecoveryHandlers(), this.belowViewer.on("initialized", () => {
       this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls(), this._maybeAttachAnnotationSystem();
     }), this.belowViewer.isInitialized && (this.setupRecoveryHandlers(), this.setupFocusInteraction(), this._maybeAttachMeasurementSystem(), this._maybeAttachVRComfortGlyph(), this._maybeAttachDiveSystem(), this._maybeAttachScreenshotButton(), this._maybeAttachFullscreenButton(), this._maybeAttachFlyControls(), this._maybeAttachAnnotationSystem()), Object.keys(this.config.models).length > 0 && (this.createUI(), this.populateDropdown(), this.config.autoLoadFirst)) {
       const t = Object.keys(this.config.models)[0];
@@ -18369,7 +18372,7 @@ class Es extends Pe {
     if (this.annotations) return;
     const e = this.config.annotations || {}, t = Object.values(this.config.models || {}).some((s) => !!s?.annotations);
     if (e.enabled === !0 || e.enabled !== !1 && t) {
-      this.annotations = new cd(this, {
+      this.annotations = new dd(this, {
         ...e,
         container: e.container || this.container
       });
@@ -19567,8 +19570,8 @@ class Es extends Pe {
 export {
   ys as ANNOTATION_DOCUMENT_FORMAT,
   Cs as ANNOTATION_DOCUMENT_VERSION,
-  cd as AnnotationSystem,
-  Fh as BelowViewer,
+  dd as AnnotationSystem,
+  kh as BelowViewer,
   Ia as Camera,
   gi as ConfigValidator,
   Pe as EventSystem,
@@ -19578,7 +19581,7 @@ export {
   Bt as LineMaterial,
   ne as ModelLoader,
   Es as ModelViewer,
-  kh as PerfMonitor,
+  Fh as PerfMonitor,
   da as Scene,
   xh as VRManager,
   oh as applyTilesetVRProfileDefaults,
