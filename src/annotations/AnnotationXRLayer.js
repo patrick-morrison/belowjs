@@ -6,7 +6,7 @@ const DEFAULT_RAY_LENGTH = 6;
 const MAX_RAY_LENGTH = 30;
 const MARKER_MIN_RADIUS = 0.025;
 const MARKER_MAX_RADIUS = 0.14;
-const MARKER_ATLAS_CELL = 64;
+const MARKER_ATLAS_CELL = 128;
 const MARKER_ATLAS_COLUMNS = 32;
 
 const MARKER_COLOR = new THREE.Color(0x8dd8f0);
@@ -40,6 +40,7 @@ export class AnnotationXRLayer {
     this.group.visible = false;
     this.markerMesh = null;
     this.markerHaloMesh = null;
+    this.markerHitMesh = null;
     this.markerAtlasTexture = null;
     this.markerIds = [];
     this.signature = '';
@@ -54,6 +55,7 @@ export class AnnotationXRLayer {
     this._cameraWorldPosition = new THREE.Vector3();
     this._parentWorldScale = new THREE.Vector3(1, 1, 1);
     this._worldPosition = new THREE.Vector3();
+    this._liftDirection = new THREE.Vector3();
     this._localPosition = new THREE.Vector3();
     this._localScale = new THREE.Vector3();
     this._haloScale = new THREE.Vector3();
@@ -126,15 +128,16 @@ export class AnnotationXRLayer {
   }
 
   getControllerHit(controller) {
-    if (!this.group.visible || !this.markerMesh || this.interaction !== 'select') return;
+    const hitTarget = this.markerHitMesh || this.markerMesh;
+    if (!this.group.visible || !hitTarget || this.interaction !== 'select') return;
     controller.updateWorldMatrix?.(true, false);
-    this.markerMesh.updateWorldMatrix?.(true, false);
+    hitTarget.updateWorldMatrix?.(true, false);
     this._matrix.identity().extractRotation(controller.matrixWorld);
     this._origin.setFromMatrixPosition(controller.matrixWorld);
     this._direction.set(0, 0, -1).applyMatrix4(this._matrix).normalize();
     this._raycaster.set(this._origin, this._direction);
     this._raycaster.far = MAX_RAY_LENGTH;
-    return this._raycaster.intersectObject(this.markerMesh, false)[0] || null;
+    return this._raycaster.intersectObject(hitTarget, false)[0] || null;
   }
 
   selectFromController(controller, event = null) {
@@ -178,8 +181,8 @@ export class AnnotationXRLayer {
       this.signature = signature;
       this.rebuildMarkers(annotations);
     }
-    this.updateControllerInteractions();
     this.updateMarkerTransforms(annotations);
+    this.updateControllerInteractions();
     this.updatePanel();
   }
 
@@ -194,8 +197,14 @@ export class AnnotationXRLayer {
       this.markerHaloMesh.geometry.dispose();
       this.markerHaloMesh.material.dispose();
     }
+    if (this.markerHitMesh) {
+      this.markerHitMesh.removeFromParent();
+      this.markerHitMesh.geometry.dispose();
+      this.markerHitMesh.material.dispose();
+    }
     this.markerMesh = null;
     this.markerHaloMesh = null;
+    this.markerHitMesh = null;
     this.markerAtlasTexture?.dispose();
     this.markerAtlasTexture = null;
   }
@@ -217,19 +226,19 @@ export class AnnotationXRLayer {
       const y = row * MARKER_ATLAS_CELL + MARKER_ATLAS_CELL / 2;
       ctx.save();
       ctx.shadowColor = 'rgba(100, 181, 246, 0.52)';
-      ctx.shadowBlur = 7;
+      ctx.shadowBlur = 14;
       ctx.fillStyle = '#185f87';
       ctx.strokeStyle = 'rgba(238, 249, 252, 0.96)';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 6;
       ctx.beginPath();
-      ctx.arc(x, y, 23, 0, Math.PI * 2);
+      ctx.arc(x, y, 46, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       ctx.restore();
       ctx.fillStyle = '#ffffff';
       const digits = String(index + 1).length;
-      ctx.font = `700 ${digits > 2 ? 18 : 22}px -apple-system, sans-serif`;
-      ctx.fillText(String(index + 1), x, y + 1);
+      ctx.font = `700 ${digits > 2 ? 36 : 44}px -apple-system, sans-serif`;
+      ctx.fillText(String(index + 1), x, y + 2);
     }
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -307,16 +316,36 @@ export class AnnotationXRLayer {
     haloMesh.name = 'BelowJSAnnotationMarkerHalosXR';
     haloMesh.frustumCulled = false;
     haloMesh.renderOrder = 1;
+    const hitGeometry = new THREE.SphereGeometry(1, 12, 8);
+    const hitMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthTest: false,
+      depthWrite: false,
+      colorWrite: false
+    });
+    const hitMesh = new THREE.InstancedMesh(hitGeometry, hitMaterial, annotations.length);
+    hitMesh.name = 'BelowJSAnnotationMarkerTargetsXR';
+    hitMesh.frustumCulled = false;
     this.markerMesh = mesh;
     this.markerHaloMesh = haloMesh;
+    this.markerHitMesh = hitMesh;
     this.group.add(mesh);
     this.group.add(haloMesh);
+    this.group.add(hitMesh);
     this.updateMarkerTransforms(annotations);
+  }
+
+  getViewCamera() {
+    const camera = this.system.getCamera?.();
+    const renderer = this.system.getRenderer?.();
+    if (!camera || !renderer?.xr?.isPresenting) return camera;
+    return renderer.xr.getCamera?.(camera) || camera;
   }
 
   updateMarkerTransforms(annotations) {
     if (!this.markerMesh || !this.markerHaloMesh) return;
-    const camera = this.system.getCamera?.();
+    const camera = this.getViewCamera();
     this.group.updateWorldMatrix?.(true, false);
     this.group.getWorldScale(this._parentWorldScale);
     camera?.getWorldPosition(this._cameraWorldPosition);
@@ -336,6 +365,15 @@ export class AnnotationXRLayer {
       const distance = camera ? this._cameraWorldPosition.distanceTo(this._worldPosition) : 4;
       let worldRadius = THREE.MathUtils.clamp(distance * 0.012, MARKER_MIN_RADIUS, MARKER_MAX_RADIUS);
       if (annotation.collapsed) worldRadius *= 0.55;
+      if (camera) {
+        this._liftDirection.copy(this._cameraWorldPosition).sub(this._worldPosition);
+        if (this._liftDirection.lengthSq() > 1e-10) {
+          this._liftDirection.normalize();
+          this._worldPosition.addScaledVector(this._liftDirection, Math.max(0.006, worldRadius * 0.55));
+          this._localPosition.copy(this._worldPosition);
+          this.group.worldToLocal(this._localPosition);
+        }
+      }
       this._localScale.set(worldRadius / sx, worldRadius / sy, worldRadius / sz);
       this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._localScale);
       this.markerMesh.setMatrixAt(index, this._instanceMatrix);
@@ -345,9 +383,15 @@ export class AnnotationXRLayer {
       this._haloScale.copy(this._localScale).multiplyScalar(hovered || selected ? 1.8 : 1.45);
       this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale);
       this.markerHaloMesh.setMatrixAt(index, this._instanceMatrix);
+      if (this.markerHitMesh) {
+        this._haloScale.copy(this._localScale).multiplyScalar(2.15);
+        this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale);
+        this.markerHitMesh.setMatrixAt(index, this._instanceMatrix);
+      }
     });
     this.markerMesh.instanceMatrix.needsUpdate = true;
     this.markerHaloMesh.instanceMatrix.needsUpdate = true;
+    if (this.markerHitMesh) this.markerHitMesh.instanceMatrix.needsUpdate = true;
     if (this.markerHaloMesh.instanceColor) this.markerHaloMesh.instanceColor.needsUpdate = true;
   }
 
@@ -363,7 +407,7 @@ export class AnnotationXRLayer {
   updateControllerInteractions() {
     this.hoveredIds.clear();
     for (const record of this.controllers) {
-      const active = this.group.visible && record.connected;
+      const active = this.group.visible && (record.connected || record.controller.visible !== false);
       const hit = active ? this.getControllerHit(record.controller) : null;
       const annotationId = hit?.instanceId === undefined ? undefined : this.markerIds[hit.instanceId];
       const targetFade = annotationId === undefined ? 0 : 1;
@@ -390,7 +434,7 @@ export class AnnotationXRLayer {
       this.drawPanel(annotation);
     }
     if (this.panel.parent !== this.group) this.group.add(this.panel);
-    const camera = this.system.getCamera?.();
+    const camera = this.getViewCamera();
     if (camera) {
       this.group.updateWorldMatrix?.(true, false);
       camera.getWorldPosition(this._cameraWorldPosition);

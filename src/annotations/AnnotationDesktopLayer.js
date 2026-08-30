@@ -543,12 +543,10 @@ export class AnnotationDesktopLayer extends EventSystem {
         if (this.options.showToggle) this.createVisibilityButton();
         if (this.options.showExport) this.createExportButton();
 
-        const tick = (ts) => {
+        const runFrame = (dt = 0.016) => {
             if (this.destroyed) return;
-            const dt = this._lastFrameTs ? Math.min(0.1, (ts - this._lastFrameTs) / 1000) : 0.016;
-            this._lastFrameTs = ts;
             try {
-                this.updateFrame(dt);
+                this.updateFrame(Math.min(0.1, Number.isFinite(dt) ? dt : 0.016));
             } catch (err) {
                 // One bad frame must never kill the whole annotation layer.
                 if (!this._frameErrorLogged) {
@@ -556,6 +554,23 @@ export class AnnotationDesktopLayer extends EventSystem {
                     console.error('Annotation frame error (loop continues):', err);
                 }
             }
+        };
+        // BelowViewer emits this event from renderer.setAnimationLoop. That is
+        // the authoritative frame lifecycle in both ordinary and immersive
+        // WebXR sessions, so headset pose, marker transforms, and controller
+        // hit-testing all describe the frame that is about to be rendered.
+        this._frameHost = this.viewer?.belowViewer || this.viewer;
+        if (typeof this._frameHost?.on === 'function') {
+            this._boundOnBeforeRender = runFrame;
+            this._frameHost.on('before-render', this._boundOnBeforeRender);
+            return;
+        }
+
+        const tick = (ts) => {
+            if (this.destroyed) return;
+            const dt = this._lastFrameTs ? (ts - this._lastFrameTs) / 1000 : 0.016;
+            this._lastFrameTs = ts;
+            runFrame(dt);
             this.rafHandle = requestAnimationFrame(tick);
         };
         this.rafHandle = requestAnimationFrame(tick);
@@ -565,6 +580,11 @@ export class AnnotationDesktopLayer extends EventSystem {
     destroy() {
         this.destroyed = true;
         this._loadController?.abort();
+        if (this._boundOnBeforeRender) {
+            this._frameHost?.off?.('before-render', this._boundOnBeforeRender);
+            this._boundOnBeforeRender = null;
+        }
+        this._frameHost = null;
         if (this.rafHandle) cancelAnimationFrame(this.rafHandle);
         this.detachCanvasListeners(this.canvasEl);
         this.canvasEl = null;

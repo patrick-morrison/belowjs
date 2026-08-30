@@ -478,3 +478,88 @@ test('XR marker size stays readable under non-identity model scale', () => {
   assert.ok(Math.abs(localScale.y * 2 - 0.12) < 1e-8);
   assert.ok(Math.abs(localScale.z * 4 - 0.12) < 1e-8);
 });
+
+test('XR marker transforms use the live headset camera and lift targets off the model surface', () => {
+  const annotation = { id: 1, title: 'Frame', notes: '', position: { x: 0, y: 0, z: 0 } };
+  const baseCamera = new THREE.PerspectiveCamera();
+  baseCamera.position.set(0, 0, -10);
+  baseCamera.updateMatrixWorld(true);
+  const headsetCamera = new THREE.PerspectiveCamera();
+  headsetCamera.position.set(0, 0, 10);
+  headsetCamera.rotation.set(0.15, -0.25, 0.05);
+  headsetCamera.updateMatrixWorld(true);
+  const system = {
+    selection: [],
+    annotations: new Map([[annotation.id, annotation]]),
+    getCamera: () => baseCamera,
+    getRenderer: () => ({
+      xr: { isPresenting: true, getCamera: () => headsetCamera }
+    })
+  };
+  const layer = new AnnotationXRLayer(system);
+  const model = new THREE.Group();
+  model.add(layer.group);
+  layer.markerMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial(), 1);
+  layer.markerHaloMesh = new THREE.InstancedMesh(new THREE.RingGeometry(1, 1.2, 12), new THREE.MeshBasicMaterial(), 1);
+  layer.markerHitMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshBasicMaterial(), 1);
+  layer.group.add(layer.markerMesh, layer.markerHaloMesh, layer.markerHitMesh);
+  model.updateMatrixWorld(true);
+
+  layer.updateMarkerTransforms([annotation]);
+
+  const matrix = new THREE.Matrix4();
+  const position = new THREE.Vector3();
+  const quaternion = new THREE.Quaternion();
+  layer.markerMesh.getMatrixAt(0, matrix);
+  matrix.decompose(position, quaternion, new THREE.Vector3());
+  assert.ok(position.z > 0.05, 'marker should lift toward the live headset camera');
+  assert.ok(1 - Math.abs(quaternion.dot(headsetCamera.quaternion)) < 1e-9);
+  layer.markerHitMesh.getMatrixAt(0, matrix);
+  matrix.decompose(position, quaternion, new THREE.Vector3());
+  assert.ok(position.z > 0.05, 'controller target should follow the lifted marker');
+});
+
+test('XR marker sync refreshes transforms before controller hit-testing', () => {
+  const system = {
+    annotationsVisible: true,
+    annotations: new Map(),
+    sortedAnnotations: () => [],
+    getRenderer: () => ({ xr: { isPresenting: true } }),
+    getModelRoot: () => model
+  };
+  const model = new THREE.Group();
+  const layer = new AnnotationXRLayer(system);
+  layer.attach = () => { layer.group.parent = model; };
+  layer.group.parent = model;
+  const calls = [];
+  layer.updateMarkerTransforms = () => calls.push('transforms');
+  layer.updateControllerInteractions = () => calls.push('interactions');
+  layer.updatePanel = () => calls.push('panel');
+  layer.sync();
+  assert.deepEqual(calls, ['transforms', 'interactions', 'panel']);
+});
+
+test('XR controller interaction remains active when it bound after the controller connected', () => {
+  const annotation = { id: 9, title: 'Late controller', notes: '', position: { x: 0, y: 0, z: -2 } };
+  const layer = new AnnotationXRLayer({ selection: [], annotations: new Map([[annotation.id, annotation]]) });
+  layer.group.visible = true;
+  layer.markerIds = [annotation.id];
+  layer.markerHitMesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.22, 8, 6),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.markerHitMesh.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 0, -2));
+  layer.group.add(layer.markerHitMesh);
+  layer.group.updateMatrixWorld(true);
+  const controller = new THREE.Object3D();
+  controller.visible = true;
+  controller.updateMatrixWorld(true);
+  const ray = layer.createControllerRay();
+  layer.controllers = [{ controller, ray, connected: false, rayFade: 0 }];
+
+  layer.updateControllerInteractions();
+
+  assert.equal(ray.visible, true);
+  assert.deepEqual([...layer.hoveredIds], [annotation.id]);
+});

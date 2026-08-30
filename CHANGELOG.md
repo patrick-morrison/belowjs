@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Annotation documents remain compatible with `belowjs-annotations` version 1: new exports identify `layer.coordinate_space` as `model`, while legacy documents without metadata are normalized from world space after the matching model activates.
 - XR annotations now mirror the desktop visual language with distance-scaled numbered badges and a camera-facing detail card. Controller and hand rays appear only while directly targeting a marker, and annotation selection no longer commits the measurement orb.
 
+### Fixed
+- XR annotations now update on BelowViewer's WebXR render lifecycle using the live headset camera, with crisp marker atlases, surface-safe placement, and generous invisible controller targets so markers track, remain readable, and select reliably on Quest.
+
 ## [1.9.1] - 2026-08-27
 
 ### Fixed

@@ -15361,7 +15361,7 @@ class Wh extends Pe {
     return this.selection = Array.from(new Set(e || [])).filter((t) => this.annotations.has(t)), this.emit("selection-change", { selection: [...this.selection] }), [...this.selection];
   }
 }
-const ts = 768, is = 384, Jh = 6, ir = 30, Xh = 0.025, $h = 0.14, We = 64, Zh = 32, ed = new m.Color(9296112), td = new m.Color(16777215), id = new m.Color(16765286);
+const ts = 768, is = 384, Jh = 6, ir = 30, Xh = 0.025, $h = 0.14, We = 128, Zh = 32, ed = new m.Color(9296112), td = new m.Color(16777215), id = new m.Color(16765286);
 function sr(c, e, t) {
   const i = String(e || "").split(/\s+/).filter(Boolean), s = [];
   let n = "";
@@ -15373,7 +15373,7 @@ function sr(c, e, t) {
 }
 class sd {
   constructor(e, t = {}) {
-    this.system = e, this.enabled = t.enabled !== !1, this.interaction = t.interaction || "select", this.group = new m.Group(), this.group.name = "BelowJSAnnotationsXR", this.group.visible = !1, this.markerMesh = null, this.markerHaloMesh = null, this.markerAtlasTexture = null, this.markerIds = [], this.signature = "", this.panel = null, this.controllers = [], this._raycaster = new m.Raycaster(), this._matrix = new m.Matrix4(), this._origin = new m.Vector3(), this._direction = new m.Vector3(), this._cameraWorldQuaternion = new m.Quaternion(), this._parentWorldQuaternion = new m.Quaternion(), this._cameraWorldPosition = new m.Vector3(), this._parentWorldScale = new m.Vector3(1, 1, 1), this._worldPosition = new m.Vector3(), this._localPosition = new m.Vector3(), this._localScale = new m.Vector3(), this._haloScale = new m.Vector3(), this._panelWorldPosition = new m.Vector3(), this._cameraUp = new m.Vector3(), this._instanceMatrix = new m.Matrix4(), this._identityQuaternion = new m.Quaternion(), this.hoveredIds = /* @__PURE__ */ new Set();
+    this.system = e, this.enabled = t.enabled !== !1, this.interaction = t.interaction || "select", this.group = new m.Group(), this.group.name = "BelowJSAnnotationsXR", this.group.visible = !1, this.markerMesh = null, this.markerHaloMesh = null, this.markerHitMesh = null, this.markerAtlasTexture = null, this.markerIds = [], this.signature = "", this.panel = null, this.controllers = [], this._raycaster = new m.Raycaster(), this._matrix = new m.Matrix4(), this._origin = new m.Vector3(), this._direction = new m.Vector3(), this._cameraWorldQuaternion = new m.Quaternion(), this._parentWorldQuaternion = new m.Quaternion(), this._cameraWorldPosition = new m.Vector3(), this._parentWorldScale = new m.Vector3(1, 1, 1), this._worldPosition = new m.Vector3(), this._liftDirection = new m.Vector3(), this._localPosition = new m.Vector3(), this._localScale = new m.Vector3(), this._haloScale = new m.Vector3(), this._panelWorldPosition = new m.Vector3(), this._cameraUp = new m.Vector3(), this._instanceMatrix = new m.Matrix4(), this._identityQuaternion = new m.Quaternion(), this.hoveredIds = /* @__PURE__ */ new Set();
   }
   attach(e) {
     this.group.parent !== e && (this.group.removeFromParent(), e?.add?.(this.group)), this.bindControllers(), this.signature = "";
@@ -15416,8 +15416,9 @@ class sd {
     return i.name = "BelowJSAnnotationControllerRay", i.scale.z = Jh, i.renderOrder = 1e3, i.visible = !1, i;
   }
   getControllerHit(e) {
-    if (!(!this.group.visible || !this.markerMesh || this.interaction !== "select"))
-      return e.updateWorldMatrix?.(!0, !1), this.markerMesh.updateWorldMatrix?.(!0, !1), this._matrix.identity().extractRotation(e.matrixWorld), this._origin.setFromMatrixPosition(e.matrixWorld), this._direction.set(0, 0, -1).applyMatrix4(this._matrix).normalize(), this._raycaster.set(this._origin, this._direction), this._raycaster.far = ir, this._raycaster.intersectObject(this.markerMesh, !1)[0] || null;
+    const t = this.markerHitMesh || this.markerMesh;
+    if (!(!this.group.visible || !t || this.interaction !== "select"))
+      return e.updateWorldMatrix?.(!0, !1), t.updateWorldMatrix?.(!0, !1), this._matrix.identity().extractRotation(e.matrixWorld), this._origin.setFromMatrixPosition(e.matrixWorld), this._direction.set(0, 0, -1).applyMatrix4(this._matrix).normalize(), this._raycaster.set(this._origin, this._direction), this._raycaster.far = ir, this._raycaster.intersectObject(t, !1)[0] || null;
   }
   selectFromController(e, t = null) {
     const i = this.getControllerHit(e);
@@ -15445,10 +15446,10 @@ class sd {
       r.position.z,
       r.collapsed ? 1 : 0
     ].join(":")).join("|");
-    n !== this.signature && (this.signature = n, this.rebuildMarkers(s)), this.updateControllerInteractions(), this.updateMarkerTransforms(s), this.updatePanel();
+    n !== this.signature && (this.signature = n, this.rebuildMarkers(s)), this.updateMarkerTransforms(s), this.updateControllerInteractions(), this.updatePanel();
   }
   disposeMarkerMeshes() {
-    this.markerMesh && (this.markerMesh.removeFromParent(), this.markerMesh.geometry.dispose(), this.markerMesh.material.dispose()), this.markerHaloMesh && (this.markerHaloMesh.removeFromParent(), this.markerHaloMesh.geometry.dispose(), this.markerHaloMesh.material.dispose()), this.markerMesh = null, this.markerHaloMesh = null, this.markerAtlasTexture?.dispose(), this.markerAtlasTexture = null;
+    this.markerMesh && (this.markerMesh.removeFromParent(), this.markerMesh.geometry.dispose(), this.markerMesh.material.dispose()), this.markerHaloMesh && (this.markerHaloMesh.removeFromParent(), this.markerHaloMesh.geometry.dispose(), this.markerHaloMesh.material.dispose()), this.markerHitMesh && (this.markerHitMesh.removeFromParent(), this.markerHitMesh.geometry.dispose(), this.markerHitMesh.material.dispose()), this.markerMesh = null, this.markerHaloMesh = null, this.markerHitMesh = null, this.markerAtlasTexture?.dispose(), this.markerAtlasTexture = null;
   }
   createMarkerAtlas(e) {
     if (typeof document > "u") return null;
@@ -15458,9 +15459,9 @@ class sd {
     n.textAlign = "center", n.textBaseline = "middle";
     for (let o = 0; o < e; o += 1) {
       const a = o % t, l = Math.floor(o / t), d = a * We + We / 2, h = l * We + We / 2;
-      n.save(), n.shadowColor = "rgba(100, 181, 246, 0.52)", n.shadowBlur = 7, n.fillStyle = "#185f87", n.strokeStyle = "rgba(238, 249, 252, 0.96)", n.lineWidth = 3, n.beginPath(), n.arc(d, h, 23, 0, Math.PI * 2), n.fill(), n.stroke(), n.restore(), n.fillStyle = "#ffffff";
+      n.save(), n.shadowColor = "rgba(100, 181, 246, 0.52)", n.shadowBlur = 14, n.fillStyle = "#185f87", n.strokeStyle = "rgba(238, 249, 252, 0.96)", n.lineWidth = 6, n.beginPath(), n.arc(d, h, 46, 0, Math.PI * 2), n.fill(), n.stroke(), n.restore(), n.fillStyle = "#ffffff";
       const u = String(o + 1).length;
-      n.font = `700 ${u > 2 ? 18 : 22}px -apple-system, sans-serif`, n.fillText(String(o + 1), d, h + 1);
+      n.font = `700 ${u > 2 ? 36 : 44}px -apple-system, sans-serif`, n.fillText(String(o + 1), d, h + 2);
     }
     const r = new m.CanvasTexture(s);
     return r.colorSpace = m.SRGBColorSpace, r.minFilter = m.LinearFilter, r.magFilter = m.LinearFilter, r.generateMipmaps = !1, { texture: r, columns: t, rows: i };
@@ -15498,11 +15499,11 @@ class sd {
     });
   }
   rebuildMarkers(e) {
-    if (this.disposeMarkerMeshes(), this.markerIds = e.map((u) => u.id), !e.length)
+    if (this.disposeMarkerMeshes(), this.markerIds = e.map((f) => f.id), !e.length)
       return;
     const t = this.createMarkerAtlas(e.length), i = new m.PlaneGeometry(2, 2), s = new Float32Array(e.length * 2), n = t?.columns || 1, r = t?.rows || 1;
-    e.forEach((u, A) => {
-      s[A * 2] = A % n / n, s[A * 2 + 1] = (r - 1 - Math.floor(A / n)) / r;
+    e.forEach((f, g) => {
+      s[g * 2] = g % n / n, s[g * 2 + 1] = (r - 1 - Math.floor(g / n)) / r;
     }), i.setAttribute("annotationUvOffset", new m.InstancedBufferAttribute(s, 2)), this.markerAtlasTexture = t?.texture || null;
     const o = t ? this.createMarkerMaterial(t.texture, n, r) : new m.MeshBasicMaterial({ color: 1597319, depthTest: !0, side: m.DoubleSide }), a = new m.InstancedMesh(i, o, e.length);
     a.name = "BelowJSAnnotationMarkersXR", a.frustumCulled = !1;
@@ -15513,21 +15514,33 @@ class sd {
       depthTest: !0,
       depthWrite: !1
     }), h = new m.InstancedMesh(l, d, e.length);
-    h.name = "BelowJSAnnotationMarkerHalosXR", h.frustumCulled = !1, h.renderOrder = 1, this.markerMesh = a, this.markerHaloMesh = h, this.group.add(a), this.group.add(h), this.updateMarkerTransforms(e);
+    h.name = "BelowJSAnnotationMarkerHalosXR", h.frustumCulled = !1, h.renderOrder = 1;
+    const u = new m.SphereGeometry(1, 12, 8), A = new m.MeshBasicMaterial({
+      transparent: !0,
+      opacity: 0,
+      depthTest: !1,
+      depthWrite: !1,
+      colorWrite: !1
+    }), p = new m.InstancedMesh(u, A, e.length);
+    p.name = "BelowJSAnnotationMarkerTargetsXR", p.frustumCulled = !1, this.markerMesh = a, this.markerHaloMesh = h, this.markerHitMesh = p, this.group.add(a), this.group.add(h), this.group.add(p), this.updateMarkerTransforms(e);
+  }
+  getViewCamera() {
+    const e = this.system.getCamera?.(), t = this.system.getRenderer?.();
+    return !e || !t?.xr?.isPresenting ? e : t.xr.getCamera?.(e) || e;
   }
   updateMarkerTransforms(e) {
     if (!this.markerMesh || !this.markerHaloMesh) return;
-    const t = this.system.getCamera?.();
+    const t = this.getViewCamera();
     this.group.updateWorldMatrix?.(!0, !1), this.group.getWorldScale(this._parentWorldScale), t?.getWorldPosition(this._cameraWorldPosition);
     const i = Math.max(1e-6, Math.abs(this._parentWorldScale.x)), s = Math.max(1e-6, Math.abs(this._parentWorldScale.y)), n = Math.max(1e-6, Math.abs(this._parentWorldScale.z));
     t ? (t.getWorldQuaternion(this._cameraWorldQuaternion), this.group.getWorldQuaternion(this._parentWorldQuaternion).invert(), this._identityQuaternion.copy(this._parentWorldQuaternion).multiply(this._cameraWorldQuaternion)) : this._identityQuaternion.identity(), e.forEach((r, o) => {
       this._localPosition.set(r.position.x, r.position.y, r.position.z), this._worldPosition.copy(this._localPosition).applyMatrix4(this.group.matrixWorld);
       const a = t ? this._cameraWorldPosition.distanceTo(this._worldPosition) : 4;
       let l = m.MathUtils.clamp(a * 0.012, Xh, $h);
-      r.collapsed && (l *= 0.55), this._localScale.set(l / i, l / s, l / n), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._localScale), this.markerMesh.setMatrixAt(o, this._instanceMatrix);
+      r.collapsed && (l *= 0.55), t && (this._liftDirection.copy(this._cameraWorldPosition).sub(this._worldPosition), this._liftDirection.lengthSq() > 1e-10 && (this._liftDirection.normalize(), this._worldPosition.addScaledVector(this._liftDirection, Math.max(6e-3, l * 0.55)), this._localPosition.copy(this._worldPosition), this.group.worldToLocal(this._localPosition))), this._localScale.set(l / i, l / s, l / n), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._localScale), this.markerMesh.setMatrixAt(o, this._instanceMatrix);
       const d = this.system.selection?.includes(r.id), h = this.hoveredIds.has(r.id);
-      this.markerHaloMesh.setColorAt(o, h ? id : d ? td : ed), this._haloScale.copy(this._localScale).multiplyScalar(h || d ? 1.8 : 1.45), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHaloMesh.setMatrixAt(o, this._instanceMatrix);
-    }), this.markerMesh.instanceMatrix.needsUpdate = !0, this.markerHaloMesh.instanceMatrix.needsUpdate = !0, this.markerHaloMesh.instanceColor && (this.markerHaloMesh.instanceColor.needsUpdate = !0);
+      this.markerHaloMesh.setColorAt(o, h ? id : d ? td : ed), this._haloScale.copy(this._localScale).multiplyScalar(h || d ? 1.8 : 1.45), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHaloMesh.setMatrixAt(o, this._instanceMatrix), this.markerHitMesh && (this._haloScale.copy(this._localScale).multiplyScalar(2.15), this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale), this.markerHitMesh.setMatrixAt(o, this._instanceMatrix));
+    }), this.markerMesh.instanceMatrix.needsUpdate = !0, this.markerHaloMesh.instanceMatrix.needsUpdate = !0, this.markerHitMesh && (this.markerHitMesh.instanceMatrix.needsUpdate = !0), this.markerHaloMesh.instanceColor && (this.markerHaloMesh.instanceColor.needsUpdate = !0);
   }
   setControllerRaysVisible(e) {
     if (!e)
@@ -15537,7 +15550,7 @@ class sd {
   updateControllerInteractions() {
     this.hoveredIds.clear();
     for (const e of this.controllers) {
-      const i = this.group.visible && e.connected ? this.getControllerHit(e.controller) : null, s = i?.instanceId === void 0 ? void 0 : this.markerIds[i.instanceId], n = s === void 0 ? 0 : 1;
+      const i = this.group.visible && (e.connected || e.controller.visible !== !1) ? this.getControllerHit(e.controller) : null, s = i?.instanceId === void 0 ? void 0 : this.markerIds[i.instanceId], n = s === void 0 ? 0 : 1;
       e.rayFade += (n - e.rayFade) * 0.34, s !== void 0 && (this.hoveredIds.add(s), e.ray.scale.z = m.MathUtils.clamp(i.distance, 0.05, ir)), e.ray.visible = e.rayFade > 0.025, e.ray.material.color.set(16765286), e.ray.material.opacity = 0.88 * e.rayFade;
     }
   }
@@ -15548,7 +15561,7 @@ class sd {
       return;
     }
     this.panel || (this.panel = this.createPanel()), (this.panel.userData.annotationId !== e || this.panel.userData.title !== t.title || this.panel.userData.notes !== t.notes) && this.drawPanel(t), this.panel.parent !== this.group && this.group.add(this.panel);
-    const i = this.system.getCamera?.();
+    const i = this.getViewCamera();
     if (i) {
       this.group.updateWorldMatrix?.(!0, !1), i.getWorldPosition(this._cameraWorldPosition), i.getWorldQuaternion(this._cameraWorldQuaternion), this.group.getWorldScale(this._parentWorldScale), this._worldPosition.set(t.position.x, t.position.y, t.position.z).applyMatrix4(this.group.matrixWorld);
       const s = this._cameraWorldPosition.distanceTo(this._worldPosition), n = m.MathUtils.clamp(s * 0.42, 0.55, 1.8), r = n * (is / ts);
@@ -15859,24 +15872,30 @@ class ad extends Pe {
   init() {
     this.injectStyles();
     const e = this.getCanvas(), t = this.container || e?.parentElement || document.body;
-    this.container = t, this.overlayEl = document.createElement("div"), this.overlayEl.className = "bv-annotation-overlay", this.options.initialHidden && (this.overlayEl.style.visibility = "hidden"), this.overlayEl.addEventListener("contextmenu", (s) => s.preventDefault()), t.appendChild(this.overlayEl), this.syncCanvasListeners(), document.addEventListener("pointerdown", this._boundOnDocPointerDown, !0), document.addEventListener("keydown", this._boundOnKeyDown), document.addEventListener("click", this._boundOnScreenshotClick, !0), this._invalidateRects = () => {
+    this.container = t, this.overlayEl = document.createElement("div"), this.overlayEl.className = "bv-annotation-overlay", this.options.initialHidden && (this.overlayEl.style.visibility = "hidden"), this.overlayEl.addEventListener("contextmenu", (n) => n.preventDefault()), t.appendChild(this.overlayEl), this.syncCanvasListeners(), document.addEventListener("pointerdown", this._boundOnDocPointerDown, !0), document.addEventListener("keydown", this._boundOnKeyDown), document.addEventListener("click", this._boundOnScreenshotClick, !0), this._invalidateRects = () => {
       this._rects = null, this.positionVisibilityButton();
     }, window.addEventListener("resize", this._invalidateRects), document.addEventListener("fullscreenchange", this._invalidateRects), this.options.showToggle && this.createVisibilityButton(), this.options.showExport && this.createExportButton();
-    const i = (s) => {
-      if (this.destroyed) return;
-      const n = this._lastFrameTs ? Math.min(0.1, (s - this._lastFrameTs) / 1e3) : 0.016;
-      this._lastFrameTs = s;
-      try {
-        this.updateFrame(n);
-      } catch (r) {
-        this._frameErrorLogged || (this._frameErrorLogged = !0, console.error("Annotation frame error (loop continues):", r));
-      }
-      this.rafHandle = requestAnimationFrame(i);
+    const i = (n = 0.016) => {
+      if (!this.destroyed)
+        try {
+          this.updateFrame(Math.min(0.1, Number.isFinite(n) ? n : 0.016));
+        } catch (r) {
+          this._frameErrorLogged || (this._frameErrorLogged = !0, console.error("Annotation frame error (loop continues):", r));
+        }
     };
-    this.rafHandle = requestAnimationFrame(i);
+    if (this._frameHost = this.viewer?.belowViewer || this.viewer, typeof this._frameHost?.on == "function") {
+      this._boundOnBeforeRender = i, this._frameHost.on("before-render", this._boundOnBeforeRender);
+      return;
+    }
+    const s = (n) => {
+      if (this.destroyed) return;
+      const r = this._lastFrameTs ? (n - this._lastFrameTs) / 1e3 : 0.016;
+      this._lastFrameTs = n, i(r), this.rafHandle = requestAnimationFrame(s);
+    };
+    this.rafHandle = requestAnimationFrame(s);
   }
   destroy() {
-    this.destroyed = !0, this._loadController?.abort(), this.rafHandle && cancelAnimationFrame(this.rafHandle), this.detachCanvasListeners(this.canvasEl), this.canvasEl = null, document.removeEventListener("pointerdown", this._boundOnDocPointerDown, !0), document.removeEventListener("keydown", this._boundOnKeyDown), document.removeEventListener("click", this._boundOnScreenshotClick, !0), this._invalidateRects && (window.removeEventListener("resize", this._invalidateRects), document.removeEventListener("fullscreenchange", this._invalidateRects)), clearInterval(this._draftInterval), clearInterval(this._focusInterval), clearInterval(this._visPositionInterval), this.closeMenu(), this.closePanel(), this.clearPreviewBar(), this.clearRemotePreviewBars();
+    this.destroyed = !0, this._loadController?.abort(), this._boundOnBeforeRender && (this._frameHost?.off?.("before-render", this._boundOnBeforeRender), this._boundOnBeforeRender = null), this._frameHost = null, this.rafHandle && cancelAnimationFrame(this.rafHandle), this.detachCanvasListeners(this.canvasEl), this.canvasEl = null, document.removeEventListener("pointerdown", this._boundOnDocPointerDown, !0), document.removeEventListener("keydown", this._boundOnKeyDown), document.removeEventListener("click", this._boundOnScreenshotClick, !0), this._invalidateRects && (window.removeEventListener("resize", this._invalidateRects), document.removeEventListener("fullscreenchange", this._invalidateRects)), clearInterval(this._draftInterval), clearInterval(this._focusInterval), clearInterval(this._visPositionInterval), this.closeMenu(), this.closePanel(), this.clearPreviewBar(), this.clearRemotePreviewBars();
     for (const e of this.scaleBars.values()) this.removeBarVisual(e);
     this.scaleBars.clear();
     for (const e of this.pings.values()) e.el.remove();
