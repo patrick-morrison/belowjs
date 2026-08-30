@@ -780,6 +780,19 @@ export class MeasurementSystem {
   _handleVRTriggerUp(event) {
     const controller = event.target;
 
+    // Annotation selection owns a trigger that began over an XR annotation
+    // marker. Do not also place or delete a measurement point when that same
+    // trigger is released; all other triggers retain the orb workflow.
+    if (controller?.userData?.belowjsAnnotationTrigger) {
+      controller.userData.belowjsAnnotationTrigger = false;
+      const annotationDeleteState = this._vrDeleteStates.get(controller);
+      if (annotationDeleteState) {
+        this._disposeVRDeleteVisual(annotationDeleteState);
+        this._vrDeleteStates.delete(controller);
+      }
+      return;
+    }
+
     const deleteState = this._vrDeleteStates.get(controller);
     if (deleteState) {
       const deletionCompleted = deleteState.completedAt !== null

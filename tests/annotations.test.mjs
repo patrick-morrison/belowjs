@@ -10,6 +10,7 @@ import { AnnotationStore } from '../src/annotations/AnnotationStore.js';
 import { AnnotationSystem } from '../src/annotations/AnnotationSystem.js';
 import { AnnotationDesktopLayer } from '../src/annotations/AnnotationDesktopLayer.js';
 import { AnnotationXRLayer } from '../src/annotations/AnnotationXRLayer.js';
+import { MeasurementSystem } from '../src/measurement/MeasurementSystem.js';
 
 const fixture = {
   format: 'belowjs-annotations',
@@ -352,4 +353,128 @@ test('XR selected panels keep the camera world orientation under a rotated model
   const panelWorld = layer.panel.getWorldQuaternion(new THREE.Quaternion());
   const cameraWorld = camera.getWorldQuaternion(new THREE.Quaternion());
   assert.ok(1 - Math.abs(panelWorld.dot(cameraWorld)) < 1e-9);
+});
+
+test('XR controller rays select a marker and trigger it again to close', () => {
+  const annotation = { id: 7, title: 'Bow', notes: '', position: { x: 0, y: 0, z: -2 } };
+  let pulseCount = 0;
+  const system = {
+    selection: [],
+    annotations: new Map([[annotation.id, annotation]]),
+    select(ids) {
+      this.selection = [...ids];
+      return this.selection;
+    }
+  };
+  const layer = new AnnotationXRLayer(system);
+  layer.group.visible = true;
+  layer.markerIds = [annotation.id];
+  layer.markerMesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.15, 8, 6),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.markerMesh.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 0, -2));
+  layer.group.add(layer.markerMesh);
+  layer.group.updateMatrixWorld(true);
+  const controller = new THREE.Object3D();
+  controller.updateMatrixWorld(true);
+  const event = {
+    inputSource: {
+      gamepad: {
+        hapticActuators: [{ pulse: () => { pulseCount += 1; return Promise.resolve(); } }]
+      }
+    }
+  };
+
+  assert.equal(layer.selectFromController(controller, event), true);
+  assert.deepEqual(system.selection, [annotation.id]);
+  assert.equal(controller.userData.belowjsAnnotationTrigger, true);
+  assert.equal(layer.selectFromController(controller, event), true);
+  assert.deepEqual(system.selection, []);
+  assert.equal(pulseCount, 2);
+});
+
+test('XR annotation triggers do not also commit the measurement orb', () => {
+  let measurementPlacements = 0;
+  const controller = new THREE.Object3D();
+  controller.userData.belowjsAnnotationTrigger = true;
+  const measurement = Object.create(MeasurementSystem.prototype);
+  measurement._vrDeleteStates = new Map();
+  measurement.unifiedMeasurementPoints = [];
+  measurement.measurementAvailable = true;
+  measurement.measurementSystemEnabled = true;
+  measurement._placeVRMeasurementPoint = () => { measurementPlacements += 1; };
+
+  measurement._handleVRTriggerUp({ target: controller });
+  assert.equal(measurementPlacements, 0);
+  assert.equal(controller.userData.belowjsAnnotationTrigger, false);
+});
+
+test('XR annotation rays fade in only while a marker is targeted', () => {
+  const annotation = { id: 3, title: 'Stern', notes: '', position: { x: 0, y: 0, z: -2 } };
+  const system = { selection: [], annotations: new Map([[annotation.id, annotation]]) };
+  const layer = new AnnotationXRLayer(system);
+  layer.group.visible = true;
+  layer.markerIds = [annotation.id];
+  layer.markerMesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.15, 8, 6),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.markerMesh.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 0, -2));
+  layer.group.add(layer.markerMesh);
+  layer.group.updateMatrixWorld(true);
+  const controller = new THREE.Object3D();
+  controller.updateMatrixWorld(true);
+  const ray = layer.createControllerRay();
+  layer.controllers = [{ controller, ray, connected: true, rayFade: 0 }];
+
+  layer.updateControllerInteractions();
+  assert.equal(ray.visible, true);
+  assert.ok(ray.material.opacity > 0);
+  assert.deepEqual([...layer.hoveredIds], [annotation.id]);
+
+  controller.rotation.y = Math.PI;
+  controller.updateMatrixWorld(true);
+  for (let index = 0; index < 24; index += 1) layer.updateControllerInteractions();
+  assert.equal(ray.visible, false);
+  assert.deepEqual([...layer.hoveredIds], []);
+});
+
+test('XR marker size stays readable under non-identity model scale', () => {
+  const annotation = { id: 1, title: 'Keel', notes: '', position: { x: 0, y: 0, z: 0 } };
+  const camera = new THREE.PerspectiveCamera();
+  camera.position.set(0, 0, 10);
+  camera.updateMatrixWorld(true);
+  const model = new THREE.Group();
+  model.scale.set(3, 2, 4);
+  const system = {
+    selection: [],
+    annotations: new Map([[annotation.id, annotation]]),
+    getCamera: () => camera
+  };
+  const layer = new AnnotationXRLayer(system);
+  model.add(layer.group);
+  model.updateMatrixWorld(true);
+  layer.markerMesh = new THREE.InstancedMesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.markerHaloMesh = new THREE.InstancedMesh(
+    new THREE.RingGeometry(1.08, 1.32, 16),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.group.add(layer.markerMesh, layer.markerHaloMesh);
+  layer.updateMarkerTransforms([annotation]);
+
+  const matrix = new THREE.Matrix4();
+  const localScale = new THREE.Vector3();
+  layer.markerMesh.getMatrixAt(0, matrix);
+  matrix.decompose(new THREE.Vector3(), new THREE.Quaternion(), localScale);
+  assert.ok(Math.abs(localScale.x * 3 - 0.12) < 1e-8);
+  assert.ok(Math.abs(localScale.y * 2 - 0.12) < 1e-8);
+  assert.ok(Math.abs(localScale.z * 4 - 0.12) < 1e-8);
 });

@@ -210,6 +210,8 @@ viewer.annotations.download();
 
 The stable facade also provides `load`, `clear`, `getDocument`, `setVisible`, `setAdapter`, CRUD operations, scale-bar operations, selection, follow-mode presence, and transient-UI dismissal. Set `annotations.enabled: false` for a hard opt-out. A viewer can explicitly request a built-in export glyph with `showExport: true`, but it is off by default.
 
+In immersive VR and AR, annotations keep the desktop visual language: model-attached numbered blue badges maintain a readable angular size, and the selected annotation opens in a dark camera-facing detail card. Point directly at a badge to reveal the contextual controller or hand ray, then trigger to inspect it. Annotation hits are isolated from the controller-proximity measurement orb.
+
 Collaborative hosts provide persistence through a small transport adapter; BelowJS remains responsible for state and presentation:
 
 ```javascript

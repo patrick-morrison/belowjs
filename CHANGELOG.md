@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Annotation styling now ships in the normal BelowJS stylesheet with theme custom properties rather than runtime style injection.
 - Annotation documents remain compatible with `belowjs-annotations` version 1: new exports identify `layer.coordinate_space` as `model`, while legacy documents without metadata are normalized from world space after the matching model activates.
+- XR annotations now mirror the desktop visual language with distance-scaled numbered badges and a camera-facing detail card. Controller and hand rays appear only while directly targeting a marker, and annotation selection no longer commits the measurement orb.
 
 ## [1.9.1] - 2026-08-27
 
