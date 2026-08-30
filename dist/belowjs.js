@@ -15465,13 +15465,13 @@ class $h extends Pe {
     return g;
   }
   setMode(e) {
-    return this.mode = e === "author" ? "author" : "view", this.readOnly = this.mode !== "author", this.readOnly && this.dismissTransientUi(), this.updateExportButton(), this.mode;
+    return this.mode = e === "author" ? "author" : "view", this.readOnly = this.mode !== "author", this.readOnly && this.dismissTransientUi(), this.updateControlButtons(), this.mode;
   }
   getMode() {
     return this.mode;
   }
   setAdapter(e) {
-    return this._adapterUnsubscribe?.(), this._adapterUnsubscribe = null, this.adapter?.dispose?.(), this.adapter = e || null, this.updateExportButton(), this.adapter?.subscribe && (this._adapterUnsubscribe = this.adapter.subscribe((t) => this.handleAdapterEvent(t))), this.adapter && this._activeModelKey && (this.adapter.setContext?.({
+    return this._adapterUnsubscribe?.(), this._adapterUnsubscribe = null, this.adapter?.dispose?.(), this.adapter = e || null, this.updateControlButtons(), this.adapter?.subscribe && (this._adapterUnsubscribe = this.adapter.subscribe((t) => this.handleAdapterEvent(t))), this.adapter && this._activeModelKey && (this.adapter.setContext?.({
       modelKey: this._activeModelKey,
       modelConfig: this.viewer?.config?.models?.[this._activeModelKey] || null
     }), this._modelReady && this.adapter.requestSnapshot?.()), this;
@@ -15867,7 +15867,7 @@ class $h extends Pe {
       }
     for (const t of e.scale_bars || [])
       t && typeof t.id == "number" && this.addScaleBar(t);
-    this.renumberMarkers(), !this._visibilityInitialized && typeof e.annotations_visible == "boolean" && (this._visibilityInitialized = !0, e.annotations_visible || this.setAnnotationsVisible(!1));
+    this.renumberMarkers(), this.updateControlButtons(), !this._visibilityInitialized && typeof e.annotations_visible == "boolean" && (this._visibilityInitialized = !0, e.annotations_visible || this.setAnnotationsVisible(!1));
   }
   applyUpdate(e) {
     e.client_id && this.pendingOperations.delete(e.client_id);
@@ -15949,7 +15949,7 @@ class $h extends Pe {
       const i = this.modelPositionToWorld(e.position);
       this.displayPositions.set(e.id, { x: i.x, y: i.y, z: i.z }), this.createMarkerElement(e);
     }
-    this.remoteFocus.size > 0 && this.applyRemoteFocusVisuals(), this.refreshBarsForAnnotation(e.id), this.openPanelFor === e.id && this.panelEl?.dataset.mode === "view" && this.openViewPanel(e.id), this.openPanelFor === e.id && this._mirroredFocusUserId !== null && this.syncFollowedAnnotationPanel(), this.remoteFocus.size > 0 && this.reconcileRemotePreviewBars();
+    this.remoteFocus.size > 0 && this.applyRemoteFocusVisuals(), this.refreshBarsForAnnotation(e.id), this.openPanelFor === e.id && this.panelEl?.dataset.mode === "view" && this.openViewPanel(e.id), this.openPanelFor === e.id && this._mirroredFocusUserId !== null && this.syncFollowedAnnotationPanel(), this.remoteFocus.size > 0 && this.reconcileRemotePreviewBars(), this.updateControlButtons();
   }
   removeAnnotationLocal(e) {
     this.annotations.delete(e), this.displayPositions.delete(e), this.lerping.delete(e), this.occlusionFactors.delete(e), this.occlusionTargets.delete(e);
@@ -15958,7 +15958,7 @@ class $h extends Pe {
     for (const [s, n] of [...this.scaleBars])
       (n.data.a === e || n.data.b === e) && this.removeScaleBarVisual(s);
     const i = this.selection.indexOf(e);
-    i !== -1 && (this.selection.splice(i, 1), this.scalePair?.includes(e) && (this.scalePair = null), this._touchPairingAnchor === e && (this._touchPairingAnchor = null), this.updateSelectionVisuals());
+    i !== -1 && (this.selection.splice(i, 1), this.scalePair?.includes(e) && (this.scalePair = null), this._touchPairingAnchor === e && (this._touchPairingAnchor = null), this.updateSelectionVisuals()), this.updateControlButtons();
   }
   // ------------------------------------------------------------------
   // Markers
@@ -16023,7 +16023,7 @@ class $h extends Pe {
                  stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
-            </svg>`, e.addEventListener("click", () => this.setAnnotationsVisibleShared(!this.annotationsVisible)), this.container.appendChild(e), this._visBtn = e, setTimeout(() => this.positionVisibilityButton(), 1200), this._visPositionInterval = setInterval(() => this.positionVisibilityButton(), 500), setTimeout(() => {
+            </svg>`, e.addEventListener("click", () => this.setAnnotationsVisibleShared(!this.annotationsVisible)), this.container.appendChild(e), this._visBtn = e, this.updateControlButtons(), setTimeout(() => this.positionVisibilityButton(), 1200), this._visPositionInterval = setInterval(() => this.positionVisibilityButton(), 500), setTimeout(() => {
       clearInterval(this._visPositionInterval), this._visPositionInterval = null, this.positionVisibilityButton();
     }, 8e3);
   }
@@ -16033,12 +16033,19 @@ class $h extends Pe {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                  stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>
-            </svg>`, e.addEventListener("click", () => this.download()), this.container.appendChild(e), this._exportBtn = e, this.updateExportButton(), this.positionVisibilityButton();
+            </svg>`, e.addEventListener("click", () => this.download()), this.container.appendChild(e), this._exportBtn = e, this.updateControlButtons(), this.positionVisibilityButton();
   }
-  updateExportButton() {
-    if (!this._exportBtn) return;
-    const e = this.options.showExport && this.mode === "author" && !this.adapter;
-    this._exportBtn.style.display = e ? "flex" : "none";
+  updateControlButtons() {
+    const e = this.annotations.size > 0;
+    if (this._visBtn) {
+      const t = this.options.showToggle && e;
+      this._visBtn.style.display = t ? "flex" : "none";
+    }
+    if (this._exportBtn) {
+      const t = this.options.showExport && this.mode === "author" && !this.adapter && e;
+      this._exportBtn.style.display = t ? "flex" : "none";
+    }
+    e && this.positionVisibilityButton();
   }
   positionVisibilityButton() {
     const e = this._visBtn;
@@ -16835,7 +16842,7 @@ class $h extends Pe {
             danger: !0,
             onSelect: () => {
               for (const u of d)
-                this.sendMessage({ type: "annotation_update", action: "delete", id: u });
+                this.remove(u);
               this.clearSelection();
             }
           }
@@ -16844,7 +16851,7 @@ class $h extends Pe {
       r.push({
         label: "Delete",
         danger: !0,
-        onSelect: () => this.sendMessage({ type: "annotation_update", action: "delete", id: e })
+        onSelect: () => this.remove(e)
       });
     }
     this.openMenu(r, t, i);
@@ -17716,7 +17723,7 @@ class $h extends Pe {
         `, s.querySelector(".bv-annotation-panel__title").textContent = t.title, t.notes && (s.querySelector(".bv-annotation-panel__notes").textContent = t.notes), !this.readOnly) {
       const o = s.querySelector(".bv-annotation-delete");
       o.addEventListener("click", () => {
-        o.dataset.confirming ? (this.sendMessage({ type: "annotation_update", action: "delete", id: e }), this.closePanel()) : (o.dataset.confirming = "1", o.textContent = "Confirm?");
+        o.dataset.confirming ? (this.remove(e), this.closePanel()) : (o.dataset.confirming = "1", o.textContent = "Confirm?");
       });
       const a = s.querySelector(".bv-annotation-edit"), l = this.remoteEditorOf(e);
       l && (a.disabled = !0, a.title = `${l} is editing`), a.addEventListener("click", () => {
@@ -17792,7 +17799,7 @@ class $h extends Pe {
         created_at: (/* @__PURE__ */ new Date()).toISOString(),
         updated_at: null
       }), A = this.modelPositionToWorld(u.position);
-      return this.displayPositions.set(u.id, { x: A.x, y: A.y, z: A.z }), this.createMarkerElement(u), this.renumberMarkers(), this.emit("annotation-changed", { action: "create", annotation: u }), u;
+      return this.displayPositions.set(u.id, { x: A.x, y: A.y, z: A.z }), this.createMarkerElement(u), this.renumberMarkers(), this.updateControlButtons(), this.emit("annotation-changed", { action: "create", annotation: u }), u;
     }
     const o = this.createClientId(), a = this.tempIdCounter--, l = {
       id: a,
@@ -17804,7 +17811,7 @@ class $h extends Pe {
     };
     this.pendingCreates.set(o, a), this.annotations.set(a, l);
     const d = this.modelPositionToWorld(s);
-    return this.displayPositions.set(a, { x: d.x, y: d.y, z: d.z }), this.createMarkerElement(l), this.renumberMarkers(), this.sendMessage({
+    return this.displayPositions.set(a, { x: d.x, y: d.y, z: d.z }), this.createMarkerElement(l), this.renumberMarkers(), this.updateControlButtons(), this.sendMessage({
       type: "annotation_update",
       action: "create",
       client_id: o,

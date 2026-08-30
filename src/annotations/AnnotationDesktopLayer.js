@@ -156,7 +156,7 @@ export class AnnotationDesktopLayer extends EventSystem {
         this.mode = mode === 'author' ? 'author' : 'view';
         this.readOnly = this.mode !== 'author';
         if (this.readOnly) this.dismissTransientUi();
-        this.updateExportButton();
+        this.updateControlButtons();
         return this.mode;
     }
 
@@ -169,7 +169,7 @@ export class AnnotationDesktopLayer extends EventSystem {
         this._adapterUnsubscribe = null;
         this.adapter?.dispose?.();
         this.adapter = adapter || null;
-        this.updateExportButton();
+        this.updateControlButtons();
         if (this.adapter?.subscribe) {
             this._adapterUnsubscribe = this.adapter.subscribe((event) => this.handleAdapterEvent(event));
         }
@@ -838,6 +838,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             }
         }
         this.renumberMarkers();
+        this.updateControlButtons();
         // The room's default visibility applies on join only - later state
         // refreshes must not stomp a viewer's own pin-button choice.
         if (!this._visibilityInitialized && typeof data.annotations_visible === 'boolean') {
@@ -1012,6 +1013,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             this.syncFollowedAnnotationPanel();
         }
         if (this.remoteFocus.size > 0) this.reconcileRemotePreviewBars();
+        this.updateControlButtons();
     }
 
     removeAnnotationLocal(annotationId) {
@@ -1038,6 +1040,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             if (this._touchPairingAnchor === annotationId) this._touchPairingAnchor = null;
             this.updateSelectionVisuals();
         }
+        this.updateControlButtons();
     }
 
     // ------------------------------------------------------------------
@@ -1167,6 +1170,7 @@ export class AnnotationDesktopLayer extends EventSystem {
         btn.addEventListener('click', () => this.setAnnotationsVisibleShared(!this.annotationsVisible));
         this.container.appendChild(btn);
         this._visBtn = btn;
+        this.updateControlButtons();
         // BelowJS places screenshot/fullscreen/comfort controls after init;
         // keep snapping until that stack settles.
         setTimeout(() => this.positionVisibilityButton(), 1200);
@@ -1191,14 +1195,21 @@ export class AnnotationDesktopLayer extends EventSystem {
         btn.addEventListener('click', () => this.download());
         this.container.appendChild(btn);
         this._exportBtn = btn;
-        this.updateExportButton();
+        this.updateControlButtons();
         this.positionVisibilityButton();
     }
 
-    updateExportButton() {
-        if (!this._exportBtn) return;
-        const visible = this.options.showExport && this.mode === 'author' && !this.adapter;
-        this._exportBtn.style.display = visible ? 'flex' : 'none';
+    updateControlButtons() {
+        const hasAnnotations = this.annotations.size > 0;
+        if (this._visBtn) {
+            const visible = this.options.showToggle && hasAnnotations;
+            this._visBtn.style.display = visible ? 'flex' : 'none';
+        }
+        if (this._exportBtn) {
+            const visible = this.options.showExport && this.mode === 'author' && !this.adapter && hasAnnotations;
+            this._exportBtn.style.display = visible ? 'flex' : 'none';
+        }
+        if (hasAnnotations) this.positionVisibilityButton();
     }
 
     positionVisibilityButton() {
@@ -2600,7 +2611,7 @@ export class AnnotationDesktopLayer extends EventSystem {
                         danger: true,
                         onSelect: () => {
                             for (const id of ids) {
-                                this.sendMessage({ type: 'annotation_update', action: 'delete', id });
+                                this.remove(id);
                             }
                             this.clearSelection();
                         },
@@ -2610,7 +2621,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             items.push({
                 label: 'Delete',
                 danger: true,
-                onSelect: () => this.sendMessage({ type: 'annotation_update', action: 'delete', id: annotationId }),
+                onSelect: () => this.remove(annotationId),
             });
         }
         this.openMenu(items, clientX, clientY);
@@ -4138,7 +4149,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             const deleteBtn = panel.querySelector('.bv-annotation-delete');
             deleteBtn.addEventListener('click', () => {
                 if (deleteBtn.dataset.confirming) {
-                    this.sendMessage({ type: 'annotation_update', action: 'delete', id: annotationId });
+                    this.remove(annotationId);
                     this.closePanel();
                 } else {
                     deleteBtn.dataset.confirming = '1';
@@ -4267,6 +4278,7 @@ export class AnnotationDesktopLayer extends EventSystem {
             this.displayPositions.set(annotation.id, { x: world.x, y: world.y, z: world.z });
             this.createMarkerElement(annotation);
             this.renumberMarkers();
+            this.updateControlButtons();
             this.emit('annotation-changed', { action: 'create', annotation });
             return annotation;
         }
@@ -4286,6 +4298,7 @@ export class AnnotationDesktopLayer extends EventSystem {
         this.displayPositions.set(tempId, { x: world.x, y: world.y, z: world.z });
         this.createMarkerElement(optimistic);
         this.renumberMarkers();
+        this.updateControlButtons();
 
         const sent = this.sendMessage({
             type: 'annotation_update',

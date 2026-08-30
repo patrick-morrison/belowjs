@@ -14,7 +14,6 @@
     "dev:animation": "vite serve --open examples/animation/",
     "dev:model-comparison": "vite serve --open examples/model-comparison/",
     "dev:tileset": "vite serve --open examples/tileset/",
-    "dev:annotations": "vite serve --open examples/annotations/",
     "build": "vite build",
     "preview": "vite preview",
     "docs:serve": "python -m http.server 8000 --directory docs",

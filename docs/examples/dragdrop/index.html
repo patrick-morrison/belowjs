@@ -246,112 +246,6 @@
             display: none;
         }
         
-        /* Annotation authoring tools */
-        .annotation-tools {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            z-index: 1001;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            max-width: calc(100vw - 40px);
-            padding: 6px;
-            box-sizing: border-box;
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            border-radius: 12px;
-            color: #e2e8f0;
-            background: rgba(15, 23, 42, 0.84);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(16px) saturate(1.15);
-            transform: translateX(-50%);
-        }
-
-        .annotation-tools.visible {
-            display: flex;
-        }
-
-        .annotation-summary {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            min-width: 190px;
-            padding: 0 10px;
-            line-height: 1.15;
-        }
-
-        .annotation-summary__dot {
-            width: 8px;
-            height: 8px;
-            flex: 0 0 auto;
-            border-radius: 50%;
-            background: #60a5fa;
-            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.13);
-        }
-
-        .annotation-summary.is-authoring .annotation-summary__dot {
-            background: #8fe0c3;
-            box-shadow: 0 0 0 4px rgba(143, 224, 195, 0.12);
-        }
-
-        .annotation-summary strong {
-            display: block;
-            color: #f8fafc;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        #annotationStatus {
-            display: block;
-            margin-top: 3px;
-            color: #94a3b8;
-            font-size: 11px;
-            white-space: nowrap;
-        }
-
-        .annotation-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .annotation-action {
-            min-height: 40px;
-            padding: 0 13px;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            color: #e2e8f0;
-            background: rgba(30, 41, 59, 0.86);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-        }
-
-        .annotation-action:hover {
-            border-color: #60a5fa;
-            background: #334155;
-            transform: translateY(-1px);
-        }
-
-        .annotation-action.primary {
-            border-color: rgba(191, 219, 254, 0.32);
-            color: #ffffff;
-            background: #2563eb;
-        }
-
-        .annotation-action.primary:hover {
-            background: #1d4ed8;
-        }
-
-        .annotation-action:focus-visible {
-            outline: 2px solid #bfdbfe;
-            outline-offset: 3px;
-        }
-
-        .annotation-action[hidden] {
-            display: none;
-        }
-
   /* Camera snippet */
     .camera-snippet {
       position: fixed;
@@ -464,6 +358,29 @@
     .model-stats .stats-note a:hover {
       color: #cbd5e1;
     }
+    .model-stats .annotation-download-row[hidden] {
+      display: none;
+    }
+    .model-stats .annotation-download-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .model-stats .annotation-download-button {
+      padding: 0;
+      border: 0;
+      color: #bfdbfe;
+      background: transparent;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .model-stats .annotation-download-button:hover {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
 
         @media (max-width: 640px) {
             #modeToggleContainer {
@@ -521,29 +438,6 @@
                 padding: 6px 7px;
             }
 
-            .annotation-tools {
-                right: 12px;
-                bottom: max(12px, env(safe-area-inset-bottom));
-                left: 12px;
-                max-width: none;
-                justify-content: space-between;
-                transform: none;
-            }
-
-            .annotation-summary {
-                min-width: 0;
-                padding-left: 8px;
-            }
-
-            #annotationStatus {
-                max-width: 150px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .annotation-action {
-                padding: 0 11px;
-            }
 
             .camera-snippet {
                 bottom: 82px;
@@ -573,7 +467,7 @@
   <div class="drag-drop-overlay" id="dragOverlay">
     <div class="panel">
       <div class="dd-title">Drop a .glb or annotations JSON</div>
-      <div class="dd-sub">Load a model, start a layer, or continue an existing one</div>
+      <div class="dd-sub">Load a model, right-click to annotate, or continue an existing layer</div>
     </div>
   </div>
     
@@ -584,7 +478,7 @@
     <p class="intro">
       <a href="https://belowjs.com/" target="_blank" rel="noopener">BelowJS</a>
       is for exploring shipwreck 3D models. Drop a .glb to inspect and measure it,
-      then start an annotation layer or drop an existing annotations JSON.
+      then right-click to annotate or drop an existing annotations JSON.
     </p>
     <div class="resource-links" aria-label="Helpful links">
       <a href="https://belowjs.com/guides/model-setup.html" target="_blank" rel="noopener">Set up models</a>
@@ -611,27 +505,16 @@
         </div>
     </div>
     
-  <!-- Annotation tools appear after a model has loaded -->
-  <div class="annotation-tools" id="annotationTools" aria-label="Annotation authoring tools">
-    <div class="annotation-summary" id="annotationSummary" aria-live="polite">
-      <span class="annotation-summary__dot" aria-hidden="true"></span>
-      <span>
-        <strong>Annotations</strong>
-        <span id="annotationStatus">Start a layer or drop JSON</span>
-      </span>
-    </div>
-    <div class="annotation-actions">
-      <button type="button" class="annotation-action primary" id="startAnnotations">Start layer</button>
-      <button type="button" class="annotation-action primary" id="downloadAnnotations" hidden>Download JSON</button>
-    </div>
-  </div>
-
   <!-- Model stats panel -->
   <div class="model-stats" id="modelStats" aria-live="polite">
   <div class="row"><span class="label">triangles</span><span class="value" id="statTris"><span class="warn-icon">*</span>—</span></div>
   <div class="row"><span class="label">disk</span><span class="value" id="statDisk"><span class="warn-icon">*</span>—</span></div>
   <div class="row"><span class="label">vram</span><span class="value" id="statVram"><span class="warn-icon">*</span>—</span></div>
   <div class="row"><span class="label">draws</span><span class="value" id="statDraws">—</span></div>
+  <div class="row annotation-download-row" id="annotationExportRow" hidden>
+    <span class="label annotation-download-label">annotations <button type="button" class="annotation-download-button" id="downloadAnnotations" aria-label="Download annotations JSON" title="Download annotations JSON">↓</button></span>
+    <span class="value" id="statAnnotations">0</span>
+  </div>
   <div class="stats-note" id="statsNote">
     * <a href="https://belowjs.com/guides/optimisation.html" target="_blank" rel="noopener">optimisation guide</a>
   </div>
@@ -681,8 +564,8 @@
           showLoadingIndicator: true,
           annotations: {
             enabled: true,
-            mode: 'view',
-            showToggle: false,
+            mode: 'author',
+            showToggle: true,
             showExport: false,
             xr: { enabled: true, interaction: 'select' }
           },
@@ -697,11 +580,6 @@
         const dragOverlay = document.getElementById('dragOverlay');
         const emptyState = document.getElementById('emptyState');
         const fileInput = document.getElementById('fileInput');
-        const annotationTools = document.getElementById('annotationTools');
-        const annotationSummary = document.getElementById('annotationSummary');
-        const annotationStatus = document.getElementById('annotationStatus');
-        const startAnnotations = document.getElementById('startAnnotations');
-        const downloadAnnotations = document.getElementById('downloadAnnotations');
         const cameraSnippet = document.getElementById('cameraSnippet');
         const modelStats = document.getElementById('modelStats');
         const camCode = document.getElementById('camCode');
@@ -710,13 +588,14 @@
   const statDisk = document.getElementById('statDisk');
   const statVram = document.getElementById('statVram');
   const statDraws = document.getElementById('statDraws');
+  const statAnnotations = document.getElementById('statAnnotations');
+  const annotationExportRow = document.getElementById('annotationExportRow');
+  const downloadAnnotations = document.getElementById('downloadAnnotations');
   const statsNote = document.getElementById('statsNote');
         let dragCounter = 0;
         let hasModel = false;
-        let hasAnnotationLayer = false;
         let activeModelUrl = null;
         let modelBaseName = 'model';
-        let annotationFilename = 'model.annotations.json';
         let lastBlobSize = null; // bytes
         const DROPPED_MODEL_KEY = 'dropped-model';
 
@@ -735,27 +614,9 @@
         });
 
         function updateAnnotationUi() {
-          annotationTools.classList.toggle('visible', hasModel);
-          annotationSummary.classList.toggle('is-authoring', hasAnnotationLayer);
-          startAnnotations.hidden = hasAnnotationLayer;
-          downloadAnnotations.hidden = !hasAnnotationLayer;
-          if (!hasModel) return;
-          if (!hasAnnotationLayer) {
-            annotationStatus.textContent = 'Start a layer or drop JSON';
-            return;
-          }
-          const count = viewer.annotations?.list().length || 0;
-          annotationStatus.textContent = `${count} annotation${count === 1 ? '' : 's'} · right-click to add`;
-        }
-
-        async function beginAnnotationLayer() {
-          if (!hasModel || !viewer.annotations) return;
-          await viewer.annotations.load(blankAnnotationDocument());
-          viewer.annotations.setMode('author');
-          viewer.annotations.setVisible(true);
-          hasAnnotationLayer = true;
-          annotationFilename = `${modelBaseName}.annotations.json`;
-          updateAnnotationUi();
+          const count = viewer.annotations?.list?.().length || 0;
+          statAnnotations.textContent = String(count);
+          annotationExportRow.hidden = count === 0;
         }
 
         async function loadAnnotationFile(file) {
@@ -772,11 +633,6 @@
             await viewer.annotations.load(documentValue);
             viewer.annotations.setMode('author');
             viewer.annotations.setVisible(true);
-            hasAnnotationLayer = true;
-            annotationFilename = file.name.toLowerCase().endsWith('.annotations.json')
-              ? file.name
-              : `${cleanBaseName(file.name)}.annotations.json`;
-            updateAnnotationUi();
             return true;
           } catch (error) {
             alert(`Could not load annotations: ${error.message}`);
@@ -986,10 +842,7 @@
           e.target.value = '';
         });
 
-        startAnnotations.addEventListener('click', beginAnnotationLayer);
-        downloadAnnotations.addEventListener('click', () => {
-          if (hasAnnotationLayer) viewer.annotations?.download(annotationFilename);
-        });
+        downloadAnnotations.addEventListener('click', () => viewer.annotations?.download());
 
         // Function to load a model file and update UI state
         async function loadModelFile(file) {
@@ -1008,22 +861,21 @@
               name: modelBaseName,
               measurable: true
             };
-            hasAnnotationLayer = false;
-            viewer.annotations?.setMode('view');
             await viewer.loadModel(DROPPED_MODEL_KEY);
+            await viewer.annotations.load(blankAnnotationDocument());
+            viewer.annotations.setMode('author');
+            viewer.annotations.setVisible(true);
             const currentModel = viewer.belowViewer.getCurrentModel?.();
             if (!currentModel) throw new Error('No model was returned.');
             viewer.belowViewer.frameModel(currentModel.model || currentModel);
             if (previousUrl) URL.revokeObjectURL(previousUrl);
             activeModelUrl = url;
-            annotationFilename = `${modelBaseName}.annotations.json`;
             
             // Hide empty state and reveal model tools when loading succeeds.
             emptyState.style.display = 'none';
             modelStats.style.display = 'block';
             cameraSnippet.style.display = 'block';
             hasModel = true;
-            updateAnnotationUi();
             
             updateCameraSnippet();
 
