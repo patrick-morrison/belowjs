@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 
-const PANEL_WIDTH = 768;
-const PANEL_HEIGHT = 384;
+const PANEL_WIDTH = 1024;
+const PANEL_HEIGHT = 420;
 const DEFAULT_RAY_LENGTH = 6;
 const MAX_RAY_LENGTH = 30;
 const MARKER_MIN_RADIUS = 0.025;
 const MARKER_MAX_RADIUS = 0.14;
 const MARKER_ATLAS_CELL = 128;
 const MARKER_ATLAS_COLUMNS = 32;
+const BILLBOARD_RESPONSE = 4.5;
 
 const MARKER_COLOR = new THREE.Color(0x8dd8f0);
 const MARKER_SELECTED_COLOR = new THREE.Color(0xffffff);
@@ -51,7 +52,14 @@ export class AnnotationXRLayer {
     this._origin = new THREE.Vector3();
     this._direction = new THREE.Vector3();
     this._cameraWorldQuaternion = new THREE.Quaternion();
-    this._parentWorldQuaternion = new THREE.Quaternion();
+    this._billboardWorldQuaternion = new THREE.Quaternion();
+    this._targetBillboardQuaternion = new THREE.Quaternion();
+    this._billboardInitialized = false;
+    this._billboardRight = new THREE.Vector3(1, 0, 0);
+    this._billboardUp = new THREE.Vector3(0, 1, 0);
+    this._billboardNormal = new THREE.Vector3(0, 0, 1);
+    this._worldUp = new THREE.Vector3(0, 1, 0);
+    this._billboardMatrix = new THREE.Matrix4();
     this._cameraWorldPosition = new THREE.Vector3();
     this._parentWorldScale = new THREE.Vector3(1, 1, 1);
     this._worldPosition = new THREE.Vector3();
@@ -60,7 +68,6 @@ export class AnnotationXRLayer {
     this._localScale = new THREE.Vector3();
     this._haloScale = new THREE.Vector3();
     this._panelWorldPosition = new THREE.Vector3();
-    this._cameraUp = new THREE.Vector3();
     this._instanceMatrix = new THREE.Matrix4();
     this._identityQuaternion = new THREE.Quaternion();
     this.hoveredIds = new Set();
@@ -73,6 +80,7 @@ export class AnnotationXRLayer {
     }
     this.bindControllers();
     this.signature = '';
+    this._billboardInitialized = false;
   }
 
   bindControllers() {
@@ -86,15 +94,22 @@ export class AnnotationXRLayer {
         controller,
         ray,
         connected: !!controller.userData?.initialised,
+        inputSource: controller.userData?.inputSource || null,
+        hoveredId: undefined,
         rayFade: 0,
         onSelect: null,
         onConnected: null,
         onDisconnected: null
       };
       record.onSelect = (event) => this.selectFromController(controller, event);
-      record.onConnected = () => { record.connected = true; };
+      record.onConnected = (event) => {
+        record.connected = true;
+        record.inputSource = event?.data || event?.inputSource || record.inputSource;
+      };
       record.onDisconnected = () => {
         record.connected = false;
+        record.inputSource = null;
+        record.hoveredId = undefined;
         record.rayFade = 0;
         ray.visible = false;
       };
@@ -113,9 +128,9 @@ export class AnnotationXRLayer {
       new THREE.Vector3(0, 0, -1)
     ]);
     const material = new THREE.LineBasicMaterial({
-      color: 0xb8e8f7,
+      color: 0xf4fbff,
       transparent: true,
-      opacity: 0.62,
+      opacity: 0.72,
       depthTest: false,
       depthWrite: false
     });
@@ -124,7 +139,34 @@ export class AnnotationXRLayer {
     ray.scale.z = DEFAULT_RAY_LENGTH;
     ray.renderOrder = 1000;
     ray.visible = false;
+    const reticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.66, 1, 28),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        depthTest: false,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        toneMapped: false
+      })
+    );
+    reticle.name = 'BelowJSAnnotationControllerReticle';
+    reticle.position.z = -1;
+    reticle.renderOrder = 1001;
+    reticle.visible = false;
+    ray.add(reticle);
+    ray.userData.reticle = reticle;
     return ray;
+  }
+
+  pulseHaptics(gamepad, intensity, duration) {
+    const actuator = gamepad?.hapticActuators?.[0] || gamepad?.vibrationActuator;
+    try {
+      actuator?.pulse?.(intensity, duration)?.catch?.(() => {});
+    } catch {
+      // Haptics are optional and must never interrupt annotation input.
+    }
   }
 
   getControllerHit(controller) {
@@ -152,12 +194,11 @@ export class AnnotationXRLayer {
     const alreadySelected = this.system.selection?.length === 1 && this.system.selection[0] === annotationId;
     this.system.select(alreadySelected ? [] : [annotationId]);
     const gamepad = event?.data?.gamepad || event?.inputSource?.gamepad;
-    const actuator = gamepad?.hapticActuators?.[0] || gamepad?.vibrationActuator;
-    actuator?.pulse?.(0.35, 35)?.catch?.(() => {});
+    this.pulseHaptics(gamepad, 0.35, 35);
     return true;
   }
 
-  sync() {
+  sync(dt = 0.016) {
     if (!this.enabled) return;
     const renderer = this.system.getRenderer?.();
     const presenting = !!renderer?.xr?.isPresenting;
@@ -165,6 +206,7 @@ export class AnnotationXRLayer {
     if (model && this.group.parent !== model) this.attach(model);
     this.group.visible = presenting && this.system.annotationsVisible;
     if (!this.group.visible || !model) {
+      this._billboardInitialized = false;
       this.setControllerRaysVisible(false);
       return;
     }
@@ -181,6 +223,7 @@ export class AnnotationXRLayer {
       this.signature = signature;
       this.rebuildMarkers(annotations);
     }
+    this.updateFacing(dt);
     this.updateMarkerTransforms(annotations);
     this.updateControllerInteractions();
     this.updatePanel();
@@ -242,9 +285,10 @@ export class AnnotationXRLayer {
     }
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.minFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
-    texture.generateMipmaps = false;
+    texture.generateMipmaps = true;
+    texture.anisotropy = Math.min(8, this.system.getRenderer?.()?.capabilities?.getMaxAnisotropy?.() || 1);
     return { texture, columns, rows };
   }
 
@@ -252,16 +296,28 @@ export class AnnotationXRLayer {
     return new THREE.ShaderMaterial({
       uniforms: {
         markerAtlas: { value: atlas },
-        atlasScale: { value: new THREE.Vector2(1 / columns, 1 / rows) }
+        atlasScale: { value: new THREE.Vector2(1 / columns, 1 / rows) },
+        billboardRight: { value: this._billboardRight },
+        billboardUp: { value: this._billboardUp }
       },
       vertexShader: `
         attribute vec2 annotationUvOffset;
         varying vec2 vAnnotationUv;
         uniform vec2 atlasScale;
+        uniform vec3 billboardRight;
+        uniform vec3 billboardUp;
         void main() {
           vAnnotationUv = uv * atlasScale + annotationUvOffset;
-          vec4 worldPosition = modelMatrix * instanceMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * viewMatrix * worldPosition;
+          mat4 instanceModel = modelMatrix * instanceMatrix;
+          vec4 worldCenter = instanceModel * vec4(0.0, 0.0, 0.0, 1.0);
+          vec2 billboardScale = vec2(
+            length(instanceModel[0].xyz),
+            length(instanceModel[1].xyz)
+          );
+          vec3 billboardPosition = worldCenter.xyz
+            + billboardRight * position.x * billboardScale.x
+            + billboardUp * position.y * billboardScale.y;
+          gl_Position = projectionMatrix * viewMatrix * vec4(billboardPosition, 1.0);
         }
       `,
       fragmentShader: `
@@ -271,6 +327,44 @@ export class AnnotationXRLayer {
           vec4 marker = texture2D(markerAtlas, vAnnotationUv);
           if (marker.a < 0.08) discard;
           gl_FragColor = marker;
+        }
+      `,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false
+    });
+  }
+
+  createHaloMaterial() {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        billboardRight: { value: this._billboardRight },
+        billboardUp: { value: this._billboardUp }
+      },
+      vertexShader: `
+        varying vec3 vInstanceColor;
+        uniform vec3 billboardRight;
+        uniform vec3 billboardUp;
+        void main() {
+          vInstanceColor = instanceColor;
+          mat4 instanceModel = modelMatrix * instanceMatrix;
+          vec4 worldCenter = instanceModel * vec4(0.0, 0.0, 0.0, 1.0);
+          vec2 billboardScale = vec2(
+            length(instanceModel[0].xyz),
+            length(instanceModel[1].xyz)
+          );
+          vec3 billboardPosition = worldCenter.xyz
+            + billboardRight * position.x * billboardScale.x
+            + billboardUp * position.y * billboardScale.y;
+          gl_Position = projectionMatrix * viewMatrix * vec4(billboardPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vInstanceColor;
+        void main() {
+          gl_FragColor = vec4(vInstanceColor, 0.24);
         }
       `,
       transparent: true,
@@ -305,13 +399,7 @@ export class AnnotationXRLayer {
     mesh.name = 'BelowJSAnnotationMarkersXR';
     mesh.frustumCulled = false;
     const haloGeometry = new THREE.RingGeometry(1.08, 1.32, 28);
-    const haloMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.2,
-      depthTest: true,
-      depthWrite: false
-    });
+    const haloMaterial = this.createHaloMaterial();
     const haloMesh = new THREE.InstancedMesh(haloGeometry, haloMaterial, annotations.length);
     haloMesh.name = 'BelowJSAnnotationMarkerHalosXR';
     haloMesh.frustumCulled = false;
@@ -343,6 +431,30 @@ export class AnnotationXRLayer {
     return renderer.xr.getCamera?.(camera) || camera;
   }
 
+  updateFacing(dt = 0.016) {
+    const camera = this.getViewCamera();
+    if (!camera) return;
+    camera.getWorldQuaternion(this._cameraWorldQuaternion);
+    this._billboardNormal.set(0, 0, 1).applyQuaternion(this._cameraWorldQuaternion).normalize();
+    this._billboardRight.crossVectors(this._worldUp, this._billboardNormal);
+    if (this._billboardRight.lengthSq() < 1e-6) {
+      this._billboardRight.set(1, 0, 0).applyQuaternion(this._cameraWorldQuaternion);
+    }
+    this._billboardRight.normalize();
+    this._billboardUp.crossVectors(this._billboardNormal, this._billboardRight).normalize();
+    this._billboardMatrix.makeBasis(this._billboardRight, this._billboardUp, this._billboardNormal);
+    this._targetBillboardQuaternion.setFromRotationMatrix(this._billboardMatrix);
+    if (!this._billboardInitialized) {
+      this._billboardWorldQuaternion.copy(this._targetBillboardQuaternion);
+      this._billboardInitialized = true;
+    } else {
+      const follow = 1 - Math.exp(-BILLBOARD_RESPONSE * Math.max(0, Math.min(0.1, dt)));
+      this._billboardWorldQuaternion.slerp(this._targetBillboardQuaternion, follow);
+    }
+    this._billboardRight.set(1, 0, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();
+    this._billboardUp.set(0, 1, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();
+  }
+
   updateMarkerTransforms(annotations) {
     if (!this.markerMesh || !this.markerHaloMesh) return;
     const camera = this.getViewCamera();
@@ -352,13 +464,10 @@ export class AnnotationXRLayer {
     const sx = Math.max(1e-6, Math.abs(this._parentWorldScale.x));
     const sy = Math.max(1e-6, Math.abs(this._parentWorldScale.y));
     const sz = Math.max(1e-6, Math.abs(this._parentWorldScale.z));
-    if (camera) {
-      camera.getWorldQuaternion(this._cameraWorldQuaternion);
-      this.group.getWorldQuaternion(this._parentWorldQuaternion).invert();
-      this._identityQuaternion.copy(this._parentWorldQuaternion).multiply(this._cameraWorldQuaternion);
-    } else {
-      this._identityQuaternion.identity();
-    }
+    // Visible marker planes billboard per eye in their vertex shaders. Keep
+    // instance matrices rotation-free so stereo rendering never inherits a
+    // stale mono/headset quaternion from the CPU frame lifecycle.
+    this._identityQuaternion.identity();
     annotations.forEach((annotation, index) => {
       this._localPosition.set(annotation.position.x, annotation.position.y, annotation.position.z);
       this._worldPosition.copy(this._localPosition).applyMatrix4(this.group.matrixWorld);
@@ -410,6 +519,10 @@ export class AnnotationXRLayer {
       const active = this.group.visible && (record.connected || record.controller.visible !== false);
       const hit = active ? this.getControllerHit(record.controller) : null;
       const annotationId = hit?.instanceId === undefined ? undefined : this.markerIds[hit.instanceId];
+      if (annotationId !== undefined && annotationId !== record.hoveredId) {
+        this.pulseHaptics(record.inputSource?.gamepad, 0.12, 18);
+      }
+      record.hoveredId = annotationId;
       const targetFade = annotationId === undefined ? 0 : 1;
       record.rayFade += (targetFade - record.rayFade) * 0.34;
       if (annotationId !== undefined) {
@@ -417,8 +530,17 @@ export class AnnotationXRLayer {
         record.ray.scale.z = THREE.MathUtils.clamp(hit.distance, 0.05, MAX_RAY_LENGTH);
       }
       record.ray.visible = record.rayFade > 0.025;
-      record.ray.material.color.set(0xffd166);
-      record.ray.material.opacity = 0.88 * record.rayFade;
+      record.ray.material.color.set(0xf4fbff);
+      record.ray.material.opacity = 0.76 * record.rayFade;
+      const reticle = record.ray.userData.reticle;
+      if (reticle) {
+        const reticleSize = hit
+          ? THREE.MathUtils.clamp(hit.distance * 0.006, 0.014, 0.045)
+          : 0.014;
+        reticle.scale.setScalar(reticleSize);
+        reticle.material.opacity = 0.94 * record.rayFade;
+        reticle.visible = record.ray.visible;
+      }
     }
   }
 
@@ -438,26 +560,22 @@ export class AnnotationXRLayer {
     if (camera) {
       this.group.updateWorldMatrix?.(true, false);
       camera.getWorldPosition(this._cameraWorldPosition);
-      camera.getWorldQuaternion(this._cameraWorldQuaternion);
       this.group.getWorldScale(this._parentWorldScale);
       this._worldPosition
         .set(annotation.position.x, annotation.position.y, annotation.position.z)
         .applyMatrix4(this.group.matrixWorld);
       const distance = this._cameraWorldPosition.distanceTo(this._worldPosition);
-      const worldWidth = THREE.MathUtils.clamp(distance * 0.42, 0.55, 1.8);
+      const worldWidth = THREE.MathUtils.clamp(distance * 0.22, 0.36, 0.95);
       const worldHeight = worldWidth * (PANEL_HEIGHT / PANEL_WIDTH);
-      this._cameraUp.set(0, 1, 0).applyQuaternion(this._cameraWorldQuaternion).normalize();
-      this._panelWorldPosition.copy(this._worldPosition).addScaledVector(this._cameraUp, worldHeight * 0.9);
+      this._panelWorldPosition
+        .copy(this._worldPosition)
+        .addScaledVector(this._billboardUp, worldHeight * 0.72 + 0.05);
       this.panel.position.copy(this.group.worldToLocal(this._panelWorldPosition));
       this.panel.scale.set(
         worldWidth / Math.max(1e-6, Math.abs(this._parentWorldScale.x)),
         worldHeight / Math.max(1e-6, Math.abs(this._parentWorldScale.y)),
         1
       );
-      this.group.getWorldQuaternion(this._parentWorldQuaternion).invert();
-      this.panel.quaternion
-        .copy(this._parentWorldQuaternion)
-        .multiply(this._cameraWorldQuaternion);
     }
   }
 
@@ -467,12 +585,53 @@ export class AnnotationXRLayer {
     canvas.height = PANEL_HEIGHT;
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
-    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
-    const sprite = new THREE.Sprite(material);
-    sprite.scale.set(1, PANEL_HEIGHT / PANEL_WIDTH, 1);
-    sprite.userData.canvas = canvas;
-    sprite.renderOrder = 1001;
-    return sprite;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
+    texture.anisotropy = Math.min(8, this.system.getRenderer?.()?.capabilities?.getMaxAnisotropy?.() || 1);
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        panelMap: { value: texture },
+        billboardRight: { value: this._billboardRight },
+        billboardUp: { value: this._billboardUp }
+      },
+      vertexShader: `
+        varying vec2 vPanelUv;
+        uniform vec3 billboardRight;
+        uniform vec3 billboardUp;
+        void main() {
+          vPanelUv = uv;
+          vec4 worldCenter = modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+          vec2 panelScale = vec2(
+            length(modelMatrix[0].xyz),
+            length(modelMatrix[1].xyz)
+          );
+          vec3 panelPosition = worldCenter.xyz
+            + billboardRight * position.x * panelScale.x
+            + billboardUp * position.y * panelScale.y;
+          gl_Position = projectionMatrix * viewMatrix * vec4(panelPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vPanelUv;
+        uniform sampler2D panelMap;
+        void main() {
+          vec4 panel = texture2D(panelMap, vPanelUv);
+          if (panel.a < 0.02) discard;
+          gl_FragColor = panel;
+        }
+      `,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false
+    });
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+    panel.scale.set(1, PANEL_HEIGHT / PANEL_WIDTH, 1);
+    panel.userData.canvas = canvas;
+    panel.renderOrder = 1001;
+    return panel;
   }
 
   drawPanel(annotation) {
@@ -481,31 +640,31 @@ export class AnnotationXRLayer {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'rgba(3, 15, 27, 0.96)';
     ctx.strokeStyle = 'rgba(141, 216, 240, 0.9)';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.roundRect(5, 5, canvas.width - 10, canvas.height - 10, 30);
+    ctx.roundRect(4, 4, canvas.width - 8, canvas.height - 8, 24);
     ctx.fill();
     ctx.stroke();
     const number = Math.max(1, this.system.sortedAnnotations?.().findIndex((item) => item.id === annotation.id) + 1 || 1);
     ctx.fillStyle = '#8dd8f0';
     ctx.beginPath();
-    ctx.arc(62, 70, 30, 0, Math.PI * 2);
+    ctx.arc(52, 58, 24, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#03101d';
-    ctx.font = '700 30px -apple-system, sans-serif';
+    ctx.font = '700 26px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(String(number), 62, 81);
+    ctx.fillText(String(number), 52, 67);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#eef9fc';
-    ctx.font = '650 42px -apple-system, sans-serif';
-    wrapText(ctx, annotation.title, 610).slice(0, 2).forEach((line, index) => ctx.fillText(line, 112, 60 + index * 49));
+    ctx.font = '650 40px -apple-system, sans-serif';
+    wrapText(ctx, annotation.title, 895).slice(0, 2).forEach((line, index) => ctx.fillText(line, 92, 54 + index * 46));
     ctx.fillStyle = '#b7cdd5';
-    ctx.font = '29px -apple-system, sans-serif';
-    wrapText(ctx, annotation.notes || 'No notes', 700).slice(0, 4).forEach((line, index) => ctx.fillText(line, 34, 185 + index * 36));
+    ctx.font = '30px -apple-system, sans-serif';
+    wrapText(ctx, annotation.notes || 'No notes', 952).slice(0, 4).forEach((line, index) => ctx.fillText(line, 36, 158 + index * 39));
     ctx.fillStyle = 'rgba(184, 232, 247, 0.62)';
     ctx.font = '22px -apple-system, sans-serif';
-    ctx.fillText('Trigger the marker again to close', 34, 352);
-    this.panel.material.map.needsUpdate = true;
+    ctx.fillText('Trigger again to close', 36, 386);
+    this.panel.material.uniforms.panelMap.value.needsUpdate = true;
     this.panel.userData.annotationId = annotation.id;
     this.panel.userData.title = annotation.title;
     this.panel.userData.notes = annotation.notes;
@@ -518,12 +677,15 @@ export class AnnotationXRLayer {
       controller.removeEventListener('connected', onConnected);
       controller.removeEventListener('disconnected', onDisconnected);
       ray.removeFromParent();
+      ray.userData.reticle?.geometry?.dispose();
+      ray.userData.reticle?.material?.dispose();
       ray.geometry.dispose();
       ray.material.dispose();
     }
     this.controllers = [];
     this.disposeMarkerMeshes();
-    this.panel?.material?.map?.dispose();
+    this.panel?.material?.uniforms?.panelMap?.value?.dispose();
+    this.panel?.geometry?.dispose();
     this.panel?.material?.dispose();
     this.group.removeFromParent();
     this.group.clear();

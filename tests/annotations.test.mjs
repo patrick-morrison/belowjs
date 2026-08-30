@@ -331,9 +331,10 @@ test('stationary DOM display positions follow later model transforms', () => {
   assert.ok(Math.abs(actual.z - expected.z) < 1e-9);
 });
 
-test('XR selected panels keep the camera world orientation under a rotated model', () => {
+test('XR selected panels stay compact and open just above the point under a rotated model', () => {
   const annotation = { id: 1, title: 'Bow', notes: 'Panel', position: { x: 1, y: 0, z: 0 } };
   const camera = new THREE.PerspectiveCamera();
+  camera.position.set(0, 0, 10);
   camera.rotation.set(-0.2, 0.7, 0.1);
   camera.updateMatrixWorld(true);
   const model = new THREE.Group();
@@ -346,13 +347,48 @@ test('XR selected panels keep the camera world orientation under a rotated model
   };
   const layer = new AnnotationXRLayer(system);
   model.add(layer.group);
-  layer.panel = new THREE.Object3D();
+  layer.panel = new THREE.Sprite(new THREE.SpriteMaterial());
   layer.panel.userData = { annotationId: 1, title: 'Bow', notes: 'Panel', offset: 0.45 };
   layer.updatePanel();
   model.updateMatrixWorld(true);
-  const panelWorld = layer.panel.getWorldQuaternion(new THREE.Quaternion());
-  const cameraWorld = camera.getWorldQuaternion(new THREE.Quaternion());
-  assert.ok(1 - Math.abs(panelWorld.dot(cameraWorld)) < 1e-9);
+  const panelScale = layer.panel.getWorldScale(new THREE.Vector3());
+  const panelWorld = layer.panel.getWorldPosition(new THREE.Vector3());
+  const pointWorld = new THREE.Vector3(1, 0, 0).applyMatrix4(model.matrixWorld);
+  const cameraUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize();
+  assert.ok(panelScale.x <= 0.95 + 1e-9, 'panel should never become headset-filling');
+  assert.ok(panelScale.x >= 0.36 - 1e-9, 'panel should remain readable nearby');
+  assert.ok(panelWorld.clone().sub(pointWorld).dot(cameraUp) > 0.05, 'panel should open above its point');
+});
+
+test('XR marker and halo shaders use a shared comfort-facing world basis with stereo projection', () => {
+  const layer = new AnnotationXRLayer({});
+  const markerMaterial = layer.createMarkerMaterial(new THREE.Texture(), 1, 1);
+  const haloMaterial = layer.createHaloMaterial();
+  for (const material of [markerMaterial, haloMaterial]) {
+    assert.match(material.vertexShader, /uniform vec3 billboardRight/);
+    assert.match(material.vertexShader, /uniform vec3 billboardUp/);
+    assert.match(material.vertexShader, /projectionMatrix \* viewMatrix/);
+  }
+});
+
+test('XR comfort-facing labels ease toward a new headset direction without inheriting head roll', () => {
+  const camera = new THREE.PerspectiveCamera();
+  camera.updateMatrixWorld(true);
+  const layer = new AnnotationXRLayer({ getCamera: () => camera });
+  layer.updateFacing(1 / 60);
+  const initialRight = layer._billboardRight.clone();
+
+  camera.rotation.set(0, Math.PI / 2, 0.6);
+  camera.updateMatrixWorld(true);
+  layer.updateFacing(1 / 60);
+  const firstStep = layer._billboardRight.clone();
+  const targetRight = new THREE.Vector3(0, 0, -1);
+  assert.ok(firstStep.distanceTo(initialRight) > 0.01, 'label should begin following the new view');
+  assert.ok(firstStep.distanceTo(targetRight) > 0.2, 'label should not snap immediately');
+
+  for (let index = 0; index < 120; index += 1) layer.updateFacing(1 / 60);
+  assert.ok(layer._billboardRight.distanceTo(targetRight) < 0.002, 'label should settle toward the viewer');
+  assert.ok(Math.abs(layer._billboardUp.y - 1) < 0.002, 'world-up locking should remove headset roll');
 });
 
 test('XR controller rays select a marker and trigger it again to close', () => {
@@ -433,6 +469,9 @@ test('XR annotation rays fade in only while a marker is targeted', () => {
   layer.updateControllerInteractions();
   assert.equal(ray.visible, true);
   assert.ok(ray.material.opacity > 0);
+  assert.equal(ray.material.color.getHex(), 0xf4fbff);
+  assert.equal(ray.userData.reticle.visible, true);
+  assert.ok(ray.userData.reticle.material.opacity > ray.material.opacity);
   assert.deepEqual([...layer.hoveredIds], [annotation.id]);
 
   controller.rotation.y = Math.PI;
@@ -440,6 +479,49 @@ test('XR annotation rays fade in only while a marker is targeted', () => {
   for (let index = 0; index < 24; index += 1) layer.updateControllerInteractions();
   assert.equal(ray.visible, false);
   assert.deepEqual([...layer.hoveredIds], []);
+});
+
+test('XR annotation targeting gives one light haptic tick per acquired marker', () => {
+  const annotation = { id: 4, title: 'Frame', notes: '', position: { x: 0, y: 0, z: -2 } };
+  let pulseCount = 0;
+  const layer = new AnnotationXRLayer({ selection: [], annotations: new Map([[annotation.id, annotation]]) });
+  layer.group.visible = true;
+  layer.markerIds = [annotation.id];
+  layer.markerHitMesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.2, 8, 6),
+    new THREE.MeshBasicMaterial(),
+    1
+  );
+  layer.markerHitMesh.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 0, -2));
+  layer.group.add(layer.markerHitMesh);
+  layer.group.updateMatrixWorld(true);
+  const controller = new THREE.Object3D();
+  controller.updateMatrixWorld(true);
+  const ray = layer.createControllerRay();
+  layer.controllers = [{
+    controller,
+    ray,
+    connected: true,
+    hoveredId: undefined,
+    rayFade: 0,
+    inputSource: {
+      gamepad: {
+        hapticActuators: [{ pulse: () => { pulseCount += 1; return Promise.resolve(); } }]
+      }
+    }
+  }];
+
+  layer.updateControllerInteractions();
+  layer.updateControllerInteractions();
+  assert.equal(pulseCount, 1, 'holding on one marker should not buzz repeatedly');
+
+  controller.rotation.y = Math.PI;
+  controller.updateMatrixWorld(true);
+  layer.updateControllerInteractions();
+  controller.rotation.y = 0;
+  controller.updateMatrixWorld(true);
+  layer.updateControllerInteractions();
+  assert.equal(pulseCount, 2, 'reacquiring the marker should give another light tick');
 });
 
 test('XR marker size stays readable under non-identity model scale', () => {
@@ -513,7 +595,7 @@ test('XR marker transforms use the live headset camera and lift targets off the 
   layer.markerMesh.getMatrixAt(0, matrix);
   matrix.decompose(position, quaternion, new THREE.Vector3());
   assert.ok(position.z > 0.05, 'marker should lift toward the live headset camera');
-  assert.ok(1 - Math.abs(quaternion.dot(headsetCamera.quaternion)) < 1e-9);
+  assert.ok(1 - Math.abs(quaternion.dot(new THREE.Quaternion())) < 1e-9, 'shader owns per-eye billboard rotation');
   layer.markerHitMesh.getMatrixAt(0, matrix);
   matrix.decompose(position, quaternion, new THREE.Vector3());
   assert.ok(position.z > 0.05, 'controller target should follow the lifted marker');

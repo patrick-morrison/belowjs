@@ -1641,7 +1641,7 @@ export class AnnotationDesktopLayer extends EventSystem {
 
     updateFrame(dt) {
         this.syncCanvasListeners();
-        this.xrLayer.sync();
+        this.xrLayer.sync(dt);
 
         const THREE = this.THREE;
         const camera = this.getCamera();
