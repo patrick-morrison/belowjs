@@ -6,15 +6,13 @@ const DEFAULT_RAY_LENGTH = 6;
 const MAX_RAY_LENGTH = 30;
 const MARKER_MIN_RADIUS = 0.025;
 const MARKER_MAX_RADIUS = 0.14;
+const OCCLUDED_MARKER_OPACITY = 0.12; // matches the desktop DOM markers' fade
+const OCCLUSION_EVERY_N_FRAMES = 3;   // recompute visibility every 3rd frame
 const MARKER_ATLAS_CELL = 128;
 const MARKER_ATLAS_COLUMNS = 32;
 const BILLBOARD_RESPONSE = 3.2;
 const BILLBOARD_START_ANGLE = THREE.MathUtils.degToRad(22);
 const BILLBOARD_STOP_ANGLE = THREE.MathUtils.degToRad(4);
-
-const MARKER_COLOR = new THREE.Color(0x8dd8f0);
-const MARKER_SELECTED_COLOR = new THREE.Color(0xffffff);
-const MARKER_HOVER_COLOR = new THREE.Color(0xffd166);
 
 function wrapText(ctx, text, maxWidth) {
   const words = String(text || '').split(/\s+/).filter(Boolean);
@@ -31,6 +29,32 @@ function wrapText(ctx, text, maxWidth) {
   }
   if (line) lines.push(line);
   return lines;
+}
+
+// The XR markers/panels are painted from the same annotation theme tokens the
+// desktop DOM layer uses (annotations.css :root --belowjs-annotation-*), so one
+// stylesheet themes both surfaces. Falls back to the "Glass" defaults offline.
+const ANNOTATION_THEME_FALLBACK = {
+  accent: 'rgb(100, 181, 246)',
+  panel: 'rgba(16, 20, 28, 0.9)',
+  surface: 'rgba(13, 18, 26, 0.85)',
+  text: 'rgba(255, 255, 255, 0.94)',
+  muted: 'rgba(255, 255, 255, 0.7)'
+};
+
+function readAnnotationTheme() {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || !document.documentElement) {
+    return { ...ANNOTATION_THEME_FALLBACK };
+  }
+  const cs = window.getComputedStyle(document.documentElement);
+  const pick = (name, fallback) => (cs.getPropertyValue(name).trim() || fallback);
+  return {
+    accent: pick('--belowjs-annotation-accent', ANNOTATION_THEME_FALLBACK.accent),
+    panel: pick('--belowjs-annotation-panel', ANNOTATION_THEME_FALLBACK.panel),
+    surface: pick('--belowjs-annotation-surface', ANNOTATION_THEME_FALLBACK.surface),
+    text: pick('--belowjs-annotation-text', ANNOTATION_THEME_FALLBACK.text),
+    muted: pick('--belowjs-annotation-muted', ANNOTATION_THEME_FALLBACK.muted)
+  };
 }
 
 export class AnnotationXRLayer {
@@ -74,6 +98,18 @@ export class AnnotationXRLayer {
     this._instanceMatrix = new THREE.Matrix4();
     this._identityQuaternion = new THREE.Quaternion();
     this.hoveredIds = new Set();
+    this._theme = readAnnotationTheme();
+    this._haloSelectedColor = new THREE.Color().setStyle(this._theme.accent);
+    this._haloHoverColor = new THREE.Color(0xffffff);
+    // Per-instance opacity so occluded markers fade uniformly (drawn on top,
+    // never clipped) instead of being hidden by the depth buffer.
+    this._markerOpacity = null;        // Float32Array, smoothed + uploaded
+    this._markerOpacityAttr = null;
+    this._haloOpacityAttr = null;
+    this._occluded = null;             // Uint8Array of last-computed visibility
+    this._occTick = 0;
+    this._occDir = new THREE.Vector3();
+    this._occAnchorWorld = new THREE.Vector3();
   }
 
   attach(model) {
@@ -228,8 +264,10 @@ export class AnnotationXRLayer {
       this.signature = signature;
       this.rebuildMarkers(annotations);
     }
+    this._theme = readAnnotationTheme();
+    this._haloSelectedColor.setStyle(this._theme.accent);
     this.updateFacing(dt);
-    this.updateMarkerTransforms(annotations);
+    this.updateMarkerTransforms(annotations, dt);
     this.updateControllerInteractions();
     this.updatePanel();
   }
@@ -253,6 +291,10 @@ export class AnnotationXRLayer {
     this.markerMesh = null;
     this.markerHaloMesh = null;
     this.markerHitMesh = null;
+    this._markerOpacity = null;
+    this._markerOpacityAttr = null;
+    this._haloOpacityAttr = null;
+    this._occluded = null;
     this.markerAtlasTexture?.dispose();
     this.markerAtlasTexture = null;
   }
@@ -272,18 +314,23 @@ export class AnnotationXRLayer {
       const row = Math.floor(index / columns);
       const x = column * MARKER_ATLAS_CELL + MARKER_ATLAS_CELL / 2;
       const y = row * MARKER_ATLAS_CELL + MARKER_ATLAS_CELL / 2;
+      // Glass marker: a quiet dark glassy disc with a hairline white edge and a
+      // soft (not glowing) drop shadow. The accent lives on the selection halo,
+      // not the face, so an unselected marker never shouts.
       ctx.save();
-      ctx.shadowColor = 'rgba(100, 181, 246, 0.52)';
-      ctx.shadowBlur = 14;
-      ctx.fillStyle = '#185f87';
-      ctx.strokeStyle = 'rgba(238, 249, 252, 0.96)';
-      ctx.lineWidth = 6;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = 'rgba(16, 22, 32, 0.92)';
       ctx.beginPath();
-      ctx.arc(x, y, 46, 0, Math.PI * 2);
+      ctx.arc(x, y, 44, 0, Math.PI * 2);
       ctx.fill();
-      ctx.stroke();
       ctx.restore();
-      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(x, y, 44, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
       const digits = String(index + 1).length;
       ctx.font = `700 ${digits > 2 ? 36 : 44}px -apple-system, sans-serif`;
       ctx.fillText(String(index + 1), x, y + 2);
@@ -307,12 +354,15 @@ export class AnnotationXRLayer {
       },
       vertexShader: `
         attribute vec2 annotationUvOffset;
+        attribute float annotationOpacity;
         varying vec2 vAnnotationUv;
+        varying float vAnnotationOpacity;
         uniform vec2 atlasScale;
         uniform vec3 billboardRight;
         uniform vec3 billboardUp;
         void main() {
           vAnnotationUv = uv * atlasScale + annotationUvOffset;
+          vAnnotationOpacity = annotationOpacity;
           mat4 instanceModel = modelMatrix * instanceMatrix;
           vec4 worldCenter = instanceModel * vec4(0.0, 0.0, 0.0, 1.0);
           vec2 billboardScale = vec2(
@@ -328,14 +378,15 @@ export class AnnotationXRLayer {
       fragmentShader: `
         uniform sampler2D markerAtlas;
         varying vec2 vAnnotationUv;
+        varying float vAnnotationOpacity;
         void main() {
           vec4 marker = texture2D(markerAtlas, vAnnotationUv);
           if (marker.a < 0.08) discard;
-          gl_FragColor = marker;
+          gl_FragColor = vec4(marker.rgb, marker.a * vAnnotationOpacity);
         }
       `,
       transparent: true,
-      depthTest: true,
+      depthTest: false,
       depthWrite: false,
       side: THREE.DoubleSide,
       toneMapped: false
@@ -349,11 +400,14 @@ export class AnnotationXRLayer {
         billboardUp: { value: this._billboardUp }
       },
       vertexShader: `
+        attribute float annotationOpacity;
         varying vec3 vInstanceColor;
+        varying float vAnnotationOpacity;
         uniform vec3 billboardRight;
         uniform vec3 billboardUp;
         void main() {
           vInstanceColor = instanceColor;
+          vAnnotationOpacity = annotationOpacity;
           mat4 instanceModel = modelMatrix * instanceMatrix;
           vec4 worldCenter = instanceModel * vec4(0.0, 0.0, 0.0, 1.0);
           vec2 billboardScale = vec2(
@@ -368,12 +422,13 @@ export class AnnotationXRLayer {
       `,
       fragmentShader: `
         varying vec3 vInstanceColor;
+        varying float vAnnotationOpacity;
         void main() {
-          gl_FragColor = vec4(vInstanceColor, 0.24);
+          gl_FragColor = vec4(vInstanceColor, 0.24 * vAnnotationOpacity);
         }
       `,
       transparent: true,
-      depthTest: true,
+      depthTest: false,
       depthWrite: false,
       side: THREE.DoubleSide,
       toneMapped: false
@@ -396,6 +451,13 @@ export class AnnotationXRLayer {
       offsets[index * 2 + 1] = (rows - 1 - Math.floor(index / columns)) / rows;
     });
     geometry.setAttribute('annotationUvOffset', new THREE.InstancedBufferAttribute(offsets, 2));
+    // Shared per-instance opacity, written each frame from the occlusion test.
+    this._markerOpacity = new Float32Array(annotations.length).fill(1);
+    this._occluded = new Uint8Array(annotations.length);
+    this._occTick = 0;
+    this._markerOpacityAttr = new THREE.InstancedBufferAttribute(this._markerOpacity, 1);
+    this._markerOpacityAttr.setUsage(THREE.DynamicDrawUsage);
+    geometry.setAttribute('annotationOpacity', this._markerOpacityAttr);
     this.markerAtlasTexture = atlas?.texture || null;
     const material = atlas
       ? this.createMarkerMaterial(atlas.texture, columns, rows)
@@ -404,6 +466,9 @@ export class AnnotationXRLayer {
     mesh.name = 'BelowJSAnnotationMarkersXR';
     mesh.frustumCulled = false;
     const haloGeometry = new THREE.RingGeometry(1.08, 1.32, 28);
+    this._haloOpacityAttr = new THREE.InstancedBufferAttribute(this._markerOpacity, 1);
+    this._haloOpacityAttr.setUsage(THREE.DynamicDrawUsage);
+    haloGeometry.setAttribute('annotationOpacity', this._haloOpacityAttr);
     const haloMaterial = this.createHaloMaterial();
     const haloMesh = new THREE.InstancedMesh(haloGeometry, haloMaterial, annotations.length);
     haloMesh.name = 'BelowJSAnnotationMarkerHalosXR';
@@ -468,7 +533,7 @@ export class AnnotationXRLayer {
     this._billboardUp.set(0, 1, 0).applyQuaternion(this._billboardWorldQuaternion).normalize();
   }
 
-  updateMarkerTransforms(annotations) {
+  updateMarkerTransforms(annotations, dt = 0.016) {
     if (!this.markerMesh || !this.markerHaloMesh) return;
     const camera = this.getViewCamera();
     this.group.updateWorldMatrix?.(true, false);
@@ -477,6 +542,10 @@ export class AnnotationXRLayer {
     const sx = Math.max(1e-6, Math.abs(this._parentWorldScale.x));
     const sy = Math.max(1e-6, Math.abs(this._parentWorldScale.y));
     const sz = Math.max(1e-6, Math.abs(this._parentWorldScale.z));
+    // Occlusion visibility is refreshed every few frames (the exact tri-grid
+    // raycast is cheap but need not run every frame); opacity eases each frame.
+    const refreshOcclusion = camera && (this._occTick++ % OCCLUSION_EVERY_N_FRAMES === 0);
+    const opacityEase = 1 - Math.exp(-8 * Math.max(0, Math.min(0.1, dt)));
     // Visible marker planes billboard per eye in their vertex shaders. Keep
     // instance matrices rotation-free so stereo rendering never inherits a
     // stale mono/headset quaternion from the CPU frame lifecycle.
@@ -484,6 +553,7 @@ export class AnnotationXRLayer {
     annotations.forEach((annotation, index) => {
       this._localPosition.set(annotation.position.x, annotation.position.y, annotation.position.z);
       this._worldPosition.copy(this._localPosition).applyMatrix4(this.group.matrixWorld);
+      this._occAnchorWorld.copy(this._worldPosition); // surface point, before the camera-ward lift
       const distance = camera ? this._cameraWorldPosition.distanceTo(this._worldPosition) : 4;
       let worldRadius = THREE.MathUtils.clamp(distance * 0.012, MARKER_MIN_RADIUS, MARKER_MAX_RADIUS);
       if (annotation.collapsed) worldRadius *= 0.55;
@@ -501,8 +571,21 @@ export class AnnotationXRLayer {
       this.markerMesh.setMatrixAt(index, this._instanceMatrix);
       const selected = this.system.selection?.includes(annotation.id);
       const hovered = this.hoveredIds.has(annotation.id);
-      this.markerHaloMesh.setColorAt(index, hovered ? MARKER_HOVER_COLOR : selected ? MARKER_SELECTED_COLOR : MARKER_COLOR);
-      this._haloScale.copy(this._localScale).multiplyScalar(hovered || selected ? 1.8 : 1.45);
+      const active = selected || hovered;
+      // Uniform occlusion fade (like the desktop markers): the whole marker
+      // dims to ~12% when the model hides it, never a half-covered clip. A
+      // selected/hovered marker stays fully opaque so its panel reads clearly.
+      if (this._markerOpacity) {
+        if (refreshOcclusion) {
+          this._occluded[index] = (!active && this.isPointOccluded(this._occAnchorWorld)) ? 1 : 0;
+        }
+        const target = (active || !this._occluded[index]) ? 1 : OCCLUDED_MARKER_OPACITY;
+        this._markerOpacity[index] += (target - this._markerOpacity[index]) * opacityEase;
+      }
+      // Ring only appears while hovered (white) or selected (accent); otherwise
+      // it is scaled to nothing so the resting marker is just the disc.
+      this.markerHaloMesh.setColorAt(index, hovered ? this._haloHoverColor : this._haloSelectedColor);
+      this._haloScale.copy(this._localScale).multiplyScalar(active ? 1.7 : 0.00001);
       this._instanceMatrix.compose(this._localPosition, this._identityQuaternion, this._haloScale);
       this.markerHaloMesh.setMatrixAt(index, this._instanceMatrix);
       if (this.markerHitMesh) {
@@ -515,6 +598,27 @@ export class AnnotationXRLayer {
     this.markerHaloMesh.instanceMatrix.needsUpdate = true;
     if (this.markerHitMesh) this.markerHitMesh.instanceMatrix.needsUpdate = true;
     if (this.markerHaloMesh.instanceColor) this.markerHaloMesh.instanceColor.needsUpdate = true;
+    if (this._markerOpacityAttr) this._markerOpacityAttr.needsUpdate = true;
+    if (this._haloOpacityAttr) this._haloOpacityAttr.needsUpdate = true;
+  }
+
+  // Is the model between the headset and this world point? Uses the desktop
+  // layer's triangle-grid raycaster (DDA-accelerated) when it is available;
+  // if the grid has not been built the marker simply stays fully visible.
+  isPointOccluded(worldPoint) {
+    const raycast = this.system?.raycastTriGrids;
+    if (typeof raycast !== 'function') return false;
+    this._occDir.copy(worldPoint).sub(this._cameraWorldPosition);
+    const dist = this._occDir.length();
+    if (dist < 1e-4) return false;
+    this._occDir.multiplyScalar(1 / dist);
+    const hit = raycast.call(this.system, this._cameraWorldPosition, this._occDir);
+    if (!hit) return false;
+    const dx = hit.x - this._cameraWorldPosition.x;
+    const dy = hit.y - this._cameraWorldPosition.y;
+    const dz = hit.z - this._cameraWorldPosition.z;
+    const near = dist - 0.03;
+    return (dx * dx + dy * dy + dz * dz) < near * near;
   }
 
   setControllerRaysVisible(visible) {
@@ -578,7 +682,7 @@ export class AnnotationXRLayer {
         .set(annotation.position.x, annotation.position.y, annotation.position.z)
         .applyMatrix4(this.group.matrixWorld);
       const distance = this._cameraWorldPosition.distanceTo(this._worldPosition);
-      const worldWidth = THREE.MathUtils.clamp(distance * 0.22, 0.36, 0.95);
+      const worldWidth = THREE.MathUtils.clamp(distance * 0.2, 0.34, 0.8);
       const worldHeight = worldWidth * (PANEL_HEIGHT / PANEL_WIDTH);
       this._panelWorldPosition
         .copy(this._worldPosition)
@@ -650,33 +754,41 @@ export class AnnotationXRLayer {
   drawPanel(annotation) {
     const canvas = this.panel.userData.canvas;
     const ctx = canvas.getContext('2d');
+    const theme = this._theme || readAnnotationTheme();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(3, 15, 27, 0.96)';
-    ctx.strokeStyle = 'rgba(141, 216, 240, 0.9)';
-    ctx.lineWidth = 4;
+    // Glass surface: translucent charcoal, hairline white border, and a faint
+    // top-edge sheen — no thick saturated frame to shimmer in the lenses.
+    ctx.fillStyle = theme.panel;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(4, 4, canvas.width - 8, canvas.height - 8, 24);
     ctx.fill();
     ctx.stroke();
-    const number = Math.max(1, this.system.sortedAnnotations?.().findIndex((item) => item.id === annotation.id) + 1 || 1);
-    ctx.fillStyle = '#8dd8f0';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(52, 58, 24, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#03101d';
-    ctx.font = '700 26px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(String(number), 52, 67);
+    ctx.moveTo(28, 7); ctx.lineTo(canvas.width - 28, 7); ctx.stroke();
+    const number = Math.max(1, this.system.sortedAnnotations?.().findIndex((item) => item.id === annotation.id) + 1 || 1);
+    // The index is a quiet neutral prefix, not a filled chip.
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#eef9fc';
-    ctx.font = '650 40px -apple-system, sans-serif';
-    wrapText(ctx, annotation.title, 895).slice(0, 2).forEach((line, index) => ctx.fillText(line, 92, 54 + index * 46));
-    ctx.fillStyle = '#b7cdd5';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = theme.muted;
+    ctx.font = '600 40px -apple-system, sans-serif';
+    const numLabel = String(number);
+    const numW = ctx.measureText(numLabel).width;
+    ctx.fillText(numLabel, 40, 56);
+    ctx.fillStyle = theme.text;
+    ctx.font = '600 40px -apple-system, sans-serif';
+    const titleX = 40 + numW + 18;
+    wrapText(ctx, annotation.title, canvas.width - titleX - 40).slice(0, 2).forEach((line, index) => ctx.fillText(line, index === 0 ? titleX : 40, 56 + index * 46));
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(36, 116); ctx.lineTo(canvas.width - 36, 116); ctx.stroke();
+    ctx.fillStyle = theme.muted;
     ctx.font = '30px -apple-system, sans-serif';
     wrapText(ctx, annotation.notes || 'No notes', 952).slice(0, 4).forEach((line, index) => ctx.fillText(line, 36, 158 + index * 39));
-    ctx.fillStyle = 'rgba(184, 232, 247, 0.62)';
-    ctx.font = '22px -apple-system, sans-serif';
-    ctx.fillText('Trigger again to close', 36, 386);
     this.panel.material.uniforms.panelMap.value.needsUpdate = true;
     this.panel.userData.annotationId = annotation.id;
     this.panel.userData.title = annotation.title;

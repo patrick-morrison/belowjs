@@ -368,7 +368,50 @@ test('XR marker and halo shaders use a shared comfort-facing world basis with st
     assert.match(material.vertexShader, /uniform vec3 billboardRight/);
     assert.match(material.vertexShader, /uniform vec3 billboardUp/);
     assert.match(material.vertexShader, /projectionMatrix \* viewMatrix/);
+    assert.match(material.vertexShader, /attribute float annotationOpacity/);
+    assert.match(material.fragmentShader, /vAnnotationOpacity/);
+    assert.equal(material.depthTest, false, 'XR labels should draw whole, then use opacity for occlusion');
   }
+});
+
+test('XR marker occlusion uses the shared triangle-grid hit and ignores its own surface', () => {
+  const layer = new AnnotationXRLayer({
+    raycastTriGrids: () => ({ x: 0, y: 0, z: -2 })
+  });
+  layer._cameraWorldPosition.set(0, 0, 0);
+  assert.equal(layer.isPointOccluded(new THREE.Vector3(0, 0, -5)), true);
+
+  layer.system.raycastTriGrids = () => ({ x: 0, y: 0, z: -4.99 });
+  assert.equal(layer.isPointOccluded(new THREE.Vector3(0, 0, -5)), false);
+
+  layer.system.raycastTriGrids = undefined;
+  assert.equal(layer.isPointOccluded(new THREE.Vector3(0, 0, -5)), false);
+});
+
+test('XR occlusion fades whole inactive markers while selected markers remain opaque', () => {
+  const annotation = { id: 1, title: 'Frame', notes: '', position: { x: 0, y: 0, z: -5 } };
+  const camera = new THREE.PerspectiveCamera();
+  camera.updateMatrixWorld(true);
+  const system = {
+    selection: [annotation.id],
+    annotations: new Map([[annotation.id, annotation]]),
+    getCamera: () => camera,
+    raycastTriGrids: () => ({ x: 0, y: 0, z: -2 })
+  };
+  const layer = new AnnotationXRLayer(system);
+  const model = new THREE.Group();
+  model.add(layer.group);
+  model.updateMatrixWorld(true);
+  layer.rebuildMarkers([annotation]);
+
+  for (let index = 0; index < 12; index += 1) layer.updateMarkerTransforms([annotation], 1 / 60);
+  assert.equal(layer._markerOpacity[0], 1, 'selection should override occlusion');
+
+  system.selection = [];
+  for (let index = 0; index < 90; index += 1) layer.updateMarkerTransforms([annotation], 1 / 60);
+  assert.ok(layer._markerOpacity[0] < 0.13, 'inactive hidden marker should ease to the fade floor');
+  assert.equal(layer.markerMesh.geometry.getAttribute('annotationOpacity').array, layer._markerOpacity);
+  assert.equal(layer.markerHaloMesh.geometry.getAttribute('annotationOpacity').array, layer._markerOpacity);
 });
 
 test('XR comfort-facing labels ease toward a new headset direction without inheriting head roll', () => {
